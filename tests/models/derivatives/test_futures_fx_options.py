@@ -382,3 +382,69 @@ def test_black_76_implied_volatility_agrees_with_vollib(  # noqa: PLR0913
     )
     assert solved.implied_volatility is not None
     assert math.isclose(solved.implied_volatility, theirs, rel_tol=0, abs_tol=1e-7)
+
+
+@pytest.mark.oracle("derivatives.futures_fx_options")
+@given(kind=KINDS, vol=st.floats(min_value=0.05, max_value=1.5), **MODERATE)
+def test_black_76_greeks_agree_with_quantlib_differences(  # noqa: PLR0913
+    *,
+    kind: str,
+    vol: float,
+    underlying: float,
+    moneyness: float,
+    years: float,
+    rate: float,
+) -> None:
+    strike = underlying * moneyness
+    option = ql.Option.Call if kind == "call" else ql.Option.Put
+
+    def black(forward: float, sigma: float, tau: float, r: float) -> float:
+        value: float = ql.blackFormula(
+            option, strike, forward, sigma * math.sqrt(tau), math.exp(-r * tau)
+        )
+        return value
+
+    ours = run(
+        calculation="black_76",
+        option_type=kind,
+        futures_price=underlying,
+        strike=strike,
+        years=years,
+        risk_free_rate=rate,
+        volatility=vol,
+    )
+    f_step, v_step, t_step, r_step = 1e-4 * underlying, 1e-5, 1e-6, 1e-6
+    differences = {
+        "delta": (
+            black(underlying + f_step, vol, years, rate)
+            - black(underlying - f_step, vol, years, rate)
+        )
+        / (2 * f_step),
+        "gamma": (
+            black(underlying + f_step, vol, years, rate)
+            - 2 * black(underlying, vol, years, rate)
+            + black(underlying - f_step, vol, years, rate)
+        )
+        / f_step**2,
+        "vega": (
+            black(underlying, vol + v_step, years, rate)
+            - black(underlying, vol - v_step, years, rate)
+        )
+        / (2 * v_step),
+        # Theta is the change as calendar time passes: minus the change in T.
+        "theta": -(
+            black(underlying, vol, years + t_step, rate)
+            - black(underlying, vol, years - t_step, rate)
+        )
+        / (2 * t_step),
+        "rho": (
+            black(underlying, vol, years, rate + r_step)
+            - black(underlying, vol, years, rate - r_step)
+        )
+        / (2 * r_step),
+    }
+    scale = underlying + strike
+    for name, difference in differences.items():
+        mine = getattr(ours, name)
+        tolerance = (1e-4 / underlying if name == "gamma" else 1e-6) * scale
+        assert math.isclose(mine, difference, rel_tol=1e-4, abs_tol=tolerance), name

@@ -192,7 +192,7 @@ def test_a_par_rate_past_its_bounds_is_refused() -> None:
 
 
 def test_an_annuity_that_underflows_is_refused() -> None:
-    with pytest.raises(DomainError, match="underflows"):
+    with pytest.raises(DomainError, match="annuity is zero"):
         run(
             calculation="discount_factors",
             fixed_rate=0.03,
@@ -297,3 +297,18 @@ def test_the_dated_swap_agrees_with_quantlibs_vanilla_swap(
         -theirs.fixedLegBPS(),
         rel_tol=1e-9,
     )
+
+
+def test_a_period_that_accrues_nothing_is_refused() -> None:
+    # On US 30/360, the 30th to the 31st of January is zero days; found by the
+    # Step 9 review.
+    with pytest.raises(DomainError, match="accrues nothing"):
+        run(
+            calculation="dated",
+            fixed_rate=0.05,
+            valuation_date="2000-01-30",
+            start_date="2000-01-30",
+            payment_dates=["2000-01-31"],
+            curve_tenors=[1.0],
+            curve_rates=[0.05],
+        )

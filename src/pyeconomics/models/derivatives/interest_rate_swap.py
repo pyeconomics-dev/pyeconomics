@@ -339,8 +339,9 @@ def _values(
     )
     if annuity == 0:
         msg = (
-            "every discount factor underflows to zero, so the annuity is zero and "
-            "the swap has no par rate"
+            "the annuity is zero: every period accrues nothing on its day count "
+            "(a 30/360 period from the 30th to the 31st, say) or its accrual times "
+            "its discount factor underflows, so the swap has no par rate"
         )
         raise DomainError(msg)
     floating = start_factor - factors[-1]
@@ -468,8 +469,9 @@ _ISDA = Reference(
             "outstanding are out of scope."
         ),
         (
-            "A par rate outside [-0.99, 10], an annuity factor of zero (every "
-            "discount factor underflowing) or above 1e6, a leg "
+            "A par rate outside [-0.99, 10], an annuity factor of zero (periods "
+            "that accrue nothing on their day count, or an underflow) or above "
+            "1e6, a leg "
             "worth more than 1e15, or a simple-interest curve with no positive "
             "growth, raises DomainError."
         ),
