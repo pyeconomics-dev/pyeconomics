@@ -1,0 +1,70 @@
+# tests/golden/portfolio/mean_variance.toml
+model = "portfolio.mean_variance"
+
+[[sources]]
+key = "markowitz"
+kind = "paper"
+citation = "Markowitz, H. (1952). Portfolio selection. The Journal of Finance, 7(1), 77-91. Portfolio mean and variance formulas, applied to synthetic two-asset inputs and recomputed with exact rational arithmetic."
+doi = "10.1111/j.1540-6261.1952.tb01525.x"
+
+[[sources]]
+key = "merton1972"
+kind = "paper"
+citation = "Merton, R. C. (1972). An analytic derivation of the efficient portfolio frontier. Journal of Financial and Quantitative Analysis, 7(4), 1851-1872. Closed forms applied to synthetic inputs; the linear systems solved exactly in rational arithmetic, roots to 40 digits."
+doi = "10.2307/2329621"
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "With two assets every fully invested portfolio is on the frontier, so the frontier passes through each asset; with uncorrelated assets the tangency weights are proportional to excess return over variance. Synthetic inputs, exact rational arithmetic."
+
+[[cases]]
+id = "two_asset_portfolio"
+source = "markowitz"
+locator = "p. 81, the expected return E and variance V of a portfolio"
+edge = false
+inputs = { calculation = "portfolio", weights = [0.6, 0.4], expected_returns = [0.1, 0.06], volatilities = [0.2, 0.1], correlations = [[1.0, 0.3], [0.3, 1.0]] }
+expected = { expected_return = 0.084, variance = 0.01888, volatility = 0.13740451229854134, weight_sum = 1.0 }
+
+[[cases]]
+id = "two_asset_minimum_variance"
+source = "merton1972"
+locator = "Eqs. (13)-(14), the minimum-variance portfolio (MIT working paper 493-70 numbering)"
+edge = false
+inputs = { calculation = "minimum_variance", expected_returns = [0.1, 0.06], covariance = [[0.04, 0.006], [0.006, 0.01]] }
+expected = { weights = [0.10526315789473684, 0.8947368421052632], expected_return = 0.06421052631578947, variance = 0.009578947368421053, volatility = 0.09787209698591857 }
+note = "Weights 2/19 and 17/19, variance 91/9500."
+
+[[cases]]
+id = "three_asset_minimum_variance"
+source = "merton1972"
+locator = "Eqs. (13)-(14), the minimum-variance portfolio (MIT working paper 493-70 numbering)"
+edge = false
+inputs = { calculation = "minimum_variance", expected_returns = [0.08, 0.12, 0.15], volatilities = [0.15, 0.2, 0.25], correlations = [[1.0, 0.3, 0.2], [0.3, 1.0, 0.5], [0.2, 0.5, 1.0]] }
+expected = { weights = [0.6615598885793872, 0.22284122562674094, 0.11559888579387187], expected_return = 0.09700557103064067, variance = 0.017757660167130918, volatility = 0.13325787093875888 }
+note = "Expected return 1393/14360, variance 51/2872."
+
+[[cases]]
+id = "three_asset_tangency"
+source = "merton1972"
+locator = "Section IV, eq. (44), the tangency portfolio (MIT working paper 493-70 numbering)"
+edge = false
+inputs = { calculation = "tangency", risk_free_rate = 0.03, expected_returns = [0.08, 0.12, 0.15], covariance = [[0.0225, 0.009, 0.0075], [0.009, 0.04, 0.025], [0.0075, 0.025, 0.0625]] }
+expected = { weights = [0.35335689045936397, 0.3003533568904594, 0.3462897526501767], expected_return = 0.11625441696113074, variance = 0.022858944424327936, volatility = 0.1511917472097202, capital_market_line_slope = 0.5704968594713442 }
+note = "Weights 100/283, 85/283 and 98/283."
+
+[[cases]]
+id = "two_asset_frontier_through_each_asset"
+source = "identity"
+edge = true
+inputs = { calculation = "frontier", points = 3, min_return = 0.06, max_return = 0.1, expected_returns = [0.1, 0.06], volatilities = [0.2, 0.1], correlations = [[1.0, 0.3], [0.3, 1.0]] }
+expected = { target_returns = [0.06, 0.08, 0.1], variances = [0.01, 0.0155, 0.04], volatilities = [0.1, 0.12449899597988733, 0.2], weights = [[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]] }
+tolerance = { weights = { abs = 1e-12 } }
+
+[[cases]]
+id = "extreme_volatility_negative_rate_tangency"
+source = "identity"
+edge = true
+inputs = { calculation = "tangency", risk_free_rate = -0.01, expected_returns = [-0.05, 0.1], volatilities = [2.0, 2.0], correlations = [[1.0, 0.0], [0.0, 1.0]] }
+expected = { weights = [-0.5714285714285714, 1.5714285714285714], expected_return = 0.18571428571428572, variance = 11.183673469387756, volatility = 3.3441999744913216, capital_market_line_slope = 0.058523499553598125 }
+note = "Volatilities of 200% and a negative risk-free rate; weights -4/7 and 11/7."

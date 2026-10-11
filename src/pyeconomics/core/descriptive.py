@@ -16,6 +16,9 @@ The estimators are named, because each has rivals:
 - excess kurtosis, G2:
   :math:`\frac{n-1}{(n-2)(n-3)}\left[(n+1)\frac{m_4}{m_2^2} - 3(n-1)\right]`;
 - maximum drawdown: :math:`\max_{j}\left(1 - x_j / \max_{i \le j} x_i\right)`;
+- compound return of a series: :math:`\prod (1 + r_t) - 1`;
+- annualized return: :math:`(1 + R)^{m / k} - 1` for a return :math:`R` over
+  :math:`k` periods and :math:`m` periods in a year;
 
 with :math:`m_k = \frac{1}{n}\sum (x_i - \bar{x})^k`. G1 and G2 are the
 adjusted estimators Joanes and Gill (1998) compare, the ones SAS, SPSS and
@@ -24,6 +27,10 @@ Excel report, and SciPy's ``skew`` and ``kurtosis`` with ``bias=False``.
 Means and sums of squares use a corrected two-pass method (Chan, Golub and
 LeVeque, 1983), so a series with a large offset and a small spread, such as
 NIST's NumAcc1, keeps its digits.
+
+Returns compound in log space. As in :mod:`pyeconomics.core.cashflows`, a
+compound or annualized return too large for a float comes back as infinity, and
+the model that asked decides what that means for its bounds.
 
 Examples
 --------
@@ -50,6 +57,11 @@ if TYPE_CHECKING:
 __all__ = [
     "Drawdown",
     "Moments",
+    "annualized_log_return",
+    "annualized_return",
+    "compound_return",
+    "has_spread",
+    "log_return",
     "max_drawdown",
     "sample_mean",
     "sample_moments",
@@ -63,6 +75,9 @@ __all__ = [
 _ZERO_SPREAD_ULPS: Final = 64
 
 _KURTOSIS_MIN: Final = 4
+
+#: The largest argument ``math.exp`` takes without overflowing.
+_LOG_MAX: Final = math.log(np.finfo(np.float64).max)
 
 type _Vector = NDArray[np.float64]
 
@@ -90,6 +105,143 @@ def _no_spread(data: _Vector, deviations: _Vector) -> bool:
     scale = float(np.max(np.abs(data)))
     limit = _ZERO_SPREAD_ULPS * float(np.finfo(np.float64).eps) * scale
     return bool(np.max(np.abs(deviations)) <= limit)
+
+
+def has_spread(values: Sequence[float]) -> bool:
+    """Return whether the values differ by more than rounding error.
+
+    A spread of 64 machine epsilons of the largest magnitude, or less, counts
+    as none: a ratio divided by such a standard deviation is noise.
+
+    Examples
+    --------
+    >>> has_spread([0.1, 0.1, 0.1]), has_spread([0.1, 0.2])
+    (False, True)
+
+    """
+    data = _series(values, 1)
+    _, deviations = _centred(data)
+    return not _no_spread(data, deviations)
+
+
+def compound_return(returns: Sequence[float]) -> float:
+    """Return the compound return of a series, or infinity when it overflows.
+
+    A return of -1 (a total loss) anywhere makes the result -1.
+
+    Raises
+    ------
+    InputError
+        If a return is below -1 or not finite, or there is none.
+
+    Examples
+    --------
+    >>> round(compound_return([0.1, -0.05, 0.2]), 12)
+    0.254
+
+    """
+    return _expm1(log_return(returns))
+
+
+def log_return(returns: Sequence[float]) -> float:
+    r"""Return the log of the compound gross return, :math:`\sum \ln(1 + r_t)`.
+
+    A return of -1 (a total loss) anywhere makes it minus infinity. Unlike the
+    compound return itself, the sum neither overflows nor rounds a long run of
+    losses to exactly -1, so annualize from it
+    (:func:`annualized_log_return`).
+
+    Raises
+    ------
+    InputError
+        If a return is below -1 or not finite, or there is none.
+
+    Examples
+    --------
+    >>> round(log_return([0.1, -0.05, 0.2]), 12)
+    0.226338442211
+
+    """
+    data = _series(returns, 1)
+    if np.any(data < -1):
+        msg = "a return below -1 (a loss of more than everything) does not compound"
+        raise InputError(msg)
+    if np.any(data == -1):
+        return -math.inf
+    return math.fsum(np.log1p(data).tolist())
+
+
+def annualized_log_return(
+    log_total: float, periods: float, periods_per_year: float
+) -> float:
+    r"""Return :math:`e^{\ell m / k} - 1` for a log return :math:`\ell` over k periods.
+
+    Minus infinity (a total loss) gives -1, and an overflow infinity.
+
+    Raises
+    ------
+    InputError
+        If the log return is NaN or plus infinity, or a count of periods is
+        not positive.
+
+    Examples
+    --------
+    >>> round(annualized_log_return(log_return([-0.5] * 100), 100, 1), 12)
+    -0.5
+
+    """
+    if math.isnan(log_total) or log_total == math.inf:
+        msg = f"a log return must be finite or minus infinity, not {log_total!r}"
+        raise InputError(msg)
+    for name, value in (("periods", periods), ("periods_per_year", periods_per_year)):
+        if not (math.isfinite(value) and value > 0):
+            msg = f"{name} must be finite and above zero, not {value!r}"
+            raise InputError(msg)
+    if log_total in {0.0, -math.inf}:
+        # Fixed points of compounding; an exponent that overflows to inf
+        # would otherwise turn 0 into NaN.
+        return _expm1(log_total)
+    return _expm1(periods_per_year / periods * log_total)
+
+
+def annualized_return(
+    total_return: float, periods: float, periods_per_year: float
+) -> float:
+    """Return a return over ``periods`` compounded to a year of ``periods_per_year``.
+
+    The result is :math:`(1 + R)^{m / k} - 1`, or infinity when it overflows.
+    Zero and -1 are fixed points. A return compounded over many periods may
+    already have rounded to -1 or overflowed: annualize those from their
+    :func:`log_return` instead.
+
+    Raises
+    ------
+    InputError
+        If the return is below -1 or not finite, or a count of periods is not
+        positive.
+
+    Examples
+    --------
+    >>> round(annualized_return(0.01, 1, 12), 12)
+    0.126825030132
+    >>> annualized_return(-1.0, 3, 12)
+    -1.0
+
+    """
+    if not (math.isfinite(total_return) and total_return >= -1):
+        msg = f"the return must be finite and at least -1, not {total_return!r}"
+        raise InputError(msg)
+    log_total = -math.inf if total_return == -1 else math.log1p(total_return)
+    return annualized_log_return(log_total, periods, periods_per_year)
+
+
+def _expm1(log_total: float) -> float:
+    """Return ``e**x - 1`` at least -1, or infinity where it overflows."""
+    if log_total > _LOG_MAX:
+        return math.inf
+    if log_total == -math.inf:
+        return -1.0
+    return max(math.expm1(log_total), -1.0)
 
 
 def sample_mean(values: Sequence[float]) -> float:
