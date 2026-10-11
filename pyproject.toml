@@ -183,10 +183,11 @@ enable_error_code = [
 files = ["src", "tests"]
 exclude = ['^\.semgrep/tests/', '^tests/fixtures/']
 
-# plotly (the plot extra) and jsonschema (the schema tests' validator) ship no
-# type information; only their own modules are left unchecked.
+# plotly (the plot extra), jsonschema (the schema tests' validator), and
+# numpy_financial 1.0 (the Python 3.12 oracle) ship no type information;
+# only their own modules are left unchecked.
 [[tool.mypy.overrides]]
-module = ["plotly.*", "jsonschema.*"]
+module = ["plotly.*", "jsonschema.*", "numpy_financial.*"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]
