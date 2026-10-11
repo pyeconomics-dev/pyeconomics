@@ -1,0 +1,55 @@
+# tests/golden/derivatives/binomial_tree.toml
+model = "derivatives.binomial_tree"
+
+[[sources]]
+key = "hull2018"
+kind = "textbook"
+citation = "Hull, J. C. (2018). Options, Futures, and Other Derivatives, 10th ed. Pearson."
+isbn = "9780134472089"
+published_digits = 2
+
+[[sources]]
+key = "cox1979"
+kind = "paper"
+citation = "Cox, J. C., Ross, S. A. and Rubinstein, M. (1979). Option Pricing: A Simplified Approach. Journal of Financial Economics, 7(3), 229-263."
+doi = "10.1016/0304-405X(79)90015-1"
+
+[[sources]]
+key = "binomial_formula"
+kind = "identity"
+citation = "A European option on an n-step tree is e^(-rT) sum over j of C(n, j) p^j (1 - p)^(n - j) payoff(S u^j d^(n - j)); an American call on a non-dividend-paying asset at a rate of zero or more is never exercised early, so it has the same value."
+
+[[cases]]
+id = "five_step_american_put"
+source = "hull2018"
+locator = "Chapter 21, the five-step tree for an American put with S0 = K = 50, r = 10%, sigma = 40% and T = 5 months"
+edge = false
+inputs = { option_type = "put", exercise = "american", spot = 50.0, strike = 50.0, years = 0.4166666666666667, risk_free_rate = 0.10, volatility = 0.40, steps = 5 }
+expected = { price = 4.49, delta = -0.41, gamma = 0.03 }
+tolerance = { price = { abs = 0.005 }, delta = { abs = 0.005 }, gamma = { abs = 0.005 } }
+note = "Hull reads delta from the first step's nodes and gamma from the second's, as the model does."
+
+[[cases]]
+id = "two_step_european_call"
+source = "cox1979"
+locator = "The binomial option pricing formula, on two steps with S = 100, K = 95, r = 5%, sigma = 30% and T = 1"
+edge = false
+inputs = { option_type = "call", exercise = "european", spot = 100.0, strike = 95.0, years = 1.0, risk_free_rate = 0.05, volatility = 0.30, steps = 2 }
+expected = { price = 16.487765704304323 }
+note = "Evaluated independently from the formula's sum over terminal nodes."
+
+[[cases]]
+id = "zero_rate_american_call"
+source = "binomial_formula"
+edge = true
+inputs = { option_type = "call", exercise = "american", spot = 100.0, strike = 100.0, years = 1.0, risk_free_rate = 0.0, volatility = 0.25, steps = 2 }
+expected = { price = 8.815888669845206 }
+note = "A zero rate and no dividends: the American call is the two-step European value."
+
+[[cases]]
+id = "fifty_year_european_put"
+source = "binomial_formula"
+edge = true
+inputs = { option_type = "put", exercise = "european", spot = 100.0, strike = 100.0, years = 50.0, risk_free_rate = 0.02, volatility = 0.20, steps = 3 }
+expected = { price = 10.944438630209344 }
+note = "A 50-year put on three steps."

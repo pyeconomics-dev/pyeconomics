@@ -191,6 +191,10 @@ jobs:
           #   (BSD-2-Clause-Views AND BSD-3-Clause AND BSD-2-Clause).
           #   The licences hook excludes all five from the runtime closure;
           #   the all-groups audit still covers their locked versions.
+          # - simplejson (MIT OR AFL-2.1; GitHub reads "(AFL-2.1 AND MIT AND
+          #   Python-2.0) OR (AFL-2.1 AND MIT)") comes in only through vollib,
+          #   the test group's implied-volatility oracle (Phase 2 Step 9). The
+          #   licences hook confirms it is outside the runtime closure.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:pypi/astroid,
@@ -202,6 +206,7 @@ jobs:
             pkg:pypi/parso,
             pkg:pypi/pathspec,
             pkg:pypi/roman-numerals,
+            pkg:pypi/simplejson,
             pkg:pypi/sphinx,
             pkg:pypi/typing-extensions
           comment-summary-in-pr: never

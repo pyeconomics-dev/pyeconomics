@@ -8,10 +8,12 @@ For the current stable release, use the [0.2.6 documentation](https://pyeconomic
 pyeconomics is an open library of economics and finance models with typed
 inputs, cited formulas and reproducible results. The preview includes five
 foundations models (time value, returns, risk statistics, hypothesis tests and
-simulation) and six fixed-income models (bond pricing, money-market yields,
-curve bootstrapping, duration, convexity and credit spreads). Each has a
-generated card with units, bounds, assumptions,
-limitations and a worked example. The Python API is available in this checkout;
+simulation), six fixed-income models (bond pricing, money-market yields,
+curve bootstrapping, duration, convexity and credit spreads), five derivatives
+models (forwards, interest rate swaps, Black-Scholes-Merton, binomial trees,
+and futures and currency options) and the international parity conditions.
+Each has a generated card with units, bounds, assumptions, limitations and a
+worked example. The Python API is available in this checkout;
 the command line, REST API, MCP server and web app follow in later phases.
 
 ```{toctree}

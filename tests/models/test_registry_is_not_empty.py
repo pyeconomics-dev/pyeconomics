@@ -6,7 +6,7 @@
 The golden harness and the contract suite parametrize over the installed
 registry. If discovery found nothing (a missing entry point, a broken install),
 they would collect no case and pass. This test makes an empty registry fail, and
-pins the domains Phase 2 Steps 6 and 8 registered.
+pins the domains Phase 2 Steps 6, 8 and 9 registered.
 """
 
 from __future__ import annotations
@@ -30,6 +30,15 @@ FIXED_INCOME = {
     "fixed_income.duration",
     "fixed_income.money_market",
 }
+DERIVATIVES = {
+    "derivatives.binomial_tree",
+    "derivatives.black_scholes_merton",
+    "derivatives.forwards",
+    "derivatives.futures_fx_options",
+    "derivatives.interest_rate_swap",
+}
+INTERNATIONAL = {"international.parity_conditions"}
+CATALOG = FOUNDATIONS | FIXED_INCOME | DERIVATIVES | INTERNATIONAL
 
 
 def test_the_registry_is_not_empty() -> None:
@@ -49,7 +58,17 @@ def test_the_fixed_income_entry_point_registers_its_six_models() -> None:
     assert "fixed_income" in registry.domains()
 
 
+def test_the_derivatives_entry_point_registers_its_five_models() -> None:
+    assert {m.id for m in registry.models("derivatives")} == DERIVATIVES
+    assert "derivatives" in registry.domains()
+
+
+def test_the_international_entry_point_registers_its_model() -> None:
+    assert {m.id for m in registry.models("international")} == INTERNATIONAL
+    assert "international" in registry.domains()
+
+
 def test_each_catalog_model_comes_from_this_distribution() -> None:
     for registration in installed().registrations:
-        if registration.model.id in FOUNDATIONS | FIXED_INCOME:
+        if registration.model.id in CATALOG:
             assert registration.provider.name == "pyeconomics"

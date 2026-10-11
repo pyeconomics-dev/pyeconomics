@@ -5274,9 +5274,9 @@ Intelligence High. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 9 — Launch Catalog: Derivatives and International
+## Step 9 — Launch Catalog: Derivatives and International ✅
 
-**Status:** Not started
+**Status:** Complete — PR #84 (2026-10-11)
 
 > **Goal:** Register the five derivatives entries and the international
 > parity entry. Add `src/pyeconomics/models/derivatives/` with
@@ -6126,6 +6126,23 @@ knowledge. New conversation per phase-boundary hygiene.
       contract.check_model(model, max_examples=1500) on
       each new model and have an independent reviewer
       read the diff.
+    - Step 9 facts (2026-10-11): a model whose input is a
+      single class (not a union) must not give that class
+      a docstring, or the input schema's description
+      replaces the summary and test_schema fails (issue
+      #83). run_model records warnings in Result.warnings;
+      an outer collect_warnings() sees none. In property
+      tests, discard a documented DomainError with
+      hypothesis' reject() (assume(False) trips FBT003),
+      and make many-argument @given tests keyword-only
+      (PLR0917). models/derivatives/_options.py holds a
+      bounded() like foundations' (a domain never imports
+      another's). Size Greek-like bounds from the inputs'
+      extremes and widen a unit default with a comment
+      (ADR-0008 decision 3). QuantLib 1.43's binomial
+      engine can price an American option below its own
+      European; its FD engine is the sound American
+      oracle.
 
     Files to read (every file before drafting):
     - This roadmap's Overview (model contract, catalog
@@ -9166,7 +9183,7 @@ workflow above maps directly to the corresponding row below.
 | 6       | Catalog: foundations             | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #79 |
 | 7       | Cards + docs preview             | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #80 |
 | 8       | Catalog: fixed income            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #82 |
-| 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
+| 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
 | 10      | Catalog: equity, corp., acct.    | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |

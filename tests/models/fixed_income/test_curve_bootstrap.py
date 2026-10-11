@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 import QuantLib as ql  # type: ignore[import-untyped]  # noqa: N813 - oracle docs use ql
-from hypothesis import given, settings
+from hypothesis import given, reject, settings
 from hypothesis import strategies as st
 
 from pyeconomics.core import DomainError, InputError, run_model
@@ -68,9 +68,14 @@ def test_a_flat_par_curve_bootstraps_to_itself(
 @given(par=par_curves(), frequency=st.sampled_from(list(PERIODS)))
 def test_the_curve_reprices_every_par_bond(par: list[float], frequency: str) -> None:
     m = PERIODS[frequency]
-    factors = run(
-        calculation="from_par", par_yields=par, frequency=frequency
-    ).discount_factors
+    try:
+        factors = run(
+            calculation="from_par", par_yields=par, frequency=frequency
+        ).discount_factors
+    except DomainError:
+        # A steep long end can bootstrap a factor below zero (6.25% for 36
+        # years, then 6.64% and 7.03%): refused, as the limitations say.
+        reject()
     for k, coupon in enumerate(par, start=1):
         value = coupon / m * math.fsum(factors[:k]) + factors[k - 1]
         assert math.isclose(value, 1.0, rel_tol=1e-12)

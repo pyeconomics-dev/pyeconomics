@@ -1,0 +1,155 @@
+# tests/golden/derivatives/black_scholes_merton.toml
+model = "derivatives.black_scholes_merton"
+
+[[sources]]
+key = "hull2018"
+kind = "textbook"
+citation = "Hull, J. C. (2018). Options, Futures, and Other Derivatives, 10th ed. Pearson."
+isbn = "9780134472089"
+published_digits = 2
+
+[[sources]]
+key = "hull2018b"
+kind = "textbook"
+citation = "Hull, J. C. (2018). Options, Futures, and Other Derivatives, 10th ed. Pearson. Values printed to three decimals."
+isbn = "9780134472089"
+published_digits = 3
+
+[[sources]]
+key = "haug2007"
+kind = "textbook"
+citation = "Haug, E. G. (2007). The Complete Guide to Option Pricing Formulas, 2nd ed. McGraw-Hill."
+isbn = "9780071389976"
+published_digits = 4
+
+[[sources]]
+key = "black1973"
+kind = "paper"
+citation = "Black, F. and Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. Journal of Political Economy, 81(3), 637-654."
+doi = "10.1086/260062"
+
+[[sources]]
+key = "atm_forward"
+kind = "identity"
+citation = "With r = q = 0 and S = K, d1 = sigma sqrt(T) / 2 and d2 = -d1, so c = p = S (2 N(sigma sqrt(T) / 2) - 1)."
+
+[[sources]]
+key = "high_volatility"
+kind = "identity"
+citation = "As sigma sqrt(T) grows, N(d1) tends to 1 and N(d2) to 0, so a call tends to its upper bound S e^(-qT)."
+
+[[sources]]
+key = "put_call_parity"
+kind = "identity"
+citation = "For European options with the same terms, c - p = S e^(-qT) - K e^(-rT) at any rates, negative ones included."
+
+[[sources]]
+key = "no_arbitrage"
+kind = "identity"
+citation = "A European call lies strictly between max(S e^(-qT) - K e^(-rT), 0) and S e^(-qT); a price outside has no implied volatility."
+
+[[cases]]
+id = "six_month_call"
+source = "hull2018"
+locator = "Chapter 15, the worked example of a six-month option with S0 = 42, K = 40, r = 10% and sigma = 20%"
+edge = false
+inputs = { calculation = "price", option_type = "call", spot = 42.0, strike = 40.0, years = 0.5, risk_free_rate = 0.10, volatility = 0.20 }
+expected = { price = 4.76 }
+tolerance = { price = { abs = 0.005 } }
+
+[[cases]]
+id = "six_month_put"
+source = "hull2018"
+locator = "Chapter 15, the same worked example: the European put"
+edge = false
+inputs = { calculation = "price", option_type = "put", spot = 42.0, strike = 40.0, years = 0.5, risk_free_rate = 0.10, volatility = 0.20 }
+expected = { price = 0.81 }
+tolerance = { price = { abs = 0.005 } }
+
+[[cases]]
+id = "index_call_with_dividend_yield"
+source = "hull2018"
+locator = "Chapter 17, the two-month index call with S0 = 930, K = 900, r = 8%, q = 3% and sigma = 20%"
+edge = false
+inputs = { calculation = "price", option_type = "call", spot = 930.0, strike = 900.0, years = 0.16666666666666666, risk_free_rate = 0.08, dividend_yield = 0.03, volatility = 0.20 }
+expected = { price = 51.83 }
+tolerance = { price = { abs = 0.005 } }
+
+[[cases]]
+id = "greeks_of_a_twenty_week_call"
+source = "hull2018b"
+locator = "Chapter 19, the Greek letters of a 20-week call with S0 = 49, K = 50, r = 5% and sigma = 20%"
+edge = false
+inputs = { calculation = "price", option_type = "call", spot = 49.0, strike = 50.0, years = 0.38461538461538464, risk_free_rate = 0.05, volatility = 0.20 }
+expected = { price = 2.40, delta = 0.522, gamma = 0.066, vega = 12.1, theta = -4.31, rho = 8.91 }
+tolerance = { price = { abs = 0.005 }, delta = { abs = 0.0005 }, gamma = { abs = 0.0005 }, vega = { abs = 0.05 }, theta = { abs = 0.005 }, rho = { abs = 0.005 } }
+note = "Hull prints delta and gamma to three decimals, theta (per year) and rho to two, vega to one; each field's tolerance is half its last printed digit."
+
+[[cases]]
+id = "index_put_merton"
+source = "haug2007"
+locator = "Chapter 1, the generalized Black-Scholes-Merton section: the six-month index put with S = 100, X = 95, r = 10%, q = 5% and sigma = 20%"
+edge = false
+inputs = { calculation = "price", option_type = "put", spot = 100.0, strike = 95.0, years = 0.5, risk_free_rate = 0.10, dividend_yield = 0.05, volatility = 0.20 }
+expected = { price = 2.4648 }
+tolerance = { price = { abs = 0.00005 } }
+
+[[cases]]
+id = "three_month_call_black_scholes"
+source = "haug2007"
+locator = "Chapter 1, the Black-Scholes section: the three-month call with S = 60, X = 65, r = 8% and sigma = 30%"
+edge = false
+inputs = { calculation = "price", option_type = "call", spot = 60.0, strike = 65.0, years = 0.25, risk_free_rate = 0.08, volatility = 0.30 }
+expected = { price = 2.1334 }
+tolerance = { price = { abs = 0.00005 } }
+
+[[cases]]
+id = "implied_volatility_of_a_call"
+source = "hull2018b"
+locator = "Chapter 15, implied volatilities: the call worth 1.875 with S0 = 21, K = 20, r = 10% and T = 0.25"
+edge = false
+inputs = { calculation = "implied_volatility", option_type = "call", option_price = 1.875, spot = 21.0, strike = 20.0, years = 0.25, risk_free_rate = 0.10 }
+expected = { implied_volatility = 0.235 }
+tolerance = { implied_volatility = { abs = 0.0005 } }
+note = "Printed as 23.5% per annum."
+
+[[cases]]
+id = "one_year_at_the_money_call"
+source = "black1973"
+locator = "Equation (13), the value of a European call, at S = K = 100, r = 5%, sigma = 20% and T = 1"
+edge = false
+inputs = { calculation = "price", option_type = "call", spot = 100.0, strike = 100.0, years = 1.0, risk_free_rate = 0.05, volatility = 0.20 }
+expected = { price = 10.450583572185565 }
+note = "Evaluated independently with scipy.stats.norm.cdf."
+
+[[cases]]
+id = "zero_rates_at_the_money_forward"
+source = "atm_forward"
+edge = true
+inputs = { calculation = "price", option_type = "put", spot = 100.0, strike = 100.0, years = 1.0, risk_free_rate = 0.0, volatility = 0.20 }
+expected = { price = 7.965567455405798 }
+note = "Zero rate and dividend yield; 100 (2 N(0.1) - 1)."
+
+[[cases]]
+id = "volatility_of_five_for_a_century"
+source = "high_volatility"
+edge = true
+inputs = { calculation = "price", option_type = "call", spot = 100.0, strike = 100.0, years = 100.0, risk_free_rate = 0.05, dividend_yield = 0.02, volatility = 5.0 }
+expected = { price = 13.53352832366127 }
+note = "sigma sqrt(T) = 50, so N(d2) is below 1e-130: the call is 100 e^-2."
+
+[[cases]]
+id = "negative_rate_parity"
+source = "put_call_parity"
+edge = true
+inputs = { calculation = "price", option_type = "call", spot = 100.0, strike = 110.0, years = 2.0, risk_free_rate = -0.01, dividend_yield = 0.0, volatility = 0.25 }
+expected = { put_call_parity_residual = 0.0 }
+tolerance = { put_call_parity_residual = { abs = 1e-12 } }
+
+[[cases]]
+id = "price_above_the_upper_bound"
+source = "no_arbitrage"
+edge = true
+inputs = { calculation = "implied_volatility", option_type = "call", option_price = 120.0, spot = 100.0, strike = 100.0, years = 1.0, risk_free_rate = 0.05 }
+expected = { lower_bound = 4.877057549928594, upper_bound = 100.0 }
+expected_none = ["implied_volatility"]

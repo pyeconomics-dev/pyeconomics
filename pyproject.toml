@@ -48,8 +48,10 @@ Roadmap = "https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap
 # Model discovery (pyeconomics.core.registry): each module named here lists its
 # Model objects in __all__.
 [project.entry-points."pyeconomics.models"]
+derivatives = "pyeconomics.models.derivatives"
 fixed_income = "pyeconomics.models.fixed_income"
 foundations = "pyeconomics.models.foundations"
+international = "pyeconomics.models.international"
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
@@ -82,6 +84,7 @@ test = [
     "rfc8785>=0.1.4",
     "sybil>=10.1.0",
     "syrupy>=6.1.1",
+    "vollib>=1.0.11",
 ]
 dev = [
     { include-group = "test" },
