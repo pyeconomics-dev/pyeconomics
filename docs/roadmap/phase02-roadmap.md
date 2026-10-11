@@ -5808,9 +5808,9 @@ High. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 10 — Launch Catalog: Equity, Corporate and Accounting
+## Step 10 — Launch Catalog: Equity, Corporate and Accounting ✅
 
-**Status:** Not started
+**Status:** Complete — PR #86 (2026-10-11)
 
 > **Goal:** Register the seven valuation, corporate-finance and accounting
 > entries. Add `equity.dividend_discount` (Gordon growth, two-stage, the
@@ -5835,11 +5835,13 @@ High. New conversation per phase-boundary hygiene.
 
 | Setting      | Value                                         |
 | ------------ | --------------------------------------------- |
-| Model        | GPT-6 Sol                                     |
+| Model        | GPT-6.1 Sol                                   |
 | Backup       | Claude Opus 5.5 — Claude Code · Effort Medium |
 | Platform     | Codex                                         |
 | Intelligence | Medium                                        |
 | Conversation | **New**                                       |
+
+> Settings updated 2026-10-11: was GPT-6 Sol · Medium. GPT-6.1 Sol supersedes it on Codex; session effort Medium.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY: seven
 closed-form entries whose formulas are short and well documented, reusing
@@ -9184,7 +9186,7 @@ workflow above maps directly to the corresponding row below.
 | 7       | Cards + docs preview             | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #80 |
 | 8       | Catalog: fixed income            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #82 |
 | 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
-| 10      | Catalog: equity, corp., acct.    | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
+| 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |

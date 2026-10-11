@@ -1,0 +1,32 @@
+# tests/golden/corporate/leverage.toml
+model = "corporate.leverage"
+
+[[sources]]
+key = "formula"
+kind = "identity"
+citation = "Contribution/EBIT and EBIT/EBT elasticities; F/(P-v) breakeven identities, rational arithmetic."
+
+[[cases]]
+id = "profitable"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { price = 20, variable_cost = 10, fixed_costs = 100, interest = 20, quantity = 30 }
+expected = { operating_income = 200, dol = 1.5, dfl = 1.1111111111111112, dtl = 1.6666666666666667, operating_breakeven = 10, total_breakeven = 12 }
+
+[[cases]]
+id = "zero_fixed_cost"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { price = 20, variable_cost = 10, fixed_costs = 0, interest = 0, quantity = 30 }
+expected = { dol = 1, dfl = 1, dtl = 1, operating_breakeven = 0, total_breakeven = 0 }
+
+[[cases]]
+id = "zero_ebit"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { price = 20, variable_cost = 10, fixed_costs = 100, interest = 20, quantity = 10 }
+expected = { operating_income = 0, dfl = 0 }
+expected_none = ["dol", "dtl"]

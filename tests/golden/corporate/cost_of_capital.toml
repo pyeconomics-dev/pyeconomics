@@ -1,0 +1,63 @@
+# tests/golden/corporate/cost_of_capital.toml
+model = "corporate.cost_of_capital"
+
+[[sources]]
+key = "formula"
+kind = "identity"
+citation = "CAPM, capital-weighted WACC, Hamada and volatility-scaled spread identities; rational arithmetic."
+
+[[cases]]
+id = "capm"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "capm", risk_free_rate = 0.03, equity_risk_premium = 0.05, beta = 1.2 }
+expected = { cost_of_equity = 0.09 }
+
+[[cases]]
+id = "wacc"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "wacc", equity = 600, debt = 400, cost_of_equity = 0.12, cost_of_debt = 0.06, tax_rate = 0.25 }
+expected = { wacc = 0.09 }
+
+[[cases]]
+id = "no_leverage"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { calculation = "unlever_beta", beta = 1.2, debt_to_equity = 0, tax_rate = 0.25 }
+expected = { beta = 1.2 }
+
+[[cases]]
+id = "unlever"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "unlever_beta", beta = 1.4, debt_to_equity = 0.5, tax_rate = 0.2 }
+expected = { beta = 1 }
+
+[[cases]]
+id = "relever"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "relever_beta", beta = 1, debt_to_equity = 0.5, tax_rate = 0.2 }
+expected = { beta = 1.4 }
+
+[[cases]]
+id = "country"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "country_risk_premium", sovereign_spread = 0.02, equity_volatility = 0.3, bond_volatility = 0.2 }
+expected = { premium = 0.03 }
+
+[[cases]]
+id = "preferred"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "wacc", equity = 500, debt = 300, preferred = 200, cost_of_equity = 0.12, cost_of_debt = 0.06, cost_of_preferred = 0.08, tax_rate = 0.25 }
+expected = { wacc = 0.0895 }

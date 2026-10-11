@@ -1,0 +1,47 @@
+# tests/golden/equity/free_cash_flow.toml
+model = "equity.free_cash_flow"
+
+[[sources]]
+key = "formula"
+kind = "identity"
+citation = "FCFF/FCFE component identities and Gordon perpetuity; independently evaluated rational arithmetic."
+
+[[cases]]
+id = "fcff"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "fcff", ebit = 200, tax_rate = 0.25, depreciation = 50, capex = 70, working_capital_change = 10 }
+expected = { fcff = 120 }
+
+[[cases]]
+id = "fcfe"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "fcfe", net_income = 120, depreciation = 50, capex = 70, working_capital_change = 10, net_borrowing = 20 }
+expected = { fcfe = 110 }
+
+[[cases]]
+id = "zero_growth"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { calculation = "valuation", next_cash_flow = 100, discount_rate = 0.1, net_debt = 200 }
+expected = { firm_value = 1000, equity_value = 800 }
+
+[[cases]]
+id = "two_stage"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "valuation", next_cash_flow = 100, discount_rate = 0.1, growth = 0.2, years = 2, terminal_growth = 0.02, net_debt = 50 }
+expected = { firm_value = 1454.5454545454545, equity_value = 1404.5454545454545 }
+
+[[cases]]
+id = "equity_basis"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "valuation", basis = "equity", next_cash_flow = 100, discount_rate = 0.1, net_debt = 200 }
+expected = { firm_value = 1200, equity_value = 1000 }

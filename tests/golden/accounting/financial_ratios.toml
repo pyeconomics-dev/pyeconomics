@@ -1,0 +1,32 @@
+# tests/golden/accounting/financial_ratios.toml
+model = "accounting.financial_ratios"
+
+[[sources]]
+key = "formula"
+kind = "identity"
+citation = "Financial ratio and DuPont identities using synthetic statements, evaluated as fractions."
+
+[[cases]]
+id = "statements"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { current_assets = 200, inventory = 50, prepayments = 10, cash = 40, marketable_securities = 10, current_liabilities = 100, revenue = 1000, cost_of_goods_sold = 600, purchases = 500, average_receivables = 100, average_inventory = 150, average_payables = 100, average_assets = 800, average_equity = 400, total_assets = 900, total_debt = 300, equity = 450, ebit = 200, interest_expense = 40, pretax_income = 160, net_income = 120 }
+expected = { current_ratio = 2, quick_ratio = 1.4, cash_ratio = 0.5, receivables_turnover = 10, inventory_turnover = 4, payables_turnover = 5, receivables_days = 36.5, inventory_days = 91.25, payables_days = 73, asset_turnover = 1.25, debt_to_equity = 0.6666666666666666, debt_to_assets = 0.3333333333333333, interest_coverage = 5, financial_leverage = 2, gross_margin = 0.4, operating_margin = 0.2, net_margin = 0.12, roa = 0.15, roe = 0.3, tax_burden = 0.75, interest_burden = 0.8, dupont_three_step = 0.3, dupont_five_step = 0.3 }
+
+[[cases]]
+id = "zero_denominators"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { current_assets = 200, inventory = 50, prepayments = 10, cash = 40, marketable_securities = 10, current_liabilities = 0, revenue = 1000, cost_of_goods_sold = 600, purchases = 500, average_receivables = 100, average_inventory = 150, average_payables = 100, average_assets = 800, average_equity = 400, total_assets = 900, total_debt = 300, equity = 450, ebit = 0, interest_expense = 40, pretax_income = 0, net_income = 120 }
+expected = { roe = 0.3 }
+expected_none = ["current_ratio", "quick_ratio", "cash_ratio", "tax_burden", "interest_burden", "dupont_five_step"]
+
+[[cases]]
+id = "loss"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { current_assets = 200, inventory = 50, prepayments = 10, cash = 40, marketable_securities = 10, current_liabilities = 100, revenue = 1000, cost_of_goods_sold = 600, purchases = 500, average_receivables = 100, average_inventory = 150, average_payables = 100, average_assets = 800, average_equity = 400, total_assets = 900, total_debt = 300, equity = 450, ebit = 200, interest_expense = 40, pretax_income = 160, net_income = -120 }
+expected = { net_margin = -0.12, roa = -0.15, roe = -0.3, dupont_three_step = -0.3, dupont_five_step = -0.3 }

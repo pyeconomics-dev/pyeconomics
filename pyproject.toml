@@ -48,7 +48,10 @@ Roadmap = "https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap
 # Model discovery (pyeconomics.core.registry): each module named here lists its
 # Model objects in __all__.
 [project.entry-points."pyeconomics.models"]
+accounting = "pyeconomics.models.accounting"
+corporate = "pyeconomics.models.corporate"
 derivatives = "pyeconomics.models.derivatives"
+equity = "pyeconomics.models.equity"
 fixed_income = "pyeconomics.models.fixed_income"
 foundations = "pyeconomics.models.foundations"
 international = "pyeconomics.models.international"
@@ -73,6 +76,7 @@ all = [
 test = [
     "hypothesis>=6.168.5",
     "jsonschema>=4.26.0",
+    "numpy-financial>=1.0.0",
     "plotly>=7.1.0",
     "polars>=2.0.0",
     "pyarrow>=26.0.0",
@@ -179,10 +183,11 @@ enable_error_code = [
 files = ["src", "tests"]
 exclude = ['^\.semgrep/tests/', '^tests/fixtures/']
 
-# plotly (the plot extra) and jsonschema (the schema tests' validator) ship no
-# type information; only their own modules are left unchecked.
+# plotly (the plot extra), jsonschema (the schema tests' validator), and
+# numpy_financial 1.0 (the Python 3.12 oracle) ship no type information;
+# only their own modules are left unchecked.
 [[tool.mypy.overrides]]
-module = ["plotly.*", "jsonschema.*"]
+module = ["plotly.*", "jsonschema.*", "numpy_financial.*"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]

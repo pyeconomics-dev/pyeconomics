@@ -15,6 +15,12 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Seven models through the `equity`, `corporate` and `accounting` entry points:
+  `equity.dividend_discount`, `equity.free_cash_flow`,
+  `corporate.cost_of_capital`, `corporate.capital_budgeting`, `corporate.leverage`,
+  `accounting.financial_ratios` and `accounting.scoring_models`, with cited
+  golden cases, invariant tests and generated model cards.
+
 - A Sphinx documentation preview with generated model cards, an executed
   tutorial, Sybil-tested examples and a warnings-as-errors CI build. Read the
   Docs version `main` previews 1.0 while `stable` and `latest` keep serving 0.2.x.
