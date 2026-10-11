@@ -1,0 +1,64 @@
+# tests/golden/equity/dividend_discount.toml
+model = "equity.dividend_discount"
+
+[[sources]]
+key = "formula"
+kind = "identity"
+citation = "Gordon and H-model identities, evaluated with rational arithmetic; synthetic inputs, not a published worked example."
+
+[[cases]]
+id = "zero_growth"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { calculation = "gordon", next_dividend = 2, required_return = 0.1, growth = 0 }
+expected = { value = 20 }
+
+[[cases]]
+id = "positive_growth"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "gordon", next_dividend = 2, required_return = 0.1, growth = 0.02 }
+expected = { value = 25 }
+
+[[cases]]
+id = "h_model"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "h_model", dividend = 2, required_return = 0.1, growth = 0.12, terminal_growth = 0.04, half_life = 5 }
+expected = { value = 48 }
+
+[[cases]]
+id = "two_stage"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "two_stage", next_dividend = 2, required_return = 0.1, growth = 0.02, terminal_growth = 0.02, years = 10 }
+expected = { value = 25 }
+
+[[cases]]
+id = "pvgo"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "pvgo", price = 50, earnings = 3, required_return = 0.1 }
+expected = { no_growth_value = 30, pvgo = 20 }
+
+[[cases]]
+id = "implied"
+source = "formula"
+locator = "Closed-form identity"
+edge = false
+inputs = { calculation = "implied_return", price = 50, next_dividend = 2, growth = 0.02 }
+expected = { required_return = 0.06 }
+
+[[cases]]
+id = "near_growth"
+source = "formula"
+locator = "Closed-form identity"
+edge = true
+inputs = { calculation = "gordon", next_dividend = 1, required_return = 0.100000001, growth = 0.1 }
+expected = { value = 1000000000.0 }
+tolerance = { value = { rel = 1e-7 } }

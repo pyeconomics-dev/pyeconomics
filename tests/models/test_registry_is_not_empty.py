@@ -6,10 +6,12 @@
 The golden harness and the contract suite parametrize over the installed
 registry. If discovery found nothing (a missing entry point, a broken install),
 they would collect no case and pass. This test makes an empty registry fail, and
-pins the domains Phase 2 Steps 6, 8 and 9 registered.
+pins the domains Phase 2 Steps 6, 8, 9 and 10 registered.
 """
 
 from __future__ import annotations
+
+import pytest
 
 from pyeconomics import registry
 from pyeconomics.core import ENTRY_POINT_GROUP
@@ -38,7 +40,22 @@ DERIVATIVES = {
     "derivatives.interest_rate_swap",
 }
 INTERNATIONAL = {"international.parity_conditions"}
-CATALOG = FOUNDATIONS | FIXED_INCOME | DERIVATIVES | INTERNATIONAL
+EQUITY = {"equity.dividend_discount", "equity.free_cash_flow"}
+CORPORATE = {
+    "corporate.cost_of_capital",
+    "corporate.capital_budgeting",
+    "corporate.leverage",
+}
+ACCOUNTING = {"accounting.financial_ratios", "accounting.scoring_models"}
+CATALOG = (
+    FOUNDATIONS
+    | FIXED_INCOME
+    | DERIVATIVES
+    | INTERNATIONAL
+    | EQUITY
+    | CORPORATE
+    | ACCOUNTING
+)
 
 
 def test_the_registry_is_not_empty() -> None:
@@ -72,3 +89,11 @@ def test_each_catalog_model_comes_from_this_distribution() -> None:
     for registration in installed().registrations:
         if registration.model.id in CATALOG:
             assert registration.provider.name == "pyeconomics"
+
+
+@pytest.mark.parametrize(
+    ("domain", "expected"),
+    [("equity", EQUITY), ("corporate", CORPORATE), ("accounting", ACCOUNTING)],
+)
+def test_step10_domains_are_installed(domain: str, expected: set[str]) -> None:
+    assert {m.id for m in registry.models(domain)} == expected

@@ -1,0 +1,47 @@
+# tests/golden/corporate/capital_budgeting.toml
+model = "corporate.capital_budgeting"
+
+[[sources]]
+key = "formula"
+kind = "official"
+citation = "Microsoft. MIRR function; example cash flows with 10% financing and 12% reinvestment. NPV/payback zero-rate identities are independent arithmetic."
+url = "https://support.microsoft.com/en-us/excel/functions/mirr-function"
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "Zero-rate cash-flow sums, PI inflow/outflow ratio and first cumulative recovery; synthetic inputs evaluated with rational arithmetic."
+
+[[cases]]
+id = "microsoft_five_year"
+source = "formula"
+locator = "Example; zero-rate appraisal definitions for synthetic cases"
+edge = false
+inputs = { cash_flows = [-120000, 39000, 30000, 21000, 37000, 46000], rate = 0.1, finance_rate = 0.1, reinvestment_rate = 0.12 }
+expected = { mirr = 0.1260941303659051 }
+
+[[cases]]
+id = "zero_rate"
+source = "identity"
+locator = "Zero-rate appraisal identities"
+edge = true
+inputs = { cash_flows = [-100, 60, 60], rate = 0 }
+expected = { npv = 20, payback = 1.6666666666666667, discounted_payback = 1.6666666666666667, profitability_index = 1.2, equivalent_annual_annuity = 10 }
+
+[[cases]]
+id = "never_paid_back"
+source = "identity"
+locator = "Zero-rate appraisal identities"
+edge = true
+inputs = { cash_flows = [-100, 20, 20], rate = 0 }
+expected = { npv = -60, profitability_index = 0.4 }
+expected_none = ["payback", "discounted_payback"]
+
+[[cases]]
+id = "no_sign_change"
+source = "identity"
+locator = "Zero-rate appraisal identities"
+edge = true
+inputs = { cash_flows = [100, 20, 20], rate = 0 }
+expected = { npv = 140, payback = 0 }
+expected_none = ["irr", "mirr", "profitability_index"]

@@ -1,0 +1,73 @@
+# tests/golden/accounting/scoring_models.toml
+model = "accounting.scoring_models"
+
+[[sources]]
+key = "formula"
+kind = "identity"
+citation = "Original paper coefficient identities: Altman (1968) Eq.1; Beneish (1999) Table 3; Piotroski (2000) Eq.1. Synthetic ratios/signals, evaluated with exact decimals."
+
+[[sources]]
+key = "altman"
+kind = "paper"
+citation = "Altman, E. I. (1968). Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy. Journal of Finance 23, 589-609."
+doi = "10.1111/j.1540-6261.1968.tb00843.x"
+
+[[sources]]
+key = "beneish"
+kind = "paper"
+citation = "Beneish, M. D. (1999, corrected January 2004). The Detection of Earnings Manipulation. Financial Analysts Journal 55(5), 24-36."
+doi = "10.2469/faj.v55.n5.2296"
+
+[[sources]]
+key = "piotroski"
+kind = "paper"
+citation = "Piotroski, J. D. (2000). Value Investing: The Use of Historical Financial Statement Information to Separate Winners from Losers. Journal of Accounting Research 38, 1-41."
+doi = "10.2307/2672906"
+
+[[cases]]
+id = "zero_altman"
+source = "altman"
+locator = "Equation (1), p. 594; synthetic decimal ratios"
+edge = true
+inputs = { calculation = "altman_z", working_capital_to_assets = 0, retained_earnings_to_assets = 0, ebit_to_assets = 0, market_equity_to_liabilities = 0, sales_to_assets = 0 }
+expected = { z_score = 0, zone = "distress" }
+
+[[cases]]
+id = "unit_altman"
+source = "altman"
+locator = "Equation (1), p. 594; synthetic decimal ratios"
+edge = false
+inputs = { calculation = "altman_z", working_capital_to_assets = 1, retained_earnings_to_assets = 1, ebit_to_assets = 1, market_equity_to_liabilities = 1, sales_to_assets = 1 }
+expected = { z_score = 7.499, zone = "safe" }
+
+[[cases]]
+id = "unit_beneish"
+source = "beneish"
+locator = "Table 3 unweighted probit; synthetic unit indices"
+edge = false
+inputs = { calculation = "beneish_m", dsri = 1, gmi = 1, aqi = 1, sgi = 1, depi = 1, sgai = 1, tata = 0, lvgi = 1 }
+expected = { m_score = -2.48 }
+
+[[cases]]
+id = "all_unit_beneish"
+source = "beneish"
+locator = "Table 3 unweighted probit; synthetic unit indices"
+edge = false
+inputs = { calculation = "beneish_m", dsri = 1, gmi = 1, aqi = 1, sgi = 1, depi = 1, sgai = 1, tata = 1, lvgi = 1 }
+expected = { m_score = 2.199 }
+
+[[cases]]
+id = "all_signals"
+source = "piotroski"
+locator = "Equation (1); synthetic binary signals"
+edge = false
+inputs = { calculation = "piotroski_f", positive_roa = true, positive_cfo = true, improving_roa = true, cash_exceeds_income = true, decreasing_leverage = true, improving_liquidity = true, no_equity_issuance = true, improving_margin = true, improving_turnover = true }
+expected = { f_score = 9 }
+
+[[cases]]
+id = "no_signals"
+source = "piotroski"
+locator = "Equation (1); synthetic binary signals"
+edge = true
+inputs = { calculation = "piotroski_f", positive_roa = false, positive_cfo = false, improving_roa = false, cash_exceeds_income = false, decreasing_leverage = false, improving_liquidity = false, no_equity_issuance = false, improving_margin = false, improving_turnover = false }
+expected = { f_score = 0 }
