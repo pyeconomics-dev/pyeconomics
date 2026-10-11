@@ -60,6 +60,39 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   - `fixed_income.credit_spread`: expected loss, the credit triangle between
     spread and hazard rate, survival probabilities and the approximate excess
     return from a spread.
+- The derivatives catalog models, registered through the `derivatives` entry
+  point in the `pyeconomics.models` group. Their outputs are formula values
+  for the inputs given, not trading advice:
+  - `derivatives.forwards`: forward prices by cost of carry (income and
+    convenience yields, storage costs, and known income or storage as present
+    values), the value of an existing long or short forward, and forward
+    exchange rates by covered interest parity with money-market interest on
+    each currency's day count, with the forward points.
+  - `derivatives.interest_rate_swap`: the value to the fixed payer and
+    receiver, par swap rate and annuity factor of a single-curve swap, from
+    accrual fractions and discount factors, accrual fractions and a zero
+    curve, or payment dates on a day count and a zero curve.
+  - `derivatives.black_scholes_merton`: European calls and puts with a
+    continuous dividend yield, with delta, gamma, vega, theta, rho, dividend
+    rho and the put-call parity residual, and the implied volatility by a
+    bracketed solver over [0.001, 5] that returns null with a warning outside
+    the no-arbitrage bounds.
+  - `derivatives.binomial_tree`: Cox-Ross-Rubinstein trees of up to 5,000
+    steps for European and American calls and puts with a dividend yield, with
+    delta and gamma from the tree.
+  - `derivatives.futures_fx_options`: Black-76 options on futures and
+    Garman-Kohlhagen currency options, each with Greeks (a rho for each
+    currency's rate) and implied volatility.
+- The international catalog model, registered through the `international`
+  entry point: `international.parity_conditions`, with covered and uncovered
+  interest parity, relative and absolute purchasing power parity, the
+  international Fisher effect and the real exchange rate and its change.
+- Golden files for the six models, citing Hull (2018), Haug (2007), Black and
+  Scholes (1973), Black (1976), Garman and Kohlhagen (1983), Cox, Ross and
+  Rubinstein (1979) and identities; property tests for every invariant,
+  cross-entry tests against `derivatives.black_scholes_merton` and
+  `derivatives.forwards`, and oracle tests against QuantLib and vollib, which
+  joins the test dependency group.
 - `pyeconomics.core.curves`: zero-rate interpolation (linear, flat beyond the
   nodes, one time or many), discount factors off a zero curve, forward rates and par rates, for
   the fixed-income models and Step 9's swap valuation.

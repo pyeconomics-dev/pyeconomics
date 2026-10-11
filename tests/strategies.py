@@ -500,3 +500,59 @@ for _id in (
     "fixed_income.convexity",
 ):
     OVERRIDES[_id] = _fixed_income(_id)
+
+
+# --- derivatives: swap schedules and curves -----------------------------------
+
+
+@st.composite
+def _curve(draw: st.DrawFn, drawn: dict[str, Any]) -> dict[str, Any]:
+    """Give ``drawn`` a zero curve: increasing tenors, one rate for each."""
+    size = draw(st.integers(min_value=1, max_value=8))
+    drawn["curve_tenors"] = draw(_increasing(0.01, 100.0, size))
+    drawn["curve_rates"] = draw(
+        st.lists(st.floats(min_value=-0.1, max_value=1.0), min_size=size, max_size=size)
+    )
+    return drawn
+
+
+@st.composite
+def _dated_swap(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a dated swap: valuation, start and payment dates in order, a curve."""
+    drawn = draw(_fields(cls))
+    latest = DEFAULT_DATE_BOUNDS.upper
+    valuation = draw(
+        st.dates(min_value=DEFAULT_DATE_BOUNDS.lower, max_value=dt.date(2190, 1, 1))
+    )
+    start = valuation + dt.timedelta(days=draw(st.integers(0, 3_650)))
+    gaps = draw(st.lists(st.integers(1, 400), min_size=1, max_size=MAX_ITEMS))
+    payments: list[dt.date] = []
+    day = start
+    for gap in gaps:
+        day += dt.timedelta(days=gap)
+        if day > latest:
+            break
+        payments.append(day)
+    drawn.update(
+        valuation_date=valuation,
+        start_date=start,
+        payment_dates=payments or [min(start + dt.timedelta(days=1), latest)],
+    )
+    return draw(_curve(drawn))
+
+
+def _interest_rate_swap() -> SearchStrategy[dict[str, Any]]:
+    """``derivatives.interest_rate_swap``: equal lengths, ordered dates, curves."""
+    module = importlib.import_module(
+        "pyeconomics.models.derivatives.interest_rate_swap"
+    )
+    swap = module.interest_rate_swap
+    return st.one_of(
+        _same_length(module.DiscountFactorInputs, ("accruals", "discount_factors")),
+        _fields(module.ZeroCurveInputs).flatmap(_curve),
+        _dated_swap(module.DatedInputs).filter(_accepts(module.DatedInputs)),
+        st.sampled_from([dict(example.inputs) for example in swap.spec.examples]),
+    )
+
+
+OVERRIDES["derivatives.interest_rate_swap"] = _interest_rate_swap

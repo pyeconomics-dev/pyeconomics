@@ -1,0 +1,59 @@
+# tests/golden/derivatives/interest_rate_swap.toml
+model = "derivatives.interest_rate_swap"
+
+[[sources]]
+key = "hull2018"
+kind = "textbook"
+citation = "Hull, J. C. (2018). Options, Futures, and Other Derivatives, 10th ed. Pearson."
+isbn = "9780134472089"
+published_digits = 4
+
+[[sources]]
+key = "single_curve"
+kind = "identity"
+citation = "On one curve, the annuity is A = sum(alpha_i d_i), the floating leg is worth N (d_0 - d_n), the fixed leg c N A, and the par swap rate is (d_0 - d_n) / A."
+
+[[sources]]
+key = "flat_annual"
+kind = "identity"
+citation = "With annual accruals and a flat continuously compounded rate r, d_i = e^(-r t_i), so (d_0 - d_n) / sum(d_i) = e^r - 1 whatever the start and length."
+
+[[cases]]
+id = "two_year_par_yield"
+source = "hull2018"
+locator = "Chapter 4, the par yield of 6.87% for a two-year semiannual bond off the zero rates 5.0, 5.8, 6.4 and 6.8%"
+edge = false
+inputs = { calculation = "zero_curve", fixed_rate = 0.065, accruals = [0.5, 0.5, 0.5, 0.5], curve_tenors = [0.5, 1.0, 1.5, 2.0], curve_rates = [0.05, 0.058, 0.064, 0.068], compounding = "continuous" }
+expected = { par_swap_rate = 0.0687 }
+tolerance = { par_swap_rate = { abs = 0.00005 } }
+note = "Printed as 6.87% per annum; a par swap rate on one curve is the par yield of the same schedule."
+
+[[cases]]
+id = "two_annual_discount_factors"
+source = "single_curve"
+edge = false
+inputs = { calculation = "discount_factors", notional = 1000000.0, fixed_rate = 0.05, accruals = [1.0, 1.0], discount_factors = [0.95, 0.9] }
+expected = { annuity_factor = 1.85, par_swap_rate = 0.05405405405405406, fixed_leg_value = 92500.0, floating_leg_value = 100000.0, payer_value = 7500.0, receiver_value = -7500.0 }
+
+[[cases]]
+id = "dated_semiannual_thirty_360"
+source = "single_curve"
+edge = false
+inputs = { calculation = "dated", fixed_rate = 0.04, valuation_date = 2026-01-15, start_date = 2026-01-15, payment_dates = [2026-07-15, 2027-01-15], day_count = "thirty_360_us", curve_tenors = [1.0], curve_rates = [0.04], compounding = "continuous" }
+expected = { annuity_factor = 0.9705746271261416, par_swap_rate = 0.04039932608147687 }
+note = "30/360 accruals of 0.5; discount times of 181/365 and 1 year at 4% continuously."
+
+[[cases]]
+id = "fifty_year_negative_rate"
+source = "flat_annual"
+edge = true
+inputs = { calculation = "zero_curve", fixed_rate = 0.0, accruals = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], curve_tenors = [1.0], curve_rates = [-0.005], compounding = "continuous" }
+expected = { par_swap_rate = -0.00498752080731768, annuity_factor = 56.94721438976648 }
+note = "A flat rate of -0.5% for 50 years: the par rate is e^-0.005 - 1."
+
+[[cases]]
+id = "forward_starting_flat_curve"
+source = "flat_annual"
+edge = false
+inputs = { calculation = "zero_curve", fixed_rate = 0.03, accruals = [1.0, 1.0, 1.0], start_years = 1.0, curve_tenors = [1.0], curve_rates = [0.03], compounding = "continuous" }
+expected = { par_swap_rate = 0.030454533953516938, annuity_factor = 2.7426161555726343 }

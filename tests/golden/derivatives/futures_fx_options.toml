@@ -1,0 +1,115 @@
+# tests/golden/derivatives/futures_fx_options.toml
+model = "derivatives.futures_fx_options"
+
+[[sources]]
+key = "hull2018"
+kind = "textbook"
+citation = "Hull, J. C. (2018). Options, Futures, and Other Derivatives, 10th ed. Pearson."
+isbn = "9780134472089"
+published_digits = 2
+
+[[sources]]
+key = "haug2007"
+kind = "textbook"
+citation = "Haug, E. G. (2007). The Complete Guide to Option Pricing Formulas, 2nd ed. McGraw-Hill."
+isbn = "9780071389976"
+published_digits = 4
+
+[[sources]]
+key = "garman1983"
+kind = "paper"
+citation = "Garman, M. B. and Kohlhagen, S. W. (1983). Foreign Currency Option Values. Journal of International Money and Finance, 2(3), 231-237."
+doi = "10.1016/S0261-5606(83)80001-1"
+
+[[sources]]
+key = "atm_forward"
+kind = "identity"
+citation = "When the strike equals the forward price, d1 = sigma sqrt(T) / 2 = -d2, so a call and a put are each the discounted forward times (2 N(sigma sqrt(T) / 2) - 1)."
+
+[[sources]]
+key = "high_volatility"
+kind = "identity"
+citation = "As sigma sqrt(T) grows, a currency call tends to its upper bound S e^(-rf T)."
+
+[[sources]]
+key = "no_arbitrage"
+kind = "identity"
+citation = "A European call on a futures price lies strictly between max(e^(-rT) (F - K), 0) and e^(-rT) F; a price outside has no implied volatility."
+
+[[cases]]
+id = "four_month_futures_put"
+source = "hull2018"
+locator = "Chapter 18, the European put futures option with F0 = K = 20, r = 9%, T = 4 months and sigma = 25%"
+edge = false
+inputs = { calculation = "black_76", option_type = "put", futures_price = 20.0, strike = 20.0, years = 0.3333333333333333, risk_free_rate = 0.09, volatility = 0.25 }
+expected = { price = 1.12 }
+tolerance = { price = { abs = 0.005 } }
+
+[[cases]]
+id = "nine_month_commodity_futures_call"
+source = "haug2007"
+locator = "Chapter 1, the Black (1976) section: the nine-month futures option with F = X = 19, r = 10% and sigma = 28%"
+edge = false
+inputs = { calculation = "black_76", option_type = "call", futures_price = 19.0, strike = 19.0, years = 0.75, risk_free_rate = 0.10, volatility = 0.28 }
+expected = { price = 1.7011 }
+tolerance = { price = { abs = 0.00005 } }
+
+[[cases]]
+id = "nine_month_commodity_futures_put"
+source = "haug2007"
+locator = "Chapter 1, the Black (1976) section: the same option's put, equal to the call at the money"
+edge = false
+inputs = { calculation = "black_76", option_type = "put", futures_price = 19.0, strike = 19.0, years = 0.75, risk_free_rate = 0.10, volatility = 0.28 }
+expected = { price = 1.7011 }
+tolerance = { price = { abs = 0.00005 } }
+
+[[cases]]
+id = "implied_volatility_of_the_futures_call"
+source = "haug2007"
+locator = "Chapter 1, the Black (1976) section: the printed price 1.7011 gives back sigma = 28%"
+edge = false
+inputs = { calculation = "black_76_implied_volatility", option_type = "call", option_price = 1.7011, futures_price = 19.0, strike = 19.0, years = 0.75, risk_free_rate = 0.10 }
+expected = { implied_volatility = 0.28 }
+tolerance = { implied_volatility = { abs = 0.00005 } }
+note = "The printed price is rounded, so the implied volatility differs from 0.28 by about 8e-6."
+
+[[cases]]
+id = "six_month_currency_call"
+source = "garman1983"
+locator = "The closed-form value of a European currency call, at S = 1.08, K = 1.10, rd = 4.5%, rf = 3%, sigma = 8% and T = 0.5"
+edge = false
+inputs = { calculation = "garman_kohlhagen", option_type = "call", spot = 1.08, strike = 1.10, years = 0.5, domestic_rate = 0.045, foreign_rate = 0.03, volatility = 0.08 }
+expected = { price = 0.018777571146717686 }
+note = "Evaluated independently with scipy.stats.norm.cdf."
+
+[[cases]]
+id = "zero_rate_futures_at_the_money"
+source = "atm_forward"
+edge = true
+inputs = { calculation = "black_76", option_type = "call", futures_price = 50.0, strike = 50.0, years = 2.0, risk_free_rate = 0.0, volatility = 0.30 }
+expected = { price = 8.399798571368178 }
+note = "Zero rate: 50 (2 N(0.3 sqrt(2) / 2) - 1)."
+
+[[cases]]
+id = "negative_rates_currency_at_the_money_forward"
+source = "atm_forward"
+edge = true
+inputs = { calculation = "garman_kohlhagen", option_type = "put", spot = 0.95, strike = 0.95, years = 1.0, domestic_rate = -0.0075, foreign_rate = -0.0075, volatility = 0.07 }
+expected = { price = 0.02672392587842169 }
+note = "Equal negative rates put the forward at the spot: 0.95 e^0.0075 (2 N(0.035) - 1)."
+
+[[cases]]
+id = "currency_volatility_of_five"
+source = "high_volatility"
+edge = true
+inputs = { calculation = "garman_kohlhagen", option_type = "call", spot = 1.2, strike = 1.0, years = 100.0, domestic_rate = 0.02, foreign_rate = 0.01, volatility = 5.0 }
+expected = { price = 0.4414553294057308 }
+note = "1.2 e^-1: sigma sqrt(T) = 50."
+
+[[cases]]
+id = "futures_price_above_the_upper_bound"
+source = "no_arbitrage"
+edge = true
+inputs = { calculation = "black_76_implied_volatility", option_type = "call", option_price = 18.0, futures_price = 19.0, strike = 19.0, years = 0.75, risk_free_rate = 0.10 }
+expected = { lower_bound = 0.0, upper_bound = 17.627126240242504 }
+expected_none = ["implied_volatility"]

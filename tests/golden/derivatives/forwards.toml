@@ -1,0 +1,83 @@
+# tests/golden/derivatives/forwards.toml
+model = "derivatives.forwards"
+
+[[sources]]
+key = "hull2018"
+kind = "textbook"
+citation = "Hull, J. C. (2018). Options, Futures, and Other Derivatives, 10th ed. Pearson."
+isbn = "9780134472089"
+published_digits = 2
+
+[[sources]]
+key = "cost_of_carry"
+kind = "identity"
+citation = "With continuous carry rates, F = (S - I + U) e^((r - q + u - y) T); with no income, storage or yields and a zero rate, F = S."
+
+[[sources]]
+key = "covered_parity"
+kind = "identity"
+citation = "Covered interest parity with money-market interest: F = S (1 + rq d / Bq) / (1 + rb d / Bb), for d days on each currency's day-count basis B."
+
+[[cases]]
+id = "stock_with_known_dividends"
+source = "hull2018"
+locator = "Chapter 5, the ten-month forward on a stock at 50 paying 0.75 every three months, with r = 8% and I = 2.162"
+edge = false
+inputs = { calculation = "cost_of_carry", spot = 50.0, years = 0.8333333333333334, risk_free_rate = 0.08, income_present_value = 2.162 }
+expected = { forward_price = 51.14 }
+tolerance = { forward_price = { abs = 0.005 } }
+
+[[cases]]
+id = "asset_with_a_known_yield"
+source = "hull2018"
+locator = "Chapter 5, the six-month forward on an asset at 25 with r = 10% and a yield of 3.96% continuously compounded"
+edge = false
+inputs = { calculation = "cost_of_carry", spot = 25.0, years = 0.5, risk_free_rate = 0.10, income_yield = 0.0396 }
+expected = { forward_price = 25.77 }
+tolerance = { forward_price = { abs = 0.005 } }
+
+[[cases]]
+id = "gold_with_storage_costs"
+source = "hull2018"
+locator = "Chapter 5, the one-year futures on gold at 450 with storage of 2 a year (present value 1.865) and r = 7%"
+edge = false
+inputs = { calculation = "cost_of_carry", spot = 450.0, years = 1.0, risk_free_rate = 0.07, storage_cost_present_value = 1.865 }
+expected = { forward_price = 484.63 }
+tolerance = { forward_price = { abs = 0.005 } }
+
+[[cases]]
+id = "value_of_a_long_forward"
+source = "hull2018"
+locator = "Chapter 5, the long forward on a non-dividend-paying stock at 25 with delivery price 24, six months left and r = 10%"
+edge = false
+inputs = { calculation = "forward_value", spot = 25.0, years = 0.5, risk_free_rate = 0.10, delivery_price = 24.0, position = "long" }
+expected = { value = 2.17 }
+tolerance = { value = { abs = 0.005 } }
+
+[[cases]]
+id = "commodity_with_storage_and_convenience_yields"
+source = "cost_of_carry"
+edge = false
+inputs = { calculation = "cost_of_carry", spot = 80.0, years = 1.0, risk_free_rate = 0.05, storage_cost_rate = 0.02, convenience_yield = 0.04 }
+expected = { forward_price = 82.43636271628135 }
+
+[[cases]]
+id = "fifty_years_at_zero_carry"
+source = "cost_of_carry"
+edge = true
+inputs = { calculation = "cost_of_carry", spot = 1234.5, years = 50.0, risk_free_rate = 0.0 }
+expected = { forward_price = 1234.5 }
+
+[[cases]]
+id = "three_month_currency_forward"
+source = "covered_parity"
+edge = false
+inputs = { calculation = "fx_forward", spot = 1.08, days = 91, quote_rate = 0.045, base_rate = 0.03, quote_day_count = "act_360", base_day_count = "act_365_fixed" }
+expected = { forward_rate = 1.0841759579038968 }
+
+[[cases]]
+id = "negative_and_zero_rates"
+source = "covered_parity"
+edge = true
+inputs = { calculation = "fx_forward", spot = 0.95, days = 180, quote_rate = -0.0075, base_rate = 0.0 }
+expected = { forward_rate = 0.9464374999999999, forward_points = -0.003562500000000024, forward_premium = -0.003750000000000031 }

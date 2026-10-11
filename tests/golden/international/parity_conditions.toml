@@ -1,0 +1,90 @@
+# tests/golden/international/parity_conditions.toml
+model = "international.parity_conditions"
+
+[[sources]]
+key = "interest_parity"
+kind = "identity"
+citation = "Covered (and uncovered) interest parity: F = S Gq(T) / Gb(T), each currency's growth at its rate, simple (1 + iT), periodic ((1 + i/m)^(mT)) or continuous (e^(iT))."
+
+[[sources]]
+key = "relative_ppp"
+kind = "identity"
+citation = "Relative purchasing power parity: E[S_T] = S ((1 + pi_q) / (1 + pi_b))^T."
+
+[[sources]]
+key = "absolute_ppp"
+kind = "identity"
+citation = "Absolute purchasing power parity: the exchange rate equating a basket's prices is P_q / P_b."
+
+[[sources]]
+key = "fisher"
+kind = "identity"
+citation = "The Fisher relation (1 + i) = (1 + r)(1 + pi) gives each real rate; with equal real rates, the expected change in the spot rate is (1 + i_q) / (1 + i_b) - 1."
+
+[[sources]]
+key = "real_exchange_rate"
+kind = "identity"
+citation = "The real exchange rate is S P_b / P_q, and its change is (1 + s)(1 + pi_b) / (1 + pi_q) - 1."
+
+[[cases]]
+id = "two_year_continuous_forward"
+source = "interest_parity"
+edge = false
+inputs = { calculation = "covered_interest_parity", spot = 0.75, quote_rate = 0.01, base_rate = 0.03, years = 2.0, compounding = "continuous" }
+expected = { forward_rate = 0.7205920793642424, forward_premium = -0.03921056084767682 }
+
+[[cases]]
+id = "three_month_simple_forward"
+source = "interest_parity"
+edge = false
+inputs = { calculation = "covered_interest_parity", spot = 1.08, quote_rate = 0.045, base_rate = 0.03, years = 0.25, compounding = "simple" }
+expected = { forward_rate = 1.0840198511166252, forward_points = 0.004019851116625173, forward_premium = 0.003722084367245637 }
+
+[[cases]]
+id = "negative_rates_quarterly"
+source = "interest_parity"
+edge = true
+inputs = { calculation = "covered_interest_parity", spot = 1.10, quote_rate = -0.005, base_rate = -0.0075, years = 3.0, compounding = "periodic", frequency = "quarterly" }
+expected = { forward_rate = 1.1082940233303125, forward_premium = 0.007540021209374803 }
+
+[[cases]]
+id = "zero_rates_forward_is_spot"
+source = "interest_parity"
+edge = true
+inputs = { calculation = "covered_interest_parity", spot = 1.3, quote_rate = 0.0, base_rate = 0.0, years = 10.0 }
+expected = { forward_rate = 1.3, forward_points = 0.0, forward_premium = 0.0 }
+
+[[cases]]
+id = "one_year_uncovered"
+source = "interest_parity"
+edge = false
+inputs = { calculation = "uncovered_interest_parity", spot = 150.0, quote_rate = 0.005, base_rate = 0.045, years = 1.0 }
+expected = { expected_spot = 144.2583732057416, expected_change = -0.03827751196172258 }
+
+[[cases]]
+id = "five_years_of_inflation"
+source = "relative_ppp"
+edge = false
+inputs = { calculation = "relative_ppp", spot = 1.25, quote_inflation = 0.02, base_inflation = 0.035, years = 5.0 }
+expected = { expected_spot = 1.1620080129225085, expected_change = -0.07039358966199316, inflation_differential = -0.015 }
+
+[[cases]]
+id = "basket_prices"
+source = "absolute_ppp"
+edge = false
+inputs = { calculation = "absolute_ppp", quote_price = 5.69, base_price = 4.95, spot = 1.10 }
+expected = { ppp_rate = 1.1494949494949496, base_currency_valuation = -0.04305799648506148 }
+
+[[cases]]
+id = "real_rates_and_expected_change"
+source = "fisher"
+edge = false
+inputs = { calculation = "international_fisher", quote_rate = 0.05, base_rate = 0.02, quote_inflation = 0.03, base_inflation = 0.01 }
+expected = { quote_real_rate = 0.01941747572815533, base_real_rate = 0.00990099009900991, real_rate_differential = 0.009516485629145421, expected_change = 0.02941176470588247, approximate_change = 0.03 }
+
+[[cases]]
+id = "real_appreciation"
+source = "real_exchange_rate"
+edge = false
+inputs = { calculation = "real_exchange_rate", spot = 1.10, quote_price_level = 120.0, base_price_level = 115.0, spot_change = 0.05, quote_inflation = 0.03, base_inflation = 0.02 }
+expected = { real_exchange_rate = 1.0541666666666667, real_change = 0.039805825242718695 }
