@@ -5274,9 +5274,9 @@ Intelligence High. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 9 — Launch Catalog: Derivatives and International
+## Step 9 — Launch Catalog: Derivatives and International ✅
 
-**Status:** Not started
+**Status:** Complete — PR #84 (2026-10-11)
 
 > **Goal:** Register the five derivatives entries and the international
 > parity entry. Add `src/pyeconomics/models/derivatives/` with
@@ -9183,7 +9183,7 @@ workflow above maps directly to the corresponding row below.
 | 6       | Catalog: foundations             | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #79 |
 | 7       | Cards + docs preview             | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #80 |
 | 8       | Catalog: fixed income            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #82 |
-| 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
+| 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
 | 10      | Catalog: equity, corp., acct.    | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
