@@ -6126,6 +6126,23 @@ knowledge. New conversation per phase-boundary hygiene.
       contract.check_model(model, max_examples=1500) on
       each new model and have an independent reviewer
       read the diff.
+    - Step 9 facts (2026-10-11): a model whose input is a
+      single class (not a union) must not give that class
+      a docstring, or the input schema's description
+      replaces the summary and test_schema fails (issue
+      #83). run_model records warnings in Result.warnings;
+      an outer collect_warnings() sees none. In property
+      tests, discard a documented DomainError with
+      hypothesis' reject() (assume(False) trips FBT003),
+      and make many-argument @given tests keyword-only
+      (PLR0917). models/derivatives/_options.py holds a
+      bounded() like foundations' (a domain never imports
+      another's). Size Greek-like bounds from the inputs'
+      extremes and widen a unit default with a comment
+      (ADR-0008 decision 3). QuantLib 1.43's binomial
+      engine can price an American option below its own
+      European; its FD engine is the sound American
+      oracle.
 
     Files to read (every file before drafting):
     - This roadmap's Overview (model contract, catalog
