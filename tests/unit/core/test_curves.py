@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 
 import pytest
-from hypothesis import given
+from hypothesis import assume, given
 from hypothesis import strategies as st
 
 from pyeconomics.core import (
@@ -95,6 +95,11 @@ def test_forwards_link_the_two_discount_factors(
         df = discount_factor(forward, gap, compounding, frequency)
     except DomainError:
         return  # a simple rate whose factor is not positive
+    # A forward within a hair of -100% a period (1 + r/m near 0) cannot carry
+    # its factor's digits: one ulp of r moves it by eps / (1 + r/m). Found when
+    # CI drew a quarterly forward 9e-10 above -400% (Phase 2 Step 9).
+    growth = 1 + forward / 4 if frequency is not None else 1 + forward * gap
+    assume(compounding is Compounding.CONTINUOUS or growth > 1e-6)
     assert math.isclose(d1 * df, d2, rel_tol=1e-9)
 
 
