@@ -6323,9 +6323,9 @@ knowledge. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 11 — Launch Catalog: Portfolio and Performance
+## Step 11 — Launch Catalog: Portfolio and Performance ✅
 
-**Status:** Not started
+**Status:** Complete — PR #87 (2026-10-11)
 
 > **Goal:** Register the two portfolio and three performance entries. Add
 > `portfolio.mean_variance` (portfolio return and risk, the closed-form
@@ -7166,6 +7166,15 @@ Intelligence High. New conversation per phase-boundary hygiene.
       accept. Ruff's ERA001 reads a header path such as
       `# .../return_measurement.py` as code: exempt the
       file in pyproject.toml, as foundations/returns.py is.
+      The contract strategies draw at most 12 items, so a
+      model that compounds over a series never meets the
+      overflow or the rounding to -100% that hundreds of
+      periods reach: the Step 11 review found four such
+      defects at 1,500 draws. Give such a model's
+      OVERRIDES entry long-series and extreme-run draws
+      (tests/strategies.py's _LONG and _EXTREME_RUN), and
+      annualize from core's log_return, never from a
+      compound return.
 
     Files to read (every file before drafting):
     - This roadmap's Overview (model contract, catalog
@@ -9211,7 +9220,7 @@ workflow above maps directly to the corresponding row below.
 | 8       | Catalog: fixed income            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #82 |
 | 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
 | 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
-| 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
+| 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
