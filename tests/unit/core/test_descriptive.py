@@ -12,6 +12,11 @@ import pytest
 from pyeconomics.core import (
     DomainError,
     InputError,
+    annualized_log_return,
+    annualized_return,
+    compound_return,
+    has_spread,
+    log_return,
     max_drawdown,
     sample_mean,
     sample_moments,
@@ -91,3 +96,61 @@ def test_moments_of_a_tiny_spread_are_scale_free(values: list[float]) -> None:
     reference = sample_moments([v / max(values) for v in values])
     assert math.isclose(shape.skewness, reference.skewness, rel_tol=1e-12)
     assert math.isclose(shape.excess_kurtosis, reference.excess_kurtosis, rel_tol=1e-12)
+
+
+def test_returns_compound_geometrically() -> None:
+    assert math.isclose(compound_return([0.1, -0.05, 0.2]), 0.254, rel_tol=1e-15)
+    assert compound_return([0.5, -1.0, 2.0]) == -1.0
+    assert compound_return([100.0] * 200) == math.inf
+
+
+def test_a_loss_beyond_everything_does_not_compound() -> None:
+    with pytest.raises(InputError, match="below -1"):
+        compound_return([0.1, -1.5])
+
+
+def test_annualizing_compounds_to_a_year() -> None:
+    assert math.isclose(annualized_return(0.21, 2, 1), 0.1, rel_tol=1e-15)
+    assert math.isclose(annualized_return(0.01, 1, 12), 1.01**12 - 1, rel_tol=1e-14)
+    assert annualized_return(0.0, 1e-9, 1e5) == 0.0
+    assert annualized_return(-1.0, 1, 12) == -1.0
+    assert annualized_return(100.0, 1, 1000) == math.inf
+    assert annualized_return(-0.999999, 1, 1e5) == -1.0
+
+
+@pytest.mark.parametrize(
+    ("total", "periods", "per_year"),
+    [(-1.5, 1, 1), (math.nan, 1, 1), (0.1, 0, 1), (0.1, 1, -12), (0.1, math.inf, 1)],
+)
+def test_annualizing_refuses_what_has_no_meaning(
+    total: float, periods: float, per_year: float
+) -> None:
+    with pytest.raises(InputError):
+        annualized_return(total, periods, per_year)
+
+
+def test_spread_is_more_than_rounding() -> None:
+    assert not has_spread([0.1, 0.1, 0.1])
+    assert not has_spread([1.0, 1.0 + 2**-52])
+    assert has_spread([0.1, 0.2])
+    assert has_spread([0.0, 1e-300])
+
+
+def test_log_returns_sum_without_rounding_to_a_total_loss() -> None:
+    assert math.isclose(log_return([0.1, -0.05, 0.2]), math.log(1.254), rel_tol=1e-15)
+    assert log_return([0.1, -1.0]) == -math.inf
+    assert math.isclose(log_return([-0.5] * 2000), 2000 * math.log(0.5), rel_tol=1e-15)
+    with pytest.raises(InputError, match="below -1"):
+        log_return([-2.0])
+
+
+def test_annualizing_a_log_return() -> None:
+    assert math.isclose(
+        annualized_log_return(log_return([-0.5] * 100), 100, 1), -0.5, rel_tol=1e-15
+    )
+    assert annualized_log_return(-math.inf, 3, 12) == -1.0
+    assert annualized_log_return(0.0, 1e-9, 1e5) == 0.0
+    assert annualized_log_return(1000.0, 1, 12) == math.inf
+    for bad in (math.nan, math.inf):
+        with pytest.raises(InputError, match="finite or minus infinity"):
+            annualized_log_return(bad, 1, 1)

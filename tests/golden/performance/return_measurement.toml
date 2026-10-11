@@ -1,0 +1,76 @@
+# tests/golden/performance/return_measurement.toml
+model = "performance.return_measurement"
+
+[[sources]]
+key = "microsoft_xirr"
+kind = "official"
+citation = "Microsoft. XIRR function (Excel): the example's five dated cash flows and their published rate. As a money-weighted return they are a beginning value, three withdrawals and an ending value."
+url = "https://support.microsoft.com/en-us/office/xirr-function-de1242ec-6477-445b-b11b-a303ad9adc9d"
+
+[[sources]]
+key = "dietz1966"
+kind = "identity"
+citation = "The day-weighted (Modified) Dietz return, refining Dietz, P. O. (1966), Pension Funds: Measuring Investment Performance, Free Press: gain over average capital, each flow weighted by the share of the period it was held. Synthetic inputs, exact rational arithmetic."
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "Time-weighted sub-period returns V_k / (V_{k-1} + F_{k-1}) - 1 linked geometrically; with no flows every method gives V_n / V_0 - 1. Synthetic inputs, exact rational arithmetic."
+
+[[cases]]
+id = "microsoft_xirr_as_money_weighted"
+source = "microsoft_xirr"
+locator = "Example (=XIRR(A3:A7, B3:B7, 0.1))"
+edge = false
+inputs = { calculation = "money_weighted", beginning_value = 10000, ending_value = 2750, flows = [-2750, -4250, -3250], start_date = 2008-01-01, end_date = 2009-04-01, flow_dates = [2008-03-01, 2008-10-30, 2009-02-15] }
+expected = { rate = 0.373362535, annualized_return = 0.373362535 }
+tolerance = { rate = { abs = 2e-8 }, annualized_return = { abs = 2e-8 } }
+note = "Published as 0.373362535. Excel stops iterating once the rate is accurate within 0.000001 percent, so the ninth decimal can differ from the root (0.3733625335), as foundations.time_value records for the same example."
+
+[[cases]]
+id = "dietz_mid_month_contribution"
+source = "dietz1966"
+edge = false
+inputs = { calculation = "modified_dietz", beginning_value = 1000, ending_value = 1300, start_date = 2026-04-01, end_date = 2026-05-01, flows = [200], flow_dates = [2026-04-16] }
+expected = { modified_dietz_return = 0.09090909090909091, average_capital = 1100.0 }
+note = "The flow is held for 15 of 30 days: R = 100 / 1100 = 1/11."
+
+[[cases]]
+id = "dietz_annualized_month"
+source = "dietz1966"
+edge = false
+inputs = { calculation = "modified_dietz", beginning_value = 1000, ending_value = 1300, start_date = 2026-04-01, end_date = 2026-05-01, flows = [200], flow_dates = [2026-04-16], periods_per_year = 12 }
+expected = { annualized_return = 1.8409443766154883 }
+note = "(12/11)^12 - 1."
+
+[[cases]]
+id = "time_weighted_with_a_contribution"
+source = "identity"
+edge = false
+inputs = { calculation = "time_weighted", values = [100, 110, 132], flows = [0, 20] }
+expected_none = ["annualized_return"]
+expected = { sub_period_returns = [0.1, 0.015384615384615385], time_weighted_return = 0.11692307692307692 }
+note = "The contribution enters after the first valuation: 1.1 * 132 / 130 - 1 = 38/325."
+
+[[cases]]
+id = "single_period_without_flows"
+source = "identity"
+edge = true
+inputs = { calculation = "time_weighted", values = [100, 125], periods_per_year = 4 }
+expected = { sub_period_returns = [0.25], time_weighted_return = 0.25, annualized_return = 1.44140625 }
+
+[[cases]]
+id = "money_weighted_without_flows"
+source = "identity"
+edge = true
+inputs = { calculation = "money_weighted", beginning_value = 100, ending_value = 121, periods = 2, periods_per_year = 1 }
+expected = { rate = 0.1, money_weighted_return = 0.21, annualized_return = 0.1 }
+tolerance = { rate = { abs = 1e-11 }, money_weighted_return = { abs = 2e-11 }, annualized_return = { abs = 1e-11 } }
+note = "The root finder's tolerance is 2e-12 in the rate."
+
+[[cases]]
+id = "dietz_negative_without_flows"
+source = "identity"
+edge = true
+inputs = { calculation = "modified_dietz", beginning_value = 100, ending_value = 95, start_date = 2026-01-01, end_date = 2026-12-31 }
+expected = { modified_dietz_return = -0.05, average_capital = 100.0 }

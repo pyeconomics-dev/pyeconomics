@@ -1,0 +1,129 @@
+# tests/golden/portfolio/utility.toml
+model = "portfolio.utility"
+
+[[sources]]
+key = "kelly1956"
+kind = "paper"
+citation = "Kelly, J. L. (1956). A new interpretation of information rate. Bell System Technical Journal, 35(4), 917-926. The fraction p - q for an even-money bet, and its growth rate; synthetic inputs, logarithms to 40 digits."
+doi = "10.1002/j.1538-7305.1956.tb03809.x"
+
+[[sources]]
+key = "thorp2006"
+kind = "paper"
+citation = "Thorp, E. O. (2006). The Kelly criterion in blackjack, sports betting and the stock market. Handbook of Asset and Liability Management, Vol. 1, 385-428. Fractions for bets at odds and for a continuous asset; synthetic inputs, exact rational arithmetic."
+doi = "10.1016/S1872-0978(06)01009-X"
+
+[[sources]]
+key = "merton1969"
+kind = "paper"
+citation = "Merton, R. C. (1969). Lifetime portfolio selection under uncertainty: the continuous-time case. The Review of Economics and Statistics, 51(3), 247-257. The risky share (mu - r) / (A sigma^2); synthetic inputs, exact rational arithmetic."
+doi = "10.2307/1926560"
+
+[[sources]]
+key = "pratt1964"
+kind = "paper"
+citation = "Pratt, J. W. (1964). Risk aversion in the small and in the large. Econometrica, 32(1/2), 122-136. The certainty equivalent of a gamble; power and log utility over synthetic outcomes, roots to 40 digits."
+doi = "10.2307/1913738"
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "Mean-variance utility E - A sigma^2 / 2 at zero volatility is E; a risk-neutral certainty equivalent is the mean; with no edge the Kelly fraction is zero. Synthetic inputs, exact rational arithmetic."
+
+[[cases]]
+id = "even_money_kelly"
+source = "kelly1956"
+locator = "pp. 919-920, the even-money fraction (Kelly writes q for the win probability)"
+edge = false
+inputs = { calculation = "kelly", win_probability = 0.55, odds = 1 }
+expected = { full_kelly = 0.1, fraction = 0.1, growth_rate = 0.005008366846356837 }
+tolerance = { full_kelly = { abs = 1e-15 }, fraction = { abs = 1e-15 } }
+
+[[cases]]
+id = "two_to_one_kelly"
+source = "thorp2006"
+locator = "Section 2, p. 391, the fraction (bp - q) / b at b-to-1 odds"
+edge = false
+inputs = { calculation = "kelly", win_probability = 0.4, odds = 2 }
+expected = { full_kelly = 0.1, fraction = 0.1, growth_rate = 0.00971231332288607 }
+tolerance = { full_kelly = { abs = 1e-15 }, fraction = { abs = 1e-15 } }
+
+[[cases]]
+id = "thorp_coin_tossing_example"
+source = "thorp2006"
+locator = "Example 2.1, p. 389"
+edge = false
+inputs = { calculation = "kelly", win_probability = 0.53, odds = 1 }
+expected = { full_kelly = 0.06, growth_rate = 0.001801 }
+tolerance = { full_kelly = { abs = 5e-3 }, growth_rate = { abs = 5e-7 } }
+note = "Thorp prints f* = .06 and g(f*) = .001801 (natural logarithms)."
+
+[[cases]]
+id = "half_kelly_asset"
+source = "thorp2006"
+locator = "Section 7.1, eqs. (7.1) and (7.3), the continuous approximation"
+edge = false
+inputs = { calculation = "kelly", drift = 0.08, risk_free_rate = 0.03, volatility = 0.2, multiplier = 0.5 }
+expected = { full_kelly = 1.25, fraction = 0.625, growth_rate = 0.0534375 }
+
+[[cases]]
+id = "no_edge_bet"
+source = "identity"
+edge = true
+inputs = { calculation = "kelly", win_probability = 0.5, odds = 1 }
+expected = { full_kelly = 0.0, fraction = 0.0, growth_rate = 0.0 }
+
+[[cases]]
+id = "risky_share"
+source = "merton1969"
+locator = "Section IV, eq. (29'), constant relative risk aversion"
+edge = false
+inputs = { calculation = "optimal_risky_share", expected_return = 0.08, risk_free_rate = 0.03, volatility = 0.2, risk_aversion = 4 }
+expected = { optimal_share = 0.3125, expected_return = 0.045625, volatility = 0.0625, utility = 0.0378125, sharpe_ratio = 0.25 }
+
+[[cases]]
+id = "mean_variance_utility"
+source = "identity"
+edge = false
+inputs = { calculation = "mean_variance_utility", expected_return = 0.08, volatility = 0.2, risk_aversion = 3 }
+expected = { utility = 0.02, risk_penalty = 0.06 }
+
+[[cases]]
+id = "zero_volatility_utility"
+source = "identity"
+edge = true
+inputs = { calculation = "mean_variance_utility", expected_return = 0.04, volatility = 0.0, risk_aversion = 10 }
+expected = { utility = 0.04, risk_penalty = 0.0 }
+
+[[cases]]
+id = "log_utility_certainty_equivalent"
+source = "pratt1964"
+locator = "The risk premium's definition, the paper's opening equation"
+edge = false
+inputs = { calculation = "certainty_equivalent", outcomes = [0.5, -0.2], probabilities = [0.5, 0.5], relative_risk_aversion = 1 }
+expected = { certainty_equivalent = 0.09544511501033223, expected_return = 0.15, risk_premium = 0.05455488498966777 }
+
+[[cases]]
+id = "crra_two_certainty_equivalent"
+source = "pratt1964"
+locator = "The risk premium's definition, the paper's opening equation"
+edge = false
+inputs = { calculation = "certainty_equivalent", outcomes = [0.5, -0.2], probabilities = [0.5, 0.5], relative_risk_aversion = 2 }
+expected = { certainty_equivalent = 0.043478260869565216, expected_return = 0.15 }
+note = "Gamma 2 gives the harmonic mean of the gross returns: 1 + CE = 24/23."
+
+[[cases]]
+id = "crra_three_negative_certainty_equivalent"
+source = "pratt1964"
+locator = "The risk premium's definition, the paper's opening equation"
+edge = true
+inputs = { calculation = "certainty_equivalent", outcomes = [0.5, -0.2], probabilities = [0.5, 0.5], relative_risk_aversion = 3 }
+expected = { certainty_equivalent = -0.0017316030307564362 }
+note = "A gamble with a positive mean is worth a negative certain return at gamma 3."
+
+[[cases]]
+id = "risk_neutral_certainty_equivalent"
+source = "identity"
+edge = true
+inputs = { calculation = "certainty_equivalent", outcomes = [0.5, -0.2, 0.1], probabilities = [0.25, 0.25, 0.5], relative_risk_aversion = 0 }
+expected = { certainty_equivalent = 0.125, expected_return = 0.125, risk_premium = 0.0 }

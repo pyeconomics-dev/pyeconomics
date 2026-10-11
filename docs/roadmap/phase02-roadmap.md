@@ -4127,6 +4127,10 @@ hygiene.
       Fisher relation). Invariants at least: means_ordering
       (harmonic ≤ geometric ≤ arithmetic for returns above
       −1), log_returns_additive and fisher_identity.
+      (Patched in Step 11 under the Contract-change rule:
+      the compounding of annualized lives in
+      core/descriptive.py's annualized_return, which
+      foundations.returns calls.)
     </requirement>
 
     <requirement>
@@ -6319,9 +6323,9 @@ knowledge. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 11 — Launch Catalog: Portfolio and Performance
+## Step 11 — Launch Catalog: Portfolio and Performance ✅
 
-**Status:** Not started
+**Status:** Complete — PR #87 (2026-10-11)
 
 > **Goal:** Register the two portfolio and three performance entries. Add
 > `portfolio.mean_variance` (portfolio return and risk, the closed-form
@@ -6719,7 +6723,9 @@ hygiene.
       valuations around external flows, linked
       geometrically), money_weighted (the IRR of the flows,
       periodic or dated, through core/'s numerics) and
-      modified_dietz (Dietz 1966, day-weighted flows), each
+      modified_dietz (day-weighted flows: the refinement of
+      Dietz's 1966 midpoint method, as Bacon 2008 ch. 2
+      sets it out; spec corrected in Step 11), each
       optionally annualized with an explicit
       periods_per_year. Invariants at least:
       time_and_money_weighted_agree_without_flows and
@@ -7142,6 +7148,33 @@ Intelligence High. New conversation per phase-boundary hygiene.
       contract.check_model(model, max_examples=1500) on
       each new model and have an independent reviewer
       read the diff.
+    - Step 11 facts (2026-10-11): core/descriptive.py
+      adds compound_return, annualized_return (both return
+      infinity on overflow) and has_spread (more than
+      rounding error, the zero-volatility test for a
+      ratio's null). A matrix input is a tuple of rows,
+      each row Annotated with Field(max_length=...), the
+      outer field bounded too; a BeforeValidator in the
+      domain's _common.py turns a 2-D NumPy array or a
+      DataFrame into rows (portfolio/_common.py has the
+      covariance version, with its symmetric
+      positive-definite check, which raises DomainError).
+      Models may not import across domains, so each
+      domain keeps its own _common.py. A field another
+      field makes required stays Optional and the compute
+      reads it with typing.cast, which mypy and ty both
+      accept. Ruff's ERA001 reads a header path such as
+      `# .../return_measurement.py` as code: exempt the
+      file in pyproject.toml, as foundations/returns.py is.
+      The contract strategies draw at most 12 items, so a
+      model that compounds over a series never meets the
+      overflow or the rounding to -100% that hundreds of
+      periods reach: the Step 11 review found four such
+      defects at 1,500 draws. Give such a model's
+      OVERRIDES entry long-series and extreme-run draws
+      (tests/strategies.py's _LONG and _EXTREME_RUN), and
+      annualize from core's log_return, never from a
+      compound return.
 
     Files to read (every file before drafting):
     - This roadmap's Overview (model contract, catalog
@@ -9187,7 +9220,7 @@ workflow above maps directly to the corresponding row below.
 | 8       | Catalog: fixed income            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #82 |
 | 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
 | 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
-| 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
+| 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
@@ -9524,6 +9557,21 @@ forward whatever is still open here.
   `tests/models/test_registry_is_not_empty.py`. Patched: the context of Steps
   7-12 (the Step 6 facts: shared numerics, the out-of-bounds rule, overrides,
   literal markers, short reference keys).
+- From Step 11 (2026-10-11). Contract change, the smallest that works: the
+  annualization helper Step 6 left in `models/foundations/returns.py` moved to
+  `core/descriptive.py` as `annualized_return`, beside the new
+  `compound_return` and `has_spread`; `foundations.returns` calls it, and
+  every golden case stays green. The one behaviour change: an annualized
+  return within 1e-12 (relative) above 100 is now clamped to 100 rather than
+  raised as DomainError. Patched: Step 6's `foundations.returns` requirement
+  and Step 12's context. empyrical-reloaded was not added: 0.5.12, its latest
+  release, imports `pytz` without declaring it (pandas 3 no longer installs
+  it), pins `peewee<3.17.4` and rejects `annualization` in its capture
+  functions. `performance.risk_adjusted`'s oracle tests use
+  `scipy.stats.linregress` and an independent NumPy recomputation instead; a
+  local, uncommitted overlay with `pytz` agreed with empyrical on all ten
+  measures it implements within 7e-14 over 500 random series. Owned by Step
+  15, which carries the decision into `docs/phase02-qa-findings.md`.
 
 ---
 

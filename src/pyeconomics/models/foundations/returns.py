@@ -40,6 +40,7 @@ from pyeconomics.core import (
     Reference,
     Return,
     ReturnArray,
+    annualized_return,
     model,
 )
 from pyeconomics.core.model import ARRAY_INPUT
@@ -60,6 +61,8 @@ _LOG_RETURN_MAX: Final = math.log1p(_RETURN_MAX)
 #: widens the return's lower bound to -40: the smallest gross return a float
 #: above -1 can give, about 1.1e-16, has a log return of -36.7.
 _LOG_RETURN_MIN: Final = -40.0
+#: Relative rounding allowed past the upper bound before it counts as overflow.
+_ROUNDING: Final = 1e-12
 
 _LogOrSimple = Annotated[
     tuple[Annotated[Return, Field(ge=_LOG_RETURN_MIN, le=_RETURN_MAX)], ...],
@@ -238,20 +241,18 @@ def _means(inputs: MeansInputs) -> MeansOutputs:
 
 
 def _annualized(inputs: AnnualizedInputs) -> AnnualizedOutputs:
-    exponent = inputs.periods_per_year / inputs.periods
-    if inputs.period_return in {0.0, -1.0}:
-        # Fixed points of compounding; an exponent that overflows to inf
-        # would otherwise turn 0 into NaN.
-        return AnnualizedOutputs(annualized_return=inputs.period_return)
-    log_annual = exponent * math.log1p(inputs.period_return)
-    if log_annual > _LOG_RETURN_MAX:
+    annual = annualized_return(
+        inputs.period_return, inputs.periods, inputs.periods_per_year
+    )
+    # expm1(log1p(100)) rounds to just above 100: a few ulps over the bound are
+    # rounding, and are clamped; more is a return the bounds cannot hold.
+    if annual > _RETURN_MAX * (1 + _ROUNDING):
         msg = (
             f"compounding a return of {inputs.period_return!r} to a year of "
             f"{inputs.periods_per_year!r} periods exceeds a return of 100 (10,000%)"
         )
         raise DomainError(msg)
-    annual = min(max(math.expm1(log_annual), -1.0), _RETURN_MAX)
-    return AnnualizedOutputs(annualized_return=annual)
+    return AnnualizedOutputs(annualized_return=min(annual, _RETURN_MAX))
 
 
 def _log(inputs: LogInputs) -> LogOutputs:

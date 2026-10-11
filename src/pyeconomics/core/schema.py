@@ -65,8 +65,10 @@ def _document(model: Model[Any, Any], side: Side) -> dict[str, Any]:
         "title": title,
         "description": model.spec.summary,
     }
-    # The adapter's own title, if any, would be a class name: ours replaces it.
+    # The adapter's own title, if any, would be a class name, and its
+    # description an input class's docstring: the model's replace both.
     body.pop("title", None)
+    body.pop("description", None)
     document = {**head, **body}
     if side == "input":
         document["examples"] = [

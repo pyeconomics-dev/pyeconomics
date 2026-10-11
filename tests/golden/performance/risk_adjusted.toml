@@ -1,0 +1,88 @@
+# tests/golden/performance/risk_adjusted.toml
+model = "performance.risk_adjusted"
+
+[[sources]]
+key = "sharpe1994"
+kind = "paper"
+citation = "Sharpe, W. F. (1994). The Sharpe ratio. The Journal of Portfolio Management, 21(1), 49-58. The ex post ratio of mean to standard deviation of differential returns, annualized by the square root of the periods in a year; synthetic inputs, roots to 40 digits."
+doi = "10.3905/jpm.1994.409501"
+
+[[sources]]
+key = "sortino1994"
+kind = "paper"
+citation = "Sortino, F. A. and Price, L. N. (1994). Performance measurement in a downside risk framework. The Journal of Investing, 3(3), 59-64. The ratio of return above a minimum acceptable return to the downside deviation; synthetic inputs, roots to 40 digits."
+doi = "10.3905/joi.3.3.59"
+
+[[sources]]
+key = "jensen1968"
+kind = "paper"
+citation = "Jensen, M. C. (1968). The performance of mutual funds in the period 1945-1964. The Journal of Finance, 23(2), 389-416. Alpha as the intercept of the excess-return regression on the market's; synthetic inputs, exact rational arithmetic."
+doi = "10.1111/j.1540-6261.1968.tb00815.x"
+
+[[sources]]
+key = "modigliani1997"
+kind = "paper"
+citation = "Modigliani, F. and Modigliani, L. (1997). Risk-adjusted performance. The Journal of Portfolio Management, 23(2), 45-54. The portfolio return levered to the market's volatility; synthetic inputs, roots to 40 digits."
+doi = "10.3905/jpm.23.2.45"
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "Tracking error and information ratio of active returns; Calmar as compound annual growth over maximum drawdown; capture as a ratio of geometric means; and the identities of a portfolio equal to its benchmark. Synthetic inputs, exact rational arithmetic and 40-digit roots."
+
+[[cases]]
+id = "four_months_sharpe"
+source = "sharpe1994"
+locator = "Eqs. (3)-(6), the ex post ratio; eqs. (7)-(10), annualization"
+edge = false
+inputs = { returns = [0.02, -0.01, 0.03, 0.01], benchmark_returns = [0.01, -0.02, 0.02, 0.01], periods_per_year = 12 }
+expected = { sharpe_ratio = 2.53546276418555, annualized_volatility = 0.05916079783099616 }
+
+[[cases]]
+id = "four_months_sortino"
+source = "sortino1994"
+locator = "The downside deviation below the minimum acceptable return"
+edge = false
+inputs = { returns = [0.02, -0.01, 0.03, 0.01], benchmark_returns = [0.01, -0.02, 0.02, 0.01], periods_per_year = 12 }
+expected = { sortino_ratio = 8.660254037844387, downside_deviation = 0.017320508075688773 }
+
+[[cases]]
+id = "four_months_jensen"
+source = "jensen1968"
+locator = "Eq. (8), p. 393, alpha as the regression intercept"
+edge = false
+inputs = { returns = [0.02, -0.01, 0.03, 0.01], benchmark_returns = [0.01, -0.02, 0.02, 0.01], periods_per_year = 12 }
+expected = { beta = 0.9444444444444444, jensen_alpha = 0.09333333333333334, treynor_ratio = 0.1588235294117647 }
+note = "Beta 17/18, alpha 7/75 a year, Treynor 27/170."
+
+[[cases]]
+id = "four_months_m_squared"
+source = "modigliani1997"
+locator = "The risk-adjusted performance measure"
+edge = false
+inputs = { returns = [0.02, -0.01, 0.03, 0.01], benchmark_returns = [0.01, -0.02, 0.02, 0.01], periods_per_year = 12 }
+expected = { m_squared = 0.152127765851133 }
+
+[[cases]]
+id = "four_months_active_and_drawdown"
+source = "identity"
+edge = false
+inputs = { returns = [0.02, -0.01, 0.03, 0.01], benchmark_returns = [0.01, -0.02, 0.02, 0.01], periods_per_year = 12 }
+expected = { tracking_error = 0.017320508075688773, information_ratio = 5.196152422706632, annualized_return = 0.1592627858128946, max_drawdown = 0.01, calmar_ratio = 15.926278581289461, up_capture = 1.498778799753696, down_capture = 0.5 }
+tolerance = { max_drawdown = { abs = 1e-15 } }
+
+[[cases]]
+id = "identical_to_benchmark"
+source = "identity"
+edge = true
+inputs = { returns = [0.02, -0.01, 0.03, 0.01], benchmark_returns = [0.02, -0.01, 0.03, 0.01], risk_free_returns = [0.001, 0.001, 0.001, 0.001], periods_per_year = 12 }
+expected = { tracking_error = 0.0, beta = 1.0, jensen_alpha = 0.0, up_capture = 1.0, down_capture = 1.0 }
+expected_none = ["information_ratio"]
+
+[[cases]]
+id = "constant_returns_have_no_sharpe"
+source = "identity"
+edge = true
+inputs = { returns = [0.01, 0.01, 0.01], benchmark_returns = [0.02, -0.01, 0.03], periods_per_year = 12 }
+expected = { annualized_volatility = 0.0, max_drawdown = 0.0 }
+expected_none = ["sharpe_ratio", "sortino_ratio", "calmar_ratio"]

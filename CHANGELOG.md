@@ -15,6 +15,29 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Five models through the `portfolio` and `performance` entry points:
+  - `portfolio.mean_variance`: portfolio expected return and risk from weights
+    and a covariance matrix (or volatilities and correlations), Merton's
+    closed-form minimum-variance frontier with short sales, and the
+    minimum-variance and tangency portfolios with the capital market line's
+    slope. Covariance matrices are checked symmetric and positive definite.
+  - `portfolio.utility`: mean-variance utility, the utility-maximizing risky
+    share, the certainty equivalent of a gamble under constant relative risk
+    aversion, and the Kelly fraction of a discrete bet or a continuous asset,
+    with a fractional multiplier.
+  - `performance.return_measurement`: time-weighted, money-weighted (periodic
+    or dated flows) and Modified Dietz returns, optionally annualized.
+  - `performance.risk_adjusted`: Sharpe, Sortino, Treynor, Jensen's alpha,
+    beta, information ratio and tracking error, M², Calmar and up- and
+    down-capture ratios, each convention stated on the model card.
+  - `performance.brinson_attribution`: Brinson-Hood-Beebower and
+    Brinson-Fachler allocation, selection and interaction effects, single
+    period and linked over periods with Carino's method.
+
+  Every output is a formula result for the inputs the user supplies, not
+  investment advice. `pyeconomics.core` adds `compound_return`,
+  `annualized_return` and `has_spread`.
+
 - Seven models through the `equity`, `corporate` and `accounting` entry points:
   `equity.dividend_discount`, `equity.free_cash_flow`,
   `corporate.cost_of_capital`, `corporate.capital_budgeting`, `corporate.leverage`,

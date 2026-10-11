@@ -556,3 +556,357 @@ def _interest_rate_swap() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["derivatives.interest_rate_swap"] = _interest_rate_swap
+
+
+# --- portfolio: square matrices, distributions, one Kelly form ------------------
+
+
+@st.composite
+def _correlations(draw: st.DrawFn, size: int) -> list[list[float]]:
+    """Draw a correlation matrix: usually positive definite, sometimes not."""
+    if draw(st.integers(0, 9)) == 0:
+        # A symmetric matrix of arbitrary correlations, rarely positive definite.
+        cells = st.floats(min_value=-1.0, max_value=1.0)
+        rows = [[1.0] * size for _ in range(size)]
+        for i in range(size):
+            for j in range(i + 1, size):
+                rows[i][j] = rows[j][i] = draw(cells)
+        return rows
+    loadings = [
+        draw(st.lists(st.floats(-1.0, 1.0), min_size=2, max_size=2))
+        for _ in range(size)
+    ]
+    noise = draw(st.lists(st.floats(0.05, 1.0), min_size=size, max_size=size))
+    raw = [
+        [
+            sum(a * b for a, b in zip(loadings[i], loadings[j], strict=True))
+            + (noise[i] if i == j else 0.0)
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+    scale = [math.sqrt(raw[i][i]) for i in range(size)]
+    return [
+        [
+            1.0 if i == j else max(-1.0, min(1.0, raw[i][j] / (scale[i] * scale[j])))
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+
+
+@st.composite
+def _assets(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw ``cls``'s inputs with expected returns and a matching risk matrix."""
+    drawn = draw(_fields(cls))
+    size = draw(st.integers(min_value=1, max_value=6))
+    for name in ("covariance", "volatilities", "correlations", "weights"):
+        drawn.pop(name, None)
+    drawn["expected_returns"] = draw(
+        st.lists(
+            st.one_of(st.floats(-0.5, 0.5), st.floats(-1.0, 100.0)),
+            min_size=size,
+            max_size=size,
+        )
+    )
+    vols = draw(
+        st.lists(
+            st.one_of(st.floats(0.01, 1.0), st.floats(1e-6, 10.0)),
+            min_size=size,
+            max_size=size,
+        )
+    )
+    correlations = draw(_correlations(size))
+    if draw(st.booleans()):
+        drawn["volatilities"], drawn["correlations"] = vols, correlations
+    else:
+        drawn["covariance"] = [
+            [correlations[i][j] * vols[i] * vols[j] for j in range(size)]
+            for i in range(size)
+        ]
+    if "weights" in cls.model_fields:
+        drawn["weights"] = draw(
+            st.lists(st.floats(-100.0, 100.0), min_size=size, max_size=size)
+        )
+    return drawn
+
+
+def _mean_variance() -> SearchStrategy[dict[str, Any]]:
+    """``portfolio.mean_variance``: square matrices that fit the expected returns."""
+    module = importlib.import_module("pyeconomics.models.portfolio.mean_variance")
+    members = (
+        module.PortfolioInputs,
+        module.FrontierInputs,
+        module.MinimumVarianceInputs,
+        module.TangencyInputs,
+    )
+    return st.one_of(
+        *(_assets(member).filter(_accepts(member)) for member in members),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.mean_variance.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["portfolio.mean_variance"] = _mean_variance
+
+
+@st.composite
+def _distribution(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a gamble: outcomes and probabilities that sum to one."""
+    drawn = draw(_fields(cls))
+    size = draw(st.integers(min_value=1, max_value=MAX_ITEMS))
+    drawn["outcomes"] = draw(
+        st.lists(
+            st.one_of(st.floats(-1.0, 1.0), st.floats(-1.0, 100.0)),
+            min_size=size,
+            max_size=size,
+        )
+    )
+    raw = draw(st.lists(st.floats(0.0, 1.0), min_size=size, max_size=size))
+    total = sum(raw)
+    drawn["probabilities"] = (
+        [1.0 / size] * size if total == 0 else [min(p / total, 1.0) for p in raw]
+    )
+    return drawn
+
+
+@st.composite
+def _kelly(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a discrete bet or a continuous asset, never a mix of the two."""
+    drawn = draw(_fields(cls))
+    for name in ("win_probability", "odds", "drift", "volatility", "risk_free_rate"):
+        drawn.pop(name, None)
+    names: tuple[str, ...]
+    if draw(st.booleans()):
+        names = ("win_probability", "odds")
+    else:
+        names = ("drift", "volatility")
+        if draw(st.booleans()):
+            names = (*names, "risk_free_rate")
+    for name in names:
+        drawn[name] = draw(_field(cls, name))
+    return drawn
+
+
+def _utility() -> SearchStrategy[dict[str, Any]]:
+    """``portfolio.utility``: distributions sum to one; Kelly takes one form."""
+    module = importlib.import_module("pyeconomics.models.portfolio.utility")
+    return st.one_of(
+        _fields(module.MeanVarianceUtilityInputs),
+        _fields(module.OptimalRiskyShareInputs),
+        _distribution(module.CertaintyEquivalentInputs).filter(
+            _accepts(module.CertaintyEquivalentInputs)
+        ),
+        _kelly(module.KellyInputs),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.utility.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["portfolio.utility"] = _utility
+
+
+# --- performance: aligned series, flows inside their span, sector matrices -------
+
+#: A long series: compounding over hundreds of periods overflows or rounds a
+#: run of losses to -100%, which a dozen periods never reach.
+_LONG: Final = st.integers(min_value=100, max_value=800)
+#: A return repeated for a whole series: steady losses, steady large gains.
+_EXTREME_RUN: Final = st.sampled_from([-0.6, -0.065, 0.5, 1.0, 100.0])
+
+
+@st.composite
+def _dated_flows(
+    draw: st.DrawFn, drawn: dict[str, Any], *, required: bool
+) -> dict[str, Any]:
+    """Give ``drawn`` a start, an end and flows dated between them."""
+    start = draw(
+        st.dates(min_value=DEFAULT_DATE_BOUNDS.lower, max_value=dt.date(2190, 1, 1))
+    )
+    end = start + dt.timedelta(days=draw(st.integers(1, 3_650)))
+    size = draw(st.integers(0, 6))
+    days = (end - start).days
+    offsets = draw(st.lists(st.integers(0, days), min_size=size, max_size=size))
+    drawn.update(
+        start_date=start,
+        end_date=end,
+        flows=draw(st.lists(st.floats(-1e6, 1e6), min_size=size, max_size=size)),
+        flow_dates=[start + dt.timedelta(days=d) for d in sorted(offsets)],
+    )
+    if not required:
+        for name in ("periods", "flow_times", "periods_per_year"):
+            drawn.pop(name, None)
+    return drawn
+
+
+@st.composite
+def _time_weighted(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw valuations, and one flow per valuation but the last, or none."""
+    drawn = draw(_fields(cls))
+    size = draw(st.one_of(st.integers(2, MAX_ITEMS), _LONG))
+    drawn["values"] = draw(
+        st.lists(
+            st.one_of(st.floats(50.0, 200.0), st.floats(0.0, 1e12)),
+            min_size=size,
+            max_size=size,
+        )
+    )
+    drawn["flows"] = []
+    if draw(st.booleans()):
+        drawn["flows"] = draw(
+            st.lists(
+                st.one_of(st.floats(-40.0, 40.0), st.floats(-1e12, 1e12)),
+                min_size=size - 1,
+                max_size=size - 1,
+            )
+        )
+    return drawn
+
+
+@st.composite
+def _periodic_flows(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a span in periods and flows at times inside it."""
+    drawn = draw(_fields(cls))
+    for name in ("start_date", "end_date", "flow_dates"):
+        drawn.pop(name, None)
+    span = draw(st.floats(min_value=0.01, max_value=1_000.0))
+    size = draw(st.integers(0, 6))
+    drawn.update(
+        periods=span,
+        flows=draw(st.lists(st.floats(-1e6, 1e6), min_size=size, max_size=size)),
+        flow_times=draw(st.lists(st.floats(0.0, span), min_size=size, max_size=size)),
+    )
+    return drawn
+
+
+def _return_measurement() -> SearchStrategy[dict[str, Any]]:
+    """``performance.return_measurement``: flows fit their values, times or dates."""
+    module = importlib.import_module(
+        "pyeconomics.models.performance.return_measurement"
+    )
+    money = module.MoneyWeightedInputs
+    dietz = module.ModifiedDietzInputs
+    return st.one_of(
+        _time_weighted(module.TimeWeightedInputs).filter(
+            _accepts(module.TimeWeightedInputs)
+        ),
+        _periodic_flows(money).filter(_accepts(money)),
+        _fields(money)
+        .flatmap(lambda d: _dated_flows(d, required=False))
+        .filter(_accepts(money)),
+        _fields(dietz)
+        .flatmap(lambda d: _dated_flows(d, required=True))
+        .filter(_accepts(dietz)),
+        st.sampled_from(
+            [
+                dict(example.inputs)
+                for example in module.return_measurement.spec.examples
+            ]
+        ),
+    )
+
+
+OVERRIDES["performance.return_measurement"] = _return_measurement
+
+
+@st.composite
+def _aligned_series(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw portfolio, benchmark and risk-free returns of one length."""
+    drawn = draw(_fields(cls))
+    size = draw(st.one_of(st.integers(2, MAX_ITEMS), _LONG))
+    series = st.one_of(
+        st.lists(
+            st.one_of(st.floats(-0.2, 0.2), st.floats(-1.0, 100.0)),
+            min_size=size,
+            max_size=size,
+        ),
+        _EXTREME_RUN.map(lambda r: [r] * size),
+    )
+    drawn["returns"] = draw(series)
+    drawn["benchmark_returns"] = (
+        list(drawn["returns"]) if draw(st.integers(0, 4)) == 0 else draw(series)
+    )
+    drawn["risk_free_returns"] = draw(series) if draw(st.booleans()) else []
+    return drawn
+
+
+def _risk_adjusted() -> SearchStrategy[dict[str, Any]]:
+    """``performance.risk_adjusted``: three series over the same periods."""
+    module = importlib.import_module("pyeconomics.models.performance.risk_adjusted")
+    return st.one_of(
+        _aligned_series(module.RiskAdjustedInputs),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.risk_adjusted.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["performance.risk_adjusted"] = _risk_adjusted
+
+
+@st.composite
+def _sector_weights(draw: st.DrawFn, periods: int, sectors: int) -> list[list[float]]:
+    """Draw one row of weights in [0, 1] summing to one for each period."""
+    rows = []
+    for _ in range(periods):
+        raw = draw(st.lists(st.floats(0.0, 1.0), min_size=sectors, max_size=sectors))
+        total = sum(raw)
+        rows.append(
+            [1.0 / sectors] * sectors
+            if total == 0
+            else [min(w / total, 1.0) for w in raw]
+        )
+    return rows
+
+
+@st.composite
+def _sectors(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw four matrices of one shape, sometimes a portfolio equal to its benchmark."""
+    drawn = draw(_fields(cls))
+    periods = draw(st.one_of(st.integers(1, 4), st.integers(30, 60)))
+    sectors = draw(st.integers(1, 5))
+    returns = st.one_of(
+        st.lists(
+            st.lists(
+                st.one_of(st.floats(-0.3, 0.3), st.floats(-1.0, 100.0)),
+                min_size=sectors,
+                max_size=sectors,
+            ),
+            min_size=periods,
+            max_size=periods,
+        ),
+        _EXTREME_RUN.map(lambda r: [[r] * sectors] * periods),
+    )
+    drawn["portfolio_weights"] = draw(_sector_weights(periods, sectors))
+    drawn["benchmark_returns"] = draw(returns)
+    if draw(st.integers(0, 4)) == 0:
+        drawn["benchmark_weights"] = drawn["portfolio_weights"]
+        drawn["portfolio_returns"] = drawn["benchmark_returns"]
+    else:
+        drawn["benchmark_weights"] = draw(_sector_weights(periods, sectors))
+        drawn["portfolio_returns"] = draw(returns)
+    return drawn
+
+
+def _brinson_attribution() -> SearchStrategy[dict[str, Any]]:
+    """``performance.brinson_attribution``: one shape; weights sum to one."""
+    module = importlib.import_module(
+        "pyeconomics.models.performance.brinson_attribution"
+    )
+    return st.one_of(
+        _sectors(module.BhbInputs).filter(_accepts(module.BhbInputs)),
+        _sectors(module.BrinsonFachlerInputs).filter(
+            _accepts(module.BrinsonFachlerInputs)
+        ),
+        st.sampled_from(
+            [
+                dict(example.inputs)
+                for example in module.brinson_attribution.spec.examples
+            ]
+        ),
+    )
+
+
+OVERRIDES["performance.brinson_attribution"] = _brinson_attribution

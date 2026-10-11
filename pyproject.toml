@@ -55,6 +55,8 @@ equity = "pyeconomics.models.equity"
 fixed_income = "pyeconomics.models.fixed_income"
 foundations = "pyeconomics.models.foundations"
 international = "pyeconomics.models.international"
+performance = "pyeconomics.models.performance"
+portfolio = "pyeconomics.models.portfolio"
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
@@ -161,6 +163,8 @@ convention = "numpy"
 "tests/registry/test_model_imports.py" = ["ERA001"]
 "src/pyeconomics/models/foundations/returns.py" = ["ERA001"]
 "tests/models/foundations/test_returns.py" = ["ERA001"]
+"src/pyeconomics/models/performance/return_measurement.py" = ["ERA001"]
+"tests/models/performance/test_return_measurement.py" = ["ERA001"]
 # ADR-0008 names these modules; they are only ever imported as
 # pyeconomics.core.random and pyeconomics.core.warnings, never top-level.
 "src/pyeconomics/core/random.py" = ["A005"]

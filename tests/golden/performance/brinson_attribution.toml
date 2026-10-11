@@ -1,0 +1,59 @@
+# tests/golden/performance/brinson_attribution.toml
+model = "performance.brinson_attribution"
+
+[[sources]]
+key = "bhb1986"
+kind = "paper"
+citation = "Brinson, G. P., Hood, L. R. and Beebower, G. L. (1986). Determinants of portfolio performance. Financial Analysts Journal, 42(4), 39-44. Allocation, selection and interaction effects, applied to synthetic three-sector inputs in exact rational arithmetic."
+doi = "10.2469/faj.v42.n4.39"
+
+[[sources]]
+key = "fachler1985"
+kind = "paper"
+citation = "Brinson, G. P. and Fachler, N. (1985). Measuring non-US equity portfolio performance. The Journal of Portfolio Management, 11(3), 73-76. Allocation measured against the total benchmark return; synthetic inputs, exact rational arithmetic."
+doi = "10.3905/jpm.1985.409005"
+
+[[sources]]
+key = "carino1999"
+kind = "identity"
+citation = "Carino, D. R. (1999). Combining attribution effects over time. The Journal of Performance Measurement, 3(4), 5-14. Logarithmic linking coefficients k_t / k applied to two synthetic periods; logarithms to 40 digits."
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "A portfolio with its benchmark's weights and returns has every effect zero."
+
+[[cases]]
+id = "single_period_bhb"
+source = "bhb1986"
+locator = "Tables 1-3, the quadrant framework and its decomposition"
+edge = false
+inputs = { calculation = "bhb", portfolio_weights = [[0.5, 0.3, 0.2]], benchmark_weights = [[0.4, 0.4, 0.2]], portfolio_returns = [[0.08, 0.03, -0.02]], benchmark_returns = [[0.06, 0.04, -0.01]] }
+expected = { portfolio_return = 0.045, benchmark_return = 0.038, active_return = 0.007, allocation = 0.002, selection = 0.002, interaction = 0.003, sector_allocation = [0.006, -0.004, 0.0], sector_selection = [0.008, -0.004, -0.002], sector_interaction = [0.002, 0.001, 0.0] }
+tolerance = { sector_allocation = { abs = 1e-15 }, sector_selection = { abs = 1e-15 }, sector_interaction = { abs = 1e-15 }, allocation = { abs = 1e-15 }, selection = { abs = 1e-15 }, interaction = { abs = 1e-15 }, active_return = { abs = 1e-15 } }
+note = "R = 9/200 and B = 19/500, so the effects sum to 7/1000."
+
+[[cases]]
+id = "single_period_brinson_fachler"
+source = "fachler1985"
+locator = "The allocation effect relative to the total benchmark return"
+edge = false
+inputs = { calculation = "brinson_fachler", portfolio_weights = [[0.5, 0.3, 0.2]], benchmark_weights = [[0.4, 0.4, 0.2]], portfolio_returns = [[0.08, 0.03, -0.02]], benchmark_returns = [[0.06, 0.04, -0.01]] }
+expected = { allocation = 0.002, sector_allocation = [0.0022, -0.0002, 0.0], selection = 0.002, interaction = 0.003 }
+tolerance = { sector_allocation = { abs = 1e-15 }, allocation = { abs = 1e-15 }, selection = { abs = 1e-15 }, interaction = { abs = 1e-15 } }
+
+[[cases]]
+id = "two_periods_carino"
+source = "carino1999"
+edge = false
+inputs = { calculation = "bhb", portfolio_weights = [[0.5, 0.3, 0.2], [0.4, 0.4, 0.2]], benchmark_weights = [[0.4, 0.4, 0.2], [0.3, 0.5, 0.2]], portfolio_returns = [[0.08, 0.03, -0.02], [-0.03, 0.02, 0.01]], benchmark_returns = [[0.06, 0.04, -0.01], [-0.04, 0.01, 0.02]] }
+expected = { portfolio_return = 0.04291, benchmark_return = 0.034886, active_return = 0.008024, allocation = -0.003212482367681073, selection = 0.008243980938033593, interaction = 0.0029925014296474806, sector_allocation = [0.0018190162026714464, -0.005031498570352519, 0.0], sector_selection = [0.011104493804860917, 0.0012174814145827528, -0.004077994281410078], sector_interaction = [0.003036497617254199, -4.399618760671852e-05, 0.0] }
+tolerance = { sector_allocation = { abs = 1e-15 }, sector_selection = { abs = 1e-15 }, sector_interaction = { abs = 1e-15 } }
+note = "The linked effects sum to 0.008024, the compound returns' difference."
+
+[[cases]]
+id = "identical_portfolio"
+source = "identity"
+edge = true
+inputs = { calculation = "brinson_fachler", portfolio_weights = [[0.6, 0.4], [0.5, 0.5]], benchmark_weights = [[0.6, 0.4], [0.5, 0.5]], portfolio_returns = [[-0.2, 0.1], [0.05, -0.3]], benchmark_returns = [[-0.2, 0.1], [0.05, -0.3]] }
+expected = { allocation = 0.0, selection = 0.0, interaction = 0.0, active_return = 0.0, period_allocation = [0.0, 0.0], period_selection = [0.0, 0.0], period_interaction = [0.0, 0.0] }
