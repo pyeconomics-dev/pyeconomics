@@ -195,6 +195,13 @@ jobs:
           #   Python-2.0) OR (AFL-2.1 AND MIT)") comes in only through vollib,
           #   the test group's implied-volatility oracle (Phase 2 Step 9). The
           #   licences hook confirms it is outside the runtime closure.
+          # - patsy comes in through statsmodels, the econometrics extra
+          #   (Phase 2 Step 12). GitHub reads "BSD-2-Clause AND Python-2.0":
+          #   its LICENSE.txt is BSD-2-Clause, plus the permissive Python
+          #   licence for the standard-library code in patsy/compat.py. The
+          #   licences hook allows it only through the reviewed entry in
+          #   scripts/checks/licence_exceptions.toml, approved in that step's
+          #   pull request.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:pypi/astroid,
@@ -205,6 +212,7 @@ jobs:
             pkg:pypi/numpy,
             pkg:pypi/parso,
             pkg:pypi/pathspec,
+            pkg:pypi/patsy,
             pkg:pypi/roman-numerals,
             pkg:pypi/simplejson,
             pkg:pypi/sphinx,
