@@ -13,6 +13,13 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+### Fixed
+
+- US 30/360 long first-period accrual and discount times in bond pricing,
+  duration and convexity (#89). The three models advance to version 2 and the
+  development package to `1.0.0a1.dev2`; see the public erratum for affected
+  results and a reproducible example.
+
 ### Added
 
 - The `1.0.0a1` readiness-gate evidence and draft release notes, plus an

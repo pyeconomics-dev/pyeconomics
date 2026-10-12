@@ -260,7 +260,7 @@ _BOND = {
 
 @model(
     id="fixed_income.convexity",
-    version=1,
+    version=2,
     title="Bond convexity",
     summary=(
         "Convexity of a fixed-coupon bond from its yield, effective convexity "
@@ -343,7 +343,13 @@ _BOND = {
             },
         ),
     ),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    changelog=(
+        ChangelogEntry(version=1, note="First version."),
+        ChangelogEntry(
+            version=2,
+            note="Correct US 30/360 long-stub accrual and discount times (#89).",
+        ),
+    ),
 )
 def convexity(inputs: ConvexityInputs) -> ConvexityOutputs:
     """Run the calculation the inputs select."""

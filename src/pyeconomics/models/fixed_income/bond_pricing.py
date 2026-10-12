@@ -392,7 +392,7 @@ _BOND = {
 
 @model(
     id="fixed_income.bond_pricing",
-    version=1,
+    version=2,
     title="Bond price and yield",
     summary=(
         "Full and flat price and accrued interest of a fixed-coupon bond from its "
@@ -520,7 +520,13 @@ _BOND = {
             },
         ),
     ),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    changelog=(
+        ChangelogEntry(version=1, note="First version."),
+        ChangelogEntry(
+            version=2,
+            note="Correct US 30/360 long-stub accrual and discount times (#89).",
+        ),
+    ),
 )
 def bond_pricing(inputs: BondPricingInputs) -> BondPricingOutputs:
     """Run the calculation the inputs select."""

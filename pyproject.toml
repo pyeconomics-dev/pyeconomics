@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pyeconomics"
-version = "1.0.0a1.dev1"
+version = "1.0.0a1.dev2"
 description = "Open economics and finance models with typed inputs, verified outputs and reproducible results."
 readme = "README.md"
 requires-python = ">=3.12"

@@ -321,7 +321,7 @@ _CURVE = {
 
 @model(
     id="fixed_income.duration",
-    version=1,
+    version=2,
     title="Bond duration",
     summary=(
         "Macaulay and modified duration from a yield, effective and key-rate "
@@ -428,7 +428,13 @@ _CURVE = {
             },
         ),
     ),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    changelog=(
+        ChangelogEntry(version=1, note="First version."),
+        ChangelogEntry(
+            version=2,
+            note="Correct US 30/360 long-stub accrual and discount times (#89).",
+        ),
+    ),
 )
 def duration(inputs: DurationInputs) -> DurationOutputs:
     """Run the calculation the inputs select."""
