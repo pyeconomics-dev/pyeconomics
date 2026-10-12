@@ -22,6 +22,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- A fresh `1.0.0a1.dev3` TestPyPI rehearsal and readiness audit after the
+  US 30/360 correction and Python 3.15 support; the rejected dev1 gate is
+  preserved separately for traceability.
 - The `1.0.0a1` readiness-gate evidence and draft release notes, plus an
   offline-tested `scripts/checks/python_floor.py` to re-check the newest
   NumPy and SciPy Python floors against ADR-0010 before a release.
