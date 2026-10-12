@@ -38,7 +38,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           enable-cache: true
       - name: File hygiene
         shell: bash
@@ -69,7 +69,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           enable-cache: true
       - name: mypy
         run: uv run --locked prek run mypy --all-files --verbose
@@ -93,7 +93,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           enable-cache: true
       - name: ty
         run: uv run --locked ty check
@@ -107,9 +107,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        # ADR-0010: Python 3.15 joins at its final release, with its trove
-        # classifier.
-        python-version: ["3.12", "3.13", "3.14"]
+        # ADR-0010: include Python 3.15 final (2026-10-09). uv 0.13.0
+        # knows its final interpreter builds; 0.12.15 only knows an RC.
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
     env:
       # tests/conftest.py: derandomized, no deadline, prints the blob.
       HYPOTHESIS_PROFILE: ci
@@ -125,7 +125,7 @@ jobs:
       - name: Set up uv and Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           python-version: ${{ matrix.python-version }}
           enable-cache: true
       - name: Install the locked environment
@@ -163,7 +163,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           enable-cache: true
       - name: Build the sdist and wheel
         run: uv build
@@ -243,7 +243,7 @@ jobs:
       - name: Set up uv and Python 3.14
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           python-version: "3.14"
           enable-cache: true
       - name: Set up Node.js
@@ -313,7 +313,7 @@ jobs:
       - name: Set up uv and Python 3.14
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           python-version: "3.14"
           enable-cache: true
       - name: Build the preview and execute its notebook
@@ -336,7 +336,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.15"
+          version: "0.13.0"
           enable-cache: true
       - name: uv.lock matches pyproject.toml
         run: uv run --locked prek run uv-lock --all-files --verbose

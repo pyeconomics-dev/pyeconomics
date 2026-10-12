@@ -527,7 +527,7 @@ matrix = set(re.findall(r'"(3\.\d+)"', line.group(1))) if line else set()
 classifiers = tomllib.load(open("pyproject.toml", "rb"))["project"]["classifiers"]
 declared = {m.group(1) for c in classifiers if (m := re.fullmatch(r"Programming Language :: Python :: (3\.\d+)", c))}
 print("matrix", sorted(matrix), "classifiers", sorted(declared))
-sys.exit(not (matrix == declared == {"3.12", "3.13", "3.14"}))
+sys.exit(not (matrix == declared == {"3.12", "3.13", "3.14", "3.15"}))
 EOF
 }
 c36() {
@@ -685,7 +685,7 @@ run_static() {
   check 32 "mypy strict with pydantic.mypy" c32
   check 33 "pytest sockets off + doctests; branch coverage >= 95" c33
   check 34 "prek hooks: ruff-format, ruff-check, mypy" c34
-  check 35 "ci.yml: 3 OS x 3.12-3.14, uv sync --locked; classifiers match" c35
+  check 35 "ci.yml: 3 OS x 3.12-3.15, uv sync --locked; classifiers match" c35
   check 36 "release.yml routing and OIDC; release-smoke triggers" c36
   check 37 "Workflows: permissions {}, persist-credentials false, SHA pins, no pull_request_target" c37
   check 38 "tests.yml and docs.yml absent on main" c38
@@ -943,8 +943,8 @@ v10_2() {
   set -- $run
   [ "${2:-}" = "$head" ] || fail "latest ci run on main is not origin/main's HEAD"
   [ "${3:-}" = success ] || fail "latest ci run on main: ${3:-none}"
-  [ "$(gh run view -R "$REPO" "$1" --json jobs --jq '[.jobs[] | select((.name | startswith("tests (")) and .conclusion == "success")] | length')" = 9 ] \
-    || fail "fewer than nine green matrix cells"
+  [ "$(gh run view -R "$REPO" "$1" --json jobs --jq '[.jobs[] | select((.name | startswith("tests (")) and .conclusion == "success")] | length')" = 12 ] \
+    || fail "expected twelve green matrix cells"
   gh run view -R "$REPO" "$1" --json jobs --jq '.jobs[] | select(.name == "test") | .conclusion' | grep -qx success || fail "aggregate test not green"
 }
 v10_3_attest() { attested test.pypi 1.0.0.dev1; }
@@ -1015,7 +1015,7 @@ run_live() {
   vcheck V6.3 "Owner matches ADR-0009; the old URL redirects" v6_3
   vcheck V8.4 "Secret scanning, push protection, Dependabot, private reporting" v8_4
   vcheck V8.5 "Gate checks required on main, strict" v8_5
-  vcheck V10.2 "Aggregate test green on main's HEAD across nine cells" v10_2
+  vcheck V10.2 "Aggregate test green on main's HEAD across twelve cells" v10_2
   vcheck V10.3 "TestPyPI attestations for both 1.0.0.dev1 files" v10_3_attest
   vcheck V10.4 "main's required checks complete (incl. phase-verify), strict" v10_4
   vcheck V10.5 "SHA pinning required; token read-only; no repository secret" v10_5

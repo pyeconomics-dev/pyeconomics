@@ -7446,3 +7446,9 @@ invariant it protected, never deletes it, and adds one line here.
 - Static check 19 (Phase 2 Step 7): permits the new `docs/conf.py` only with
   MyST-NB, sphinx-autoapi over `src/pyeconomics`, the PyData theme and the
   model-page extension. All other legacy paths remain forbidden.
+- Static check 35 and V10.2 (issue #65, 2026-10-12): require Python
+  3.12-3.15 with matching classifiers and twelve green OS/Python cells,
+  preserving the full supported-version matrix after Python 3.15's final
+  release. CI uses uv 0.13.0, which knows the final 3.15 interpreter builds;
+  the former uv 0.12.15 resolves `3.15` to a release candidate. The minimum
+  Python floor remains 3.12, so static check 21 is unchanged.

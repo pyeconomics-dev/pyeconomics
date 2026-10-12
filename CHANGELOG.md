@@ -276,6 +276,12 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- CI now tests Python 3.15 final on Ubuntu, Windows and macOS alongside
+  Python 3.12-3.14, with its matching package classifier (ADR-0010, #65).
+  CI pins uv 0.13.0 to obtain the final interpreter builds. The minimum
+  Python floor remains 3.12; the development package advances to
+  `1.0.0a1.dev3` for a fresh alpha readiness candidate.
+
 - The version on `main` is `1.0.0a1.dev1`, the milestone it builds towards
   (Phase 2's version rule); `CITATION.cff` names the same version.
 - `import pyeconomics` exposes `pyeconomics.registry`, so it now imports

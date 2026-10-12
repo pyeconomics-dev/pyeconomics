@@ -7668,6 +7668,11 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
     readiness draft records evidence and pending decisions;
     the maintainer approved NO-GO on 2026-10-12 and
     instructed the agent to implement the recommendations.
+    Remediation: PR #91 corrects #89 in model version 2
+    and dev2; PR #92 adds final Python 3.15 support for
+    #65 and advances the candidate to dev3. Confirm both
+    are merged, then run a fresh gate conversation and
+    rehearsal; preserve the rejected dev1 evidence.
 
     Current state (as of Phase 2 Step 12):
 
@@ -9617,6 +9622,11 @@ forward whatever is still open here.
   Python 3.15 became final. Step 13/14 task contexts are patched; neither
   step is marked complete by this attempt. Docs landing text is corrected
   in the gate; README correction remains in Step 14's permitted release diff.
+  Remediation PRs: #91 (bond correction, model versions 2, dev2, public
+  erratum and golden/oracle regressions) and #92 (Python 3.15 final on all
+  three operating systems, matching classifier/verifier, dev3). A fresh
+  Step 13 conversation must rehearse the resulting candidate and obtain
+  its own maintainer decision; the dev1 NO-GO remains historical evidence.
 
 ---
 
