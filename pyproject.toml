@@ -51,12 +51,14 @@ Roadmap = "https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap
 accounting = "pyeconomics.models.accounting"
 corporate = "pyeconomics.models.corporate"
 derivatives = "pyeconomics.models.derivatives"
+econometrics = "pyeconomics.models.econometrics"
 equity = "pyeconomics.models.equity"
 fixed_income = "pyeconomics.models.fixed_income"
 foundations = "pyeconomics.models.foundations"
 international = "pyeconomics.models.international"
 performance = "pyeconomics.models.performance"
 portfolio = "pyeconomics.models.portfolio"
+risk = "pyeconomics.models.risk"
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
@@ -65,12 +67,15 @@ portfolio = "pyeconomics.models.portfolio"
 server = []
 mcp = []
 ai = []
-econometrics = []
+econometrics = [
+    "statsmodels>=0.15.0",
+]
 plot = [
     "plotly>=7.1.0",
 ]
 all = [
     "plotly>=7.1.0",
+    "statsmodels>=0.15.0",
 ]
 
 # PEP 735 groups: development-only, never published (ADR-0002).
@@ -88,6 +93,7 @@ test = [
     "pytest-socket>=0.8.1",
     "quantlib>=1.43",
     "rfc8785>=0.1.4",
+    "statsmodels>=0.15.0",
     "sybil>=10.1.0",
     "syrupy>=6.1.1",
     "vollib>=1.0.11",
@@ -187,11 +193,11 @@ enable_error_code = [
 files = ["src", "tests"]
 exclude = ['^\.semgrep/tests/', '^tests/fixtures/']
 
-# plotly (the plot extra), jsonschema (the schema tests' validator), and
-# numpy_financial 1.0 (the Python 3.12 oracle) ship no type information;
-# only their own modules are left unchecked.
+# plotly (the plot extra), statsmodels (the econometrics extra), jsonschema
+# (the schema tests' validator), and numpy_financial 1.0 (the Python 3.12
+# oracle) ship no type information; only their own modules are left unchecked.
 [[tool.mypy.overrides]]
-module = ["plotly.*", "jsonschema.*", "numpy_financial.*"]
+module = ["plotly.*", "statsmodels.*", "jsonschema.*", "numpy_financial.*"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]

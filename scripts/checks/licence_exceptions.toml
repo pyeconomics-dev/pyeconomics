@@ -39,3 +39,12 @@ reason = "Ambiguous classifier only. pandas 3.0.6 dist-info/LICENSE is the BSD 3
 package = "python-dateutil"
 licence = "Apache Software License AND BSD License"
 reason = "Ambiguous classifiers for a dual licence. python-dateutil 2.9.0.post0 dist-info/LICENSE: Apache-2.0 for contributions after 2017-12-01 and relicensed code, BSD-3-Clause for the rest; both are on the allowlist. pandas requires it. Checked by Claude Opus 5.5, 2026-10-09."
+
+# Phase 2 Step 12: the econometrics extra (statsmodels and its closure). The
+# licence file below was read in the installed wheel's dist-info on 2026-10-11;
+# the maintainer approves the entry in that step's pull request.
+
+[[exception]]
+package = "patsy"
+licence = "BSD License"
+reason = "Ambiguous classifier only; its License field reads '2-clause BSD'. patsy 1.0.3 dist-info/licenses/LICENSE.txt is BSD-2-Clause (Patsy Developers) for the package, and PSF-2.0 for the standard-library code in patsy/compat.py; both are on the allowlist. statsmodels requires it. Checked by Claude Opus 5.5, 2026-10-11."

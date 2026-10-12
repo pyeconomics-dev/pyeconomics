@@ -287,9 +287,9 @@ def test_exceptions_file_validation(tmp_path: Path) -> None:
 
 
 # The reviewed exceptions the maintainer approved (Phase 2 Step 1's pull
-# request). The file started empty (ADR-0004); a new entry needs a new review,
-# and this set changes with it.
-REVIEWED_EXCEPTIONS = {"numpy", "pandas", "python-dateutil", "scipy"}
+# request; patsy, the econometrics extra's, in Step 12's). The file started
+# empty (ADR-0004); a new entry needs a new review, and this set changes with it.
+REVIEWED_EXCEPTIONS = {"numpy", "pandas", "patsy", "python-dateutil", "scipy"}
 
 
 def test_the_shipped_exceptions_are_the_reviewed_ones() -> None:

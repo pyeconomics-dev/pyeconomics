@@ -7,7 +7,10 @@
 # It then runs scripts/smoke.py, taken from the repository at the release's
 # tag, against the installed release from outside the checkout: the registry
 # validates, and one model per domain runs twice with identical results
-# (--min-domains 11 fails a release that registers fewer domains).
+# (--min-domains 11 fails a release that registers fewer domains). It then
+# installs the econometrics extra's requirements from PyPI, read from the
+# installed metadata, and runs the smoke again with --extras, so the extra's
+# model runs to outputs.
 # release.yml calls it after each publish; run it by hand to re-check a past
 # release. A release from before the model smoke (1.0.0.dev1) predates the
 # script's options and cannot be re-checked this way.
@@ -130,3 +133,31 @@ jobs:
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/smoke/bin/python" \
             "$GITHUB_WORKSPACE/release-source/scripts/smoke.py" --min-domains 11
+
+      # The econometrics extra from PyPI only: its requirements, read from the
+      # installed metadata (the lines whose marker is that extra alone).
+      - name: Install the econometrics extra's requirements
+        run: |
+          set -euo pipefail
+          py="$RUNNER_TEMP/smoke/bin/python"
+          "$py" - > "$RUNNER_TEMP/extras.txt" <<'EOF'
+          import importlib.metadata
+          import re
+
+          for requirement in importlib.metadata.requires("pyeconomics") or []:
+              name, _, marker = requirement.partition(";")
+              if re.fullmatch(r"""\s*extra\s*==\s*['"]econometrics['"]\s*""", marker):
+                  print(name.strip())
+          EOF
+          cat "$RUNNER_TEMP/extras.txt"
+          test -s "$RUNNER_TEMP/extras.txt"
+          "$py" -m pip install --no-cache-dir \
+              --index-url https://pypi.org/simple/ -r "$RUNNER_TEMP/extras.txt"
+          "$py" -m pip check
+
+      - name: Run the model smoke test with the econometrics extra
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/smoke/bin/python" \
+            "$GITHUB_WORKSPACE/release-source/scripts/smoke.py" --min-domains 11 --extras

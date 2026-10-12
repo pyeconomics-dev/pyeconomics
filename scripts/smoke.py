@@ -24,7 +24,9 @@ release-smoke.yml runs it against every published release. It:
 A model whose spec names an extra that is not installed is exercised by
 asserting that running it raises ``MissingOptionalDependencyError`` naming the
 extra, which covers its domain in an environment with no extras installed
-(ADR-0002).
+(ADR-0002): ``econometrics.ols`` covers the econometrics domain that way
+without the ``econometrics`` extra, and with ``--extras`` it must run to
+outputs instead.
 
 It prints one line per check and exits 0 when every check passes, 1 when one
 fails and 2 when it refuses to run. Usage, from outside the checkout:

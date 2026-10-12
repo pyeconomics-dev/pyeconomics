@@ -47,6 +47,11 @@ STDLIB = frozenset(
 )
 THIRD_PARTY = frozenset({"numpy", "scipy", "pandas", "pydantic"})
 DYNAMIC_IMPORTS = frozenset({"__import__", "import_module"})
+#: The domains whose models may import each extra's libraries, inside compute.
+#: An extra not listed here admits its libraries nowhere under models/.
+EXTRA_DOMAINS: Mapping[str, frozenset[str]] = {
+    "econometrics": frozenset({"econometrics"}),
+}
 
 #: Modules inside an allowed package that reach files, datasets, compilers or
 #: the registry. An allowed package is not a licence to import all of it.
@@ -149,6 +154,7 @@ class ImportChecker(ast.NodeVisitor):
             return True
         return any(
             top in self.extra_libraries.get(e, frozenset())
+            and self.domain in EXTRA_DOMAINS.get(e, frozenset())
             for e in self.extras_in_scope
         )
 
@@ -432,6 +438,22 @@ def test_an_extras_library_is_not_allowed_in_a_helper_function() -> None:
     source = INSIDE_COMPUTE + "\n\ndef helper():\n    import statsmodels\n"
     [problem] = import_problems(source, OLS, EXTRAS)
     assert "imports statsmodels" in problem
+
+
+def test_an_extras_library_is_not_allowed_outside_its_domain() -> None:
+    risk = MODELS / "risk" / "value_at_risk.py"
+    [problem] = import_problems(INSIDE_COMPUTE, risk, EXTRAS)
+    assert "imports statsmodels.api" in problem
+
+
+def test_an_extra_with_no_domain_admits_its_library_nowhere() -> None:
+    source = INSIDE_COMPUTE.replace('extra="econometrics"', 'extra="plot"')
+    extras = {"plot": frozenset({"statsmodels"})}
+    assert import_problems(source, OLS, extras) != []
+
+
+def test_the_econometrics_extra_installs_statsmodels() -> None:
+    assert "statsmodels" in extras_from_pyproject()["econometrics"]
 
 
 def test_the_extras_come_from_pyproject() -> None:

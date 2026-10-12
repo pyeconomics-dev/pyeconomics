@@ -1,0 +1,138 @@
+# tests/golden/risk/value_at_risk.toml
+model = "risk.value_at_risk"
+
+[[sources]]
+key = "normal"
+kind = "identity"
+citation = "Normal VaR and ES: VaR = -mu h + z sigma sqrt(h), ES = -mu h + sigma sqrt(h) phi(z) / (1 - c), with z the standard normal quantile at c. Quantiles and densities computed to 40 digits with mpmath."
+
+[[sources]]
+key = "bcbs2019"
+kind = "official"
+citation = "Basel Committee on Banking Supervision (2019). Minimum capital requirements for market risk. Bank for International Settlements. ES at the 97.5th percentile against VaR at the 99th; the values are the normal identities at the levels the framework sets, to 40 digits with mpmath."
+url = "https://www.bis.org/bcbs/publ/d457.htm"
+
+[[sources]]
+key = "boudt2008"
+kind = "paper"
+citation = "Boudt, K., Peterson, B. and Croux, C. (2008). Estimation and decomposition of downside risk for portfolios with non-normal returns. The Journal of Risk, 11(2), 79-103. Modified VaR (Cornish-Fisher) and modified ES (Edgeworth); synthetic inputs, the quantile in 50-digit decimals and the ES by SciPy quadrature of the Edgeworth density."
+doi = "10.21314/JOR.2008.188"
+
+[[sources]]
+key = "hyndman1996"
+kind = "paper"
+citation = "Hyndman, R. J. and Fan, Y. (1996). Sample quantiles in statistical packages. The American Statistician, 50(4), 361-365. Definition 7 (linear interpolation) and the lower order statistic; synthetic returns, exact arithmetic."
+doi = "10.1080/00031305.1996.10473566"
+
+[[sources]]
+key = "riskmetrics1996"
+kind = "textbook"
+citation = "J.P. Morgan and Reuters (1996). RiskMetrics Technical Document, 4th ed. Morgan Guaranty Trust Company. The recursive EWMA variance of 20 USD/DEM returns with decay 0.94, seeded with the first squared return; the forecast volatility is printed as 0.473 percent."
+url = "https://www.msci.com/documents/10199/5915b101-4206-4ba0-aee2-3449d5c7e95a"
+published_digits = 5
+
+[[sources]]
+key = "glasserman2003"
+kind = "identity"
+citation = "A seeded Monte Carlo estimate agrees with the normal identity within four of its standard errors (sqrt(c(1 - c) / N) / f(q), Glasserman 2003, section 9.1); one million draws."
+
+[[cases]]
+id = "one_day_99_percent"
+source = "normal"
+edge = false
+inputs = { calculation = "parametric", volatility = 0.02, confidence = 0.99 }
+expected = { value_at_risk = 0.04652695748081682201771, expected_shortfall = 0.05330428440691609626433, quantile = 2.326347874040841100886 }
+
+[[cases]]
+id = "ten_days_with_drift"
+source = "normal"
+edge = false
+inputs = { calculation = "parametric", mean = 0.0005, volatility = 0.01, confidence = 0.95, horizon = 10, position_value = 1000000 }
+expected = { value_at_risk = 0.04701483878755575425256, expected_shortfall = 0.06022870630523931789471, value_at_risk_amount = 47014.83878755575425256 }
+
+[[cases]]
+id = "basel_es_at_97_5"
+source = "bcbs2019"
+locator = "MAR33.3 (ES at the 97.5th percentile, one-tailed)"
+edge = false
+inputs = { calculation = "parametric", volatility = 1.0, confidence = 0.975 }
+expected = { expected_shortfall = 2.337802792201414439960 }
+note = "Close to, and above, the 99% VaR of the next case: the comparison behind the 2019 framework's switch."
+
+[[cases]]
+id = "basel_var_at_99"
+source = "bcbs2019"
+locator = "MAR32.5 (VaR at the 99th percentile for backtesting)"
+edge = false
+inputs = { calculation = "parametric", volatility = 1.0, confidence = 0.99 }
+expected = { value_at_risk = 2.326347874040841100886 }
+
+[[cases]]
+id = "confidence_at_its_bound"
+source = "normal"
+edge = true
+inputs = { calculation = "parametric", volatility = 0.01, confidence = 0.9999 }
+expected = { value_at_risk = 0.03719016485455680564394, expected_shortfall = 0.03958479667599348766555 }
+
+[[cases]]
+id = "cornish_fisher_no_shape_is_normal"
+source = "normal"
+edge = true
+inputs = { calculation = "cornish_fisher", volatility = 0.02, confidence = 0.99 }
+expected = { value_at_risk = 0.04652695748081682201771, expected_shortfall = 0.05330428440691609626433 }
+
+[[cases]]
+id = "cornish_fisher_fat_left_tail"
+source = "boudt2008"
+locator = "Section 2: modified VaR and modified ES"
+edge = false
+inputs = { calculation = "cornish_fisher", volatility = 0.01, skewness = -0.5, excess_kurtosis = 2.0, confidence = 0.99 }
+expected = { value_at_risk = 0.03067496763759961628905, expected_shortfall = 0.034531920831199256, quantile = 3.067496763759961628905 }
+tolerance = { expected_shortfall = { rel = 1e-12 } }
+note = "The ES is a quadrature, good to about 1e-15 absolute in the tail mean."
+
+[[cases]]
+id = "historical_linear"
+source = "hyndman1996"
+locator = "Section 2, definition 7: Q(p) = x_(j) + g (x_(j+1) - x_(j)), with (n - 1) p + 1 = j + g"
+edge = false
+inputs = { calculation = "historical", returns = [0.03, -0.01, 0.05, -0.05, 0.0, 0.02, -0.03, 0.04, -0.02, 0.01], confidence = 0.9 }
+expected = { value_at_risk = 0.032, expected_shortfall = 0.05, tail_observations = 1 }
+note = "p = 0.1, n = 10: j = 1, g = 0.9, so the quantile is -0.05 + 0.9 (0.02)."
+
+[[cases]]
+id = "historical_lower_order_statistic"
+source = "hyndman1996"
+locator = "Section 2, the inverse of the empirical distribution function"
+edge = false
+inputs = { calculation = "historical", returns = [0.03, -0.01, 0.05, -0.05, 0.0, 0.02, -0.03, 0.04, -0.02, 0.01], confidence = 0.8, interpolation = "lower" }
+expected = { value_at_risk = 0.03, expected_shortfall = 0.04, tail_observations = 2 }
+note = "NumPy's lower method at p = 0.2: index floor(0.2 x 9) = 1, the second smallest return."
+
+[[cases]]
+id = "historical_smallest_sample"
+source = "hyndman1996"
+locator = "Section 2, definition 7"
+edge = true
+inputs = { calculation = "historical", returns = [-0.04, 0.02], confidence = 0.75, horizon = 4 }
+expected = { value_at_risk = 0.05, expected_shortfall = 0.08 }
+note = "Quantile -0.04 + 0.25 (0.06) = -0.025, scaled by sqrt(4); the tail is -0.04 alone."
+
+[[cases]]
+id = "riskmetrics_table_5_3"
+source = "riskmetrics1996"
+locator = "Section 5.2.1, Table 5.3, p. 82 (forecast for 25 April 1996)"
+edge = false
+inputs = { calculation = "ewma", returns = [0.00633, 0.00115, -0.00459, 0.00093, 0.00176, -0.00087, -0.00142, 0.00324, -0.00943, -0.00528, -0.00107, -0.00159, -0.00445, 0.00053, 0.00152, -0.00318, 0.00424, -0.00708, -0.00105, -0.00257] }
+expected = { volatility_forecast = 0.00473 }
+tolerance = { volatility_forecast = { abs = 0.000005 } }
+note = "The table's returns in percent, as decimals. Exact recursion: 0.0047331905129745599."
+
+[[cases]]
+id = "monte_carlo_matches_normal"
+source = "glasserman2003"
+edge = false
+inputs = { calculation = "monte_carlo", volatility = 0.01, confidence = 0.99, simulations = 1000000, seed = 1 }
+expected = { value_at_risk = 0.02326347874040841100886, expected_shortfall = 0.02665214220345804813216 }
+tolerance = { value_at_risk = { abs = 0.00015 }, expected_shortfall = { abs = 0.0002 } }
+note = "Standard errors at this size are about 3.7e-5 (VaR) and 4.5e-5 (ES)."

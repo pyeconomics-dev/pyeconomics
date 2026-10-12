@@ -188,8 +188,10 @@ jobs:
           test "$found" = "$expected"
       # scripts/smoke.py exercises the installed wheel's core and refuses to
       # run against a checkout, so it runs from a copy outside it. It runs
-      # every model's examples, and --min-domains 1 fails a wheel whose
-      # entry_points.txt registers no model.
+      # every model's examples; with no extras, econometrics.ols must raise
+      # MissingOptionalDependencyError naming pyeconomics[econometrics], which
+      # covers its domain, and --min-domains 11 fails a wheel that registers
+      # fewer domains than the launch catalog.
       - name: Run the smoke script against the installed wheel
         shell: bash
         run: |
@@ -197,7 +199,19 @@ jobs:
           mkdir -p "$RUNNER_TEMP/smoke"
           cp scripts/smoke.py "$RUNNER_TEMP/smoke/"
           cd "$RUNNER_TEMP/smoke"
-          "$RUNNER_TEMP/clean/bin/python" smoke.py --all --min-domains 1
+          "$RUNNER_TEMP/clean/bin/python" smoke.py --all --min-domains 11
+      # The other path of each extra: a second clean venv with the wheel and
+      # its econometrics and plot extras, where --extras fails unless every
+      # model that names an extra runs to outputs (ADR-0002).
+      - name: Run the smoke script against the wheel with its extras
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls dist/*.whl)
+          uv venv "$RUNNER_TEMP/extras"
+          uv pip install --python "$RUNNER_TEMP/extras/bin/python" "${wheel}[econometrics,plot]"
+          cd "$RUNNER_TEMP/smoke"
+          "$RUNNER_TEMP/extras/bin/python" smoke.py --all --min-domains 11 --extras
 
   pyodide:
     name: pyodide
@@ -280,7 +294,7 @@ jobs:
           cp scripts/smoke.py "$RUNNER_TEMP/pyodide-smoke/"
           cd "$RUNNER_TEMP/pyodide-smoke"
           "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'import numpy, pandas, pydantic, scipy; print("numpy", numpy.__version__, "scipy", scipy.__version__, "pandas", pandas.__version__, "pydantic", pydantic.VERSION)'
-          "$RUNNER_TEMP/pyodide-venv/bin/python" smoke.py --min-domains 1
+          "$RUNNER_TEMP/pyodide-venv/bin/python" smoke.py --min-domains 11
 
   docs:
     name: docs

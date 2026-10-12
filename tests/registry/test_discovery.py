@@ -400,7 +400,7 @@ def test_the_extras_of_a_real_distribution_are_read() -> None:
     provider = Provider.from_distribution(dist)
     assert provider.name == "pyeconomics"
     assert provider.declares("econometrics")
-    assert provider.installed("econometrics")  # an empty list in this step
+    assert provider.installed("econometrics")  # statsmodels, in the test group
 
 
 def test_a_models_module_that_uses_the_registry_at_import_fails_instead_of_hanging(
