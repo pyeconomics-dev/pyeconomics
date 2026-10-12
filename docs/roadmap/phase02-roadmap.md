@@ -7375,9 +7375,9 @@ Intelligence High. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 13 — 1.0.0a1 Readiness Gate
+## Step 13 — 1.0.0a1 Readiness Gate ✅
 
-**Status:** Not started
+**Status:** Complete — PR #93 (2026-10-12)
 
 > **Goal:** Decide, with evidence, that publishing `1.0.0a1` to PyPI is
 > safe — the first irreversible upload of 1.0, which ROADMAP §5 "Promotion
@@ -7671,8 +7671,12 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
     Remediation: PR #91 corrects #89 in model version 2
     and dev2; PR #92 adds final Python 3.15 support for
     #65 and advances the candidate to dev3. Confirm both
-    are merged, then run a fresh gate conversation and
-    rehearsal; preserve the rejected dev1 evidence.
+    are merged, then run a fresh gate and rehearsal;
+    preserve the rejected dev1 evidence. On 2026-10-12,
+    the maintainer explicitly requested continuing this
+    conversation. The fresh dev3 rehearsal is tag
+    v1.0.0a1.dev3 at d697b0daffd3fd3c9e437a5c1fffe23eef5c5193;
+    release run 38278124628 passed on TestPyPI.
 
     Current state (as of Phase 2 Step 12):
 
@@ -8214,7 +8218,8 @@ Opus 5.5. New conversation per phase-boundary hygiene.
       `Decision: GO`; its Artifacts section lists the only
       changes the release commit may add, and its Rollback
       section the yank-and-post-release procedure.
-    - v1.0.0a1.devN is on TestPyPI with attestations and
+    - v1.0.0a1.dev3 (d697b0daffd3fd3c9e437a5c1fffe23eef5c5193,
+      release run 38278124628) is on TestPyPI with attestations and
       passed the smoke with and without extras; main's
       version is 1.0.0a1.devN.
     - core/_released.py is empty, so validate() checks no
@@ -9262,7 +9267,7 @@ workflow above maps directly to the corresponding row below.
 | 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
-| 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
 | 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
