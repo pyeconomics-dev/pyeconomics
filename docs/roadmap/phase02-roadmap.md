@@ -7666,7 +7666,8 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
     Do not reuse the candidate after a numerical fix:
     bump .devN and rehearse again. The first attempt's
     readiness draft records evidence and pending decisions;
-    no maintainer GO or NO-GO has been recorded yet.
+    the maintainer approved NO-GO on 2026-10-12 and
+    instructed the agent to implement the recommendations.
 
     Current state (as of Phase 2 Step 12):
 
