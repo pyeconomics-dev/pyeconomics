@@ -15,6 +15,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- The `1.0.0a1` readiness-gate evidence and draft release notes, plus an
+  offline-tested `scripts/checks/python_floor.py` to re-check the newest
+  NumPy and SciPy Python floors against ADR-0010 before a release.
+- The documentation preview introduction now names all 32 models' domains.
+
 - Three models through the `risk` and `econometrics` entry points, which
   complete the 32-entry data-free launch catalog:
   - `risk.value_at_risk`: VaR and expected shortfall as positive losses, as
