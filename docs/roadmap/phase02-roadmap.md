@@ -7375,9 +7375,9 @@ Intelligence High. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 13 — 1.0.0a1 Readiness Gate
+## Step 13 — 1.0.0a1 Readiness Gate ✅
 
-**Status:** Not started
+**Status:** Complete — PR #93 (2026-10-12)
 
 > **Goal:** Decide, with evidence, that publishing `1.0.0a1` to PyPI is
 > safe — the first irreversible upload of 1.0, which ROADMAP §5 "Promotion
@@ -9267,7 +9267,7 @@ workflow above maps directly to the corresponding row below.
 | 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
-| 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
 | 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
