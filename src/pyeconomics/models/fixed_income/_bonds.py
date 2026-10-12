@@ -363,7 +363,10 @@ def bond_flows(
         # Settlement falls in an irregular first period, which accrues from the
         # issue date; a long one spans the stub and the period after it.
         first = first_coupon
-        cuts = [grid(stub)]
+        # ICMA needs each notional reference period. 30/360 measures the whole
+        # accrual interval: its endpoint adjustments need not be additive at
+        # an intervening grid date (for example May 30 -> May 31).
+        cuts = [grid(stub)] if day_count is DayCount.ACT_ACT_ICMA else []
         period = _span(issue, grid(first), cuts, piece)
         elapsed = _span(issue, settlement, cuts, piece)
         first_amount = face * coupon * period / f

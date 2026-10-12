@@ -71,3 +71,17 @@ source = "zero_coupon_dv01"
 edge = false
 inputs = { calculation = "dv01", settlement = 2026-01-15, maturity = 2036-01-15, coupon_rate = 0.0, yield_to_maturity = 0.05 }
 expected = { dv01 = 0.05953862857159327, modified_duration = 9.756097560975611 }
+
+[[sources]]
+key = "us_30_360_long_stub"
+kind = "identity"
+citation = "US 30/360: May 30, 1993 to April 15, 1995 is 675/360 years; to May 31, 1994 is 360/360. Remaining time is 315/360 = 0.875 years. P=100(1.05)^(-t), D=t, modified D=t/1.05, C=t(t+1)/1.05^2. Values computed independently with 60-digit Decimal arithmetic."
+url = "https://github.com/lballabio/QuantLib/blob/v1.43/ql/time/daycounters/thirty360.cpp"
+
+[[cases]]
+id = "us_30_360_long_stub_may_31_regression"
+source = "us_30_360_long_stub"
+edge = true
+inputs = { calculation = "macaulay_modified", settlement = 1994-05-31, maturity = 1995-04-15, issue_date = 1993-05-30, first_period = "long", frequency = "annual", day_count = "thirty_360_us", coupon_rate = 0.0, yield_to_maturity = 0.05 }
+expected = { macaulay_duration = 0.875, modified_duration = 0.833333333333333333333333333333333333333333333333333333333333, full_price = 95.8207053225834014468942316629923789283676453686158334830090 }
+note = "Regression for #89: splitting US 30/360 at the notional April 15 grid changed the remaining time by one day."
