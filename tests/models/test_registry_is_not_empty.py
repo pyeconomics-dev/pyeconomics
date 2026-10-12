@@ -5,11 +5,16 @@
 
 The golden harness and the contract suite parametrize over the installed
 registry. If discovery found nothing (a missing entry point, a broken install),
-they would collect no case and pass. This test makes an empty registry fail, and
-pins the domains Phase 2 Steps 6, 8, 9 and 10 registered.
+they would collect no case and pass. This test makes an empty registry fail,
+pins the domains Phase 2 Steps 6 and 8 to 12 registered, and holds the registry
+to exactly the 32 ids of the Phase 2 roadmap's launch-catalog table (a later
+phase replaces "exactly" with "at least").
 """
 
 from __future__ import annotations
+
+import re
+from pathlib import Path
 
 import pytest
 
@@ -47,6 +52,14 @@ CORPORATE = {
     "corporate.leverage",
 }
 ACCOUNTING = {"accounting.financial_ratios", "accounting.scoring_models"}
+PORTFOLIO = {"portfolio.mean_variance", "portfolio.utility"}
+PERFORMANCE = {
+    "performance.brinson_attribution",
+    "performance.return_measurement",
+    "performance.risk_adjusted",
+}
+RISK = {"risk.value_at_risk", "risk.var_backtest"}
+ECONOMETRICS = {"econometrics.ols"}
 CATALOG = (
     FOUNDATIONS
     | FIXED_INCOME
@@ -55,7 +68,22 @@ CATALOG = (
     | EQUITY
     | CORPORATE
     | ACCOUNTING
+    | PORTFOLIO
+    | PERFORMANCE
+    | RISK
+    | ECONOMETRICS
 )
+
+ROADMAP = (
+    Path(__file__).resolve().parents[2] / "docs" / "roadmap" / "phase02-roadmap.md"
+)
+#: A row of the launch-catalog table: | 30 | `risk.value_at_risk` | ... |
+CATALOG_ROW = re.compile(r"^\|\s*\d+\s*\|\s*`([a-z_]+\.[a-z_]+)`\s*\|", re.MULTILINE)
+
+
+def launch_catalog() -> set[str]:
+    """Read the ids from the Phase 2 roadmap's launch-catalog table."""
+    return set(CATALOG_ROW.findall(ROADMAP.read_text(encoding="utf-8")))
 
 
 def test_the_registry_is_not_empty() -> None:
@@ -97,3 +125,27 @@ def test_each_catalog_model_comes_from_this_distribution() -> None:
 )
 def test_step10_domains_are_installed(domain: str, expected: set[str]) -> None:
     assert {m.id for m in registry.models(domain)} == expected
+
+
+@pytest.mark.parametrize(
+    ("domain", "expected"),
+    [
+        ("portfolio", PORTFOLIO),
+        ("performance", PERFORMANCE),
+        ("risk", RISK),
+        ("econometrics", ECONOMETRICS),
+    ],
+)
+def test_step11_and_step12_domains_are_installed(
+    domain: str, expected: set[str]
+) -> None:
+    assert {m.id for m in registry.models(domain)} == expected
+
+
+def test_the_roadmap_table_lists_32_entries() -> None:
+    assert len(launch_catalog()) == 32
+    assert launch_catalog() == CATALOG
+
+
+def test_the_registry_holds_exactly_the_launch_catalog() -> None:
+    assert {m.id for m in registry.models()} == launch_catalog()

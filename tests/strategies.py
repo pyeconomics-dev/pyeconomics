@@ -910,3 +910,101 @@ def _brinson_attribution() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["performance.brinson_attribution"] = _brinson_attribution
+
+
+# --- risk: exception series; econometrics: a design that matches its response --
+
+
+@st.composite
+def _backtest(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw exceptions, or P&L and VaR of one length, sometimes all hits or none."""
+    drawn = draw(_fields(cls))
+    size = draw(st.one_of(st.integers(2, MAX_ITEMS), _LONG, st.just(250)))
+    hits = draw(
+        st.one_of(
+            st.lists(st.booleans(), min_size=size, max_size=size),
+            st.sampled_from([True, False]).map(lambda h: [h] * size),
+        )
+    )
+    for name in ("exceptions", "profit_and_loss", "value_at_risk"):
+        drawn.pop(name, None)
+    if draw(st.booleans()):
+        drawn["exceptions"] = hits
+    else:
+        var = draw(st.lists(st.floats(0.0, 1e6), min_size=size, max_size=size))
+        drawn["value_at_risk"] = var
+        drawn["profit_and_loss"] = [
+            -2 * v - 1 if hit else v for hit, v in zip(hits, var, strict=True)
+        ]
+    return drawn
+
+
+def _var_backtest() -> SearchStrategy[dict[str, Any]]:
+    """``risk.var_backtest``: one series, given as exceptions or as P&L and VaR."""
+    module = importlib.import_module("pyeconomics.models.risk.var_backtest")
+    return st.one_of(
+        *(
+            _backtest(cls)
+            for cls in (
+                module.KupiecInputs,
+                module.ChristoffersenInputs,
+                module.TrafficLightInputs,
+            )
+        ),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.var_backtest.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["risk.var_backtest"] = _var_backtest
+
+#: Regression values: moderate, extreme, and integers (whose powers are exact).
+_REGRESSION_VALUE: Final = st.one_of(
+    st.floats(-10.0, 10.0),
+    st.floats(-1e15, 1e15),
+    st.integers(-20, 20).map(float),
+)
+
+
+@st.composite
+def _regression(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a response and a design of matching rows, sometimes collinear."""
+    drawn = draw(_fields(cls))
+    width = draw(st.integers(1, 4))
+    constant = draw(st.booleans())
+    terms = width + int(constant)
+    rows = draw(st.one_of(st.integers(terms + 1, terms + 12), _LONG))
+    design = [
+        draw(st.lists(_REGRESSION_VALUE, min_size=width, max_size=width))
+        for _ in range(rows)
+    ]
+    if width > 1 and draw(st.integers(0, 5)) == 0:
+        factor = draw(st.floats(-3.0, 3.0))
+        for row in design:
+            row[-1] = factor * row[0]
+    if draw(st.integers(0, 5)) == 0:
+        slope = draw(st.floats(-5.0, 5.0))
+        response = [1.0 + slope * row[0] for row in design]
+    else:
+        response = draw(st.lists(_REGRESSION_VALUE, min_size=rows, max_size=rows))
+    drawn.update(
+        response=response,
+        design=design,
+        add_constant=constant,
+        names=None,
+        hac_lags=draw(st.one_of(st.none(), st.integers(0, rows - 1))),
+    )
+    return drawn
+
+
+def _ols() -> SearchStrategy[dict[str, Any]]:
+    """``econometrics.ols``: the design's rows match the response."""
+    module = importlib.import_module("pyeconomics.models.econometrics.ols")
+    return st.one_of(
+        _regression(module.OlsInputs).filter(_accepts(module.OlsInputs)),
+        st.sampled_from([dict(example.inputs) for example in module.ols.spec.examples]),
+    )
+
+
+OVERRIDES["econometrics.ols"] = _ols

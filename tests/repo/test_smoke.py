@@ -258,3 +258,39 @@ def test_argv_defaults_to_the_process_arguments(
     monkeypatch.setattr(smoke, "inside_a_checkout", lambda _: False)
     monkeypatch.setattr(sys, "argv", ["smoke.py", "--min-domains", "99"])
     assert smoke.main() == 1  # the catalog spans fewer domains than that
+
+
+# --- the econometrics extra, both ways (Phase 2 Step 12) -------------------------
+
+
+@pytest.fixture
+def without_statsmodels(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make statsmodels unimportable and its distribution look uninstalled."""
+    for name in [m for m in sys.modules if m.split(".")[0] == "statsmodels"]:
+        monkeypatch.setitem(sys.modules, name, None)
+    monkeypatch.setitem(sys.modules, "statsmodels", None)
+    installed = core_registry._is_installed  # noqa: SLF001
+    monkeypatch.setattr(
+        core_registry,
+        "_is_installed",
+        lambda name: name != "statsmodels" and installed(name),
+    )
+
+
+@pytest.mark.usefixtures("without_statsmodels")
+def test_without_the_extra_the_smoke_covers_econometrics_by_its_error(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    detail = smoke.check_models(pyeconomics, min_domains=11)
+    assert detail == "registry valid; 11 domain(s) covered"
+    out = capsys.readouterr().out
+    assert "econometrics.ols: raises, naming pyeconomics[econometrics]" in out
+    with pytest.raises(AssertionError, match="needs the 'econometrics' extra"):
+        smoke.check_models(pyeconomics, extras=True)
+
+
+def test_with_the_extra_the_smoke_runs_ols_to_outputs(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    smoke.check_models(pyeconomics, min_domains=11, extras=True)
+    assert "econometrics.ols: 1 example(s) reproduce" in capsys.readouterr().out

@@ -6816,9 +6816,9 @@ hygiene.
 
 ---
 
-## Step 12 — Launch Catalog: Risk and Econometrics
+## Step 12 — Launch Catalog: Risk and Econometrics ✅
 
-**Status:** Not started
+**Status:** Complete — PR #88 (2026-10-12)
 
 > **Goal:** Register the last three entries and fill the first extra a
 > model's computation needs. Add
@@ -7676,6 +7676,22 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
       0.2.6-readiness.md: numbered sections, each item with
       its command, its result and PASS or FAIL, ending in
       the maintainer's Decision line.
+    - Step 12 facts (2026-10-12): the `econometrics` extra is
+      statsmodels>=0.15.0, whose closure adds patsy (a
+      reviewed licence exception), formulaic, interface-meta,
+      wrapt and narwhals; `all` includes it. ci.yml's package
+      job smokes the wheel twice, without extras (--all
+      --min-domains 11, econometrics.ols covered by its
+      MissingOptionalDependencyError) and in a second clean
+      venv with [econometrics,plot] (--extras); the pyodide
+      job runs --min-domains 11. release-smoke.yml's extras
+      pass reads the requirements marked `extra ==
+      "econometrics"` from the installed metadata and
+      installs them from PyPI, so the TestPyPI rehearsal
+      must show both passes green. statsmodels resets its
+      own warning categories to "always", which bypasses
+      pytest's warnings-as-errors: test_ols.py records
+      warnings to prove none escapes the model.
 
     Files to read (every file before drafting):
     - docs/releases/0.2.6-readiness.md (the structure to
@@ -9221,7 +9237,7 @@ workflow above maps directly to the corresponding row below.
 | 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
 | 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
-| 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
+| 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |

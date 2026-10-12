@@ -15,6 +15,27 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Three models through the `risk` and `econometrics` entry points, which
+  complete the 32-entry data-free launch catalog:
+  - `risk.value_at_risk`: VaR and expected shortfall as positive losses, as
+    decimals and in money, by the parametric normal, Cornish-Fisher (modified
+    VaR and the matching modified ES), historical (with a stated quantile
+    rule), seeded Monte Carlo (normal or Student-t, with standard errors) and
+    RiskMetrics EWMA methods, over a horizon by the square-root-of-time rule.
+  - `risk.var_backtest`: Kupiec's proportion-of-failures test,
+    Christoffersen's independence and conditional coverage tests, and the
+    Basel Committee's traffic light with Table 2's plus factors, from a series
+    of exceptions or from P&L against VaR.
+  - `econometrics.ols`: ordinary least squares over statsmodels with
+    classical, HC0-HC3 and Newey-West HAC standard errors, and the 0.2.x
+    diagnostics (Durbin-Watson, Breusch-Pagan, Jarque-Bera, the omnibus test,
+    Ramsey RESET and a VIF per regressor), with a residuals-against-fitted
+    chart. Its golden cases reproduce NIST's certified results for Norris,
+    Pontius, Longley, Wampler1 and Wampler2.
+- The `econometrics` extra installs statsmodels (`pip install
+  'pyeconomics[econometrics]'`), and `all` includes it. Without it,
+  `econometrics.ols` raises `MissingOptionalDependencyError` naming the extra;
+  importing pyeconomics never imports statsmodels.
 - Five models through the `portfolio` and `performance` entry points:
   - `portfolio.mean_variance`: portfolio expected return and risk from weights
     and a covariance matrix (or volatilities and correlations), Merton's
