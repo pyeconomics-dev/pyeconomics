@@ -7659,6 +7659,15 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
   <context>
     pyeconomics. Phase 2. Step 13: 1.0.0a1 readiness gate.
 
+    Gate attempt 2026-10-12 found release blocker #89:
+    US 30/360 long-first coupon timing disagrees with
+    QuantLib and fails the duration oracle. Python 3.15
+    became final on 2026-10-09, so policy issue #65 is due.
+    Do not reuse the candidate after a numerical fix:
+    bump .devN and rehearse again. The first attempt's
+    readiness draft records evidence and pending decisions;
+    no maintainer GO or NO-GO has been recorded yet.
+
     Current state (as of Phase 2 Step 12):
 
     - The catalog is complete: 32 models registered,
@@ -8183,6 +8192,15 @@ Opus 5.5. New conversation per phase-boundary hygiene.
 
   <context>
     pyeconomics. Phase 2. Step 14: 1.0.0a1 release.
+
+    Before relying on the planned state below, confirm
+    readiness blockers #89 (US 30/360 long-stub timing)
+    and #65 (Python 3.15 policy) are resolved and that the
+    gate evaluates a fresh, corrected .devN candidate.
+    Step 13's first attempt on 2026-10-12 is not a GO.
+    Replace README's stale "nothing to use yet" skeleton
+    paragraph as well as its status banner in this step;
+    the readiness artifact-difference list includes both.
 
     Current state (as of Phase 2 Step 13):
 
@@ -9588,6 +9606,16 @@ forward whatever is still open here.
   local, uncommitted overlay with `pytz` agreed with empyrical on all ten
   measures it implements within 7e-14 over 500 random series. Owned by Step
   15, which carries the decision into `docs/phase02-qa-findings.md`.
+
+- From Step 13's first gate attempt (2026-10-12). High model-error #89:
+  US 30/360 long-first coupon timing in shared `_bonds.py` disagrees with
+  QuantLib; the full suite fails its duration oracle, and price also differs.
+  Owner: Nathan Ramos, CFA; a dedicated `fix/` branch before the alpha,
+  golden regression, public erratum and version review, bumped `.devN`,
+  then a fresh readiness rehearsal. Policy issue #65 is now due because
+  Python 3.15 became final. Step 13/14 task contexts are patched; neither
+  step is marked complete by this attempt. Docs landing text is corrected
+  in the gate; README correction remains in Step 14's permitted release diff.
 
 ---
 
