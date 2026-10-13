@@ -60,7 +60,11 @@ napoleon_use_ivar = True
 html_theme = "pydata_sphinx_theme"
 html_title = "pyeconomics 1.0 preview"
 templates_path = ["_templates"]
+html_static_path = ["_static"]
+html_logo = "_static/brand/pyeconomics-mark.svg"
+html_favicon = "_static/brand/pyeconomics-mark.svg"
 html_theme_options = {
+    "logo": {"text": html_title},
     "announcement": (
         "1.0 alpha preview: APIs may change. Stable documentation is for 0.2.6."
     ),
