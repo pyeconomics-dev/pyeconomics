@@ -242,7 +242,7 @@ names.
 | 11 | `fixed_income.credit_spread`       | Expected loss, spread and hazard rate, survival, spread return          | 8    |
 | 12 | `derivatives.forwards`             | Cost-of-carry forwards and covered-interest-parity FX forwards          | 9    |
 | 13 | `derivatives.interest_rate_swap`   | Swap valuation, par swap rate and annuity factor                        | 9    |
-| 14 | `derivatives.black_scholes_merton` | BSM/Merton prices, Greeks and implied volatility                        | 9    |
+| 14 | `derivatives.black_scholes_merton` | BSM/Merton prices, Greeks and implied volatility                        | Complete — PR #96 |
 | 15 | `derivatives.binomial_tree`        | CRR binomial, European and American, with put-call parity              | 9    |
 | 16 | `derivatives.futures_fx_options`   | Black-76 and Garman-Kohlhagen, with Greeks and implied volatility       | 9    |
 | 17 | `international.parity_conditions`  | Covered and uncovered interest parity, PPP, international Fisher, real exchange rates | 9 |
@@ -7922,9 +7922,9 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 14 — 1.0.0a1 Release
+## Step 14 — 1.0.0a1 Release ✅
 
-**Status:** Not started
+**Status:** Complete — PR #96 (2026-10-13)
 
 > **Goal:** Release what the gate approved. On the step branch, set the
 > version to `1.0.0a1` and make exactly the changes the readiness
@@ -7950,11 +7950,13 @@ maintainer's approval; the GitHub release `v1.0.0a1`. Read the Docs
 
 | Setting      | Value                                           |
 | ------------ | ----------------------------------------------- |
-| Model        | GPT-6 Sol                                       |
+| Model        | GPT-6.1 Sol                                       |
 | Backup       | Claude Sonnet 5.5 — Claude Code · Effort Medium |
 | Platform     | Codex                                           |
 | Intelligence | Medium                                          |
 | Conversation | **New**                                         |
+
+> Settings updated 2026-10-13: was GPT-6 Sol · Medium. GPT-6.1 Sol supersedes it in the same line; verified session effort remains medium.
 
 **Model rationale:** Agentic work is PRIMARY — executing a decided
 release: the version change, the merge, the tag, the approval, the publish
@@ -8211,6 +8213,16 @@ Opus 5.5. New conversation per phase-boundary hygiene.
     Replace README's stale "nothing to use yet" skeleton
     paragraph as well as its status banner in this step;
     the readiness artifact-difference list includes both.
+
+    Release integration review (2026-10-13): populating the
+    ledger requires isolated toy-registry tests to supply
+    an empty ledger. The shipped core/registry.py doctest
+    also needs empty.validate(released={}) instead of
+    empty.validate(). Its executable AST is unchanged,
+    but this documentation-only artifact difference is
+    outside the gate allowlist: return it to the maintainer
+    for an explicit gate addendum before merge or publishing.
+    PR #96 holds that review; no addendum approval is implied.
 
     Current state (as of Phase 2 Step 13):
 
@@ -9268,7 +9280,7 @@ workflow above maps directly to the corresponding row below.
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
-| 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
+| 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #96 |
 | 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
 | V2      | Dates and calendars              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
