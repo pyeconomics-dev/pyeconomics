@@ -9,24 +9,29 @@
 [![Licence](https://img.shields.io/github/license/pyeconomics-dev/pyeconomics)](https://github.com/pyeconomics-dev/pyeconomics/blob/main/LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/pyeconomics-dev/pyeconomics/badge)](https://scorecard.dev/viewer/?uri=github.com/pyeconomics-dev/pyeconomics)
 
-> **Status: pyeconomics 1.0 is in development.** `pip install pyeconomics`
-> installs **0.2.6**, the current stable release. The 1.0 pre-releases install
-> only when asked for, with `pip install --pre pyeconomics` or an exact version,
-> and they carry no stability promise until 1.0.0.
+> **Status: 1.0.0a1 is an alpha pre-release on PyPI.** Install explicitly with
+> `pip install --pre pyeconomics==1.0.0a1` (Python 3.12 or later).
+> Plain `pip install pyeconomics` still installs **0.2.6**, the stable release.
+> Pre-releases carry no stability promise until 1.0.0.
 
-pyeconomics 1.0 is being rebuilt from the ground up as an open platform of
-economics and finance models: a registry of tested, cited models, each written
-once and served identically to Python, a command line, a REST API, an MCP server
-and a web app. Every result will carry a provenance manifest. It implements
-formulas commonly covered in the CFA® Program curriculum, and the wider
-economics, econometrics, risk and quant canon after them.
+pyeconomics provides 32 tested, cited, data-free economics and finance model
+families across 11 domains: foundations, fixed income, derivatives,
+international, equity, corporate, accounting, portfolio, performance, risk
+and econometrics. Typed inputs declare units and bounds; every result carries
+a reproducible provenance manifest. Rates and percentages are decimals:
+`0.05` means 5%.
 
-So far, the repository holds the 1.0 package skeleton, its toolchain, security
-gate and release pipeline: there is nothing to use yet. The plan, phase by
-phase, is in the
-[project roadmap](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap/ROADMAP.md),
-and the decisions behind it are in the
-[architecture decision records](https://github.com/pyeconomics-dev/pyeconomics/tree/main/docs/adr).
+Use the [1.0 documentation preview](https://pyeconomics.readthedocs.io/en/main/)
+for formulas, assumptions and examples, and the
+[alpha release notes](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/releases/1.0.0a1.md)
+for the catalog and known limitations. Install optional OLS and plotting support
+with `pip install --pre "pyeconomics[econometrics,plot]==1.0.0a1"`.
+
+This alpha replaces the 0.2.x API. Live data, monetary-policy rules, a command
+line, REST API, MCP server and web app arrive in later phases; the
+[project roadmap](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap/ROADMAP.md)
+and [architecture decisions](https://github.com/pyeconomics-dev/pyeconomics/tree/main/docs/adr)
+record that plan. Keep legacy workloads in a separate environment.
 
 ## pyeconomics 0.2.x
 

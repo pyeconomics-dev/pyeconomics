@@ -36,11 +36,11 @@ TV = tm.time_value
 
 
 def rules_of(registry: Registry) -> set[str]:
-    return {problem.rule for problem in registry.problems()}
+    return {problem.rule for problem in registry.problems(released={})}
 
 
 def details_of(registry: Registry, rule: str) -> list[str]:
-    return [p.detail for p in registry.problems() if p.rule == rule]
+    return [p.detail for p in registry.problems(released={}) if p.rule == rule]
 
 
 def custom(
@@ -71,7 +71,10 @@ class UnboundedDict(tm.ZeroCouponInputs):
 
 
 def test_grouped_constraints_count_as_bounds_and_lengths() -> None:
-    assert tm.toy_registry(tm.variant(ZC, inputs=GroupedFields)).problems() == []
+    assert (
+        tm.toy_registry(tm.variant(ZC, inputs=GroupedFields)).problems(released={})
+        == []
+    )
 
 
 def test_a_dict_needs_a_maximum_length() -> None:
@@ -277,10 +280,10 @@ def test_a_model_whose_extra_is_installed_must_run() -> None:
     working = Registry.from_models(
         Model(spec, ZC.compute), distribution="toy-dist", extras={"toy": ("pydantic",)}
     )
-    assert working.problems() == []
+    assert working.problems(released={}) == []
 
 
 def test_a_failing_validate_names_every_extra_problem() -> None:
     registry = custom(tm.needs_extra, ZC.compute)
     with pytest.raises(RegistryError, match=r"\[examples\]"):
-        registry.validate()
+        registry.validate(released={})

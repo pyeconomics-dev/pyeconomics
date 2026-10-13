@@ -11,7 +11,7 @@ Pre-releases of 1.0.0 carry no stability promise. Deprecations are listed under
 The 0.2.x history (0.1.0 to 0.2.6) is in the
 [0.2.x changelog on `legacy/0.2.x`](https://github.com/pyeconomics-dev/pyeconomics/blob/legacy/0.2.x/markdown/CHANGELOG.md).
 
-## [Unreleased]
+## [1.0.0a1] - 2026-10-13
 
 ### Fixed
 
@@ -21,6 +21,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   results and a reproducible example.
 
 ### Added
+
+- Release preparation for the first PyPI alpha, with a deterministic released-id
+  ledger and read-only completeness check guarding all 32 permanent model ids.
 
 - A fresh `1.0.0a1.dev3` TestPyPI rehearsal and readiness audit after the
   US 30/360 correction and Python 3.15 support; the rejected dev1 gate is
@@ -326,5 +329,5 @@ The 1.0 skeleton and its publishing pipeline, released to TestPyPI only.
 
 - The 0.2.x code from `main`; it continues on `legacy/0.2.x`.
 
-[Unreleased]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0.dev1...HEAD
+[1.0.0a1]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0.dev1...v1.0.0a1
 [1.0.0.dev1]: https://github.com/pyeconomics-dev/pyeconomics/tree/v1.0.0.dev1

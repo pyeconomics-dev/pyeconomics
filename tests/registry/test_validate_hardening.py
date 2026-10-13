@@ -31,11 +31,11 @@ ZC = tm.zero_coupon
 
 
 def rules_of(registry: Registry) -> set[str]:
-    return {problem.rule for problem in registry.problems()}
+    return {problem.rule for problem in registry.problems(released={})}
 
 
 def details_of(registry: Registry, rule: str) -> list[str]:
-    return [p.detail for p in registry.problems() if p.rule == rule]
+    return [p.detail for p in registry.problems(released={}) if p.rule == rule]
 
 
 def keep(value: object) -> object:
@@ -143,7 +143,7 @@ def test_a_model_that_can_skip_its_bounds_is_rejected(inputs: type) -> None:
     "inputs", [AfterFieldValidator, BeforeFieldValidator, AfterModelValidator]
 )
 def test_validators_that_run_with_the_bounds_are_accepted(inputs: type) -> None:
-    assert tm.toy_registry(tm.variant(ZC, inputs=inputs)).problems() == []
+    assert tm.toy_registry(tm.variant(ZC, inputs=inputs)).problems(released={}) == []
 
 
 def test_the_skipped_bound_really_is_skipped() -> None:
@@ -220,7 +220,10 @@ class AliasedFields(tm.ZeroCouponInputs):
 
 
 def test_a_pep_695_type_alias_is_followed() -> None:
-    assert tm.toy_registry(tm.variant(ZC, inputs=AliasedFields)).problems() == []
+    assert (
+        tm.toy_registry(tm.variant(ZC, inputs=AliasedFields)).problems(released={})
+        == []
+    )
 
 
 type Loose = float
@@ -247,7 +250,7 @@ def test_mistyped_reference_values_are_reported_not_raised() -> None:
 
 def test_a_spec_with_the_wrong_kind_of_value_is_reported_as_such() -> None:
     registry = tm.toy_registry(tm.variant(ZC, references=(object(),)))
-    [problem] = registry.problems()
+    [problem] = registry.problems(released={})
     assert problem.rule == "spec"
     assert "wrong type" in problem.detail
 
@@ -257,7 +260,7 @@ def test_one_malformed_model_does_not_hide_the_others() -> None:
         tm.variant(ZC, references=(object(),)),
         tm.variant(tm.mean_return, evidence=None),
     )
-    assert {(p.model, p.rule) for p in registry.problems()} == {
+    assert {(p.model, p.rule) for p in registry.problems(released={})} == {
         (ZC.id, "spec"),
         (tm.mean_return.id, "evidence"),
     }

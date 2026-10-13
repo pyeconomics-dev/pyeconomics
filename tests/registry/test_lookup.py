@@ -156,8 +156,8 @@ def test_the_facade_raises_not_found() -> None:
 
 @pytest.mark.usefixtures("installed")
 def test_the_facade_validates_the_installed_registry_by_default() -> None:
-    registry.validate()
-    registry.validate(TOY)
+    registry.validate(released={})
+    registry.validate(TOY, released={})
 
 
 @pytest.mark.parametrize("bad", [None, 5, 1.5, ("a", "b")])

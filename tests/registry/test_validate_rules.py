@@ -1,7 +1,7 @@
 # tests/registry/test_validate_rules.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""``registry.validate()``: one toy specification per rule, each breaking just it."""
+"""Registry validation: one toy specification per rule, each breaking just it."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def broken(base: Model[Any, Any], **changes: object) -> Registry:
 
 
 def rules_of(registry: Registry) -> set[str]:
-    return {problem.rule for problem in registry.problems()}
+    return {problem.rule for problem in registry.problems(released={})}
 
 
 # --- field classes that break one field rule ---------------------------------
@@ -462,11 +462,11 @@ def test_validate_names_the_model_and_the_rule(
 ) -> None:
     registry = build()
     with pytest.raises(RegistryError) as caught:
-        registry.validate()
+        registry.validate(released={})
     assert also is not None
-    expected = [str(p) for p in registry.problems() if p.rule == rule]
+    expected = [str(p) for p in registry.problems(released={}) if p.rule == rule]
     assert expected
-    for problem in registry.problems():
+    for problem in registry.problems(released={}):
         assert f"{problem.model}: [{problem.rule}] " in str(caught.value)
     assert set(expected) <= set(caught.value.problems)
 
@@ -481,7 +481,7 @@ def test_validate_lists_every_problem_at_once() -> None:
         tm.variant(ZC, title="", summary="", evidence=None, bindings=(object(),))
     )
     with pytest.raises(RegistryError) as caught:
-        registry.validate()
+        registry.validate(released={})
     rules = [line.split("[")[1].split("]")[0] for line in caught.value.problems]
     assert rules == ["title", "summary", "evidence", "bindings"]
     assert str(caught.value).startswith("the model registry has 4 problems:")
@@ -489,22 +489,22 @@ def test_validate_lists_every_problem_at_once() -> None:
 
 def test_a_single_problem_reads_in_the_singular() -> None:
     with pytest.raises(RegistryError, match=r"has 1 problem:\n"):
-        broken(ZC, cost=None).validate()
+        broken(ZC, cost=None).validate(released={})
 
 
 def test_the_toy_catalog_is_valid() -> None:
-    tm.toy_registry().validate()
+    tm.toy_registry().validate(released={})
 
 
 def test_every_kind_of_field_is_accepted() -> None:
-    broken(ZC, inputs=SoundFields).validate()
+    broken(ZC, inputs=SoundFields).validate(released={})
 
 
 def test_a_union_of_optional_models_is_walked() -> None:
     class Wrapper(tm.ZeroCouponInputs):
         legs: tuple[Leg, ...] | None = Field(None, max_length=4, description="Rows")
 
-    broken(ZC, inputs=Wrapper).validate()
+    broken(ZC, inputs=Wrapper).validate(released={})
 
 
 def test_the_unbounded_item_type_reports_unit_and_bounds() -> None:
@@ -514,7 +514,7 @@ def test_the_unbounded_item_type_reports_unit_and_bounds() -> None:
 
 def test_field_problems_name_the_field_path() -> None:
     registry = broken(ZC, inputs=UnboundedArrayField)
-    [problem] = registry.problems()
+    [problem] = registry.problems(released={})
     assert "inputs: series is an array with no maximum length" in problem.detail
 
 
@@ -525,13 +525,13 @@ def test_nested_field_problems_name_the_path() -> None:
     class Table(tm.ZeroCouponInputs):
         rows: tuple[Row, ...] = Field((), max_length=3, description="Rows")
 
-    [problem] = broken(ZC, inputs=Table).problems()
+    [problem] = broken(ZC, inputs=Table).problems(released={})
     assert problem.rule == "field-unit"
     assert "rows[].weight" in problem.detail
 
 
 def test_an_output_field_is_held_to_the_same_rules() -> None:
-    problems = broken(ZC, outputs=BadOutputs).problems()
+    problems = broken(ZC, outputs=BadOutputs).problems(released={})
     [problem] = [p for p in problems if p.rule == "field-unit"]
     assert problem.detail.startswith("outputs: extra_price")
 
@@ -540,12 +540,12 @@ def test_a_model_that_is_not_frozen_is_reported() -> None:
     class Loose(tm.ZeroCouponInputs):
         model_config = ConfigDict(frozen=False)
 
-    found = broken(ZC, inputs=Loose).problems()
+    found = broken(ZC, inputs=Loose).problems(released={})
     assert [p.rule for p in found] == ["io-types"]
 
 
 def test_charts_of_array_outputs_are_accepted() -> None:
-    tm.toy_registry(echo).validate()
+    tm.toy_registry(echo).validate(released={})
 
 
 def test_the_chart_of_a_calculation_must_name_a_known_one() -> None:
@@ -556,5 +556,5 @@ def test_the_chart_of_a_calculation_must_name_a_known_one() -> None:
 
 
 def test_a_union_model_with_one_input_union_and_a_single_output_is_reported() -> None:
-    found = broken(TV, outputs=tm.PresentValueOutputs).problems()
+    found = broken(TV, outputs=tm.PresentValueOutputs).problems(released={})
     assert any("both be one model or both a union" in p.detail for p in found)
