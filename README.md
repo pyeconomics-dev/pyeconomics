@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/pyeconomics-dev/pyeconomics/main/docs/_static/brand/pyeconomics-banner.png" width="100%" alt="pyeconomics: Empowering Economic Insight">
+</p>
+
 # pyeconomics
 
 [![CI](https://github.com/pyeconomics-dev/pyeconomics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pyeconomics-dev/pyeconomics/actions/workflows/ci.yml)
