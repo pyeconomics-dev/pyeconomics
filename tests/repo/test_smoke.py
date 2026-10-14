@@ -109,6 +109,7 @@ def toy_installed(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
             *(models or tm.ALL_MODELS), distribution="toy-dist", extras=tm.EXTRAS
         )
         monkeypatch.setattr(core_registry._CACHE, "registry", registry)  # noqa: SLF001
+        monkeypatch.setattr(core_registry, "RELEASED", {})
 
     return install
 
@@ -153,6 +154,7 @@ def test_an_empty_registry_covers_no_domain_and_fails_any_minimum(
 ) -> None:
     empty = Registry.from_models(distribution="toy-dist")
     monkeypatch.setattr(core_registry._CACHE, "registry", empty)  # noqa: SLF001
+    monkeypatch.setattr(core_registry, "RELEASED", {})
     assert smoke.check_models(pyeconomics) == "registry valid; 0 domain(s) covered"
     with pytest.raises(AssertionError, match=r"0 domain.*none"):
         smoke.check_models(pyeconomics, min_domains=1)
@@ -176,6 +178,7 @@ def test_a_model_with_an_installed_extra_runs_and_must_return_outputs(
         runs, distribution="toy-dist", extras={"toy": ("pytest",)}
     )
     monkeypatch.setattr(core_registry._CACHE, "registry", registry)  # noqa: SLF001
+    monkeypatch.setattr(core_registry, "RELEASED", {})
     assert smoke.check_models(pyeconomics, extras=True).endswith("1 domain(s) covered")
 
 

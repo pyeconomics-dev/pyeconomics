@@ -146,7 +146,7 @@ def test_no_entry_points_gives_an_empty_registry() -> None:
     found = run_discover([])
     assert found.ids() == ()
     assert found.domains() == ()
-    found.validate()
+    found.validate(released={})
 
 
 @pytest.mark.parametrize(

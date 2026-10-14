@@ -25,8 +25,10 @@ def problems(ledger: dict[str, Released]) -> list[str]:
     return [str(p) for p in TOY.problems(released=ledger)]
 
 
-def test_the_shipped_ledger_is_empty_until_step_14() -> None:
-    assert len(RELEASED) == 0
+def test_the_shipped_ledger_covers_the_alpha_catalog() -> None:
+    assert len(RELEASED) == 32
+    assert set(RELEASED) == set(registry.ids())
+    assert all(entry.first_version == "1.0.0a1" for entry in RELEASED.values())
     registry.validate()
 
 

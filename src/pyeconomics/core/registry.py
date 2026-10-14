@@ -25,7 +25,7 @@ Examples
 >>> empty = Registry.from_models()
 >>> empty.ids(), empty.domains()
 ((), ())
->>> empty.validate() is None
+>>> empty.validate(released={}) is None
 True
 """
 

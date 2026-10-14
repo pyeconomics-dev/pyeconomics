@@ -7922,9 +7922,9 @@ model rated S in knowledge. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 14 — 1.0.0a1 Release
+## Step 14 — 1.0.0a1 Release ✅
 
-**Status:** Not started
+**Status:** Complete — PR #96 (2026-10-13)
 
 > **Goal:** Release what the gate approved. On the step branch, set the
 > version to `1.0.0a1` and make exactly the changes the readiness
@@ -7950,11 +7950,13 @@ maintainer's approval; the GitHub release `v1.0.0a1`. Read the Docs
 
 | Setting      | Value                                           |
 | ------------ | ----------------------------------------------- |
-| Model        | GPT-6 Sol                                       |
+| Model        | GPT-6.1 Sol                                     |
 | Backup       | Claude Sonnet 5.5 — Claude Code · Effort Medium |
 | Platform     | Codex                                           |
 | Intelligence | Medium                                          |
 | Conversation | **New**                                         |
+
+> Settings updated 2026-10-13: was GPT-6 Sol · Medium. GPT-6.1 Sol supersedes it in the same line; verified session effort remains medium.
 
 **Model rationale:** Agentic work is PRIMARY — executing a decided
 release: the version change, the merge, the tag, the approval, the publish
@@ -8211,6 +8213,18 @@ Opus 5.5. New conversation per phase-boundary hygiene.
     Replace README's stale "nothing to use yet" skeleton
     paragraph as well as its status banner in this step;
     the readiness artifact-difference list includes both.
+
+    Release integration review (2026-10-13): populating the
+    ledger requires isolated toy-registry tests to supply
+    an empty ledger. The shipped core/registry.py doctest
+    also needs empty.validate(released={}) instead of
+    empty.validate(). Its executable AST is unchanged,
+    and the maintainer approved this documentation-only
+    gate addendum on 2026-10-13, replying "Approved" to
+    the batched addendum/tag/PyPI/GitHub release request.
+    The approval is recorded in PR #96 comment 6159078803
+    and the readiness artifact list. No further approval
+    request for these actions is needed.
 
     Current state (as of Phase 2 Step 13):
 
@@ -9268,7 +9282,7 @@ workflow above maps directly to the corresponding row below.
 | 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
-| 14      | 1.0.0a1 release                  | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
+| 14      | 1.0.0a1 release                  | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #96 |
 | 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
 | V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
 | V2      | Dates and calendars              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
