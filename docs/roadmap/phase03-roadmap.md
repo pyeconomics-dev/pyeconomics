@@ -1228,7 +1228,8 @@ arise in this phase.
 **Branch:** `feature/phase03-step1-core-hardening`
 
 **Deploys:** nothing beyond merge — the version moves to `1.0.0a2.dev1`,
-but no tag is pushed and nothing is published until Step 19.
+but this step pushes no tag and publishes nothing. Step 18 rehearses on
+TestPyPI; Step 19 publishes the PyPI release.
 
 | Setting      | Value                                         |
 | ------------ | --------------------------------------------- |
