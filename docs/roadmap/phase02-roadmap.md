@@ -8219,10 +8219,12 @@ Opus 5.5. New conversation per phase-boundary hygiene.
     an empty ledger. The shipped core/registry.py doctest
     also needs empty.validate(released={}) instead of
     empty.validate(). Its executable AST is unchanged,
-    but this documentation-only artifact difference is
-    outside the gate allowlist: return it to the maintainer
-    for an explicit gate addendum before merge or publishing.
-    PR #96 holds that review; no addendum approval is implied.
+    and the maintainer approved this documentation-only
+    gate addendum on 2026-10-13, replying "Approved" to
+    the batched addendum/tag/PyPI/GitHub release request.
+    The approval is recorded in PR #96 comment 6159078803
+    and the readiness artifact list. No further approval
+    request for these actions is needed.
 
     Current state (as of Phase 2 Step 13):
 
