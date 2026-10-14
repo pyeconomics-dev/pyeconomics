@@ -98,6 +98,10 @@ class NoUnitField(tm.ZeroCouponInputs):
     spread: float = Field(0.0, ge=0, le=1, description="No unit marker")
 
 
+class NumericLiteralField(tm.ZeroCouponInputs):
+    year: Literal[365, 366] = Field(365, description="No unit or bounds")
+
+
 class WrongKindField(tm.ZeroCouponInputs):
     spread: Annotated[float, Unit(UnitKind.COUNT)] = Field(
         0.0, ge=0, le=1, description="A count held in a float"
@@ -364,6 +368,7 @@ CASES: dict[str, list[Case]] = {
         case(_with_inputs(NodeField)),
     ],
     "field-unit": [
+        case(_with_inputs(NumericLiteralField), "field-bounds"),
         case(_with_inputs(NoUnitField)),
         case(_with_inputs(WrongKindField)),
         case(_with_inputs(WrongIntKindField)),
@@ -371,6 +376,7 @@ CASES: dict[str, list[Case]] = {
         case(lambda: broken(ZC, outputs=BadOutputs), "examples"),
     ],
     "field-bounds": [
+        case(_with_inputs(NumericLiteralField), "field-unit"),
         case(_with_inputs(NoUpperBoundField)),
         case(_with_inputs(InfiniteBoundField)),
         case(_with_inputs(InvertedBoundsField), "examples"),
@@ -498,6 +504,46 @@ def test_the_toy_catalog_is_valid() -> None:
 
 def test_every_kind_of_field_is_accepted() -> None:
     broken(ZC, inputs=SoundFields).validate(released={})
+
+
+# Float Literals are outside the static typing spec but pydantic accepts them;
+# validate() must still guard their units and bounds at runtime.
+FLOAT_LITERAL: Any = Literal
+FLOAT_LITERAL = FLOAT_LITERAL[0.5, 1.5]
+
+
+@pytest.mark.parametrize("annotation", [Literal[365, 366], FLOAT_LITERAL])
+def test_numeric_literals_require_units_and_bounds(annotation: Any) -> None:  # noqa: ANN401
+    from pydantic import create_model  # noqa: PLC0415
+
+    inputs = create_model(
+        "NumericLiteralInputs",
+        __base__=tm.ZeroCouponInputs,
+        choice=(
+            annotation,
+            Field(
+                description="Numeric choice",
+                default=365 if annotation == Literal[365, 366] else 0.5,
+            ),
+        ),
+    )
+    assert rules_of(broken(ZC, inputs=inputs)) == {"field-unit", "field-bounds"}
+
+
+def test_boolean_literal_stays_a_flag() -> None:
+    class Flag(tm.ZeroCouponInputs):
+        flag: Literal[True, False] = Field(default=False, description="A flag")
+
+    broken(ZC, inputs=Flag).validate(released={})
+
+
+def test_bounded_unit_marked_numeric_literals_are_sound() -> None:
+    class Choices(tm.ZeroCouponInputs):
+        year: Annotated[Literal[365, 366], Unit(UnitKind.DAYS)] = Field(
+            365, ge=365, le=366, description="Days in year"
+        )
+
+    broken(ZC, inputs=Choices).validate(released={})
 
 
 def test_a_union_of_optional_models_is_walked() -> None:

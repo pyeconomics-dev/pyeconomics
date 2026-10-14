@@ -318,3 +318,22 @@ def test_a_long_run_of_losses_annualizes_from_its_logs() -> None:
         periods_per_year=1,
     )
     assert math.isclose(out.annualized_return, -0.5, rel_tol=1e-12)
+
+
+@pytest.mark.parametrize(
+    ("beginning", "ending", "expected"), [(100, 1, -0.99), (1e6, 11e6, 10.0)]
+)
+def test_money_weighted_return_recognizes_both_endpoint_roots(
+    beginning: float, ending: float, expected: float
+) -> None:
+    found = result(
+        calculation="money_weighted",
+        beginning_value=beginning,
+        ending_value=ending,
+        periods=1,
+        periods_per_year=1,
+    )
+    assert found.outputs.rate == expected
+    assert found.outputs.money_weighted_return == pytest.approx(expected, abs=1e-12)
+    assert found.outputs.annualized_return == pytest.approx(expected, abs=1e-12)
+    assert not found.warnings

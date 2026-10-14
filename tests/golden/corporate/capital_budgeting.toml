@@ -45,3 +45,24 @@ edge = true
 inputs = { cash_flows = [100, 20, 20], rate = 0 }
 expected = { npv = 140, payback = 0 }
 expected_none = ["irr", "mirr", "profitability_index"]
+
+[[sources]]
+key = "endpoint"
+kind = "identity"
+citation = "One-period IRR identity: -P + F/(1+r) = 0 gives r = F/P - 1; synthetic cash flows and exact rational arithmetic."
+
+[[cases]]
+id = "irr_lower_endpoint"
+source = "endpoint"
+locator = "r = F/P - 1 at the inclusive lower bound"
+edge = true
+inputs = { cash_flows = [-100, 1], rate = 0 }
+expected = { irr = -0.99 }
+
+[[cases]]
+id = "irr_upper_endpoint"
+source = "endpoint"
+locator = "r = F/P - 1 at the inclusive upper bound"
+edge = true
+inputs = { cash_flows = [-1000000, 11000000], rate = 0 }
+expected = { irr = 10.0 }

@@ -151,7 +151,7 @@ def _mirr(inputs: Inputs) -> float | None:
 
 @model(
     id="corporate.capital_budgeting",
-    version=1,
+    version=2,
     title="Capital budgeting",
     summary=(
         "Project NPV, IRR, MIRR, fractional payback, profitability "
@@ -244,7 +244,12 @@ def _mirr(inputs: Inputs) -> float | None:
             },
         ),
     ),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    changelog=(
+        ChangelogEntry(version=1, note="First version."),
+        ChangelogEntry(
+            version=2, note="Recognize IRR roots at inclusive bracket endpoints (#85)."
+        ),
+    ),
 )
 def capital_budgeting(inputs: Inputs) -> Outputs:
     """Appraise the project using the shared NPV and IRR numerics."""

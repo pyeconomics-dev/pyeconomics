@@ -508,7 +508,7 @@ _XIRR = Reference(
 
 @model(
     id="performance.return_measurement",
-    version=1,
+    version=2,
     title="Return measurement",
     summary=(
         "Time-weighted, money-weighted and Modified Dietz returns of a portfolio "
@@ -616,7 +616,12 @@ _XIRR = Reference(
             },
         ),
     ),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    changelog=(
+        ChangelogEntry(version=1, note="First version."),
+        ChangelogEntry(
+            version=2, note="Recognize IRR roots at inclusive bracket endpoints (#85)."
+        ),
+    ),
 )
 def return_measurement(inputs: ReturnMeasurementInputs) -> ReturnMeasurementOutputs:
     """Run the calculation the inputs select."""

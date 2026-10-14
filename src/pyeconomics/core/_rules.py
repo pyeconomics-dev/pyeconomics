@@ -228,6 +228,8 @@ def _check_bounds(metadata: Sequence[object], site: _Site, *, dates: bool) -> No
 
 
 def _check_numeric(tp: object, metadata: Sequence[object], site: _Site) -> None:
+    if get_origin(tp) is Literal:
+        tp = int if all(type(value) is int for value in get_args(tp)) else float
     units = [m for m in metadata if isinstance(m, Unit)]
     if not units:
         site.report.add(
@@ -324,6 +326,8 @@ def _check_unsupported(tp: object, _metadata: Sequence[object], site: _Site) -> 
 
 def _classify(tp: object, origin: object) -> str:
     """Name the kind of type ``tp`` is, for dispatch."""
+    if origin is Literal and all(type(value) in {int, float} for value in get_args(tp)):
+        return "numeric"
     for kind, hit in (
         ("loose", tp is Any or tp is object),
         ("scalar", tp is bool or origin is Literal),

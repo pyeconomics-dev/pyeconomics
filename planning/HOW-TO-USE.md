@@ -98,7 +98,7 @@ at the start of each phase** to pull the latest:
 pip install -U roadmodel
 roadmodel export-kit /path/to/this/project
 
-# Or fetch fresh from GitHub main with the bash script:
+# Or use the release wrapper from a reviewed roadmodel checkout:
 scripts/export-planning-kit.sh /path/to/this/project
 ```
 

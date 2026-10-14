@@ -37,10 +37,11 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Annotated, Final
 
-from pydantic import AllowInfNan
+import numpy as np
+from pydantic import AllowInfNan, BeforeValidator
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Iterator, Mapping
 
     from pydantic import GetJsonSchemaHandler
     from pydantic.json_schema import JsonSchemaValue
@@ -128,36 +129,111 @@ class Unit:
         """Add ``x-unit`` to the field's JSON Schema."""
         schema = handler(core_schema)
         schema[UNIT_SCHEMA_KEY] = self.kind.value
+        _unit_schema(schema)
         return schema
+
+
+def _unit_schema(schema: JsonSchemaValue) -> None:
+    """Preserve unit schemas when pydantic wraps bounds around validators.
+
+    Pydantic emits Python constraint names for function-before schemas,
+    including inside nullable fields. Date bounds remain runtime-only, as
+    JSON Schema's numeric bounds do not apply to ISO date strings.
+    """
+    kind = schema.get(UNIT_SCHEMA_KEY)
+    for constraint, keyword in (
+        ("ge", "minimum"),
+        ("gt", "exclusiveMinimum"),
+        ("le", "maximum"),
+        ("lt", "exclusiveMaximum"),
+    ):
+        if constraint in schema and isinstance(kind, str):
+            bound = schema.pop(constraint)
+            if kind != UnitKind.DATE.value:
+                schema[keyword] = bound
+    for item in _schema_children(schema):
+        _unit_schema(item)
+
+
+def _schema_children(schema: JsonSchemaValue) -> Iterator[JsonSchemaValue]:
+    """Yield child schemas while leaving annotations and property maps intact."""
+    # Visit schema nodes, never user values in defaults, enums or examples,
+    # nor the property-name mapping itself (a field can be named "x-unit").
+    children: list[object] = []
+    for keyword in ("properties", "patternProperties", "$defs", "dependentSchemas"):
+        mapping = schema.get(keyword)
+        if isinstance(mapping, dict):
+            children.extend(mapping.values())
+    children.extend(
+        schema.get(keyword)
+        for keyword in (
+            "items",
+            "additionalProperties",
+            "unevaluatedProperties",
+            "contains",
+            "propertyNames",
+            "not",
+            "if",
+            "then",
+            "else",
+        )
+    )
+    for keyword in ("anyOf", "allOf", "oneOf", "prefixItems"):
+        items = schema.get(keyword)
+        if isinstance(items, list):
+            children.extend(items)
+    for item in children:
+        if isinstance(item, dict):
+            yield item
 
 
 _FINITE = AllowInfNan(allow_inf_nan=False)
 
-Rate = Annotated[float, Unit(UnitKind.RATE), _FINITE]
+
+def _numeric_value(value: object) -> object:
+    """Reject flags before pydantic can coerce them to zero or one."""
+    if isinstance(value, bool | np.bool_):
+        msg = "a numeric field cannot be a boolean"
+        raise ValueError(msg)  # noqa: TRY004 - pydantic wraps validation failures
+    return value
+
+
+def _date_value(value: object) -> object:
+    """Keep calendar date forms; refuse numeric epoch timestamps."""
+    if isinstance(value, int | float | np.integer | np.floating | np.bool_):
+        msg = "a date field cannot be a numeric epoch timestamp"
+        raise ValueError(msg)  # noqa: TRY004 - pydantic wraps validation failures
+    return value
+
+
+_NUMERIC = BeforeValidator(_numeric_value)
+_DATE = BeforeValidator(_date_value)
+
+Rate = Annotated[float, Unit(UnitKind.RATE), _FINITE, _NUMERIC]
 """A rate, yield or spread as a decimal (``0.05`` is 5%)."""
-Return = Annotated[float, Unit(UnitKind.RETURN), _FINITE]
+Return = Annotated[float, Unit(UnitKind.RETURN), _FINITE, _NUMERIC]
 """A return as a decimal."""
-Money = Annotated[float, Unit(UnitKind.MONEY), _FINITE]
+Money = Annotated[float, Unit(UnitKind.MONEY), _FINITE, _NUMERIC]
 """An amount of money."""
-Years = Annotated[float, Unit(UnitKind.YEARS), _FINITE]
+Years = Annotated[float, Unit(UnitKind.YEARS), _FINITE, _NUMERIC]
 """A time in years."""
-Days = Annotated[int, Unit(UnitKind.DAYS)]
+Days = Annotated[int, Unit(UnitKind.DAYS), _NUMERIC]
 """A whole number of days."""
-Periods = Annotated[float, Unit(UnitKind.PERIODS), _FINITE]
+Periods = Annotated[float, Unit(UnitKind.PERIODS), _FINITE, _NUMERIC]
 """A number of periods, possibly fractional."""
-Count = Annotated[int, Unit(UnitKind.COUNT)]
+Count = Annotated[int, Unit(UnitKind.COUNT), _NUMERIC]
 """A whole number of things."""
-Ratio = Annotated[float, Unit(UnitKind.RATIO), _FINITE]
+Ratio = Annotated[float, Unit(UnitKind.RATIO), _FINITE, _NUMERIC]
 """A dimensionless ratio."""
-Probability = Annotated[float, Unit(UnitKind.PROBABILITY), _FINITE]
+Probability = Annotated[float, Unit(UnitKind.PROBABILITY), _FINITE, _NUMERIC]
 """A probability as a decimal."""
-Volatility = Annotated[float, Unit(UnitKind.VOLATILITY), _FINITE]
+Volatility = Annotated[float, Unit(UnitKind.VOLATILITY), _FINITE, _NUMERIC]
 """A volatility as a decimal."""
-Correlation = Annotated[float, Unit(UnitKind.CORRELATION), _FINITE]
+Correlation = Annotated[float, Unit(UnitKind.CORRELATION), _FINITE, _NUMERIC]
 """A correlation coefficient."""
-IndexLevel = Annotated[float, Unit(UnitKind.INDEX_LEVEL), _FINITE]
+IndexLevel = Annotated[float, Unit(UnitKind.INDEX_LEVEL), _FINITE, _NUMERIC]
 """An index level."""
-DateValue = Annotated[dt.date, Unit(UnitKind.DATE)]
+DateValue = Annotated[dt.date, Unit(UnitKind.DATE), _DATE]
 """A calendar date."""
 
 

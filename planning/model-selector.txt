@@ -1139,8 +1139,9 @@
              tier-coding="A" tier-planning="A" tier-agentic="A"
              tier-multimodal="A" tier-long-context="A" tier-knowledge="A"
              tier-speed="A"
-             headline-benchmarks="AA Intelligence Index 42.1 (max); HLE 42.9%; Terminal-Bench 2.1 88.0; Output Speed 99.1 tokens/s"
+             headline-benchmarks="AA Intelligence Index 42.1 (max); HLE 42.9%; SciCode 55.0; Terminal-Bench 4.0 35.4; AA-LCR 0.830; Terminal-Bench 2.1 88.0; Output Speed 118.8 tokens/s"
              pricing-notes="Requires Max Mode on legacy request-based plans; Mid-tier GPT-5.6 variant between Sol and Luna; Agentic and reasoning capabilities; Fast mode is available at 2x pricing; Long context supports up to 1M tokens with 2x input pricing; Fast mode is available for long context (>272k) at 2x Fast input pricing; Cache writes are billed at 1.25x the uncached input rate"
+             prose-generated="headline-benchmarks"
              best-for="OpenAI's mid-tier GPT-5.6 variant between Sol (flagship) and Luna (mini) at medium-tier pricing ($2/$12) — Artificial Analysis Intelligence Index 42.1 (max) matches near-frontier reasoning while output speed (~105 tokens/s) is faster than most peers; pick for balanced near-frontier reasoning, agentic execution, and speed when Sol's high tier isn't justified but stronger throughput than GPT-5.4 is desired." />
       <model id="gemini-3.1-pro" name="Gemini 3.1 Pro"
              input-price-per-1m="$2.00" output-price-per-1m="$12.00"
@@ -1994,6 +1995,11 @@
           UNFUNDED for the window. A model reachable through another funded
           pool then wins on cost when it is adequate for the task; the
           RATIONALE must name the reset time and the pool that was skipped.
+      FIXED PREPAID RESERVE: an `exhausted` OpenRouter credits row makes
+      the `openrouter` method UNFUNDED even when its key is present. It has
+      no automatic time reset: funding returns only after credits are added
+      and the reserve observation changes. `headroom` / `tight` reserves
+      remain per-token paths; maker pay-as-you-go keys have no pool state.
       A `tight` or `exhausted` entry also CLOSES the `<objective>`
       FLAT-FUNDING GATE for every candidate that subscription funds
       (condition (c)) — the per-pool table overrides the single headroom

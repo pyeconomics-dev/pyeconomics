@@ -382,7 +382,20 @@ def internal_rate_of_return(
         return None
 
     def scaled_value(rate: float) -> float:
-        return _scaled(math.log1p(rate), flows, when)[0]
+        value = _scaled(math.log1p(rate), flows, when)[0]
+        if rate in (lower, upper) and value != 0:
+            # Log scaling can round a mathematical endpoint root away from
+            # zero. Certify a crossing within the existing RATE tolerance,
+            # never an arbitrary NPV epsilon or a Newton displacement alone:
+            # a steep function can have a tiny Newton step far from its root.
+            tolerance = IRR_POLICY.xtol + IRR_POLICY.rtol * abs(rate)
+            below = max(math.nextafter(-1.0, math.inf), rate - tolerance)
+            above = min(sys.float_info.max, rate + tolerance)
+            left = _scaled(math.log1p(below), flows, when)[0]
+            right = _scaled(math.log1p(above), flows, when)[0]
+            if left == 0 or right == 0 or (left > 0) != (right > 0):
+                return 0.0
+        return value
 
     try:
         found = find_root(scaled_value, lower, upper, policy=IRR_POLICY)

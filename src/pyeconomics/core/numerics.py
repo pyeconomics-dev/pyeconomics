@@ -22,9 +22,11 @@
    policy's ``xtol``, ``rtol`` and ``maxiter``; failure to converge raises
    :class:`ConvergenceError`.
 
-The scan sees sign changes only: a root where the function touches zero
-without crossing it, or two roots closer together than the grid spacing, can
-go unseen. A model that must not miss such roots chooses its own grid.
+The scan records exact zeros, including either inclusive bracket endpoint,
+as well as sign changes (a clarification of ADR-0008 decision 11). A root
+that touches zero between grid points, or two roots closer together than the
+grid spacing, can go unseen. A model that must not miss such roots chooses
+its own grid.
 
 Examples
 --------

@@ -172,3 +172,26 @@ def test_bracket_roots_lists_every_sign_change() -> None:
 def test_bracket_roots_needs_two_points() -> None:
     with pytest.raises(InputError, match="at least 2 points"):
         bracket_roots(lambda x: x, -1.0, 1.0, points=1)
+
+
+@pytest.mark.parametrize("root", [-1.0, 0.0, 1.0])
+def test_exact_zeros_at_both_ends_and_inside_are_roots(root: float) -> None:
+    # A touching root proves exact-zero detection independently of sign changes.
+    function = lambda x: (x - root) ** 2  # noqa: E731
+    assert bracket_roots(function, -1.0, 1.0, points=3) == [(root, root)]
+    found = find_root(function, -1.0, 1.0, policy=RootPolicy(scan_points=3))
+    assert found.root == root
+    assert found.iterations == 0
+
+
+def test_endpoint_and_interior_roots_keep_smallest_root_policy() -> None:
+    function = lambda x: (x + 1) * x * (x - 1)  # noqa: E731
+    assert bracket_roots(function, -1.0, 1.0, points=3) == [
+        (-1.0, -1.0),
+        (0.0, 0.0),
+        (1.0, 1.0),
+    ]
+    with pytest.warns(ModelWarning, match="several_roots"):
+        result = find_root(function, -1.0, 1.0, policy=RootPolicy(scan_points=3))
+    assert result.root == -1.0
+    assert result.candidates == 3

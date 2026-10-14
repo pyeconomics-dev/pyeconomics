@@ -20,7 +20,7 @@ Write the Phase {{N}} roadmap for this project.
 Step 0 — refresh the planning kit so the templates and catalog are
 current. Run `pip install -U roadmodel && roadmodel export-kit . --force`
 (where roadmodel is not installed, run
-`scripts/export-planning-kit.sh .` instead). Then open
+`scripts/export-planning-kit.sh .` from a reviewed checkout instead; it bootstraps a released wheel). Then open
 `planning/templates/phase-roadmap-template.md` and confirm its Stage 3
 reads "OPEN THE PR, THEN MARK THE STEP", its Stage 6 reads "DISPOSE
 OF EVERY FINDING, DECLARE COMPLETION, THEN NEW CONVERSATION", and its
@@ -57,10 +57,15 @@ own model> on <this surface>.`
 
 - Name your exact model, never only its family. On Codex your
   instructions say just "based on GPT-6", but the model picked and its
-  effort are in the session's rollout: the newest `rollout-*.jsonl` under
-  `${CODEX_HOME:-~/.codex}/sessions/` whose first line (`session_meta`)
-  has this repo as its `cwd`; its last `turn_context` line holds
-  `"model"` (e.g. `gpt-6.1-sol`) and `"effort"`. Where no source names
+  effort are in the session's rollout: the most recently modified
+  `rollout-*.jsonl` under `sessions/` in `CODEX_HOME` (default
+  `~/.codex`; `%USERPROFILE%\.codex` on Windows) whose first line
+  (`session_meta`) has this repo as its `cwd`, compared case- and
+  slash-insensitively (Windows records `e:\Code\…` where the shell
+  prints `E:\Code\…`); its last `turn_context` line holds `"model"`
+  (e.g. `gpt-6.1-sol`) and `"effort"`. Read it with a reader that shares
+  the open file (Python's `open`, PowerShell's `Get-Content`), and never
+  take a rollout from another directory. Where no source names
   the model, print `unverified`, ask me which I picked, and go on with my
   answer.
 - You are its Model on its Platform, or a newer version in the same
@@ -98,7 +103,20 @@ selector in `@planning/model-selector.txt` (prices from
 You are the engine — do not call any external API. Honor every
 availability exclusion in the selector, and write each step's backup
 model into its Settings table's Backup row, with the backup's own
-platform and dial.
+platform and dial. Where `roadmodel` is installed, the Backup row is
+the cell `roadmodel backup --category <c> --complexity <x> [--novel]
+--model <the step's model> --effort <the step's effort>` prints for the
+step's own classification: the rule /recommend backs a pick up by, in
+code, which takes the cheaper of two substitutes the benchmarks cannot
+tell apart. The selector's BACKUP stands only where it is not
+installed. When the command also prints a `MODEL` line, that cell
+replaces the step's model: a newer version of the same model (GPT-6 Sol
+→ GPT-6.1 Sol), on the same platform, no dearer, that scores level or
+better at the step's effort. The selector's letters are measured at each
+model's top effort, and a step that runs lower can reverse them. Write
+the `MODEL` cell into the Model row, the Model rationale and the step's
+selection block, citing the newer model's figures at the step's effort,
+and keep the Backup cell printed with it.
 
 Honor the template's style rules: 80-column prose, zero `{{...}}`
 tokens left, `**Status:** Not started` directly under the title and

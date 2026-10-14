@@ -11,6 +11,23 @@ Pre-releases of 1.0.0 carry no stability promise. Deprecations are listed under
 The 0.2.x history (0.1.0 to 0.2.6) is in the
 [0.2.x changelog on `legacy/0.2.x`](https://github.com/pyeconomics-dev/pyeconomics/blob/legacy/0.2.x/markdown/CHANGELOG.md).
 
+## [Unreleased]
+
+### Fixed
+
+- Numeric unit markers reject Python and NumPy booleans; date fields reject
+  numeric epoch timestamps, including array elements (#75).
+- Registry validation requires units and bounds on numeric Literal fields (#81).
+- Shared IRR recognizes roots at inclusive bracket endpoints without changing
+  the smallest-root policy (#85); see the public erratum.
+
+### Changed
+
+- Begin the Phase 3 baseline at `1.0.0a2.dev1`.
+- `foundations.time_value`, `corporate.capital_budgeting` and
+  `performance.return_measurement` advance from model version 1 to 2 for the
+  IRR endpoint correction. Permanent model ids remain unchanged.
+
 ## [1.0.0a1] - 2026-10-13
 
 ### Fixed
