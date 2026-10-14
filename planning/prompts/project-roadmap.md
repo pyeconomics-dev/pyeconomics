@@ -19,7 +19,7 @@ Write the project roadmap for this project.
 Step 0 — refresh the planning kit so the templates and catalog are
 current. Run `pip install -U roadmodel && roadmodel export-kit . --force`
 (where roadmodel is not installed, run
-`scripts/export-planning-kit.sh .` instead). Then open
+`scripts/export-planning-kit.sh .` from a reviewed checkout instead; it bootstraps a released wheel). Then open
 `planning/templates/project-roadmap-template.md` and confirm its Step
 lifecycle Stage 3 reads "Open the PR, then mark the step" and Stage 6
 reads "Dispose of every finding, declare completion, then new
