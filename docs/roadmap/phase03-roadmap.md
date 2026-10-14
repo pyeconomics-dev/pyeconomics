@@ -1,6 +1,6 @@
 # Phase 3 Roadmap — Data Platform & Free Sources
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1204,9 +1204,9 @@ arise in this phase.
 
 ---
 
-## Step 1 — Core Hardening and the 1.0.0a2 Baseline
+## Step 1 — Core Hardening and the 1.0.0a2 Baseline ✅
 
-**Status:** Not started
+**Status:** Complete — PR #106 (2026-10-14)
 
 > **Goal:** Close the three contract bugs Phase 2 handed on before any
 > provider value flows into a model input, and set the baseline the phase
@@ -11554,7 +11554,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1       | Core hardening + baseline        | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 1       | Core hardening + baseline        | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #106 |
 | 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
