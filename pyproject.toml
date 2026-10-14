@@ -33,7 +33,7 @@ classifiers = [
 ]
 dependencies = [
     "holidays>=0.106",
-    "numpy>=2.4",
+    "numpy>=2.5.4",
     "pandas>=3.0",
     "pydantic>=2.12",
     "scipy>=1.18",
@@ -82,7 +82,7 @@ all = [
 # PEP 735 groups: development-only, never published (ADR-0002).
 [dependency-groups]
 test = [
-    "hypothesis>=6.168.5",
+    "hypothesis>=6.169.0",
     "jsonschema>=4.26.0",
     "numpy-financial>=1.0.0",
     "plotly>=7.1.0",
@@ -109,9 +109,9 @@ dev = [
     "pandas-stubs>=3.0.5.260914",
     "prek>=0.5.5",
     "pyright>=1.1.414",
-    "ruff>=0.16.10",
+    "ruff>=0.17.0",
     "scipy-stubs>=1.18.1.1",
-    "ty>=0.0.85",
+    "ty>=0.0.86",
 ]
 docs = [
     "myst-nb>=1.4.0",
