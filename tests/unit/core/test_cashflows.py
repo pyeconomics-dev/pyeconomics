@@ -13,7 +13,7 @@ import math
 import warnings
 
 import pytest
-from hypothesis import given
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from pyeconomics.core import (
@@ -156,3 +156,42 @@ def test_the_irr_bracket_is_checked() -> None:
 def test_sign_changes_ignore_zeros() -> None:
     assert sign_changes([]) == 0
     assert sign_changes([0.0, -1.0, 0.0, 0.0, 2.0, -3.0]) == 2
+
+
+@pytest.mark.parametrize(
+    ("flows", "expected"), [([-100, 1], -0.99), ([-1e6, 11e6], 10.0)]
+)
+@pytest.mark.parametrize("scale", [1e-100, 1e-10, 1.0, 100.0, 1e100])
+def test_irr_endpoint_roots_survive_rescaling(
+    flows: list[float], expected: float, scale: float
+) -> None:
+    with collect_warnings() as recorded:
+        found = internal_rate_of_return([c * scale for c in flows])
+    assert found == expected
+    assert not recorded
+
+
+@pytest.mark.parametrize("rate", [-0.99000001, 10.00000001, -0.999, 11.0])
+def test_irr_does_not_invent_roots_outside_the_bracket(rate: float) -> None:
+    with collect_warnings() as recorded:
+        found = internal_rate_of_return([-100.0, 100.0 * (1 + rate)])
+    assert found is None
+    assert [w.code for w in recorded] == ["no_root_in_range"]
+
+
+@settings(deadline=None)
+@given(
+    rate=st.floats(-0.99, 10.0), outlay=st.floats(1.0, 1e8), periods=st.integers(1, 5)
+)
+@example(rate=-0.99, outlay=100.0, periods=1)
+@example(rate=10.0, outlay=1e6, periods=1)
+@example(rate=-0.99, outlay=1e8, periods=5)
+@example(rate=10.0, outlay=1.0, periods=5)
+def test_irr_recovers_a_chosen_rate(rate: float, outlay: float, periods: int) -> None:
+    # Single future receipt: -P + P(1+r)^n/(1+r)^n = 0.
+    flows = [-outlay, *([0.0] * (periods - 1)), outlay * (1 + rate) ** periods]
+    with collect_warnings() as recorded:
+        found = internal_rate_of_return(flows)
+    assert found is not None
+    assert math.isclose(found, rate, abs_tol=3e-12, rel_tol=2e-15)
+    assert not recorded

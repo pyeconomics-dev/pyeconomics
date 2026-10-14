@@ -258,3 +258,24 @@ source = "zero_rate_loan"
 edge = true
 inputs = { calculation = "amortization", principal = 1000, rate = 0.0, periods = 4 }
 expected = { level_payment = 250.0, total_interest = 0.0, interest = [0.0, 0.0, 0.0, 0.0], principal = [250.0, 250.0, 250.0, 250.0], balance = [750.0, 500.0, 250.0, 0.0] }
+
+[[sources]]
+key = "endpoint"
+kind = "identity"
+citation = "One-period IRR identity: -P + F/(1+r) = 0 gives r = F/P - 1; synthetic cash flows and exact rational arithmetic."
+
+[[cases]]
+id = "irr_lower_endpoint"
+source = "endpoint"
+locator = "r = F/P - 1 at the inclusive lower bound"
+edge = true
+inputs = { calculation = "irr", cash_flows = [-100, 1] }
+expected = { irr = -0.99, sign_changes = 1 }
+
+[[cases]]
+id = "irr_upper_endpoint"
+source = "endpoint"
+locator = "r = F/P - 1 at the inclusive upper bound"
+edge = true
+inputs = { calculation = "irr", cash_flows = [-1000000, 11000000] }
+expected = { irr = 10.0, sign_changes = 1 }

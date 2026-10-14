@@ -382,7 +382,20 @@ def internal_rate_of_return(
         return None
 
     def scaled_value(rate: float) -> float:
-        return _scaled(math.log1p(rate), flows, when)[0]
+        value, peak = _scaled(math.log1p(rate), flows, when)
+        if rate in (lower, upper) and value != 0:
+            # Log scaling can round a mathematical endpoint root away from
+            # zero. Accept only a residual whose Newton displacement fits
+            # the existing tolerance in RATE units, never an arbitrary NPV
+            # epsilon (which could invent roots for tiny cash flows).
+            nonzero = flows != 0
+            logs = np.log(np.abs(flows[nonzero])) - when[nonzero] * math.log1p(rate)
+            terms = np.sign(flows[nonzero]) * np.exp(logs - peak)
+            slope = math.fsum((-when[nonzero] * terms / (1 + rate)).tolist())
+            tolerance = IRR_POLICY.xtol + IRR_POLICY.rtol * abs(rate)
+            if slope != 0 and abs(value / slope) <= tolerance:
+                return 0.0
+        return value
 
     try:
         found = find_root(scaled_value, lower, upper, policy=IRR_POLICY)

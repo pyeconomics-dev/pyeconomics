@@ -66,6 +66,7 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     Field,
+    GetJsonSchemaHandler,
     TypeAdapter,
     ValidationError,
 )
@@ -89,10 +90,14 @@ from pyeconomics.core.units import (
     UnitKind,
     Volatility,
     Years,
+    _unit_schema,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
+
+    from pydantic.json_schema import JsonSchemaValue
+    from pydantic_core import CoreSchema
 
     from pyeconomics.core.spec import (
         ChangelogEntry,
@@ -137,6 +142,15 @@ class _Closed(BaseModel):
         validate_default=True,
         revalidate_instances="always",
     )
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        """Keep unit bounds unchanged, including nullable scalar fields."""
+        schema = handler(core_schema)
+        _unit_schema(schema)
+        return schema
 
 
 class ModelInputs(_Closed):

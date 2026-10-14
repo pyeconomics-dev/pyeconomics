@@ -74,3 +74,24 @@ source = "identity"
 edge = true
 inputs = { calculation = "modified_dietz", beginning_value = 100, ending_value = 95, start_date = 2026-01-01, end_date = 2026-12-31 }
 expected = { modified_dietz_return = -0.05, average_capital = 100.0 }
+
+[[sources]]
+key = "endpoint"
+kind = "identity"
+citation = "One-period IRR identity: -P + F/(1+r) = 0 gives r = F/P - 1; synthetic cash flows and exact rational arithmetic."
+
+[[cases]]
+id = "irr_lower_endpoint"
+source = "endpoint"
+locator = "r = F/P - 1 at the inclusive lower bound"
+edge = true
+inputs = { calculation = "money_weighted", beginning_value = 100, ending_value = 1, periods = 1 }
+expected = { rate = -0.99, money_weighted_return = -0.99 }
+
+[[cases]]
+id = "irr_upper_endpoint"
+source = "endpoint"
+locator = "r = F/P - 1 at the inclusive upper bound"
+edge = true
+inputs = { calculation = "money_weighted", beginning_value = 1000000, ending_value = 11000000, periods = 1 }
+expected = { rate = 10.0, money_weighted_return = 10.0 }

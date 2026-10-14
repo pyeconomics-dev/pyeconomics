@@ -651,7 +651,7 @@ _XNPV = Reference(
 
 @model(
     id="foundations.time_value",
-    version=1,
+    version=2,
     title="Time value of money",
     summary=(
         "Present and future values of sums, annuities and perpetuities, the "
@@ -850,7 +850,12 @@ _XNPV = Reference(
             calculation="amortization",
         ),
     ),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    changelog=(
+        ChangelogEntry(version=1, note="First version."),
+        ChangelogEntry(
+            version=2, note="Recognize IRR roots at inclusive bracket endpoints (#85)."
+        ),
+    ),
 )
 def time_value(inputs: TimeValueInputs) -> TimeValueOutputs:
     """Run the calculation the inputs select."""

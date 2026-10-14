@@ -195,6 +195,21 @@ def test_mirr_endpoints_survive_log_rounding(
     assert out.mirr == pytest.approx(expected, abs=1e-12)
 
 
+@pytest.mark.parametrize(
+    ("flows", "expected"), [([-100, 1], -0.99), ([-1e6, 11e6], 10.0)]
+)
+@pytest.mark.parametrize("scale", [1e-10, 1.0, 100.0])
+def test_irr_endpoints_have_exact_foundations_parity(
+    flows: list[float], expected: float, scale: float
+) -> None:
+    flows = [c * scale for c in flows]
+    project = run_model(capital_budgeting, {"cash_flows": flows, "rate": 0})
+    foundation = run_model(time_value, {"calculation": "irr", "cash_flows": flows})
+    assert project.outputs.irr == foundation.outputs.irr == expected
+    assert "no_root_in_range" not in {w.code for w in project.warnings}
+    assert not foundation.warnings
+
+
 def test_country_premium() -> None:
     assert capital(
         calculation="country_risk_premium",

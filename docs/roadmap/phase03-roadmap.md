@@ -1228,7 +1228,7 @@ arise in this phase.
 **Branch:** `feature/phase03-step1-core-hardening`
 
 **Deploys:** nothing beyond merge — the version moves to `1.0.0a2.dev1`,
-but no tag is pushed and nothing is published until Step 18.
+but no tag is pushed and nothing is published until Step 19.
 
 | Setting      | Value                                         |
 | ------------ | --------------------------------------------- |
@@ -1490,7 +1490,8 @@ per phase-boundary hygiene.
 
     Current state (as of Phase 2; no Phase 3 step has run):
 
-    - main is at 877370b (PR #97); pyproject.toml and
+    - main is at c0954f7 (PR #105, after Phase 2 PR #97);
+      pyproject.toml and
       CITATION.cff read 1.0.0a1; CHANGELOG.md ends at
       [1.0.0a1] with no [Unreleased] section.
     - This roadmap (docs/roadmap/phase03-roadmap.md) is

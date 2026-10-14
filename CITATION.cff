@@ -7,7 +7,7 @@ abstract: >-
   An open platform of economics and finance models: a registry of tested,
   cited models served identically to Python, a command line, a REST API, an
   MCP server and a web app, with a provenance manifest on every result.
-version: "1.0.0a1"
+version: "1.0.0a2.dev1"
 date-released: "2026-10-13"
 authors:
   - name: "Nathan Ramos, CFA"

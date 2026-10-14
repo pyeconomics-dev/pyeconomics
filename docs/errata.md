@@ -1,5 +1,25 @@
 # Errata
 
+## 2026-10-14: IRR roots at inclusive bracket endpoints (#85)
+
+Affected: version 1 of `foundations.time_value`,
+`corporate.capital_budgeting` and `performance.return_measurement`, including
+package `1.0.0a1`. Corrected in package `1.0.0a2.dev1`, version 2 of those
+models. Their permanent ids are unchanged.
+
+Version 1 could return null/no_root_in_range for an IRR at the inclusive
+bounds -0.99 or 10.0. Version 2 recognizes these roots; permanent model ids
+and the smallest-root selection policy are unchanged. The one-period cash
+flows `[-100, 1]` and `[-1000000, 11000000]` give -0.99 and 10.0 respectively
+from the identity `r = final_receipt / initial_outlay - 1`. Log-scaled NPV
+evaluation had rounded the endpoint away from zero. The correction accepts
+only an endpoint residual whose implied rate displacement is within the
+existing root tolerance; roots materially outside the bracket stay refused.
+
+Regression golden cases, rescaling tests and a property test over chosen
+rates including both bounds guard the correction. See
+[issue #85](https://github.com/pyeconomics-dev/pyeconomics/issues/85).
+
 ## 2026-10-12: US 30/360 long first-period accrual (#89)
 
 Affected: package `1.0.0a1.dev1`; version 1 of `fixed_income.bond_pricing`,
