@@ -121,3 +121,17 @@ def test_date_array_keeps_numpy_datetime_forms() -> None:
         assert adapter.validate_python(
             np.array(["2026-01-01"], dtype=f"datetime64[{unit}]")
         ) == (dt.date(2026, 1, 1),)
+
+
+def test_schema_normalization_preserves_field_names_and_default_values() -> None:
+    class NamedFields(ModelInputs):
+        unit_name: str = Field("rate", alias="x-unit", max_length=10)
+        ge: units.Rate = Field(1.0, ge=0, le=2)
+        metadata: dict[str, str | float] = Field(
+            {"x-unit": "rate", "ge": 1.0}, max_length=2
+        )
+
+    schema = NamedFields.model_json_schema()
+    assert set(schema["properties"]) == {"x-unit", "ge", "metadata"}
+    assert schema["properties"]["ge"]["minimum"] == 0
+    assert schema["properties"]["metadata"]["default"] == {"x-unit": "rate", "ge": 1.0}

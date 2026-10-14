@@ -41,7 +41,7 @@ import numpy as np
 from pydantic import AllowInfNan, BeforeValidator
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Iterator, Mapping
 
     from pydantic import GetJsonSchemaHandler
     from pydantic.json_schema import JsonSchemaValue
@@ -147,17 +147,44 @@ def _unit_schema(schema: JsonSchemaValue) -> None:
         ("le", "maximum"),
         ("lt", "exclusiveMaximum"),
     ):
-        if constraint in schema and kind is not None:
+        if constraint in schema and isinstance(kind, str):
             bound = schema.pop(constraint)
             if kind != UnitKind.DATE.value:
                 schema[keyword] = bound
-    for value in schema.values():
-        if isinstance(value, dict):
-            _unit_schema(value)
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    _unit_schema(item)
+    for item in _schema_children(schema):
+        _unit_schema(item)
+
+
+def _schema_children(schema: JsonSchemaValue) -> Iterator[JsonSchemaValue]:
+    """Yield child schemas while leaving annotations and property maps intact."""
+    # Visit schema nodes, never user values in defaults, enums or examples,
+    # nor the property-name mapping itself (a field can be named "x-unit").
+    children: list[object] = []
+    for keyword in ("properties", "patternProperties", "$defs", "dependentSchemas"):
+        mapping = schema.get(keyword)
+        if isinstance(mapping, dict):
+            children.extend(mapping.values())
+    children.extend(
+        schema.get(keyword)
+        for keyword in (
+            "items",
+            "additionalProperties",
+            "unevaluatedProperties",
+            "contains",
+            "propertyNames",
+            "not",
+            "if",
+            "then",
+            "else",
+        )
+    )
+    for keyword in ("anyOf", "allOf", "oneOf", "prefixItems"):
+        items = schema.get(keyword)
+        if isinstance(items, list):
+            children.extend(items)
+    for item in children:
+        if isinstance(item, dict):
+            yield item
 
 
 _FINITE = AllowInfNan(allow_inf_nan=False)
