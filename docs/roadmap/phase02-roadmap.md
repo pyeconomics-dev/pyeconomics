@@ -1,6 +1,6 @@
-# Phase 2 Roadmap — Model Engine & Core Catalog
+# Phase 2 Roadmap — Model Engine & Core Catalog ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-14
 
 ## Overview
 
@@ -3615,6 +3615,11 @@ hygiene.
       hypothesis strategy of valid inputs built from the
       fields' unit markers, bounds, maximum lengths and enums,
       choosing a calculation for a union.
+      Strategy-support tests search for valid witnesses to
+      optional/enum choices, each union tag and declared
+      examples; they do not require a finite random batch
+      to happen to visit every supported branch (Step 15
+      verification correction, 2026-10-14).
       tests/models/test_contract.py runs, for every
       registered model, under the `ci` profile with a
       bounded number of examples per model: outputs are
@@ -8378,9 +8383,9 @@ Opus 5.5. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 15 — QA and Verification Script
+## Step 15 — QA and Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #97 (2026-10-14)
 
 > **Goal:** Package the phase's verification into
 > `scripts/verify-phase02.sh` — Phase 1's mode contract (`--fast`,
@@ -8401,11 +8406,13 @@ Opus 5.5. New conversation per phase-boundary hygiene.
 
 | Setting      | Value                                           |
 | ------------ | ----------------------------------------------- |
-| Model        | GPT-6 Sol                                       |
+| Model        | GPT-6.1 Sol                                       |
 | Backup       | Claude Sonnet 5.5 — Claude Code · Effort Medium |
 | Platform     | Codex                                           |
 | Intelligence | Medium                                          |
 | Conversation | **New**                                         |
+
+> Settings updated 2026-10-13: was GPT-6 Sol · Medium. GPT-6.1 Sol supersedes it in the same line; verified session effort remains medium.
 
 **Model rationale:** Coding is PRIMARY — a Bash verification script, its
 pytest twin and a matrix entry — and agentic work SECONDARY: running the
@@ -9114,7 +9121,7 @@ workflow above maps directly to the corresponding row below.
 | ID   | Check                                                              | Automation                                                                |
 | ---- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | V1.1 | Static checks 1–8 all PASS (roadmap tracked; ADR-0008 Accepted with its fourteen decisions; runtime baseline with floors; reviewed exceptions; core modules; version and citation in step; `pyodide` job and smoke). | `phase-verify.yml` runs `verify-phase02.sh --fast` on every push/PR. |
-| V1.2 | The core unit, property and doctest suites pass with sockets disabled on all nine cells. | `ci.yml` tests matrix (`--python` locally).                       |
+| V1.2 | The core unit, property and doctest suites pass with sockets disabled on all supported OS/Python matrix cells (twelve after PR #92). | `ci.yml` tests matrix (`--python` locally).                       |
 | V1.3 | The `pyodide` job is green on `main`'s HEAD: Pyodide installs the wheel and runs `scripts/smoke.py`. | `ci.yml` `pyodide` job on every push/PR; `--live` reads its latest run on `main`. |
 | V1.4 | The `licences` hook passes with its reviewed exceptions, and `dependency-review` passes. | `security.yml` (gate-licences, dependency-review); `--security`.   |
 
@@ -9222,7 +9229,7 @@ workflow above maps directly to the corresponding row below.
 | ID    | Check                                                             | Automation                                                                |
 | ----- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | V12.1 | Static checks 52–55 all PASS.                                     | `phase-verify.yml --fast`.                                                |
-| V12.2 | The three models pass their golden (NIST's certified regressions and the Basel zones included), property, contract and independent NumPy tests; the registry holds exactly the 32 launch-catalog ids. | `ci.yml` tests matrix (`--python` locally). |
+| V12.2 | The three models pass their golden (NIST's certified regressions and the Basel zones included), property, contract and independent NumPy tests; the registry includes all 32 launch-catalog ids (later phases may add ids). | `ci.yml` tests matrix (`--python` locally). |
 | V12.3 | Without extras, `econometrics.ols` names `pyeconomics[econometrics]`; with the extra, it runs. | `ci.yml` package job's two clean venvs (`--python` locally). |
 
 ### V13 — 1.0.0a1 readiness gate
@@ -9283,7 +9290,7 @@ workflow above maps directly to the corresponding row below.
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
 | 14      | 1.0.0a1 release                  | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #96 |
-| 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
+| 15      | QA + verify-phase02.sh           | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #97 |
 | V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
 | V2      | Dates and calendars              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
 | V3      | Spec + registry                  | CI: phase-verify.yml, ci.yml, security.yml | -- | --      | --       | --   | --          |
@@ -9556,8 +9563,8 @@ Additionally not in scope for this phase:
   batches own them.
 - quantstats as a test oracle. Its closure brings yfinance (a library-only
   data client whose terms bar automated collection) and matplotlib into
-  the test environment for formulas empyrical-reloaded and recomputed
-  values already cover.
+  the test environment for formulas SciPy/NumPy oracles and recomputed
+  values already cover. Step 11 rejected empyrical-reloaded.
 - linearmodels and arch as test oracles. They arrive with Phase 3's GARCH
   and estimator entries; Phase 2's OLS uses NIST's certified values and an
   independent NumPy recomputation.
@@ -9568,7 +9575,7 @@ Additionally not in scope for this phase:
 - A SIFMA US bond-market calendar. `holidays` does not provide one; a later
   step adds it with a source.
 - Announcing `1.0.0a1`. Phase 5's launch announces 1.0.
-- Python 3.15 in CI (issue #65), the GitHub Sponsors listing (issue #68,
+- The GitHub Sponsors listing (issue #68,
   ROADMAP 8.1), the Scorecard dispositions (issue #62) and the 0.2.6 CVE
   id (issue #52). Each has its owner outside this phase.
 
@@ -9646,6 +9653,14 @@ forward whatever is still open here.
   three operating systems, matching classifier/verifier, dev3). A fresh
   Step 13 conversation must rehearse the resulting candidate and obtain
   its own maintainer decision; the dev1 NO-GO remains historical evidence.
+
+- From Step 15 verification (2026-10-14). The randomized Phase 1 post run
+  exposed finite-sample coverage assertions in Step 5's strategy tests.
+  Fixed in this step's PR with valid-witness searches for optional/enum
+  choices, union tags and examples; Step 5's task is patched above. No
+  runtime model, draw strategy or numerical contract changes. Phase 1's
+  clean-wheel environment now explicitly uses the project interpreter,
+  preserving the check and recording the change in its post-merge addendum.
 
 ---
 

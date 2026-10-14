@@ -1,6 +1,6 @@
 # pyeconomics 1.0 — Rebuild as an Open Economics & Finance Model Platform
 
-> **Status:** Draft v1 — Phase 1 shipped 2026-10-08 (`v1.0.0.dev1` on TestPyPI); Phase 2 in progress
+> **Status:** Phase 1 and Phase 2 Complete — Phase 2 shipped 2026-10-14 (`v1.0.0a1` on PyPI); Phase 3 next
 > **Owner:** Nathan Ramos, CFA — founder and sole maintainer
 > **Audience:** The maintainer and the AI coding agents that execute phase
 > steps; public with the repository
@@ -446,9 +446,9 @@ needed.
 
 ---
 
-### Phase 2 — Model Engine & Core Catalog
+### Phase 2 — Model Engine & Core Catalog ✅
 
-**Status:** In progress — phase02-roadmap.md
+**Status:** Complete — 2026-10-14; PR #97; v1.0.0a1; phase02-roadmap.md
 
 **Goal:** Build the model registry and its contracts, and prove them end to
 end with the data-free half of the 50-entry launch catalog — mostly CFA
@@ -2501,7 +2501,7 @@ The following are deliberately deferred to a future version, or excluded:
 | Phase | Description                                            | Complexity | Status      |
 |-------|--------------------------------------------------------|------------|-------------|
 | 1     | Reset & Foundation                                     | Medium     | Complete    |
-| 2     | Model Engine & Core Catalog                            | High       | In progress |
+| 2     | Model Engine & Core Catalog                            | High       | Complete    |
 | 3     | Data Platform & Free Sources                           | High       | Not started |
 | 4     | Programmatic Surfaces: CLI, REST API, MCP & Exports    | High       | Not started |
 | 5     | Web App, Docs & Public Launch (1.0.0)                  | High       | Not started |
