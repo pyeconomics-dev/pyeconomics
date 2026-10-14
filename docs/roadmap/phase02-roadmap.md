@@ -1,6 +1,6 @@
-# Phase 2 Roadmap — Model Engine & Core Catalog
+# Phase 2 Roadmap — Model Engine & Core Catalog ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-13
 
 ## Overview
 
@@ -8378,9 +8378,9 @@ Opus 5.5. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 15 — QA and Verification Script
+## Step 15 — QA and Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #97 (2026-10-13)
 
 > **Goal:** Package the phase's verification into
 > `scripts/verify-phase02.sh` — Phase 1's mode contract (`--fast`,
@@ -8401,11 +8401,13 @@ Opus 5.5. New conversation per phase-boundary hygiene.
 
 | Setting      | Value                                           |
 | ------------ | ----------------------------------------------- |
-| Model        | GPT-6 Sol                                       |
+| Model        | GPT-6.1 Sol                                       |
 | Backup       | Claude Sonnet 5.5 — Claude Code · Effort Medium |
 | Platform     | Codex                                           |
 | Intelligence | Medium                                          |
 | Conversation | **New**                                         |
+
+> Settings updated 2026-10-13: was GPT-6 Sol · Medium. GPT-6.1 Sol supersedes it in the same line; verified session effort remains medium.
 
 **Model rationale:** Coding is PRIMARY — a Bash verification script, its
 pytest twin and a matrix entry — and agentic work SECONDARY: running the
@@ -9283,7 +9285,7 @@ workflow above maps directly to the corresponding row below.
 | 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
 | 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
 | 14      | 1.0.0a1 release                  | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #96 |
-| 15      | QA + verify-phase02.sh           | GPT-6 Sol         | Codex        | Intelligence Medium | --       | New  | Not started |
+| 15      | QA + verify-phase02.sh           | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #97 |
 | V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
 | V2      | Dates and calendars              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
 | V3      | Spec + registry                  | CI: phase-verify.yml, ci.yml, security.yml | -- | --      | --       | --   | --          |
