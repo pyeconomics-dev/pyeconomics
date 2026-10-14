@@ -62,12 +62,16 @@ COMMON: dict[str, Any] = {
 
 
 class GrowthInputs(ModelInputs):
+    """An input class description distinct from the model summary (#83)."""
+
     start: Money = Field(gt=0, le=1e9, description="Starting balance")
     rate: Rate = Field(ge=-0.5, le=1.0, description="Rate per period")
     periods: Count = Field(ge=1, le=40, description="Number of periods")
 
 
 class GrowthOutputs(ModelOutputs):
+    """An output class description distinct from the model summary (#83)."""
+
     period: CountArray = Field(max_length=41, description="Period numbers")
     balance: MoneyArray = Field(max_length=41, description="Balance at each period")
     final: Money = Field(ge=0, le=1e15, description="Final balance")
