@@ -829,16 +829,22 @@ provider keys in local mode; the hosted service's secrets
 | Setting      | Value                                    |
 |--------------|------------------------------------------|
 | Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max   |
+| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
 | Platform     | Claude Code                              |
 | Effort       | Max                                      |
 | Thinking     | On                                       |
 | Conversation | **New**                                  |
 
+> Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
+> score --category planning --complexity high --budget best` (0.2.84): where
+> the benchmarks cannot tell two substitutes apart it takes the cheaper, and
+> GPT-6 Astra costs five times as much.
+
 This roadmap must make the generators — not hand-written endpoints — the
 only way a surface gains a model, and fix the parity suite that proves
 four surfaces agree. Same pick, rung and funding as Phase 1: Opus 5.5 at
-Max on the claude.ai Max subscription, GPT-6 Astra on ChatGPT Pro 5x as
+Max on the claude.ai Max subscription, GPT-6.1 Sol on ChatGPT Pro 5x as
 backup.
 
 #### 4.1 Registry export & generators
@@ -983,17 +989,23 @@ service's secrets
 | Setting      | Value                                    |
 |--------------|------------------------------------------|
 | Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max   |
+| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
 | Platform     | Claude Code                              |
 | Effort       | Max                                      |
 | Thinking     | On                                       |
 | Conversation | **New**                                  |
 
+> Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
+> score --category planning --complexity high --budget best` (0.2.84): where
+> the benchmarks cannot tell two substitutes apart it takes the cheaper, and
+> GPT-6 Astra costs five times as much.
+
 This roadmap must stage the first public, partly irreversible launch —
 layer by layer, with the readiness gate as its own step — and get the
 legal, attribution and trademark obligations right on day one. Same pick,
 rung and funding as Phase 1: Opus 5.5 at Max on the claude.ai Max
-subscription, GPT-6 Astra on ChatGPT Pro 5x as backup.
+subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
 
 #### 5.1 Frontend foundation (ADR-0006)
 
@@ -1138,16 +1150,22 @@ and licensed market data
 | Setting      | Value                                    |
 |--------------|------------------------------------------|
 | Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max   |
+| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
 | Platform     | Claude Code                              |
 | Effort       | Max                                      |
 | Thinking     | On                                       |
 | Conversation | **New**                                  |
 
+> Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
+> score --category planning --complexity high --budget best` (0.2.84): where
+> the benchmarks cannot tell two substitutes apart it takes the cheaper, and
+> GPT-6 Astra costs five times as much.
+
 This roadmap must turn each vendor's terms into enforceable rules rather
 than prose, and design Bloomberg support around a Terminal that CI will
 never have. Same pick, rung and funding as Phase 1: Opus 5.5 at Max on
-the claude.ai Max subscription, GPT-6 Astra on ChatGPT Pro 5x as backup.
+the claude.ai Max subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
 
 #### 6.1 Bring-your-own-key framework
 
@@ -1322,16 +1340,22 @@ batches that surface everywhere automatically.
 | Setting      | Value                                    |
 |--------------|------------------------------------------|
 | Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max   |
+| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
 | Platform     | Claude Code                              |
 | Effort       | Max                                      |
 | Thinking     | On                                       |
 | Conversation | **New**                                  |
 
+> Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
+> score --category planning --complexity high --budget best` (0.2.84): where
+> the benchmarks cannot tell two substitutes apart it takes the cheaper, and
+> GPT-6 Astra costs five times as much.
+
 This roadmap must turn an open-ended ambition into a finite, ordered batch
 plan whose measure of done is the coverage matrix, with every batch held to
 the model definition of done. Same pick, rung and funding as Phase 1: Opus
-5.5 at Max on the claude.ai Max subscription, GPT-6 Astra on ChatGPT Pro 5x
+5.5 at Max on the claude.ai Max subscription, GPT-6.1 Sol on ChatGPT Pro 5x
 as backup.
 
 #### 7.1 Syllabus crosswalks & the coverage matrix
@@ -1465,16 +1489,22 @@ Yes — account PII, authentication, billing metadata (never card data)
 | Setting      | Value                                    |
 |--------------|------------------------------------------|
 | Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max   |
+| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
 | Platform     | Claude Code                              |
 | Effort       | Max                                      |
 | Thinking     | On                                       |
 | Conversation | **New**                                  |
 
+> Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
+> score --category planning --complexity high --budget best` (0.2.84): where
+> the benchmarks cannot tell two substitutes apart it takes the cheaper, and
+> GPT-6 Astra costs five times as much.
+
 This roadmap must sequence money, identity and PII so that nothing paid
 ships before its legal, tax and security gates, and must honour the gate's
 evidence about what to build first. Same pick, rung and funding as Phase
-1: Opus 5.5 at Max on the claude.ai Max subscription, GPT-6 Astra on
+1: Opus 5.5 at Max on the claude.ai Max subscription, GPT-6.1 Sol on
 ChatGPT Pro 5x as backup.
 
 #### 8.1 Gate review & decision memo
