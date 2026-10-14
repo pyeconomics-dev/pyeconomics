@@ -195,3 +195,14 @@ def test_irr_recovers_a_chosen_rate(rate: float, outlay: float, periods: int) ->
     assert found is not None
     assert math.isclose(found, rate, abs_tol=3e-12, rel_tol=2e-15)
     assert not recorded
+
+
+def test_a_steep_endpoint_does_not_certify_a_distant_root() -> None:
+    # A Newton step at the lower endpoint is ~1e-14, yet the true root is
+    # near zero, almost one full rate unit away. Require a local crossing.
+    periods = 1e12
+    with collect_warnings() as recorded:
+        found = internal_rate_of_return([-1.0, 2.0], [0.0, periods])
+    assert found is not None
+    assert math.isclose(found, math.expm1(math.log(2) / periods), abs_tol=3e-12)
+    assert not recorded

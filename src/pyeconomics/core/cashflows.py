@@ -382,18 +382,18 @@ def internal_rate_of_return(
         return None
 
     def scaled_value(rate: float) -> float:
-        value, peak = _scaled(math.log1p(rate), flows, when)
+        value = _scaled(math.log1p(rate), flows, when)[0]
         if rate in (lower, upper) and value != 0:
             # Log scaling can round a mathematical endpoint root away from
-            # zero. Accept only a residual whose Newton displacement fits
-            # the existing tolerance in RATE units, never an arbitrary NPV
-            # epsilon (which could invent roots for tiny cash flows).
-            nonzero = flows != 0
-            logs = np.log(np.abs(flows[nonzero])) - when[nonzero] * math.log1p(rate)
-            terms = np.sign(flows[nonzero]) * np.exp(logs - peak)
-            slope = math.fsum((-when[nonzero] * terms / (1 + rate)).tolist())
+            # zero. Certify a crossing within the existing RATE tolerance,
+            # never an arbitrary NPV epsilon or a Newton displacement alone:
+            # a steep function can have a tiny Newton step far from its root.
             tolerance = IRR_POLICY.xtol + IRR_POLICY.rtol * abs(rate)
-            if slope != 0 and abs(value / slope) <= tolerance:
+            below = max(math.nextafter(-1.0, math.inf), rate - tolerance)
+            above = min(sys.float_info.max, rate + tolerance)
+            left = _scaled(math.log1p(below), flows, when)[0]
+            right = _scaled(math.log1p(above), flows, when)[0]
+            if left == 0 or right == 0 or (left > 0) != (right > 0):
                 return 0.0
         return value
 

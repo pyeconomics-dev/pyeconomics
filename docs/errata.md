@@ -13,8 +13,8 @@ and the smallest-root selection policy are unchanged. The one-period cash
 flows `[-100, 1]` and `[-1000000, 11000000]` give -0.99 and 10.0 respectively
 from the identity `r = final_receipt / initial_outlay - 1`. Log-scaled NPV
 evaluation had rounded the endpoint away from zero. The correction accepts
-only an endpoint residual whose implied rate displacement is within the
-existing root tolerance; roots materially outside the bracket stay refused.
+an endpoint only when local evaluations certify a root within the existing
+rate tolerance; roots materially outside the bracket stay refused.
 
 Regression golden cases, rescaling tests and a property test over chosen
 rates including both bounds guard the correction. See
