@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal
 import pytest
 import toy_models as tm
 import toy_results_models as rm
-from hypothesis import given, settings
+from hypothesis import find, given, settings
 from hypothesis import strategies as st
 from pydantic import Field
 from strategies import MAX_ITEMS, OVERRIDES, inputs
@@ -31,7 +31,7 @@ from pyeconomics.core import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
 
 
 class Colour(StrEnum):
@@ -112,45 +112,49 @@ def test_every_field_type_is_drawn_within_its_bounds(raw: Mapping[str, Any]) -> 
 
 
 def test_optional_fields_are_sometimes_left_out_and_sometimes_given() -> None:
-    seen: list[Mapping[str, Any]] = []
-
-    @settings(max_examples=100, deadline=None, database=None)
-    @given(raw=inputs(SINK))
-    def collect(raw: Mapping[str, Any]) -> None:
-        seen.append(raw)
-
-    collect()
-    assert any("flag" in raw for raw in seen)
-    assert any("flag" not in raw for raw in seen)
-    assert any(raw.get("note") is None for raw in seen)
-    assert any(isinstance(raw.get("note"), str) for raw in seen)
-    assert {raw["mode"] for raw in seen if "mode" in raw} == {"a", "b"}
-    assert {raw["colour"] for raw in seen if "colour" in raw} == {"red", "blue"}
+    # A finite batch is not guaranteed to visit every optional/enum branch.
+    # Search for a valid witness to each supported choice instead.
+    predicates: tuple[Callable[[Mapping[str, Any]], bool], ...] = (
+        lambda raw: "flag" in raw,
+        lambda raw: "flag" not in raw,
+        lambda raw: raw.get("note") is None,
+        lambda raw: isinstance(raw.get("note"), str),
+        lambda raw: raw.get("mode") == "a",
+        lambda raw: raw.get("mode") == "b",
+        lambda raw: raw.get("colour") == Colour.RED,
+        lambda raw: raw.get("colour") == Colour.BLUE,
+    )
+    for predicate in predicates:
+        raw = find(
+            inputs(SINK),
+            predicate,
+            settings=settings(max_examples=1000, deadline=None, database=None),
+        )
+        SINK.validate_inputs(raw)
 
 
 def test_a_union_draws_every_calculation_with_its_tag() -> None:
-    seen: set[str] = set()
+    for calculation in ("present_value", "future_value"):
 
-    @settings(max_examples=60, deadline=None, database=None)
-    @given(raw=inputs(tm.time_value))
-    def collect(raw: Mapping[str, Any]) -> None:
-        seen.add(raw["calculation"])
+        def selected(raw: Mapping[str, Any], calculation: str = calculation) -> bool:
+            return bool(raw["calculation"] == calculation)
 
-    collect()
-    assert seen == {"present_value", "future_value"}
+        raw = find(
+            inputs(tm.time_value),
+            selected,
+            settings=settings(max_examples=1000, deadline=None, database=None),
+        )
+        tm.time_value.validate_inputs(raw)
 
 
 def test_the_models_examples_are_in_the_mix() -> None:
-    seen: list[Mapping[str, Any]] = []
-
-    @settings(max_examples=100, deadline=None, database=None)
-    @given(raw=inputs(tm.zero_coupon))
-    def collect(raw: Mapping[str, Any]) -> None:
-        seen.append(raw)
-
-    collect()
     example = dict(tm.zero_coupon.spec.examples[0].inputs)
-    assert example in seen
+    raw = find(
+        inputs(tm.zero_coupon),
+        lambda raw: raw == example,
+        settings=settings(max_examples=1000, deadline=None, database=None),
+    )
+    tm.zero_coupon.validate_inputs(raw)
 
 
 def test_an_override_replaces_the_field_by_field_draw(

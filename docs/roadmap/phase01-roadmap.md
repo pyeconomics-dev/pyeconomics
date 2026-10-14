@@ -7452,3 +7452,9 @@ invariant it protected, never deletes it, and adds one line here.
   release. CI uses uv 0.13.0, which knows the final 3.15 interpreter builds;
   the former uv 0.12.15 resolves `3.15` to a release candidate. The minimum
   Python floor remains 3.12, so static check 21 is unchanged.
+
+- V7.2 (`--python`, Phase 2 Step 15, 2026-10-14): explicitly selects the
+  project's interpreter for its fresh wheel environment, preserving the
+  wheel/dependency install and version-import proof. The global uv default
+  otherwise selected Python 3.15 after a Python 3.13 local suite; all supported
+  minors remain covered by CI. No check or supported version is removed.

@@ -177,6 +177,9 @@ they do not claim that a local run reproduces the entire OS/Python CI matrix.
 | Phase completion requires both 02 jobs required without dropping existing protection | process | This PR preserves all checks in narrow strict PATCH after both jobs pass | V15.7 |
 | Fixed issue #83 remained open and lacked an explicit docstring toy | process | This PR adds input/output docstrings to the schema toy; closes #83 after regression verification | Existing parameterized schema-summary assertion now exercises both descriptions |
 | uv's global default selected Python 3.15 for clean venvs after a Python 3.13 suite, requiring slow new wheel downloads | process | This PR selects the project's tested interpreter explicitly for local wheel smoke | Fresh venvs remain isolated; supported-version coverage is CI's twelve-cell matrix |
+| Phase 1's randomized rerun exposed a finite-sample strategy-coverage assertion | bug | Fixed in this PR: optional/enum, union and example coverage search for valid witnesses with Hypothesis `find` | Missing supported choices fail with no witness; coverage no longer depends on a random batch visiting every branch |
+| Phase 1's clean-wheel check also selected the global interpreter | process | This PR preserves its clean-install invariant while explicitly selecting the project interpreter; Phase 1 addendum records it | Same wheel/dependencies/import proof, isolated venv, all supported minors still in CI |
+| Editing a preliminary Bash verifier while it ran invalidated its later reads | process | This record and shared verification memory; canonical runs use unchanged committed scripts | Stable source during execution; invalid preliminary output is not counted as final evidence |
 
 ## Synthetic alarm
 

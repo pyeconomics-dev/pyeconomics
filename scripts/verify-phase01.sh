@@ -732,8 +732,10 @@ v7_2() {
   rm -rf "$TMP/dist"
   uv build --out-dir "$TMP/dist" || return 1
   uvx twine==7.0.0 check --strict "$TMP"/dist/* || return 1
-  uv venv --no-config -q "$TMP/clean" || return 1
-  local py expected found
+  local py expected found interpreter
+  # Use the interpreter under test, including after new minors join CI.
+  interpreter=$(uv python find --no-config) || return 1
+  uv venv --no-config --python "$interpreter" -q "$TMP/clean" || return 1
   py=$(venv_python "$TMP/clean")
   # The wheel has runtime dependencies since Phase 2 (post-merge addendum),
   # so they come from PyPI; --no-config keeps a user-level index out.

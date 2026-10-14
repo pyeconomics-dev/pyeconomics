@@ -1,6 +1,6 @@
 # Phase 2 Roadmap — Model Engine & Core Catalog ✅
 
-**Status:** Complete — 2026-10-13
+**Status:** Complete — 2026-10-14
 
 ## Overview
 
@@ -3615,6 +3615,11 @@ hygiene.
       hypothesis strategy of valid inputs built from the
       fields' unit markers, bounds, maximum lengths and enums,
       choosing a calculation for a union.
+      Strategy-support tests search for valid witnesses to
+      optional/enum choices, each union tag and declared
+      examples; they do not require a finite random batch
+      to happen to visit every supported branch (Step 15
+      verification correction, 2026-10-14).
       tests/models/test_contract.py runs, for every
       registered model, under the `ci` profile with a
       bounded number of examples per model: outputs are
@@ -8380,7 +8385,7 @@ Opus 5.5. New conversation per phase-boundary hygiene.
 
 ## Step 15 — QA and Verification Script ✅
 
-**Status:** Complete — PR #97 (2026-10-13)
+**Status:** Complete — PR #97 (2026-10-14)
 
 > **Goal:** Package the phase's verification into
 > `scripts/verify-phase02.sh` — Phase 1's mode contract (`--fast`,
@@ -9648,6 +9653,14 @@ forward whatever is still open here.
   three operating systems, matching classifier/verifier, dev3). A fresh
   Step 13 conversation must rehearse the resulting candidate and obtain
   its own maintainer decision; the dev1 NO-GO remains historical evidence.
+
+- From Step 15 verification (2026-10-14). The randomized Phase 1 post run
+  exposed finite-sample coverage assertions in Step 5's strategy tests.
+  Fixed in this step's PR with valid-witness searches for optional/enum
+  choices, union tags and examples; Step 5's task is patched above. No
+  runtime model, draw strategy or numerical contract changes. Phase 1's
+  clean-wheel environment now explicitly uses the project interpreter,
+  preserving the check and recording the change in its post-merge addendum.
 
 ---
 
