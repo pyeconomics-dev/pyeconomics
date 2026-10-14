@@ -198,12 +198,12 @@ and extras paths. Maintainer response: “Yes, notification received”.
 
 | Project criterion | V-checks | Result/evidence |
 |---|---|---|
-| Every finalized 2.6 entry registered, validated, card, at least three cited goldens and every invariant tested | V3.2, V5.2, V6.2, V7.2, V8.2–V12.2 | Local PASS: 3,039 tests; registry validation; fresh docs build; final CI/post pending |
-| Input/output schemas validate against 2020-12; canonical JSON round trips lossless | V4.2 | Local PASS: full suite plus 304 schema tests; RFC vectors and independent oracle included |
-| Strict core types; core ≥95%, models ≥90% branch coverage | V1.2, V5.2 | Local PASS: mypy; core 99.89%, models 99.65%, total 99.75% |
-| Clean alpha install executes one model per domain; ordinary pip retains 0.2.x | V14.2, V14.3 | Pending final post run; #96 independent publication check passed |
-| Security gate every commit; socket-isolated tests; bounded inputs; clean lock audit | V1.4, V3.2, V3.3, V15.4 | Local PASS: all nineteen all-file hooks and full socket-isolated suite; final CI/post pending; no bypass |
-| Operations: health signal and alarm seen to fire with an owner/runbook | V14.3, V15.5 | Alarm PASS with maintainer confirmation; final health recheck pending |
+| Every finalized 2.6 entry registered, validated, card, at least three cited goldens and every invariant tested | V3.2, V5.2, V6.2, V7.2, V8.2–V12.2 | PASS: 3,039 tests; registry validation; all generated cards; canonical post and twelve-cell CI |
+| Input/output schemas validate against 2020-12; canonical JSON round trips lossless | V4.2 | PASS: full suite plus 304 schema tests; RFC vectors and independent oracle included |
+| Strict core types; core ≥95%, models ≥90% branch coverage | V1.2, V5.2 | PASS: strict mypy; core 99.89%, models 99.65%, total 99.75% |
+| Clean alpha install executes one model per domain; ordinary pip retains 0.2.x | V14.2, V14.3 | PASS: isolated alpha core/extras smoke across all 11 domains; ordinary pip selects 0.2.6; both provenances and GitHub pre-release verified |
+| Security gate every commit; socket-isolated tests; bounded inputs; clean lock audit | V1.4, V3.2, V3.3, V15.4 | PASS: all nineteen hooks, orphan whole-tree secrets, import/purity tests, audit/licences and socket-isolated suites; no bypass |
+| Operations: health signal and alarm seen to fire with an owner/runbook | V14.3, V15.5 | PASS: published health smoke and failed synthetic dispatch with explicit maintainer notification confirmation |
 
 ## Pre-ship items
 
@@ -234,6 +234,46 @@ cards state convention, domain and bounded-output limitations.
 
 ## Final verification evidence
 
-Pending: local `verify-phase02.sh --post`, final-head CI, strict required-check
-update, merge and main HEAD deployment recheck. Phase completion is recorded
-only by this step's merged ledger mark after all evidence is green.
+Completed on 2026-10-14 (America/New_York), using unchanged committed
+verifiers. `scripts/verify-phase02.sh --post` exited 0 in 1753 seconds:
+112 PASS results, no failures. Its nested `verify-phase01.sh --post` passed,
+including the randomized suite, whole-tree gate, live service reads,
+byte-identical legacy characterization, fresh legacy/TestPyPI installs,
+planted-finding proof and recorded Phase 1 alarm. The first canonical attempt
+correctly failed on the finite-sample assertion described above; that test
+was fixed and the entire canonical command rerun. No failure was waived.
+
+| Mode | PASS | FAIL |
+|---|---:|---:|
+| `fast` | 83 | 0 |
+| `python` | 16 | 0 |
+| `security` | 3 | 0 |
+| `live` | 6 | 0 |
+| `post` | 4 | 0 |
+
+- Corrected local suite: 3,039 passed and one Windows symlink-capability skip;
+  99.75% total, 99.89% core, 99.65% models. Strict mypy, Ruff and ty pass.
+- Fresh Sphinx -W executes the tutorial and confirms every model's HTML card.
+  Strict Twine/content allowlist and separate core/extras wheel smokes pass.
+- All 36 checks passed on corrected implementation `47f04b4` in
+  [PR #97](https://github.com/pyeconomics-dev/pyeconomics/pull/97/checks): all
+  twelve OS/Python cells, Pyodide/docs, both phases' fast/security jobs,
+  security/CodeQL and DCO. The final evidence-only update follows the same
+  required checks before merge.
+- Ubuntu's static step took 3 seconds, below 30 seconds. Both new jobs passed
+  before protection changed: all 18 original app-bound contexts preserved,
+  now 20 strict required checks. Live V15.7 passes.
+- Live main-HEAD CI/Pyodide/docs, exact-commit non-default RTD main with
+  unchanged legacy defaults, both rehearsal/production provenances, Python
+  floor and GitHub pre-release checks pass.
+- Fresh isolated PyPI alpha core/extras installs execute every family's
+  examples. Ordinary pip selects stable 0.2.6; dependency checks pass.
+- Negative proof: breaking the warning base fails check 6 and V15.3 while
+  independent check 66 still passes; unmodified scratch clone passes.
+  Restoring #83's schema bug reproduces both description failures with the
+  new input/output toy docstrings.
+
+PR #97 carries the phase/step completion marks and actual GPT-6.1 Sol / Medium
+settings. Main carries them only after merge, followed by main-HEAD CI/RTD
+verification. The separately published alpha remains dated 2026-10-13;
+this step republishes nothing and moves no tag.
