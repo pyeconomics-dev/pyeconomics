@@ -470,16 +470,19 @@ artifact_build() {
     && uv run --no-project python scripts/checks/dist_contents.py "$TMP/dist"
 }
 wheel_smoke() {
-  local py wheel
+  local py wheel interpreter
+  # Match the interpreter that just passed the local suite. uv's global
+  # default can otherwise select a different supported minor version.
+  interpreter=$(uv python find --no-config) || return 1
   wheel=$(printf '%s\n' "$TMP"/dist/*.whl)
   [ -f "$wheel" ] || fail "build did not produce a wheel"
   mkdir -p "$TMP/smoke" || return 1
   cp scripts/smoke.py "$TMP/smoke/" || return 1
-  uv venv --no-config -q "$TMP/core" || return 1
+  uv venv --no-config --python "$interpreter" -q "$TMP/core" || return 1
   py=$(venv_python "$TMP/core")
   uv pip install --no-config --python "$py" "$wheel" || return 1
   (cd "$TMP/smoke" && "$py" smoke.py --all --min-domains 11) || return 1
-  uv venv --no-config -q "$TMP/extras" || return 1
+  uv venv --no-config --python "$interpreter" -q "$TMP/extras" || return 1
   py=$(venv_python "$TMP/extras")
   uv pip install --no-config --python "$py" "${wheel}[econometrics,plot]" || return 1
   (cd "$TMP/smoke" && "$py" smoke.py --all --extras --min-domains 11)

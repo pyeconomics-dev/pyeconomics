@@ -176,6 +176,7 @@ they do not claim that a local run reproduces the entire OS/Python CI matrix.
 | Synthetic nonexistent version fails at tag checkout before pip | process | Scope explicitly recorded below; production smoke proves healthy path | V15.5 checks failed dispatch; V14.3 runs actual installed models |
 | Phase completion requires both 02 jobs required without dropping existing protection | process | This PR preserves all checks in narrow strict PATCH after both jobs pass | V15.7 |
 | Fixed issue #83 remained open and lacked an explicit docstring toy | process | This PR adds input/output docstrings to the schema toy; closes #83 after regression verification | Existing parameterized schema-summary assertion now exercises both descriptions |
+| uv's global default selected Python 3.15 for clean venvs after a Python 3.13 suite, requiring slow new wheel downloads | process | This PR selects the project's tested interpreter explicitly for local wheel smoke | Fresh venvs remain isolated; supported-version coverage is CI's twelve-cell matrix |
 
 ## Synthetic alarm
 
