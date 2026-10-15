@@ -336,8 +336,9 @@ def test_a_redirect_message_names_the_host_but_never_the_query() -> None:
     transport, _, _ = make(FakeRaw(302, headers={"Location": target}))
     with pytest.raises(TransportError) as caught:
         transport.send(KEYED, REQUEST, key=KEY)
-    assert "foreign.example.net" in str(caught.value)
-    assert "token" not in str(caught.value)
+    assert str(caught.value) == (
+        "toy_json was redirected to foreign.example.net, which is not a declared host"
+    )
 
 
 def test_too_many_redirects_are_refused() -> None:

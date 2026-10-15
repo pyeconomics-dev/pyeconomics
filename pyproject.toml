@@ -249,11 +249,12 @@ extra-paths = ["tests", "tests/data", "tests/golden", "tests/providers", "tests/
 include = ["src", "tests"]
 exclude = [".semgrep/tests", "tests/fixtures"]
 
-# tests/registry builds invalid specifications and misuses the API on purpose,
+# tests/registry and tests/providers build invalid specifications, infos and
+# queries and misuse the API on purpose,
 # and mypy (the gate) already checks it; ty's complaints about those lines are
 # noise that would keep the informational check red.
 [[tool.ty.overrides]]
-include = ["tests/registry/**"]
+include = ["tests/registry/**", "tests/providers/**"]
 
 [tool.ty.overrides.rules]
 call-non-callable = "ignore"
