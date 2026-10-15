@@ -11994,6 +11994,17 @@ forward whatever is still open here.
     patched); OpenFIGI mappings and EDGAR filing lists are provider-typed
     records, not frames (Step 7's task patched); `DataSource` carries the
     bound `field` and data `warnings` codes that Steps 5 and 12 fill.
+  - Step 3 (credentials, configuration and redaction, 2026-10-15): the
+    chain names a provider's variable `<PROVIDER>_API_KEY`
+    (`key_variable`), so Step 4's `ProviderInfo` authentication declares
+    that variable, or extends `resolve_key` for a source that needs
+    another. The transport reveals a `Secret` and raises every failure
+    through `redaction.call_scrubbed`. Steps 4, 5 and 12 add their sinks
+    to `tests/data/leakcheck.py` with `LeakCheck.add`. Steps 4 and 5 read
+    `settings().mode`, `.offline` and `.ttl` and `config.cache_dir()`.
+    Step 7 reads the SEC contact from `settings().sec_contact`, a pydantic
+    `SecretStr`, in the transport only. `platformdirs`'s floor is 4.9.4,
+    the version Pyodide 314.0.7 bundles, not 4.13.
 
 ---
 
