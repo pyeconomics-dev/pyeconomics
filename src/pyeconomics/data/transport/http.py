@@ -60,6 +60,7 @@ from pyeconomics.data.transport.base import (
     Request,
     Response,
     check_host,
+    declared_hosts,
     retry_after_seconds,
 )
 from pyeconomics.data.transport.ratelimit import DEFAULT_MAX_WAIT, RateLimiters
@@ -69,6 +70,7 @@ if TYPE_CHECKING:
 
     from pyeconomics.data.credentials import Secret
     from pyeconomics.data.providers.base import ProviderInfo
+    from pyeconomics.data.transport.ratelimit import ProviderLimiter
 
 __all__ = ["MAX_ATTEMPTS", "HttpTransport", "user_agent"]
 
@@ -127,7 +129,7 @@ def _shared_pool() -> Any:  # noqa: ANN401 - a urllib3 PoolManager
         return pool
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class _Wire:
     """A request as it will leave the process; it may hold the key, so it is private."""
 
@@ -135,6 +137,10 @@ class _Wire:
     url: str
     headers: dict[str, str]
     payload: bytes | None
+
+    def __repr__(self) -> str:
+        """Show nothing of the URL or headers, which may carry the key."""
+        return f"<wire request {self.method}>"
 
 
 @dataclass(frozen=True, slots=True)
@@ -173,6 +179,9 @@ class HttpTransport:
         Seconds.
     max_wait
         The longest rate-limit wait to sleep through before refusing.
+    max_duration
+        The longest, in seconds, one response body may take to arrive; a body
+        that dribbles in slower is dropped and the request retried.
     """
 
     def __init__(  # noqa: PLR0913 - every knob is for a test or an operator
@@ -191,8 +200,11 @@ class HttpTransport:
         connect_timeout: float = 10.0,
         read_timeout: float = 30.0,
         max_wait: float = DEFAULT_MAX_WAIT,
+        max_duration: float = 120.0,
     ) -> None:
         self._pool_object = pool
+        self._clock = clock
+        self._max_duration = max_duration
         self._sleep = sleep
         self._now = now
         self._jitter = jitter
@@ -242,8 +254,7 @@ class HttpTransport:
         wire = self._wire(info, request, key)
         limiter = self._limiters.for_provider(info)
         for attempt in range(1, self._max_attempts + 1):
-            limiter.acquire(self._sleep)
-            outcome = self._attempt(info, wire)
+            outcome = self._attempt(info, wire, limiter)
             last = attempt == self._max_attempts
             if outcome.response is None:
                 if last or not outcome.retryable:
@@ -341,8 +352,14 @@ class HttpTransport:
     def _pool(self) -> Any:  # noqa: ANN401 - a urllib3 PoolManager or a fake
         return self._pool_object if self._pool_object is not None else _shared_pool()
 
-    def _attempt(self, info: ProviderInfo, wire: _Wire) -> _Outcome:
-        """Send once, following allowlisted HTTPS redirects, and read the body."""
+    def _attempt(
+        self, info: ProviderInfo, wire: _Wire, limiter: ProviderLimiter
+    ) -> _Outcome:
+        """Send once, following allowlisted HTTPS redirects, and read the body.
+
+        Every request on the wire, a redirect's included, takes a place in the
+        provider's limit.
+        """
         method, url, headers, payload = (
             wire.method,
             wire.url,
@@ -350,6 +367,7 @@ class HttpTransport:
             wire.payload,
         )
         for _hop in range(self._max_redirects + 1):
+            limiter.acquire(self._sleep)
             raw, failure = self._open(method, url, headers, payload)
             if raw is None:
                 return failure
@@ -413,7 +431,7 @@ class HttpTransport:
             parts.username is not None
             or parts.password is not None
             or parts.port not in {None, _HTTPS_PORT}
-            or host not in info.hosts
+            or host not in declared_hosts(info)
         ):
             where = host or "an invalid host"
             msg = f"{info.id} was redirected to {where}, which is not a declared host"
@@ -438,7 +456,8 @@ class HttpTransport:
         total = 0
         failure = ""
         retryable = False
-        oversize = False
+        oversize = slow = False
+        deadline = self._clock() + self._max_duration
         try:
             for chunk in raw.stream(_CHUNK, decode_content=True):
                 total += len(chunk)
@@ -446,11 +465,15 @@ class HttpTransport:
                     oversize = True
                     break
                 chunks.append(chunk)
+                if self._clock() > deadline:
+                    slow, retryable = True, True
+                    failure = f"the response took longer than {self._max_duration:g} s"
+                    break
         except Exception as error:  # noqa: BLE001 - scrubbed, then re-raised below
             failure = redaction.describe_exception(error)
             retryable = not _is_tls(error)
         finally:
-            self._discard(raw, close=oversize)
+            self._discard(raw, close=oversize or slow)
         if oversize:
             msg = f"{info.id} sent a response larger than {cap} bytes"
             raise ResponseError(msg, provider=info.id)

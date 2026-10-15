@@ -692,3 +692,101 @@ def test_a_stub_provider_has_no_key_in_its_url() -> None:
     assert urlsplit(pool.calls[0].url).query == ""
     info: ProviderInfo = Stub.info
     assert info.key_variable is None
+
+
+# --- hardening ----------------------------------------------------------------
+
+
+def test_every_request_on_the_wire_takes_a_place_in_the_limit_a_redirect_included() -> (
+    None
+):
+    info = replace(KEYED, rate_limits=(RateLimit(requests=1, per="second"),))
+    target = f"https://{info.hosts[0]}/v1/moved"
+    transport, pool, clock = make(FakeRaw(302, headers={"Location": target}), ok())
+    transport.send(info, REQUEST, key=KEY)
+    assert len(pool.calls) == 2
+    assert clock.slept == [1.0]
+
+
+class Dribbling(FakeRaw):
+    """A body that arrives slowly: each chunk costs the fake clock some seconds."""
+
+    clock: FakeClock | None = None
+    cost: float = 6.0
+
+    def stream(self, amt: int, decode_content: bool = True) -> Any:  # noqa: FBT001, FBT002
+        for chunk in super().stream(amt, decode_content):
+            assert self.clock is not None
+            self.clock.now += self.cost
+            yield chunk
+
+
+def dribbling(clock: FakeClock) -> Dribbling:
+    raw = Dribbling(200, b"x" * 100_000)
+    raw.clock = clock
+    return raw
+
+
+def test_a_body_that_dribbles_in_past_the_deadline_is_dropped_and_retried() -> None:
+    clock = FakeClock()
+    slow = dribbling(clock)
+    pool = FakePool(slow, ok(b"quick"))
+    transport = HttpTransport(
+        pool=pool,
+        clock=clock.monotonic,
+        sleep=clock.sleep,
+        now=lambda: FIXED_NOW,
+        jitter=lambda ceiling: ceiling,
+        max_duration=10.0,
+    )
+    assert transport.send(KEYED, REQUEST, key=KEY).body == b"quick"
+    assert slow.closed
+    assert len(pool.calls) == 2
+
+
+def test_a_body_that_is_always_too_slow_ends_in_a_scrubbed_transport_error() -> None:
+    clock = FakeClock()
+    pool = FakePool(*[dribbling(clock) for _ in range(5)])
+    transport = HttpTransport(
+        pool=pool,
+        clock=clock.monotonic,
+        sleep=clock.sleep,
+        now=lambda: FIXED_NOW,
+        max_duration=10.0,
+    )
+    with pytest.raises(TransportError, match="took longer than 10 s") as caught:
+        transport.send(KEYED, REQUEST, key=KEY)
+    assert caught.value.__context__ is None
+
+
+def test_the_wire_request_shows_neither_its_url_nor_its_headers() -> None:
+    transport, _, _ = make()
+    wire = transport._wire(KEYED, REQUEST, KEY)  # noqa: SLF001
+    assert (KEY in repr(wire)) is False
+    assert repr(wire) == "<wire request GET>"
+
+
+def test_a_host_list_that_is_not_a_tuple_of_text_admits_nothing() -> None:
+    from pyeconomics.data.transport.base import declared_hosts  # noqa: PLC0415
+
+    assert declared_hosts(KEYED) == KEYED.hosts
+    for hosts in ("api.toyjson.example.org", ["api.toyjson.example.org"], (7,), None):
+        broken = replace(KEYED)
+        object.__setattr__(broken, "hosts", hosts)
+        assert declared_hosts(broken) == ()
+    substring = replace(KEYED)
+    object.__setattr__(substring, "hosts", "api.toyjson.example.org")
+    transport, pool, _ = make(BANNED)
+    with pytest.raises(TransportError, match="not a declared host"):
+        transport.send(
+            substring, Request(host="toyjson.example.org", path="/v1/x"), key=KEY
+        )
+    assert pool.calls == []
+
+
+def test_a_redirect_to_a_parent_domain_of_a_declared_host_is_refused() -> None:
+    target = "https://toyjson.example.org/v1/x"
+    transport, pool, _ = make(FakeRaw(302, headers={"Location": target}), BANNED)
+    with pytest.raises(TransportError, match="not a declared host"):
+        transport.send(KEYED, REQUEST, key=KEY)
+    assert len(pool.calls) == 1

@@ -63,6 +63,7 @@ __all__ = [
     "Response",
     "Transport",
     "check_host",
+    "declared_hosts",
     "request_key",
     "request_path",
     "retry_after_seconds",
@@ -424,6 +425,18 @@ class Transport(Protocol):
         ...
 
 
+def declared_hosts(info: ProviderInfo) -> tuple[str, ...]:
+    """Return a provider's declared hosts, or none if they are not a tuple of text.
+
+    ``ProviderInfo`` accepts what it is given, and a string would make ``in``
+    match substrings, so the transports read the allowlist only through this.
+    """
+    hosts: object = info.hosts
+    if isinstance(hosts, tuple) and all(isinstance(host, str) for host in hosts):
+        return hosts
+    return ()
+
+
 def check_host(info: ProviderInfo, request: Request) -> None:
     """Refuse a request to a host outside the provider's allowlist.
 
@@ -437,7 +450,7 @@ def check_host(info: ProviderInfo, request: Request) -> None:
         If the provider declares hosts and the request's is not one of them, or
         the provider is session-based and declares none.
     """
-    if request.host not in info.hosts:
+    if request.host not in declared_hosts(info):
         msg = f"{info.id} may not contact {request.host}: it is not a declared host"
         raise TransportError(msg, provider=info.id)
 
