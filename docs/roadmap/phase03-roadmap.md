@@ -3562,9 +3562,9 @@ at five times the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Cache and Offline Mode
+## Step 5 — Cache and Offline Mode ✅
 
-**Status:** Not started
+**Status:** Complete — PR #117 (2026-10-15)
 
 > **Goal:** Store what each source's terms allow, and nothing else. Build
 > `src/pyeconomics/data/cache/`: a SQLite store (standard library) at
@@ -11609,7 +11609,7 @@ workflow above maps directly to the corresponding row below.
 | 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #108 |
 | 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #111 |
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
-| 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
+| 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
