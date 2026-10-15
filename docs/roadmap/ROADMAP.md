@@ -677,14 +677,18 @@ white space the project has. Same pick, rung and funding as Phase 1: Opus
 
 #### 3.3 Cache & offline mode
 
-- Parquet files indexed by DuckDB in the user's cache directory, keyed by
-  provider, series, parameters and vintage; a time-to-live per provider;
-  an offline mode that serves the cache with as-of dates;
-  `pyeconomics cache` commands.
-- Licence-aware by default: a source whose terms forbid storage is not
-  cached. FRED's terms forbid caching its content, so FRED caching is off
-  by default — an explicit, documented opt-in on the user's own machine —
-  and impossible in hosted mode. (0.2.x cached FRED silently.)
+- A SQLite store (the standard library's `sqlite3`) in the user's cache
+  directory, with user-only permissions and payloads as canonical JSON,
+  keyed by provider, dataset, series, credential-free parameters and
+  vintage; a time-to-live per provider; an offline mode that serves the
+  cache with as-of dates; a Python cache API that Phase 4's `pyeconomics
+  cache` commands wrap (ADR-0011 decision 14). Parquet stays the export and
+  hosted-snapshot format of Phases 4 and 5.
+- Licence-aware: a source whose terms forbid storage is fetched live and
+  never written to disk, with no opt-in (ADR-0005 rule 4). FRED's terms
+  forbid caching its content, so FRED and ALFRED are never written to
+  disk; an in-process memo that ends with the process is not storage.
+  (0.2.x cached FRED silently, in a pickle file.)
 
 #### 3.4 Free providers
 
@@ -716,12 +720,20 @@ the classes before Phase 5 (§5 "Data licensing policy").
 | Coin Metrics community data              | Crypto network data                                          | library-only                            | CC BY-NC 4.0                                                                               |
 | DBnomics                                 | Aggregator of about 100 providers                            | library-only                            | Upstream terms plus ODbL; its client is AGPL, so call the REST API directly               |
 
-- Clients are permissive and thin: in-house httpx clients where the API is
-  simple (FRED v2 with its bulk release endpoint, BLS, BEA, Treasury, NY
-  Fed); sdmx1 (Apache-2.0) for IMF, OECD, ECB, BIS and Eurostat; wbgapi
-  (MIT); edgartools (MIT) evaluated for EDGAR.
-- The Fed Board provider uses stable release URLs: the Data Download
-  Program's "Build Your Package" pages are being retired in November 2026.
+- Clients are permissive and thin (ADR-0011 decisions 10 and 11): one HTTPS
+  transport on urllib3 2.x with truststore for the operating system's trust
+  store, imported lazily, never httpx or requests (both bring certifi,
+  MPL-2.0); in-house clients for FRED (v2 with its bulk release endpoint),
+  BLS, BEA, Census, Treasury, the Fed Board, the NY Fed, SEC EDGAR
+  (edgartools requires pyarrow), the World Bank (wbgapi requires PyYAML,
+  which has no CPython 3.15 wheel) and DBnomics (its client is AGPL); and
+  sdmx1 (Apache-2.0), behind an `[sdmx]` extra, for IMF, OECD, ECB, BIS and
+  Eurostat.
+- The Fed Board provider reads the stable release files, including the XML
+  now posted on each release page: the Board's notice of 2026-07-16 removes
+  the Data Download Program's "Build Your Package" option the week of
+  2026-11-09, in preparation for the program's eventual retirement, for
+  which no date is announced.
 - Not built: Stooq (behind a bot challenge, terms unknown); Nasdaq Data
   Link moves to Phase 6 as a bring-your-own-key source.
 
@@ -776,6 +788,11 @@ the classes before Phase 5 (§5 "Data licensing policy").
 | `portfolio`     | Black-Litterman; risk parity and inverse volatility; hierarchical risk parity               | Ken French industry portfolios as demo inputs | The user's own data                     |
 | `econometrics`  | GARCH, GJR and EGARCH; ARIMA/SARIMA, VAR with IRF and FEVD, Engle-Granger and Johansen      | Any series; Ken French daily factors | Live on originator series; the user's own data     |
 
+These entries ship as the eighteen model ids of the Phase 3 roadmap's
+launch-catalog table, where one id carries a family's variants as a method
+input (the output-gap filters, the factor models, the GARCH variants, the
+risk-based allocations).
+
 CBO and Penn World Table data are classified in Phase 3 before either
 feeds the hosted site.
 
@@ -795,8 +812,8 @@ feeds the hosted site.
   characterization fixtures, or documents each intentional difference.
 - Every provider declares a licence class, attribution text and terms
   URL; the hosted-mode resolver refuses every library-only,
-  bring-your-own-key and premium-local source, and FRED caching stays off
-  unless the user opts in (both tested).
+  bring-your-own-key and premium-local source, and FRED and ALFRED are
+  never written to disk (both tested).
 - All 50 launch-catalog entries pass `registry.validate()` and their golden
   and property suites.
 - **Deployed & verified:** `pip install --pre pyeconomics==1.0.0a2` in a

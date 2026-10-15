@@ -9677,3 +9677,16 @@ populate, canonical JSON and 2020-12 schemas, the golden and property
 harness its 18 live-data entries must pass, 32 verified data-free models
 to build on, a documentation preview that renders every new model's card,
 and `verify-phase02.sh` as the template for `verify-phase03.sh`._
+
+## Post-merge addendum (2026-10-14) — Phase 3 changes to verify-phase02.sh
+
+Phase 3's Cross-phase verification rule: a Phase 3 pull request that
+legitimately invalidates one of this phase's checks narrows the check to the
+invariant it protected, never deletes it, and adds one line here.
+
+- V14.3 (`--post`, Phase 3 Step 2): the published-install check runs the
+  `v1.0.0a1` tag's own `scripts/smoke.py` (`git show v1.0.0a1:scripts/smoke.py`)
+  against PyPI's `1.0.0a1`, as `release-smoke.yml` checks out its tag's
+  scripts, because the working tree's smoke script now imports
+  `pyeconomics.data`, which `1.0.0a1` does not have. The core, extras and
+  stable 0.2.6 installs and their assertions are unchanged.

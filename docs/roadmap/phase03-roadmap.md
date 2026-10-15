@@ -3349,7 +3349,9 @@ at five times the price. New conversation per phase-boundary hygiene.
       collection (the scheduled live run skips a source whose
       terms bar it). The fetch pipeline: a frozen pydantic
       Query (bounded: series ids, at most 100,000
-      observations, dates inside ADR-0008's bounds) →
+      observations, dates inside the data layer's
+      DATA_DATE_BOUNDS, 1700-01-01 to 2200-12-31, ADR-0011
+      decision 3) →
       build_requests(query) (method, path on an allowlisted
       host, parameters; credentials are attached by the
       transport from the authentication spec, never by
@@ -4957,6 +4959,17 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
       its limit), with OPENFIGI_API_KEY optional through the
       chain and the rate limits for each case. Terms:
       hosted-safe.
+    </requirement>
+
+    <requirement>
+      Records that are not frames (ADR-0011 decision 2):
+      OpenFIGI's identifier mappings and EDGAR's submissions
+      and filing lists are neither dated nor numeric, so
+      their providers return typed, bounded records of their
+      own (frozen, canonical-JSON round trips, the value
+      types' no-URL text rule), which no binding reads; EDGAR
+      company facts and frames that are dated numbers stay
+      Series or Tables.
     </requirement>
 
     <requirement>
@@ -11974,7 +11987,13 @@ forward whatever is still open here.
 - From the parent ROADMAP: gap 15's data half (Coin Metrics classed and
   enforced) — Step 10, its model half Phase 7; OECD's class, left TBD by
   ADR-0005 — Step 8; the classes of CBO and the Penn World Table — Step 9.
-- From execution: none yet.
+- From execution:
+  - Step 2 (ADR-0011, accepted 2026-10-14): a frame's dates span
+    `DATA_DATE_BOUNDS` (1700-01-01 to 2200-12-31), wider than a model
+    field's, so Step 4's `Query` bounds its dates by them (Step 4's task
+    patched); OpenFIGI mappings and EDGAR filing lists are provider-typed
+    records, not frames (Step 7's task patched); `DataSource` carries the
+    bound `field` and data `warnings` codes that Steps 5 and 12 fill.
 
 ---
 

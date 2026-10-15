@@ -13,6 +13,23 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+### Added
+
+- ADR-0011, the data platform: eighteen accepted decisions on the data
+  model, missing values, vintages, licence classes and `llm_use`, the
+  provider contract, the HTTP stack, extras, credentials, redaction, the
+  cache (FRED and ALFRED are never written to disk), the catalog, bindings
+  and manifest schema 2, recorded responses and live verification.
+- `pyeconomics.data`, the data layer's value types: `Series` and `Table`
+  with their metadata, `ObservationFrequency`, `SeasonalAdjustment` and the
+  unit record, a source's `Terms` and `CachePolicy`, the `Vintage` selector
+  and the `DataError` taxonomy. Frames index periods by their last day, mark
+  missing values `None`, carry ALFRED-style real-time periods, and
+  round-trip losslessly through canonical JSON and pandas.
+- `pyeconomics.core.provenance`: `DataSource`, the record a manifest will
+  carry for each data source, with `RealtimePeriod`, `LicenceClass` and
+  `LlmUse`, exported from `pyeconomics.core`.
+
 ### Fixed
 
 - Numeric unit markers reject Python and NumPy booleans; date fields reject
