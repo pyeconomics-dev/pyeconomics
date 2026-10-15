@@ -128,7 +128,7 @@ def isolated_configuration(
     ``keep_environment`` leaves the real environment, configuration directory
     and keyring alone, for the opt-in live suite.
     """
-    from pyeconomics.data import config, redaction  # noqa: PLC0415 - per test
+    from pyeconomics.data import cache, config, redaction  # noqa: PLC0415 - per test
 
     isolation = Isolation(root)
     if not keep_environment:
@@ -146,8 +146,10 @@ def isolated_configuration(
     monkeypatch.setattr(redaction, "_REGISTRY", redaction._Registry())  # noqa: SLF001
     factory = logging.getLogRecordFactory()
     config.reset()
+    cache.reset()
     try:
         yield isolation
     finally:
         config.reset()
+        cache.reset()
         logging.setLogRecordFactory(factory)

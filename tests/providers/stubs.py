@@ -68,6 +68,7 @@ def stub_info(**changes: Any) -> ProviderInfo:
     """Return a valid, keyless, hosted-safe info, with ``changes`` applied."""
     info = ProviderInfo(
         id="stub",
+        ttl_seconds=0,  # the provider tests exercise the pipeline, not the cache
         name="Stub agency",
         homepage="https://www.stub.example.org",
         terms=STUB_TERMS,

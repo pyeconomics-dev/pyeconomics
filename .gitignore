@@ -36,9 +36,11 @@ docs/.jupyter_cache/
 .env.*
 secrets.py
 
-# Local working directories
+# Local working directories. The 0.2.x cache lived in cache/ at the repository root;
+# anchored, so the data layer's own cache package (src/pyeconomics/data/cache/) and its
+# tests are tracked.
 dev/
-cache/
+/cache/
 .worktrees/
 
 # roadmodel planning kit: personal posture, never commit

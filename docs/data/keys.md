@@ -150,7 +150,7 @@ bls = 86400
 | `offline` | `PYECONOMICS_OFFLINE` | Serve only cached data and send no request: `1`, `true`, `yes` or `on` |
 | `cache_dir` | `PYECONOMICS_CACHE_DIR` | Where the cache lives, as an absolute path |
 | `sec_contact` | `PYECONOMICS_SEC_CONTACT` | The name and email address SEC EDGAR requires in each request |
-| `[ttl]` *provider* | `PYECONOMICS_TTL_<PROVIDER>` | How long the cache keeps a provider's data, in seconds |
+| `[ttl]` *provider* | `PYECONOMICS_TTL_<PROVIDER>` | How long the cache serves a provider's open data, in seconds; `0` turns that provider's cache off ([the cache](cache.md)) |
 | | `PYECONOMICS_CONFIG_DIR` | Where `pyeconomics.toml` and `.env` are read from |
 
 The cache directory defaults to `~/.cache/pyeconomics` on Linux,
@@ -191,7 +191,10 @@ the keyring, an environment variable or the `.env` file.
   no SEC contact, no path and no environment value.
 - The SEC contact is sent only in EDGAR's User-Agent header. It prints as
   asterisks and is scrubbed like a key everywhere else.
-- FRED and ALFRED data are never written to disk, as FRED's terms require.
+- FRED and ALFRED data are never written to disk, as FRED's terms require, and
+  neither is any source or series whose terms forbid storage. What the cache does
+  store is canonical JSON of data, never a key, and the file is readable by your
+  user only ([the cache](cache.md)).
 
 ## If a key leaks
 

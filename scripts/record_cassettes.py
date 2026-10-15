@@ -42,7 +42,14 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from pyeconomics.data import DataError, DataProvider, LicenceClass, Query, registry
+from pyeconomics.data import (
+    DataError,
+    DataProvider,
+    LicenceClass,
+    Query,
+    cache,
+    registry,
+)
 from pyeconomics.data.transport import default_transport
 from pyeconomics.data.transport.cassette import (
     MAX_CASSETTE_BYTES,
@@ -153,7 +160,8 @@ def record_case(
     recorder = RecordingTransport(transport)
     key = secrets.token_hex(16) if case.invalid_key else None
     try:
-        provider.run_case(case, key=key, transport=recorder)
+        with cache.bypass():  # a recording must reach the source, not the cache
+            provider.run_case(case, key=key, transport=recorder)
     except DataError as error:
         if case.expect is None or not isinstance(error, case.expect):
             msg = f"{case.name} raised {type(error).__name__}: {error}"

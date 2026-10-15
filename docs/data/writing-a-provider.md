@@ -178,7 +178,7 @@ reports each flaw as `<id>: [<rule>] <detail>`:
 | `attribution` | Whom to credit, not a placeholder |
 | `notice` | The source's own required wording, if any |
 | `llm-use` | A vendor source (`byok`, `premium-local`) is never `allowed` |
-| `cache-policy` | `allowed` or `forbidden`; `forbidden` means no cache path at all |
+| `cache-policy` | `allowed` or `forbidden`; `forbidden` means no cache path at all. `ttl_seconds` is a whole number of seconds (`0` turns the cache off) |
 | `hosts` | The exact host names, lower case, HTTPS only, no port or wildcard |
 | `rate-limit` | The source's published limits, which the transport holds it to |
 | `capabilities` | Each declared capability has its hooks, and no hook is undeclared |
@@ -202,6 +202,16 @@ the class and the terms page, before any request, unless the source is
 `CachePolicy.FORBIDDEN`: it is fetched live and never written to disk, with no
 opt-in. Read the class from the source's own terms page when the provider is
 written, never from a plan.
+
+A source that allows storage is cached by the base class, not by the provider:
+`fetch` asks the cache first and keeps the result for `ProviderInfo.ttl_seconds`
+(one hour by default; a user's `PYECONOMICS_TTL_<PROVIDER>` overrides it), and a
+closed past vintage for as long as the size cap allows. Choose the time-to-live
+from how often the source publishes. A provider writes no cache code. A series that
+needs its own policy gets it from `terms.with_overrides(cache=CachePolicy.FORBIDDEN)`
+in `parse`, and the cache honours it. [The cache and offline mode](cache.md)
+describes the behaviour; offline mode needs nothing from a provider either, because
+`search`, `describe` and `vintages` refuse to run while it is on.
 
 ### Authentication
 

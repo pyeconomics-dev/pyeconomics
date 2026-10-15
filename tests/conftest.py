@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from cache_support import WallClock
 from config_isolation import Home, Isolation, isolated_configuration
 from hypothesis import settings
 
@@ -63,6 +64,16 @@ def isolated(
     live = request.node.get_closest_marker("live") is not None
     with isolated_configuration(monkeypatch, root, keep_environment=live) as isolation:
         yield isolation
+
+
+@pytest.fixture
+def wall() -> Iterator[WallClock]:
+    """Give the cache a fake wall clock for the test (tests/data/cache)."""
+    from pyeconomics.data import cache  # noqa: PLC0415 - imported per test
+
+    clock = WallClock()
+    with cache.override(clock=clock):
+        yield clock
 
 
 @pytest.fixture

@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING, Final
 from pyeconomics.core import _fields as f
 from pyeconomics.core.errors import InputError
 from pyeconomics.core.provenance import LicenceClass, LlmUse
+from pyeconomics.data.config import MAX_TTL_SECONDS
 from pyeconomics.data.providers.base import (
     Access,
     Authentication,
@@ -426,6 +427,11 @@ def _check_platforms_and_size(info: ProviderInfo, report: _Report) -> None:
         report.add("platforms", "declare the distinct Platform values it runs on")
     if not isinstance(_get(info, "automated_collection"), bool):
         report.add("platforms", "automated_collection is true or false")
+    if not _whole(_get(info, "ttl_seconds"), 0, MAX_TTL_SECONDS):
+        report.add(
+            "cache-policy",
+            f"ttl_seconds must be between 0 and {MAX_TTL_SECONDS} seconds",
+        )
     if not _whole(_get(info, "max_response_bytes"), _MIN_SIZE_CAP, _MAX_SIZE_CAP):
         report.add(
             "size-cap",

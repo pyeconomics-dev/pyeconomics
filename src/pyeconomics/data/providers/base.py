@@ -97,7 +97,8 @@ from pydantic import (
 from pyeconomics.core import _fields as f
 from pyeconomics.core.errors import InputError
 from pyeconomics.core.provenance import DATA_DATE_BOUNDS, VINTAGE_LABEL_PATTERN
-from pyeconomics.data import modes
+from pyeconomics.data import cache, modes
+from pyeconomics.data.cache.policy import DEFAULT_TTL_SECONDS, Fetched, Origin
 from pyeconomics.data.config import GUIDE_URL
 from pyeconomics.data.credentials import key_variable
 from pyeconomics.data.errors import (
@@ -164,7 +165,14 @@ _ANCHORED_VINTAGE: Final = f"^(?:{VINTAGE_LABEL_PATTERN.pattern})$"
 
 #: The methods a subclass must not override: they hold the gates every operation
 #: passes through, whatever calls it.
-_FINAL_METHODS: Final = ("fetch", "search", "describe", "vintages", "run_case")
+_FINAL_METHODS: Final = (
+    "fetch",
+    "fetch_with_origin",
+    "search",
+    "describe",
+    "vintages",
+    "run_case",
+)
 _SECONDS: Final = {"second": 1, "minute": 60, "day": 86_400}
 
 
@@ -332,6 +340,12 @@ class ProviderInfo:
     run skips a source whose terms bar it (ADR-0011 decision 18)."""
     max_response_bytes: int = DEFAULT_MAX_RESPONSE_BYTES
     """The largest response body the transport reads, in bytes."""
+    ttl_seconds: int = DEFAULT_TTL_SECONDS
+    """How long the cache serves an open entry (``latest``, ``first_release``,
+    ``all`` or a recent ``as_of``) before fetching again, in seconds; a user's
+    ``PYECONOMICS_TTL_<PROVIDER>`` overrides it, and ``0`` turns the provider's
+    caching off. A closed past vintage never expires. Ignored for a source whose
+    terms forbid storage."""
 
     def __post_init__(self) -> None:
         """Turn sequences into tuples and enum values into members."""
@@ -714,6 +728,34 @@ class DataProvider:
             ``CredentialError``, ``SeriesNotFoundError``, ``RateLimitError``,
             ``TransportError`` or ``ResponseError``.
         """
+        return self.fetch_with_origin(query, key=key, transport=transport).frame
+
+    @final
+    def fetch_with_origin(
+        self,
+        query: Query | Mapping[str, object],
+        *,
+        key: str | Secret | None = None,
+        transport: Transport | None = None,
+    ) -> Fetched:
+        """Fetch the data a query names and say where it came from.
+
+        This is :meth:`fetch` with the :class:`~pyeconomics.data.cache.policy.Origin`
+        kept: whether the cache or offline mode served the frame, and the warning
+        codes about it. ``Fetched.source()`` turns the pair into the
+        :class:`~pyeconomics.core.provenance.DataSource` record a manifest carries.
+
+        The cache is asked first (ADR-0011 decision 14). A source, or a series,
+        whose terms forbid storage is never read from or written to it; a fresh
+        entry of any other is returned without a request; and in offline mode only
+        a cached entry answers, whatever its age.
+
+        Raises
+        ------
+        OfflineError
+            In offline mode, when nothing cached answers (and for a source whose
+            terms forbid storage, which can never be served offline).
+        """
         checked = self._query(query)
         self._gate(Capability.FETCH)
         if checked.vintage not in {"latest", "all"} and (
@@ -724,9 +766,18 @@ class DataProvider:
                 "be read; ask for the latest data"
             )
             raise DataError(msg, provider=self.info.id)
+        found = cache.lookup(self.info, checked)
+        if found.fetched is not None:
+            return found.fetched
         responses = self._run(self.build_requests(checked), key, transport)
         frame = self.parse(responses, checked)
-        return self._finish(frame, checked, responses)
+        fetched = Fetched(
+            self._finish(frame, checked, responses),
+            Origin(warnings=found.warnings),
+            checked.vintage,
+        )
+        cache.save(self.info, found, fetched)
+        return fetched
 
     @final
     def search(
@@ -842,8 +893,9 @@ class DataProvider:
     def _gate(self, operation: Capability) -> None:
         """Refuse what the provider cannot do here, before anything is requested.
 
-        That is an operation it lacks, a platform it does not run on, and a source
-        hosted mode may not serve.
+        That is an operation it lacks, a platform it does not run on, a source
+        hosted mode may not serve and, for any operation but a fetch (which the
+        cache answers or refuses), offline mode, which sends no request.
         """
         info = self.info
         if operation not in info.capabilities:
@@ -855,6 +907,8 @@ class DataProvider:
             msg = f"{info.id} does not run on {where}"
             raise DataError(msg, provider=info.id)
         modes.require_allowed(info.terms, provider=info.id)
+        if operation is not Capability.FETCH:
+            modes.require_online(provider=info.id)
 
     def _run(
         self,

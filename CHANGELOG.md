@@ -85,6 +85,22 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   fits the contract unchanged.
 - `urllib3` and `truststore` as runtime dependencies (`truststore` is skipped on
   Emscripten, where the browser handles TLS).
+- The licence-aware cache and offline mode, `pyeconomics.data.cache`: a fetch from
+  a source whose terms allow storage is kept in one SQLite file in the cache
+  directory (created on the first write, owner-only, canonical JSON, never a
+  pickle) and served within the provider's `ProviderInfo.ttl_seconds` or the
+  user's `PYECONOMICS_TTL_<PROVIDER>`; a closed past vintage is kept until the
+  1 GiB cap evicts the least recently used. A source or series whose terms forbid
+  storage (FRED and ALFRED among them), and `user-supplied` data, has no cache
+  path at all: no read, no write, no file. `configure(offline=True)` or
+  `PYECONOMICS_OFFLINE=1` serves cached entries only, marks each record
+  `served_offline` with its original retrieval time, and raises `OfflineError` on
+  a miss; `search`, `describe` and `vintages` refuse to run offline. An entry that
+  fails its SHA-256 or does not validate back into a frame is deleted and
+  reported as `cache_entry_discarded`; a newer or foreign database is left
+  untouched. `info()`, `entries()`, `clear()` and `path()` inspect it without
+  returning a payload, `DataProvider.fetch_with_origin` returns the frame with a
+  `DataSource` record, and `cache.memo()` serves repeats from memory within one call.
 
 ### Fixed
 

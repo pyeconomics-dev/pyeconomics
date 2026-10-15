@@ -119,6 +119,19 @@ From Phase 3, which builds the data layer (ADR-0011):
   parameter, body field or header, because the transport attaches the key from
   the provider's `Authentication`. Parse bodies with `Response.json()`; never
   pickle, `eval` or `yaml.load` a response, and parse XML only with defusedxml.
+- Storage follows the terms (`pyeconomics.data.cache`). `cache.policy.may_store`
+  is the one gate: a provider's or a series' terms with `CachePolicy.FORBIDDEN`,
+  and `user-supplied` data, reach no store code at all (no read, no write, no
+  file, no opt-in); `cache.memo()` is the only in-process reuse for them. The
+  cache is one SQLite file created on the first write, owner-only, never at
+  import or inside the repository; payloads are canonical JSON validated back
+  into frames (never a pickle); every SQL statement is parameterized; a bad
+  entry is deleted and reported, a newer schema left untouched. A new
+  data-layer module that reads the clock or files joins `IO_MODULES`, a pure one
+  `PURE_MODULES` (`tests/data/test_layering.py`). A provider writes no cache
+  code: it declares `ProviderInfo.ttl_seconds` and a series' own terms.
+  Offline mode (`configure(offline=True)`) serves the cache only; a recorder
+  of cassettes runs inside `cache.bypass()`.
 - Hosted mode (`PYECONOMICS_MODE=hosted`) refuses a source not classed
   `hosted-safe` or `user-supplied` before any request. A provider declares the
   source's published rate limits; the transport holds it to them.

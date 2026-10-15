@@ -3562,9 +3562,9 @@ at five times the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Cache and Offline Mode
+## Step 5 — Cache and Offline Mode ✅
 
-**Status:** Not started
+**Status:** Complete — PR #117 (2026-10-15)
 
 > **Goal:** Store what each source's terms allow, and nothing else. Build
 > `src/pyeconomics/data/cache/`: a SQLite store (standard library) at
@@ -4322,6 +4322,17 @@ per phase-boundary hygiene.
       and offline mode exist, exercised by two toy
       providers; no real provider is registered and the
       pyeconomics.providers entry-point table is empty.
+    - A provider writes no cache code. The base class's final
+      fetch asks pyeconomics.data.cache first and keeps a
+      result for ProviderInfo.ttl_seconds (default 3600; a
+      user's PYECONOMICS_TTL_<PROVIDER> overrides it), so each
+      provider sets ttl_seconds from how often its source
+      publishes and gives a restricted series
+      terms.with_overrides(cache=CachePolicy.FORBIDDEN) in
+      parse. A FRED test proves the store is unreachable the
+      way tests/data/cache/cache_support.py's no_database
+      does, besides checking that no file exists; the
+      recorder already runs inside cache.bypass().
     - No workflow uses a secret, opens an issue or runs on a
       schedule except CodeQL and Scorecard; Phase 1's V10.5
       requires that no repository secret exists; release.yml
@@ -6691,6 +6702,20 @@ conversation per phase-boundary hygiene.
 
     Current state (as of Phase 3 Step 10):
 
+    - DataProvider.fetch_with_origin(query) returns
+      Fetched(frame, origin, vintage); Fetched.source()
+      builds the DataSource record (provider, series or table
+      id, dataset, vintage label, observation window,
+      retrieval time, licence, attribution, notice, terms
+      page, llm_use, cache_hit, served_offline and the
+      served_offline / cache_entry_discarded warning codes),
+      and the resolver adds the concept, the field, the
+      transforms and the fallback chain with
+      dataclasses.replace. cache.memo() makes a repeat fetch
+      within its block free even for a source that forbids
+      storage; offline mode raises OfflineError for a miss,
+      which the resolver reports or tries the next source on,
+      and search, describe and vintages refuse to run offline.
     - Thirty-one providers are registered and pass the
       contract suite offline and live (yfinance on demand);
       each declares its class, terms, notices, llm_use, cache
@@ -7223,7 +7248,12 @@ the price. New conversation per phase-boundary hygiene.
     - pyeconomics.data resolves concepts (Step 11) with
       vintages, transforms, alignment and DataSource records,
       and its public get() works offline through
-      ReplayTransport.
+      ReplayTransport. bind() wraps its fetches in
+      pyeconomics.data.cache.memo(), takes each record from
+      Fetched.source() so cache_hit, served_offline and the
+      original retrieval time reach the manifest, and lets
+      OfflineError propagate when offline mode has no cached
+      answer.
     - result_sha256 covers {inputs, model_id, model_version,
       outputs, warnings} and not the manifest; inputs_sha256
       covers the inputs; tables.py stores the manifest under
@@ -11579,7 +11609,7 @@ workflow above maps directly to the corresponding row below.
 | 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #108 |
 | 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #111 |
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
-| 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
+| 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
@@ -12039,6 +12069,21 @@ forward whatever is still open here.
     `scripts/release_ledger.py` still writes only the model ledger:
     Step 19 extends it to `data/_released.py`'s providers section (and
     Step 11's concepts section).
+  - Step 5 (cache and offline mode, 2026-10-15): the cache lives in
+    `pyeconomics.data.cache` (`policy.py` is pure; `store.py` and the
+    package are I/O), and the final `DataProvider.fetch` now asks it first
+    through a new final `fetch_with_origin`, which returns `Fetched(frame,
+    origin, vintage)`; `Fetched.source()` is the `DataSource` record Steps
+    11 and 12 start from (their tasks patched). `ProviderInfo` gained
+    `ttl_seconds` (default 3600; the `cache-policy` rule checks it), so
+    Steps 6 to 10 set it per provider. Offline mode refuses every operation
+    the cache does not serve (`search`, `describe`, `vintages`) and the
+    HTTPS transport (`modes.require_online`). `cache.bypass()` keeps the
+    cassette recorder away from the cache; `cache.memo()` is the
+    in-process reuse for sources that may not be stored. A closed past
+    vintage is an `as_of` more than a day old; `user-supplied` data is never
+    stored. `PYECONOMICS_TTL_<PROVIDER>=0` turns a provider's cache off, and
+    an override applies to entries stored afterwards.
 
 ---
 
