@@ -222,7 +222,7 @@ def test_no_warning_carries_the_key(
         monkeypatch.setattr(
             keyring.core, "_keyring_backend", LeakyKeyring(planted.value)
         )
-        has_key(TOY_PROVIDER)
+        has_key(TOY_PROVIDER, posix=False)
     assert set(check.sinks) == {"warning:DataWarning"}
     assert len(check.sinks["warning:DataWarning"]) == 6  # 3 warnings, 2 forms each
     check.assert_clean()

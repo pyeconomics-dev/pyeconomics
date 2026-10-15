@@ -239,8 +239,14 @@ def test_toml_errors_without_a_line_number(
 ) -> None:
     import tomllib  # noqa: PLC0415 - patched for this test only
 
+    class Positionless(tomllib.TOMLDecodeError):
+        """A decode error whose text has no position (Python 3.14 always adds one)."""
+
+        def __init__(self) -> None:
+            ValueError.__init__(self, "no position")  # skips 3.14's deprecated form
+
     def fail(_text: str) -> object:
-        raise tomllib.TOMLDecodeError("no position")  # noqa: EM101, TRY003 - a test double
+        raise Positionless
 
     home.write_config(b"mode = 'library'\n")
     monkeypatch.setattr(tomllib, "loads", fail)
