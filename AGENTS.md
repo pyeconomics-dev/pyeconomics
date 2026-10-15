@@ -91,6 +91,16 @@ From Phase 3, which builds the data layer (ADR-0011):
   written to disk: no cache path, no opt-in.
 - No value type has a field for a URL, host, path or credential; the one URL
   is a source's terms page (`tests/data/test_value_security.py`).
+- A key is read only through `pyeconomics.data.credentials` (`resolve_key`)
+  and held as a `Secret`. Only `data/credentials/` and `data/transport/` call
+  `.reveal()` (the `secret-reveal` semgrep rule). A failure that may hold a
+  key or a URL is re-raised with `redaction.call_scrubbed`, never with
+  `raise ... from`.
+- Every test runs with its own configuration and cache directories, no
+  `*_API_KEY` or `PYECONOMICS_*` variable and an in-memory keyring (the
+  `isolated` fixture, `tests/config_isolation.py`). Plant keys with
+  `tests/data/leakcheck.py`'s `canary()`, never a literal, and check sinks
+  with `LeakCheck`: never assert on a key's value in a way pytest could print.
 
 ## Units
 

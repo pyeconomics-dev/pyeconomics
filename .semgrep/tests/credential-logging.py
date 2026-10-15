@@ -4,6 +4,8 @@
 import logging
 import os
 
+from pyeconomics.data import resolve_key
+
 logger = logging.getLogger(__name__)
 
 
@@ -13,7 +15,9 @@ class Client:
         self.settings = settings
         self._log = logger
 
-    def cases(self, api_key, token, user_secret, password, passwd, credentials):
+    def cases(
+        self, api_key, token, user_secret, password, passwd, credentials, fred, held
+    ):
         # ruleid: credential-logging
         logger.debug("FRED key: %s", api_key)
         # ruleid: credential-logging
@@ -42,6 +46,12 @@ class Client:
         print("fred", os.environ["FRED_API_KEY"])
         # ruleid: credential-logging
         print(os.getenv("OPENAI_API_KEY"))
+        # ruleid: credential-logging
+        logger.debug("FRED %s", fred.reveal())
+        # ruleid: credential-logging
+        print(f"bls={resolve_key('bls').reveal()}")
+        # ruleid: credential-logging
+        logger.info("request", extra={"auth": held.reveal()})
 
         # ok: credential-logging
         logger.debug("FRED key loaded from the keyring")
@@ -57,3 +67,5 @@ class Client:
         logger.getChild("token-cache")
         # ok: credential-logging
         logger.info("loaded %d rows", len(self.settings.rows))
+        # ok: credential-logging
+        logger.debug("resolved %r", fred)

@@ -24,8 +24,11 @@ A message never carries a credential, a URL's query or a file path. Callers
 pass identifiers, setting names and reasons; as a second line of defence,
 every message has the user information, query and fragment of any URL in it
 removed, so ``https://api.example.org/v1/x?api_key=...`` reads
-``https://api.example.org/v1/x``. Phase 3 Step 3 adds the redaction of every
-registered secret on top.
+``https://api.example.org/v1/x``, and every registered secret replaced
+(:mod:`~pyeconomics.data.redaction`).
+
+:class:`DataWarning` is the data layer's warning: a stable ``code`` and a
+sentence, scrubbed the same way.
 
 Examples
 --------
@@ -42,9 +45,10 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Final
-from urllib.parse import urlsplit, urlunsplit
 
 from pyeconomics.core.errors import PyeconomicsError
+from pyeconomics.core.warnings import PyeconomicsWarning
+from pyeconomics.data.redaction import scrub_text, scrub_urls
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -55,6 +59,7 @@ __all__ = [
     "ConfigError",
     "CredentialError",
     "DataError",
+    "DataWarning",
     "LicenceError",
     "OfflineError",
     "ProviderNotFoundError",
@@ -65,30 +70,11 @@ __all__ = [
     "scrub_urls",
 ]
 
-_URL: Final = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s'\"<>]+")
+_CODE: Final = re.compile(r"[a-z][a-z0-9_]*")
 
 
-def _scrub(match: re.Match[str]) -> str:
-    try:
-        parts = urlsplit(match.group())
-        host = parts.hostname or ""
-        port = parts.port
-    except ValueError:
-        return "<url>"
-    netloc = host if port is None else f"{host}:{port}"
-    return urlunsplit((parts.scheme, netloc, parts.path, "", ""))
-
-
-def scrub_urls(message: str) -> str:
-    """Remove the user information, query and fragment of every URL in a text.
-
-    Examples
-    --------
-    >>> scrub_urls("GET https://someone@api.example.org/v1/series?page=2#top failed")
-    'GET https://api.example.org/v1/series failed'
-
-    """
-    return _URL.sub(_scrub, message)
+def _clean(message: str) -> str:
+    return scrub_text(scrub_urls(message))
 
 
 class DataError(PyeconomicsError):
@@ -105,7 +91,7 @@ class DataError(PyeconomicsError):
     """
 
     def __init__(self, message: str, *, provider: str | None = None) -> None:
-        super().__init__(scrub_urls(message))
+        super().__init__(_clean(message))
         self.provider = provider
 
 
@@ -210,3 +196,40 @@ class ResponseError(DataError, ValueError):
 
 class ConfigError(DataError, ValueError):
     """A setting is invalid, or a configuration file holds a secret."""
+
+
+class DataWarning(PyeconomicsWarning):
+    """A condition in the data layer a user should know about.
+
+    Parameters
+    ----------
+    code
+        A stable snake_case identifier, such as
+        ``"credentials_file_permissions"``.
+    message
+        A sentence for people. Like an error's message, it is scrubbed of
+        URL queries and registered secrets.
+
+    Raises
+    ------
+    ValueError
+        If ``code`` is not snake_case.
+
+    Examples
+    --------
+    >>> warning = DataWarning("keyring_backend_failed", "the keyring step was skipped")
+    >>> print(warning)
+    the keyring step was skipped [keyring_backend_failed]
+    >>> warning.code
+    'keyring_backend_failed'
+
+    """
+
+    def __init__(self, code: str, message: str) -> None:
+        if not _CODE.fullmatch(code):
+            msg = f"a warning code is snake_case, not {code!r}"
+            raise ValueError(msg)
+        text = _clean(message)
+        super().__init__(f"{text} [{code}]")
+        self.code = code
+        self.text = text

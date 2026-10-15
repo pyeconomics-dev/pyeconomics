@@ -2451,9 +2451,9 @@ at five times the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Credentials, Configuration and Redaction
+## Step 3 — Credentials, Configuration and Redaction ✅
 
-**Status:** Not started
+**Status:** Complete — PR #111 (2026-10-15)
 
 > **Goal:** Make a key leak impossible before the first request is ever
 > sent. Build `src/pyeconomics/data/credentials/` — the `Secret` type, the
@@ -11570,7 +11570,7 @@ workflow above maps directly to the corresponding row below.
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1       | Core hardening + baseline        | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #106 |
 | 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #108 |
-| 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #111 |
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
@@ -11994,6 +11994,17 @@ forward whatever is still open here.
     patched); OpenFIGI mappings and EDGAR filing lists are provider-typed
     records, not frames (Step 7's task patched); `DataSource` carries the
     bound `field` and data `warnings` codes that Steps 5 and 12 fill.
+  - Step 3 (credentials, configuration and redaction, 2026-10-15): the
+    chain names a provider's variable `<PROVIDER>_API_KEY`
+    (`key_variable`), so Step 4's `ProviderInfo` authentication declares
+    that variable, or extends `resolve_key` for a source that needs
+    another. The transport reveals a `Secret` and raises every failure
+    through `redaction.call_scrubbed`. Steps 4, 5 and 12 add their sinks
+    to `tests/data/leakcheck.py` with `LeakCheck.add`. Steps 4 and 5 read
+    `settings().mode`, `.offline` and `.ttl` and `config.cache_dir()`.
+    Step 7 reads the SEC contact from `settings().sec_contact`, a pydantic
+    `SecretStr`, in the transport only. `platformdirs`'s floor is 4.9.4,
+    the version Pyodide 314.0.7 bundles, not 4.13.
 
 ---
 

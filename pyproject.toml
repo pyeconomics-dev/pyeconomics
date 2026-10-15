@@ -35,6 +35,7 @@ dependencies = [
     "holidays>=0.106",
     "numpy>=2.4",
     "pandas>=3.0",
+    "platformdirs>=4.9.4",
     "pydantic>=2.12",
     "scipy>=1.18",
 ]
@@ -63,7 +64,8 @@ risk = "pyeconomics.models.risk"
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
-# added only when their packages exist (Phases 5 and 6).
+# added only when their packages exist (Phases 5 and 6). ADR-0011 decision 11
+# adds [keyring] (Phase 3 Step 3), [sdmx] and [yfinance]; [all] includes each.
 [project.optional-dependencies]
 server = []
 mcp = []
@@ -74,7 +76,12 @@ econometrics = [
 plot = [
     "plotly>=7.1.0",
 ]
+# The OS keyring as the last step of the key chain (ADR-0011 decision 12).
+keyring = [
+    "keyring>=25.7",
+]
 all = [
+    "keyring>=25.7",
     "plotly>=7.1.0",
     "statsmodels>=0.15.0",
 ]
@@ -84,6 +91,7 @@ all = [
 test = [
     "hypothesis>=6.168.5",
     "jsonschema>=4.26.0",
+    "keyring>=25.7",
     "numpy-financial>=1.0.0",
     "plotly>=7.1.0",
     "polars>=2.0.0",

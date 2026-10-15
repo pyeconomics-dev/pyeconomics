@@ -29,6 +29,26 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - `pyeconomics.core.provenance`: `DataSource`, the record a manifest will
   carry for each data source, with `RealtimePeriod`, `LicenceClass` and
   `LlmUse`, exported from `pyeconomics.core`.
+- The key chain: `pyeconomics.data.resolve_key` reads a provider's key from
+  an argument, the provider's `<PROVIDER>_API_KEY` variable, a strictly
+  parsed `.env` file in the user configuration directory (never overriding
+  the real environment), or the OS keyring, and returns it as a `Secret`,
+  which prints only a mask and refuses pickling and JSON. `has_key` checks
+  for a key without reading it. A missing key raises `CredentialError`
+  naming the variable, the keyring command and the new "Keys and
+  configuration" guide.
+- Configuration: `pyeconomics.data.settings()` and `configure()` read a
+  layered `pyeconomics.toml` (the user configuration directory, then the
+  working directory, then `PYECONOMICS_*` variables) holding the mode, the
+  offline switch, the cache directory, the SEC contact and per-provider
+  time-to-live overrides. A setting named like a credential is refused, and
+  errors never repeat a value or a path.
+- Redaction: `pyeconomics.data.redaction` scrubs every key read, and its
+  URL-encoded forms, from the log records of every logger, from URLs and
+  headers, and from data-layer errors and the new `DataWarning`; failures
+  can be re-raised without the original exception attached.
+- The `[keyring]` extra (keyring 25.7 or later), which `[all]` includes, and
+  `platformdirs` as a runtime dependency.
 
 ### Fixed
 

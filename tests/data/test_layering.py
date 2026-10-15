@@ -6,8 +6,10 @@
 - No module under src/pyeconomics/core imports pyeconomics.data, statically
   or at run time: core, and so every model, stays free of the data layer.
 - The value modules do no I/O: no socket, file, environment or clock, and no
-  unsafe deserializer. Later steps' transport, cache, configuration and
-  credential modules are the only ones allowed those, and stay off this list.
+  unsafe deserializer. The configuration and credential modules that read
+  files and the environment (Step 3), and later the transport and cache, are
+  the only ones allowed those (IO_MODULES); every module under
+  src/pyeconomics/data is on exactly one of the two lists.
 """
 
 from __future__ import annotations
@@ -27,10 +29,21 @@ PURE_MODULES = (
     CORE / "_fields.py",
     CORE / "provenance.py",
     SRC / "data" / "__init__.py",
+    SRC / "data" / "credentials" / "__init__.py",
+    SRC / "data" / "credentials" / "dotenv.py",
+    SRC / "data" / "credentials" / "secret.py",
     SRC / "data" / "errors.py",
+    SRC / "data" / "redaction.py",
     SRC / "data" / "terms.py",
     SRC / "data" / "types.py",
     SRC / "data" / "vintage.py",
+)
+
+#: The data layer's I/O modules: the only ones that read files, the
+#: environment or the network (ADR-0011 decision 1).
+IO_MODULES = (
+    SRC / "data" / "config.py",
+    SRC / "data" / "credentials" / "chain.py",
 )
 
 #: Imports that reach the network, files, the environment, the clock, other
@@ -157,6 +170,21 @@ def test_the_value_modules_do_no_io(path: Path) -> None:
         }
     )
     assert (banned, calls) == ([], [])
+
+
+def test_every_data_module_is_pure_or_a_named_io_module() -> None:
+    modules = set((SRC / "data").rglob("*.py"))
+    assert set(PURE_MODULES) & set(IO_MODULES) == set()
+    unlisted = sorted(
+        path.relative_to(SRC).as_posix()
+        for path in modules - set(PURE_MODULES) - set(IO_MODULES)
+    )
+    missing = sorted(
+        path.relative_to(SRC).as_posix()
+        for path in {*PURE_MODULES, *IO_MODULES}
+        if not path.is_file()
+    )
+    assert (unlisted, missing) == ([], [])
 
 
 def test_the_purity_scan_sees_what_it_bans() -> None:

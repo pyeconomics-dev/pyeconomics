@@ -13,10 +13,16 @@ lives in :mod:`pyeconomics.core.provenance`, because core never imports this
 package: :class:`DataSource`, :class:`RealtimePeriod`, :class:`LicenceClass`
 and :class:`LlmUse`.
 
-Nothing here opens a socket, reads a file or the environment, or reads the
-clock. Later Phase 3 steps add credentials and configuration, providers and
-their transport, the cache, the catalog and bindings; only the transport,
-cache, configuration and credential modules do I/O (ADR-0011 decision 1).
+Keys and settings (Phase 3 Step 3): :func:`resolve_key` reads a provider's
+key through the chain of ADR-0011 decision 12 and returns it as a
+:class:`Secret`; :func:`has_key` checks for one without reading it; and
+:func:`settings` and :func:`configure` read and override the layered
+``pyeconomics.toml`` (:mod:`~pyeconomics.data.config`). Every registered key
+is scrubbed from log records, URLs, headers and messages
+(:mod:`~pyeconomics.data.redaction`). Only the configuration and credential
+modules read files or the environment, and later the transport and the cache
+(ADR-0011 decision 1); nothing opens a socket yet, and nothing reads the
+clock.
 
 Examples
 --------
@@ -35,10 +41,19 @@ from pyeconomics.core.provenance import (
     LlmUse,
     RealtimePeriod,
 )
+from pyeconomics.data.config import Settings, configure, settings
+from pyeconomics.data.credentials import (
+    KeySource,
+    Secret,
+    has_key,
+    key_variable,
+    resolve_key,
+)
 from pyeconomics.data.errors import (
     ConfigError,
     CredentialError,
     DataError,
+    DataWarning,
     LicenceError,
     OfflineError,
     ProviderNotFoundError,
@@ -75,7 +90,9 @@ __all__ = [
     "CredentialError",
     "DataError",
     "DataSource",
+    "DataWarning",
     "DateConvention",
+    "KeySource",
     "LicenceClass",
     "LicenceError",
     "LlmUse",
@@ -86,9 +103,11 @@ __all__ = [
     "RealtimePeriod",
     "ResponseError",
     "SeasonalAdjustment",
+    "Secret",
     "Series",
     "SeriesMeta",
     "SeriesNotFoundError",
+    "Settings",
     "Table",
     "TableMeta",
     "Terms",
@@ -97,4 +116,9 @@ __all__ = [
     "Vintage",
     "VintageKind",
     "Weekday",
+    "configure",
+    "has_key",
+    "key_variable",
+    "resolve_key",
+    "settings",
 ]
