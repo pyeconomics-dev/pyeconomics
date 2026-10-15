@@ -185,12 +185,19 @@ jobs:
           #   are outside the runtime/all-extras closure; pip-audit audits
           #   them through pylock.toml's --all-groups export.
           # - Other docs-only packages flagged by dependency-review:
-          #   astroid (LGPL-2.1-or-later, AutoAPI's static parser), cffi
-          #   (MIT-0), parso (MIT AND Python-2.0), roman-numerals
-          #   (BSD-3-Clause AND 0BSD AND CC0-1.0), and sphinx
-          #   (BSD-2-Clause-Views AND BSD-3-Clause AND BSD-2-Clause).
-          #   The licences hook excludes all five from the runtime closure;
-          #   the all-groups audit still covers their locked versions.
+          #   astroid (LGPL-2.1-or-later, AutoAPI's static parser), parso
+          #   (MIT AND Python-2.0), roman-numerals (BSD-3-Clause AND 0BSD AND
+          #   CC0-1.0), and sphinx (BSD-2-Clause-Views AND BSD-3-Clause AND
+          #   BSD-2-Clause). The licences hook excludes all four from the
+          #   runtime closure; the all-groups audit still covers their
+          #   locked versions.
+          # - cffi (MIT-0, MIT No Attribution: MIT without the notice
+          #   condition) is a runtime package since Phase 3 Step 3, reached
+          #   only through the keyring extra on Linux (keyring ->
+          #   SecretStorage -> cryptography -> cffi). The licences hook allows
+          #   it only through the reviewed entry in
+          #   scripts/checks/licence_exceptions.toml, which the maintainer
+          #   approved in that step.
           # - simplejson (MIT OR AFL-2.1; GitHub reads "(AFL-2.1 AND MIT AND
           #   Python-2.0) OR (AFL-2.1 AND MIT)") comes in only through vollib,
           #   the test group's implied-volatility oracle (Phase 2 Step 9). The

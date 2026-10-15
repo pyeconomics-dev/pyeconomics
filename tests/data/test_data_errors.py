@@ -9,17 +9,19 @@ import secrets
 
 import pytest
 
-from pyeconomics.core import PyeconomicsError
+from pyeconomics.core import PyeconomicsError, PyeconomicsWarning
 from pyeconomics.core.provenance import LicenceClass
 from pyeconomics.data import (
     ConfigError,
     CredentialError,
     DataError,
+    DataWarning,
     LicenceError,
     OfflineError,
     ProviderNotFoundError,
     RateLimitError,
     ResponseError,
+    Secret,
     SeriesNotFoundError,
     TransportError,
 )
@@ -147,3 +149,29 @@ def test_every_error_message_is_scrubbed() -> None:
         ConfigError(f"bad setting {query}"),
     ]
     assert [str(error) for error in errors if "token" in str(error)] == []
+
+
+def test_every_error_message_loses_registered_secrets() -> None:
+    value = secrets.token_hex(16)
+    held = Secret("fred", value)
+    text = f"refused {value} at https://api.example.org/v1?api_key={value}"
+    shown = {
+        "DataError": str(DataError(text)),
+        "CredentialError": str(CredentialError(text, provider="fred")),
+        "DataWarning": str(DataWarning("refused", text)),
+    }
+    held.forget()
+    assert [name for name, message in shown.items() if value in message] == []
+    assert shown["DataError"] == ("refused [redacted] at https://api.example.org/v1")
+
+
+def test_a_data_warning_has_a_code_and_a_scrubbed_text() -> None:
+    warning = DataWarning("served_offline", "served from https://x.example.org/?k=1")
+    assert isinstance(warning, PyeconomicsWarning)
+    assert (warning.code, warning.text) == (
+        "served_offline",
+        "served from https://x.example.org/",
+    )
+    assert str(warning) == "served from https://x.example.org/ [served_offline]"
+    with pytest.raises(ValueError, match="snake_case"):
+        DataWarning("Served Offline", "x")

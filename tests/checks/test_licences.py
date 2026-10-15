@@ -287,9 +287,17 @@ def test_exceptions_file_validation(tmp_path: Path) -> None:
 
 
 # The reviewed exceptions the maintainer approved (Phase 2 Step 1's pull
-# request; patsy, the econometrics extra's, in Step 12's). The file started
-# empty (ADR-0004); a new entry needs a new review, and this set changes with it.
-REVIEWED_EXCEPTIONS = {"numpy", "pandas", "patsy", "python-dateutil", "scipy"}
+# request; patsy, the econometrics extra's, in Step 12's; cffi, the keyring
+# extra's on Linux, in Phase 3 Step 3's). The file started empty (ADR-0004); a
+# new entry needs a new review, and this set changes with it.
+REVIEWED_EXCEPTIONS = {
+    "cffi",
+    "numpy",
+    "pandas",
+    "patsy",
+    "python-dateutil",
+    "scipy",
+}
 
 
 def test_the_shipped_exceptions_are_the_reviewed_ones() -> None:
@@ -306,3 +314,18 @@ def test_the_shipped_exceptions_are_the_reviewed_ones() -> None:
     assert set(exceptions) <= runtime
     for entry in exceptions.values():
         assert "Checked by" in entry["reason"]
+
+
+def test_the_runtime_closure_passes_on_this_platform() -> None:
+    # The gate-licences job runs the hook on Ubuntu only, but an extra's
+    # closure differs by platform: keyring brings SecretStorage, jeepney,
+    # cryptography and cffi on Linux and pywin32-ctypes on Windows. The test
+    # group installs every extra's packages, so the tests matrix runs the
+    # hook's own check on all three operating systems.
+    exceptions, problems = licences.load_exceptions(licences.EXCEPTIONS_FILE)
+    lock = tomllib.loads((licences.ROOT / "uv.lock").read_text(encoding="utf-8"))
+    report, failures = licences.check(
+        lock, licences.project_name(licences.ROOT), exceptions
+    )
+    assert (problems, failures) == ([], [])
+    assert report[0].startswith("licences: ")

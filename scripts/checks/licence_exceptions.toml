@@ -48,3 +48,14 @@ reason = "Ambiguous classifiers for a dual licence. python-dateutil 2.9.0.post0 
 package = "patsy"
 licence = "BSD License"
 reason = "Ambiguous classifier only; its License field reads '2-clause BSD'. patsy 1.0.3 dist-info/licenses/LICENSE.txt is BSD-2-Clause (Patsy Developers) for the package, and PSF-2.0 for the standard-library code in patsy/compat.py; both are on the allowlist. statsmodels requires it. Checked by Claude Opus 5.5, 2026-10-11."
+
+# Phase 3 Step 3: the keyring extra. On Linux, keyring requires SecretStorage,
+# which requires cryptography, which requires cffi. The licence file below was
+# read in the cffi 2.1.1 manylinux wheel's dist-info on 2026-10-14; the
+# maintainer approved the entry in that step's session, recorded in its pull
+# request.
+
+[[exception]]
+package = "cffi"
+licence = "MIT-0"
+reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached only through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi). Checked by Claude Opus 5.5, 2026-10-14."

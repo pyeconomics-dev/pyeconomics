@@ -23,6 +23,7 @@ quickstart
 tutorials/first-model
 conventions
 results
+data/keys
 reference/models/index
 autoapi/index
 errata

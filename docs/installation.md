@@ -19,5 +19,7 @@ Use `uv run` for commands in the checkout. A plain `pip install pyeconomics`
 continues to install 0.2.6; that release has a different API. See the
 [stable documentation](https://pyeconomics.readthedocs.io/en/stable/).
 
-The optional `pyeconomics[plot]` extra adds Plotly. Polars and PyArrow are
-optional table integrations, installed separately when needed.
+The optional `pyeconomics[plot]` extra adds Plotly, and
+`pyeconomics[keyring]` lets data sources read their keys from the operating
+system's keyring (see [Keys and configuration](data/keys.md)). Polars and
+PyArrow are optional table integrations, installed separately when needed.
