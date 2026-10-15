@@ -238,6 +238,8 @@ class HttpTransport:
         ------
         LicenceError
             In hosted mode, for a source hosted mode may not serve.
+        OfflineError
+            In offline mode, which sends no request.
         TransportError
             For a host off the allowlist, a refused redirect, or a connection
             that failed on every attempt.
@@ -250,6 +252,7 @@ class HttpTransport:
             If the body exceeds the provider's size cap.
         """
         modes.require_allowed(info.terms, provider=info.id)
+        modes.require_online(provider=info.id)
         check_host(info, request)
         wire = self._wire(info, request, key)
         limiter = self._limiters.for_provider(info)

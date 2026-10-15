@@ -18,7 +18,8 @@ release-smoke.yml runs it against every published release. It:
    real difference;
 5. checks ACT/360 and an observed federal holiday adjustment;
 6. imports ``pyeconomics.data``, builds a monthly ``Series`` with a missing
-   value, and round-trips it through canonical JSON and pandas (ADR-0011);
+   value, round-trips it through canonical JSON and pandas, and inspects the
+   (possibly empty) cache without creating it (ADR-0011);
 7. checks ``registry.validate()`` passes, then, for every registered domain,
    runs the first model's first example through ``pyeconomics.run`` twice and
    requires identical canonical JSON and manifests.
@@ -161,7 +162,16 @@ def check_data(package: ModuleType) -> str:
     if [str(period) for period in series.periods()] != ["2026-01", "2026-02"]:
         msg = "a monthly Series' periods are not its months"
         raise AssertionError(msg)
-    return f"pyeconomics.data round-trips a Series ({series.missing} missing value)"
+    # The cache is imported without sqlite3 and inspecting it creates nothing; where
+    # sqlite3 is absent (Pyodide without its package) it reports an empty cache.
+    cache = data.cache
+    if cache.path().name != "cache.sqlite3" or not isinstance(cache.entries(), tuple):
+        msg = "the cache API did not answer"
+        raise AssertionError(msg)
+    return (
+        f"pyeconomics.data round-trips a Series ({series.missing} missing value) "
+        "and inspects its cache"
+    )
 
 
 def run_twice(package: ModuleType, model: Any, example: Any) -> str:  # noqa: ANN401

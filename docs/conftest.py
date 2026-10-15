@@ -50,6 +50,7 @@ pytest_collect_file = Sybil(
         "notices.md",
         "changelog.md",
         "keys.md",
+        "cache.md",
         "writing-a-provider.md",
     ],
     excludes=["roadmap/*", "adr/*", "releases/*", "reference/*", "_build/*"],

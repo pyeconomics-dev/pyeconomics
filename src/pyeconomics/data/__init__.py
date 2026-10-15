@@ -21,6 +21,13 @@ key through the chain of ADR-0011 decision 12 and returns it as a
 is scrubbed from log records, URLs, headers and messages
 (:mod:`~pyeconomics.data.redaction`).
 
+The cache (Phase 3 Step 5): :mod:`pyeconomics.data.cache` keeps what a source's
+terms allow in one SQLite file and serves it within its time-to-live; a source or
+series whose terms forbid storage has no cache path at all. Offline mode
+(``configure(offline=True)``) serves the cache only and raises
+:class:`OfflineError` on a miss. :meth:`DataProvider.fetch_with_origin` returns a
+:class:`Fetched`, the frame with an :class:`Origin` and a ``DataSource`` record.
+
 Providers (Phase 3 Step 4): a source is a :class:`DataProvider` subclass with a
 :class:`ProviderInfo`, registered through the ``pyeconomics.providers``
 entry-point group and found with :mod:`pyeconomics.data.registry`. Its
@@ -49,7 +56,8 @@ from pyeconomics.core.provenance import (
     LlmUse,
     RealtimePeriod,
 )
-from pyeconomics.data import registry
+from pyeconomics.data import cache, registry
+from pyeconomics.data.cache.policy import Fetched, Origin
 from pyeconomics.data.config import Settings, configure, settings
 from pyeconomics.data.credentials import (
     KeySource,
@@ -123,6 +131,7 @@ __all__ = [
     "DataSource",
     "DataWarning",
     "DateConvention",
+    "Fetched",
     "KeyPlacement",
     "KeySource",
     "LicenceClass",
@@ -131,6 +140,7 @@ __all__ = [
     "Mode",
     "ObservationFrequency",
     "OfflineError",
+    "Origin",
     "Platform",
     "ProviderInfo",
     "ProviderNotFoundError",
@@ -157,6 +167,7 @@ __all__ = [
     "Vintage",
     "VintageKind",
     "Weekday",
+    "cache",
     "configure",
     "current_mode",
     "has_key",

@@ -24,6 +24,7 @@ tutorials/first-model
 conventions
 results
 data/keys
+data/cache
 data/writing-a-provider
 reference/models/index
 reference/providers/index

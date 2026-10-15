@@ -337,9 +337,15 @@ def test_homepage_and_name_are_required() -> None:
         {"automated_collection": "yes"},
         {"max_response_bytes": True},
         {"max_response_bytes": 2**40},
+        {"ttl_seconds": -1},
+        {"ttl_seconds": True},
+        {"ttl_seconds": 1.5},
+        {"ttl_seconds": 10**12},
     ],
 )
-def test_platforms_and_the_size_cap_are_checked(changes: dict[str, Any]) -> None:
+def test_platforms_the_size_cap_and_the_time_to_live_are_checked(
+    changes: dict[str, Any],
+) -> None:
     assert problems(variant(Stub, **changes))
 
 

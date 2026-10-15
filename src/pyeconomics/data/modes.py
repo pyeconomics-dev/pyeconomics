@@ -42,12 +42,12 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from pyeconomics.data.config import settings
-from pyeconomics.data.errors import LicenceError
+from pyeconomics.data.errors import LicenceError, OfflineError
 
 if TYPE_CHECKING:
     from pyeconomics.data.terms import Terms
 
-__all__ = ["Mode", "current_mode", "require_allowed"]
+__all__ = ["Mode", "current_mode", "require_allowed", "require_online"]
 
 
 class Mode(StrEnum):
@@ -62,6 +62,37 @@ class Mode(StrEnum):
 def current_mode() -> Mode:
     """Return the mode the settings select (``PYECONOMICS_MODE`` or ``configure``)."""
     return Mode(settings().mode)
+
+
+def require_online(*, provider: str) -> None:
+    """Refuse a request while offline mode is on.
+
+    Offline mode (``configure(offline=True)`` or ``PYECONOMICS_OFFLINE=1``)
+    serves cached entries only and sends no request. A fetch is answered or
+    refused by the cache before it gets here; this is the second line of
+    defence, called by the HTTPS transport and by every operation the cache does
+    not serve (``search``, ``describe`` and ``vintages``).
+
+    Raises
+    ------
+    OfflineError
+        If offline mode is on.
+
+    Examples
+    --------
+    >>> from pyeconomics.data import configure
+    >>> require_online(provider="demo")
+    >>> _ = configure(offline=True)
+    >>> try:
+    ...     require_online(provider="demo")
+    ... except ConnectionError as error:
+    ...     print(error)
+    offline mode sends no request: demo has no cached answer to this
+    >>> _ = configure(offline=False)
+    """
+    if settings().offline:
+        msg = f"offline mode sends no request: {provider} has no cached answer to this"
+        raise OfflineError(msg, provider=provider)
 
 
 def require_allowed(terms: Terms, *, provider: str, mode: Mode | None = None) -> None:

@@ -35,6 +35,7 @@ PURE_MODULES = (
     SRC / "data" / "__init__.py",
     SRC / "data" / "_released.py",
     SRC / "data" / "credentials" / "__init__.py",
+    SRC / "data" / "cache" / "policy.py",
     SRC / "data" / "credentials" / "dotenv.py",
     SRC / "data" / "credentials" / "secret.py",
     SRC / "data" / "errors.py",
@@ -56,6 +57,8 @@ PURE_MODULES = (
 #: The data layer's I/O modules: the only ones that read files, the
 #: environment or the network (ADR-0011 decision 1).
 IO_MODULES = (
+    SRC / "data" / "cache" / "__init__.py",
+    SRC / "data" / "cache" / "store.py",
     SRC / "data" / "config.py",
     SRC / "data" / "credentials" / "chain.py",
     SRC / "data" / "transport" / "http.py",
