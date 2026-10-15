@@ -161,6 +161,8 @@ convention = "numpy"
 # pytest checks with assert, test names document themselves, and expected
 # values are literals.
 "tests/**" = ["S101", "D", "PLR2004"]
+# pyeconomics.data's Series.values is a tuple of floats, not pandas' .values.
+"tests/data/**" = ["PD011"]
 # The checks and the smoke test are CLIs: printing their report to
 # stdout/stderr is their output.
 "scripts/checks/*.py" = ["T201"]
@@ -219,8 +221,9 @@ venv = ".venv"
 [tool.ty.environment]
 python-version = "3.12"
 # tests/registry holds the toy models the result and smoke tests import too;
-# tests itself holds the strategies and the contract check, tests/golden the loader.
-extra-paths = ["tests", "tests/golden", "tests/registry"]
+# tests itself holds the strategies and the contract check, tests/golden the
+# loader and tests/data the data layer's shared frames.
+extra-paths = ["tests", "tests/data", "tests/golden", "tests/registry"]
 
 [tool.ty.src]
 include = ["src", "tests"]
@@ -258,10 +261,11 @@ addopts = [
 testpaths = ["tests", "src", "docs"]
 # tests/registry/toy_models.py is the toy catalog the registry tests share;
 # tests/strategies.py and tests/contract.py are the input strategies and the
-# contract check, and tests/golden/_loader.py the golden-file loader. Only these
+# contract check, tests/golden/_loader.py the golden-file loader, and
+# tests/data/frame_builders.py the data layer's shared frames. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
-pythonpath = ["tests", "tests/golden", "tests/registry"]
+pythonpath = ["tests", "tests/data", "tests/golden", "tests/registry"]
 markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",

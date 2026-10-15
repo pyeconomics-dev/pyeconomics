@@ -627,7 +627,10 @@ published_install() {
   py=$(venv_python "$TMP/published")
   "$py" -m pip --isolated install --timeout 30 --retries 2 --pre --index-url https://pypi.org/simple/ pyeconomics==1.0.0a1 || return 1
   mkdir -p "$TMP/published-smoke" || return 1
-  cp scripts/smoke.py "$TMP/published-smoke/" || return 1
+  # The release's own smoke script, as release-smoke.yml checks out its tag's
+  # scripts: the working tree's copy tests what main builds, not 1.0.0a1
+  # (Phase 3 Step 2's addendum in docs/roadmap/phase02-roadmap.md).
+  MSYS_NO_PATHCONV=1 git show v1.0.0a1:scripts/smoke.py > "$TMP/published-smoke/smoke.py" || return 1
   (cd "$TMP/published-smoke" && "$py" -c 'import pyeconomics; assert pyeconomics.__version__ == "1.0.0a1"' \
     && "$py" smoke.py --all --min-domains 11) || return 1
   "$py" -m pip --isolated install --timeout 30 --retries 2 --pre --index-url https://pypi.org/simple/ 'pyeconomics[econometrics,plot]==1.0.0a1' || return 1

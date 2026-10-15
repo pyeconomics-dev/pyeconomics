@@ -13,9 +13,11 @@ conversion (:mod:`~pyeconomics.core.rates`), compounding
 (:mod:`~pyeconomics.core.numerics`), cash-flow discounting and IRR
 (:mod:`~pyeconomics.core.cashflows`), zero curves with forward and par rates
 (:mod:`~pyeconomics.core.curves`), descriptive statistics
-(:mod:`~pyeconomics.core.descriptive`), and the error and warning taxonomy
-(:mod:`~pyeconomics.core.errors`, :mod:`~pyeconomics.core.warnings`). None of
-it does I/O: no network, file, clock or environment access.
+(:mod:`~pyeconomics.core.descriptive`), the provenance record a result keeps
+of the data it read (:mod:`pyeconomics.core.provenance`, ADR-0011), and the
+error and warning taxonomy (:mod:`~pyeconomics.core.errors`,
+:mod:`~pyeconomics.core.warnings`). None of it does I/O: no network, file,
+clock or environment access, and none of it imports :mod:`pyeconomics.data`.
 
 Examples
 --------
@@ -126,6 +128,12 @@ from pyeconomics.core.numerics import (
     RootResult,
     bracket_roots,
     find_root,
+)
+from pyeconomics.core.provenance import (
+    DataSource,
+    LicenceClass,
+    LlmUse,
+    RealtimePeriod,
 )
 from pyeconomics.core.random import (
     BIT_GENERATOR,
@@ -251,6 +259,7 @@ __all__ = [
     "CostClass",
     "Count",
     "CountArray",
+    "DataSource",
     "DateArray",
     "DateBounds",
     "DateValue",
@@ -266,6 +275,8 @@ __all__ = [
     "IndexLevelArray",
     "InputError",
     "Invariant",
+    "LicenceClass",
+    "LlmUse",
     "Manifest",
     "MissingOptionalDependencyError",
     "Model",
@@ -291,6 +302,7 @@ __all__ = [
     "RateArray",
     "Ratio",
     "RatioArray",
+    "RealtimePeriod",
     "Reference",
     "Registry",
     "RegistryError",

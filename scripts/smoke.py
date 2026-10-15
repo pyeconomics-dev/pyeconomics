@@ -17,7 +17,9 @@ release-smoke.yml runs it against every published release. It:
 4. checks the default rate tolerance accepts a rounding error and refuses a
    real difference;
 5. checks ACT/360 and an observed federal holiday adjustment;
-6. checks ``registry.validate()`` passes, then, for every registered domain,
+6. imports ``pyeconomics.data``, builds a monthly ``Series`` with a missing
+   value, and round-trips it through canonical JSON and pandas (ADR-0011);
+7. checks ``registry.validate()`` passes, then, for every registered domain,
    runs the first model's first example through ``pyeconomics.run`` twice and
    requires identical canonical JSON and manifests.
 
@@ -43,6 +45,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import importlib
 import platform
 import sys
 from importlib import metadata
@@ -120,6 +123,45 @@ def check_dates(package: ModuleType) -> str:
         msg = "the observed federal holiday did not adjust to July 6"
         raise AssertionError(msg)
     return "ACT/360 and holidays-backed federal adjustment agree"
+
+
+def check_data(package: ModuleType) -> str:
+    """Build a monthly series and round-trip it through canonical JSON and pandas."""
+    # Imported here, so that an installed wheel without it fails only this check.
+    data = importlib.import_module("pyeconomics.data")
+
+    terms = data.Terms(
+        licence=data.LicenceClass.HOSTED_SAFE,
+        terms_url="https://www.example.org/terms",
+        checked=dt.date(2026, 10, 14),
+        attribution="Source: a smoke test.",
+        llm_use=data.LlmUse.ALLOWED,
+        cache=data.CachePolicy.ALLOWED,
+    )
+    meta = data.SeriesMeta(
+        provider="smoke",
+        series_id="SMOKE_RATE",
+        title="A smoke-test rate",
+        unit=data.UnitRecord(text="Percent", kind=package.core.UnitKind.RATE),
+        frequency=data.ObservationFrequency.MONTHLY,
+        seasonal_adjustment=data.SeasonalAdjustment.NOT_SEASONALLY_ADJUSTED,
+        source_dating=data.DateConvention.PERIOD_START,
+        terms=terms,
+    )
+    rate = package.core.percent_to_decimal(4.25)
+    series = data.Series(
+        (dt.date(2026, 1, 31), dt.date(2026, 2, 28)), (rate, None), meta
+    )
+    if data.Series.from_json(series.canonical_json()) != series:
+        msg = "a Series did not survive its canonical JSON"
+        raise AssertionError(msg)
+    if data.Series.from_pandas(series.to_pandas()) != series:
+        msg = "a Series did not survive pandas"
+        raise AssertionError(msg)
+    if [str(period) for period in series.periods()] != ["2026-01", "2026-02"]:
+        msg = "a monthly Series' periods are not its months"
+        raise AssertionError(msg)
+    return f"pyeconomics.data round-trips a Series ({series.missing} missing value)"
 
 
 def run_twice(package: ModuleType, model: Any, example: Any) -> str:  # noqa: ANN401
@@ -204,6 +246,7 @@ CHECKS: tuple[tuple[str, Callable[[ModuleType], str]], ...] = (
     ("compounding", check_compounding),
     ("tolerance", check_tolerance),
     ("dates", check_dates),
+    ("data", check_data),
 )
 
 

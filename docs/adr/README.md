@@ -3,9 +3,10 @@
 These records hold the decisions every phase of the pyeconomics 1.0 rebuild
 builds on: what the project is, how it is packaged, versioned and licensed,
 how data licences are enforced, which web and documentation stacks it uses,
-what it is called, and which Python versions it supports. Each one starts
-from the recommended default in [ROADMAP §4 1.6](../roadmap/ROADMAP.md#16-architecture-decision-records)
-and from the §5 section it implements.
+what it is called, which Python versions it supports, and how its data
+platform works. Each one starts from the recommended default in
+[ROADMAP §4 1.6](../roadmap/ROADMAP.md#16-architecture-decision-records) or the
+phase section it implements, and from the §5 section behind it.
 
 ## Index
 
@@ -21,11 +22,15 @@ and from the §5 section it implements.
 | [0008](0008-numerical-conventions.md) | Numerical conventions | Accepted | 2026-10-09 |
 | [0009](0009-name-domains-and-trademark.md) | Name, domains and trademark | Accepted | 2026-10-05 |
 | [0010](0010-python-support-policy.md) | Python support policy | Accepted | 2026-10-05 |
+| [0011](0011-data-platform.md) | Data platform | Accepted | 2026-10-14 |
 
 ADR-0008, the numerical conventions (decimal rates, units, bounds,
 compounding and day counts, tolerances, seeds, canonical JSON numbers and the
 error taxonomy), was reserved in Phase 1 and written in Phase 2 Step 1, when
-the model engine first needed it (ROADMAP §4 2.1).
+the model engine first needed it (ROADMAP §4 2.1). ADR-0011, the data platform
+(the value types, vintages, licence terms, the HTTP stack, credentials, the
+cache, the catalog, bindings and manifest schema 2), was written in Phase 3
+Step 2, before any provider code (ROADMAP §4 3.1).
 
 ## Lifecycle
 

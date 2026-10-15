@@ -68,7 +68,29 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
   Import an extra's library only inside `compute`.
 - `pyeconomics.core` exports the decorator as `model`, which hides the module
   of that name. Import by path (`from pyeconomics.core.model import Model`);
-  `import pyeconomics.core.model as m` binds the decorator.
+  `import pyeconomics.core.model as m` binds the decorator. Likewise
+  `pyeconomics.core.provenance` is `core.random`'s function: import the data
+  provenance record by path (`from pyeconomics.core.provenance import
+  DataSource`) or from `pyeconomics.core`.
+
+## Data layer rules
+
+From Phase 3, which builds the data layer (ADR-0011):
+
+- No module under `src/pyeconomics/core/` imports `pyeconomics.data`, and no
+  model does; the vocabulary they need (`DataSource`, `RealtimePeriod`,
+  `LicenceClass`, `LlmUse`, later `Binding` and `Bound`) lives in core
+  (`tests/data/test_layering.py`).
+- Only the data layer's transport, cache, configuration and credential
+  modules touch the network, files, the environment or the clock. A new pure
+  module joins `PURE_MODULES` in `tests/data/test_layering.py`.
+- A frame indexes a period by its last day, marks a missing value `None`
+  (never NaN) and holds rates as decimals, converted only in a provider's
+  transform step with `percent_to_decimal`.
+- A source whose terms forbid storage, FRED and ALFRED among them, is never
+  written to disk: no cache path, no opt-in.
+- No value type has a field for a URL, host, path or credential; the one URL
+  is a source's terms page (`tests/data/test_value_security.py`).
 
 ## Units
 
