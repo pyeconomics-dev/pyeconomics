@@ -1713,9 +1713,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 2 — ADR-0011 Data Platform and the Data Model
+## Step 2 — ADR-0011 Data Platform and the Data Model ✅
 
-**Status:** Not started
+**Status:** Complete — PR #108 (2026-10-14)
 
 > **Goal:** Fix the data contract every later step encodes, and build its
 > value types. Write `docs/adr/0011-data-platform.md` from the eighteen
@@ -11569,7 +11569,7 @@ workflow above maps directly to the corresponding row below.
 | Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1       | Core hardening + baseline        | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #106 |
-| 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #108 |
 | 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
