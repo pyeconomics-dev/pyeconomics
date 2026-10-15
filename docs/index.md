@@ -24,7 +24,9 @@ tutorials/first-model
 conventions
 results
 data/keys
+data/writing-a-provider
 reference/models/index
+reference/providers/index
 autoapi/index
 errata
 notices

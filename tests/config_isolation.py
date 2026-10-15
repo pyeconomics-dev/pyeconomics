@@ -16,6 +16,12 @@ Every test (tests/conftest.py) and every documentation example
 - the redaction registry starts empty, the settings are reloaded, and the
   log-record factory is restored afterwards.
 
+A test marked ``live`` (``uv run pytest -m live --force-enable-socket
+tests/providers``) is the one exception: it exists to read the maintainer's or
+the CI environment's real keys through the key chain, so it keeps the real
+environment, configuration directory and keyring, and still starts with an empty
+redaction registry and reloaded settings.
+
 The repository root's ignored ``.env`` is never read: the key chain reads a
 ``.env`` file only from the configuration directory.
 """
@@ -115,23 +121,28 @@ class Home:
 
 @contextlib.contextmanager
 def isolated_configuration(
-    monkeypatch: pytest.MonkeyPatch, root: Path
+    monkeypatch: pytest.MonkeyPatch, root: Path, *, keep_environment: bool = False
 ) -> Generator[Isolation]:
-    """Run the body with isolated settings, keys, keyring and redaction."""
+    """Run the body with isolated settings, keys, keyring and redaction.
+
+    ``keep_environment`` leaves the real environment, configuration directory
+    and keyring alone, for the opt-in live suite.
+    """
     from pyeconomics.data import config, redaction  # noqa: PLC0415 - per test
 
     isolation = Isolation(root)
-    for name in list(os.environ):
-        if name.startswith("PYECONOMICS_") or name.endswith("_API_KEY"):
-            monkeypatch.delenv(name)
-    monkeypatch.setenv("PYECONOMICS_CONFIG_DIR", str(isolation.config_dir))
-    monkeypatch.setenv("PYECONOMICS_CACHE_DIR", str(isolation.cache_dir))
-    try:
-        import keyring.core  # noqa: PLC0415 - the keyring extra is optional
-    except ImportError:  # pragma: no cover - the test group installs keyring
-        pass
-    else:
-        monkeypatch.setattr(keyring.core, "_keyring_backend", isolation.keyring)
+    if not keep_environment:
+        for name in list(os.environ):
+            if name.startswith("PYECONOMICS_") or name.endswith("_API_KEY"):
+                monkeypatch.delenv(name)
+        monkeypatch.setenv("PYECONOMICS_CONFIG_DIR", str(isolation.config_dir))
+        monkeypatch.setenv("PYECONOMICS_CACHE_DIR", str(isolation.cache_dir))
+        try:
+            import keyring.core  # noqa: PLC0415 - the keyring extra is optional
+        except ImportError:  # pragma: no cover - the test group installs keyring
+            pass
+        else:
+            monkeypatch.setattr(keyring.core, "_keyring_backend", isolation.keyring)
     monkeypatch.setattr(redaction, "_REGISTRY", redaction._Registry())  # noqa: SLF001
     factory = logging.getLogRecordFactory()
     config.reset()

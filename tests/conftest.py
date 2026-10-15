@@ -14,7 +14,9 @@ Hypothesis profiles, chosen by the ``HYPOTHESIS_PROFILE`` environment variable
 Every test also runs inside ``config_isolation.isolated_configuration``: its
 own configuration and cache directories, no provider key or ``PYECONOMICS_*``
 variable from the real environment, and an in-memory keyring (the Credential
-rule). Request the ``isolated`` fixture for its paths and keyring.
+rule). Request the ``isolated`` fixture for its paths and keyring. A test marked
+``live`` keeps the real environment instead: it reads real keys through the key
+chain, and only the opt-in live run (``-m live``) selects it.
 """
 
 from __future__ import annotations
@@ -46,7 +48,9 @@ _TEST_NUMBERS = itertools.count()
 
 @pytest.fixture(autouse=True)
 def isolated(
-    monkeypatch: pytest.MonkeyPatch, _isolation_root: Path
+    monkeypatch: pytest.MonkeyPatch,
+    _isolation_root: Path,
+    request: pytest.FixtureRequest,
 ) -> Iterator[Isolation]:
     """Give every test its own settings, keys and keyring (config_isolation.py).
 
@@ -56,7 +60,8 @@ def isolated(
     if (Path.cwd() / "pyeconomics.toml").exists():
         pytest.fail("a pyeconomics.toml in the working directory would reach tests")
     root = _isolation_root / f"test-{next(_TEST_NUMBERS)}"
-    with isolated_configuration(monkeypatch, root) as isolation:
+    live = request.node.get_closest_marker("live") is not None
+    with isolated_configuration(monkeypatch, root, keep_environment=live) as isolation:
         yield isolation
 
 

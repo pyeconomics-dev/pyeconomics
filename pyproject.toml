@@ -38,6 +38,8 @@ dependencies = [
     "platformdirs>=4.9.4",
     "pydantic>=2.12",
     "scipy>=1.18",
+    "truststore>=0.10 ; sys_platform != 'emscripten'",
+    "urllib3>=2.6.3",
 ]
 
 [project.urls]
@@ -61,6 +63,11 @@ international = "pyeconomics.models.international"
 performance = "pyeconomics.models.performance"
 portfolio = "pyeconomics.models.portfolio"
 risk = "pyeconomics.models.risk"
+
+# Data provider discovery (pyeconomics.data.registry): each module named here
+# lists its DataProvider subclasses in __all__. The built-in providers register
+# from Phase 3 Step 6; a third-party package adds its own the same way.
+[project.entry-points."pyeconomics.providers"]
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
@@ -182,6 +189,11 @@ convention = "numpy"
 "tests/models/foundations/test_returns.py" = ["ERA001"]
 "src/pyeconomics/models/performance/return_measurement.py" = ["ERA001"]
 "tests/models/performance/test_return_measurement.py" = ["ERA001"]
+# The provider hooks take arguments a subclass uses and the base class does not.
+"src/pyeconomics/data/providers/base.py" = ["ARG002"]
+# Test doubles implement the transport and provider protocols, whose parameters
+# they ignore, and take what a test hands them as Any.
+"tests/providers/**" = ["ARG001", "ARG002", "ARG005", "ANN401"]
 # ADR-0008 names these modules; they are only ever imported as
 # pyeconomics.core.random and pyeconomics.core.warnings, never top-level.
 "src/pyeconomics/core/random.py" = ["A005"]
@@ -231,7 +243,7 @@ python-version = "3.12"
 # tests/registry holds the toy models the result and smoke tests import too;
 # tests itself holds the strategies and the contract check, tests/golden the
 # loader and tests/data the data layer's shared frames.
-extra-paths = ["tests", "tests/data", "tests/golden", "tests/registry"]
+extra-paths = ["tests", "tests/data", "tests/golden", "tests/providers", "tests/registry"]
 
 [tool.ty.src]
 include = ["src", "tests"]
@@ -265,18 +277,22 @@ addopts = [
     "--import-mode=importlib",
     "--disable-socket",
     "--benchmark-disable",
+    "-m",
+    "not live",
 ]
 testpaths = ["tests", "src", "docs"]
+# tests/providers/toys.py holds the toy data providers the provider tests share;
 # tests/registry/toy_models.py is the toy catalog the registry tests share;
 # tests/strategies.py and tests/contract.py are the input strategies and the
 # contract check, tests/golden/_loader.py the golden-file loader, and
 # tests/data/frame_builders.py the data layer's shared frames. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
-pythonpath = ["tests", "tests/data", "tests/golden", "tests/registry"]
+pythonpath = ["tests", "tests/data", "tests/golden", "tests/providers", "tests/registry"]
 markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",
+    "live: runs the provider contract suite against the real API (uv run pytest -m live --force-enable-socket tests/providers); deselected by default",
 ]
 xfail_strict = true
 filterwarnings = ["error"]

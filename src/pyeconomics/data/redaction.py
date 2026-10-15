@@ -63,6 +63,8 @@ __all__ = [
     "describe_exception",
     "install",
     "installed",
+    "is_credential_header",
+    "is_credential_parameter",
     "register",
     "scrub_headers",
     "scrub_record",
@@ -211,8 +213,7 @@ def scrub_text(text: str) -> str:
 
 
 def _is_credential(piece: str) -> bool:
-    name = unquote_plus(piece.partition("=")[0])
-    return name.casefold() in CREDENTIAL_PARAMETERS
+    return is_credential_parameter(unquote_plus(piece.partition("=")[0]))
 
 
 def scrub_url(url: str) -> str:
@@ -245,7 +246,29 @@ def scrub_url(url: str) -> str:
     return scrub_text(rebuilt)
 
 
-def _is_credential_header(name: str) -> bool:
+def is_credential_parameter(name: str) -> bool:
+    """Return whether a query parameter or body field is named like a credential.
+
+    Examples
+    --------
+    >>> is_credential_parameter("API_KEY"), is_credential_parameter("series_id")
+    (True, False)
+
+    """
+    return name.casefold() in CREDENTIAL_PARAMETERS
+
+
+def is_credential_header(name: str) -> bool:
+    """Return whether a header holds a credential or a session.
+
+    Examples
+    --------
+    >>> is_credential_header("Authorization"), is_credential_header("X-Api-Key")
+    (True, True)
+    >>> is_credential_header("Accept")
+    False
+
+    """
     return name.casefold() in CREDENTIAL_HEADERS or bool(_KEY_HEADER.search(name))
 
 
@@ -265,7 +288,7 @@ def scrub_headers(headers: Mapping[str, str]) -> dict[str, str]:
     return {
         name: scrub_text(value)
         for name, value in headers.items()
-        if not _is_credential_header(name)
+        if not is_credential_header(name)
     }
 
 
