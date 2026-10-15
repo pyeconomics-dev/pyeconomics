@@ -2981,9 +2981,9 @@ hygiene.
 
 ---
 
-## Step 4 — Provider SDK, Transport and Contract Suite
+## Step 4 — Provider SDK, Transport and Contract Suite ✅
 
-**Status:** Not started
+**Status:** Complete — PR #115 (2026-10-15)
 
 > **Goal:** Build the contract every provider implements and the harness
 > that proves it, before any real provider exists. Add
@@ -2998,7 +2998,7 @@ hygiene.
 > limits and scrubbed errors — and `ReplayTransport` for tests); `data/modes.py`
 > (library and hosted modes, the hosted refusal at fetch); the cassette
 > format and `scripts/record_cassettes.py`; the shared contract suite
-> `tests/providers/contract.py` with the `live` marker; two toy providers;
+> `tests/providers/provider_contract.py` with the `live` marker; two toy providers;
 > the generated per-provider documentation pages and the "Writing a
 > provider" guide; and the Bloomberg contract spike — a test-only provider
 > over a mocked Desktop API session proving a session-based, non-HTTP
@@ -3379,7 +3379,7 @@ at five times the price. New conversation per phase-boundary hygiene.
       gets its providers section here, empty until Step 19,
       which validate() enforces as core does for models
       (Step 11 adds its concepts section). The 13-month terms
-      freshness is a test (tests/providers/test_terms.py),
+      freshness is a test (tests/providers/test_provider_terms.py),
       never a validate() rule, so validate() reads no clock.
       Add the empty `[project.entry-points."pyeconomics.providers"]`
       table; built-in providers register from Step 6.
@@ -3393,8 +3393,11 @@ at five times the price. New conversation per phase-boundary hygiene.
       per-provider body cap (default 50 MiB); retries with
       exponential backoff and full jitter on connection
       errors, 429 and 5xx, honouring Retry-After up to a cap,
-      at most five attempts; a thread-safe token bucket per
-      provider within its declared limits; redirects followed
+      at most five attempts; a thread-safe sliding-window
+      limiter per provider that never lets more than a
+      declared limit into any window (a token bucket that
+      starts full lets through twice that: the bucket, then
+      its refill); redirects followed
       only to https on the same allowlist; a User-Agent of
       `pyeconomics/<version>
       (+https://github.com/pyeconomics-dev/pyeconomics)` plus
@@ -3438,7 +3441,7 @@ at five times the price. New conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
-      Contract suite (tests/providers/contract.py),
+      Contract suite (tests/providers/provider_contract.py),
       parametrized over every registered provider and the toy
       providers: ProviderInfo validates; every declared
       capability has a cassette that replays into a valid
@@ -3508,7 +3511,11 @@ at five times the price. New conversation per phase-boundary hygiene.
 
     <requirement>
       Dependencies (Dependency rule): `uv add --no-config`
-      urllib3 (>=2.8) and truststore (>=0.10), pure Python,
+      urllib3 (>=2.6.3: Pyodide 314.0.7 bundles 2.6.3, the
+      first release with the streaming decompression-bomb
+      fixes) and truststore (>=0.10, with the marker
+      `sys_platform != "emscripten"`: Pyodide's index has no
+      truststore and the browser does TLS), pure Python,
       floors no higher than Pyodide bundles; lock and export
       with --no-config; licences and pip-audit pass. The
       pyodide job stays green: importing pyeconomics.data
@@ -3878,7 +3885,7 @@ conversation per phase-boundary hygiene.
       providers/base.py, registry.py, modes.py, transport/)
       and tests/data/leakcheck.py.
     - src/pyeconomics/core/canonical.py.
-    - The toy providers and tests/providers/contract.py.
+    - The toy providers and tests/providers/provider_contract.py.
   </context>
 
   <goal>
@@ -4349,7 +4356,7 @@ per phase-boundary hygiene.
       Credential rules and source plan.
     - src/pyeconomics/data/ (providers/base.py, registry.py,
       transport/, modes.py, cache/) and the toy providers.
-    - tests/providers/contract.py and
+    - tests/providers/provider_contract.py and
       scripts/record_cassettes.py.
     - .github/workflows/release.yml, release-smoke.yml and
       security.yml (the hardening pattern and zizmor's
@@ -11571,7 +11578,7 @@ workflow above maps directly to the corresponding row below.
 | 1       | Core hardening + baseline        | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #106 |
 | 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #108 |
 | 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #111 |
-| 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
@@ -12005,6 +12012,33 @@ forward whatever is still open here.
     Step 7 reads the SEC contact from `settings().sec_contact`, a pydantic
     `SecretStr`, in the transport only. `platformdirs`'s floor is 4.9.4,
     the version Pyodide 314.0.7 bundles, not 4.13.
+  - Step 4 (provider SDK, transport and contract suite, 2026-10-15):
+    `DataProvider`'s public operations are final (`fetch`, `search`,
+    `describe`, `vintages`, `run_case`), so a provider overrides only
+    its `build_*` and `parse_*` hooks, `classify_error`, `exchange` and
+    `synthesize`; a provider lists its recorded interactions in
+    `DataProvider.cases` (`Case`), which the recorder and the contract
+    suite share, and adds its row to `tests/providers/test_notices.py`
+    (Steps 6 to 10's tasks read this). A final response status maps to
+    the error taxonomy in the base class, not the transport, so
+    `HttpTransport` returns 429 and 5xx responses after its retries.
+    The limiter is a sliding window, not a token bucket (it must never
+    admit twice a limit in one window). `urllib3>=2.6.3` and
+    `truststore>=0.10; sys_platform != "emscripten"` replace the
+    task's `urllib3>=2.8`, because Pyodide's index has urllib3 2.6.3 and
+    no truststore. The contract suite is
+    `tests/providers/provider_contract.py` and its tests are
+    `test_provider_*.py`, because mypy maps test basenames to top-level
+    modules and `contract.py`, `test_contract.py`, `test_terms.py` and
+    `test_validate_rules.py` were taken. The Bloomberg spike needed no
+    change to the contract: `Access.SESSION`, an empty `hosts` and an
+    `exchange()` override, a `*.localhost` request host, a `Query`
+    subclass for tickers with spaces and the session owning the clock
+    are how a session source uses the seams Step 4 built (Phase 6
+    reuses them; `docs/data/writing-a-provider.md` records them).
+    `scripts/release_ledger.py` still writes only the model ledger:
+    Step 19 extends it to `data/_released.py`'s providers section (and
+    Step 11's concepts section).
 
 ---
 

@@ -7,9 +7,13 @@
   or at run time: core, and so every model, stays free of the data layer.
 - The value modules do no I/O: no socket, file, environment or clock, and no
   unsafe deserializer. The configuration and credential modules that read
-  files and the environment (Step 3), and later the transport and cache, are
-  the only ones allowed those (IO_MODULES); every module under
+  files and the environment (Step 3), the transport (Step 4), and later the
+  cache, are the only ones allowed those (IO_MODULES); every module under
   src/pyeconomics/data is on exactly one of the two lists.
+- Only the transport opens a socket (it alone imports urllib3, truststore,
+  ssl and the like) and only the transport and the credential modules reveal a
+  key (the `secret-reveal` semgrep rule, checked here too); importing the data
+  layer imports neither urllib3 nor truststore (Step 4).
 """
 
 from __future__ import annotations
@@ -29,12 +33,22 @@ PURE_MODULES = (
     CORE / "_fields.py",
     CORE / "provenance.py",
     SRC / "data" / "__init__.py",
+    SRC / "data" / "_released.py",
     SRC / "data" / "credentials" / "__init__.py",
     SRC / "data" / "credentials" / "dotenv.py",
     SRC / "data" / "credentials" / "secret.py",
     SRC / "data" / "errors.py",
+    SRC / "data" / "modes.py",
+    SRC / "data" / "providers" / "__init__.py",
+    SRC / "data" / "providers" / "base.py",
+    SRC / "data" / "providers" / "rules.py",
     SRC / "data" / "redaction.py",
+    SRC / "data" / "registry.py",
     SRC / "data" / "terms.py",
+    SRC / "data" / "transport" / "__init__.py",
+    SRC / "data" / "transport" / "base.py",
+    SRC / "data" / "transport" / "cassette.py",
+    SRC / "data" / "transport" / "ratelimit.py",
     SRC / "data" / "types.py",
     SRC / "data" / "vintage.py",
 )
@@ -44,6 +58,28 @@ PURE_MODULES = (
 IO_MODULES = (
     SRC / "data" / "config.py",
     SRC / "data" / "credentials" / "chain.py",
+    SRC / "data" / "transport" / "http.py",
+    SRC / "data" / "transport" / "replay.py",
+)
+
+#: Imports that open a socket or speak a network protocol: the transport's alone.
+NETWORK_IMPORTS = frozenset(
+    {
+        "ftplib",
+        "http",
+        "httpx",
+        "imaplib",
+        "poplib",
+        "requests",
+        "smtplib",
+        "socket",
+        "socketserver",
+        "ssl",
+        "truststore",
+        "urllib.request",
+        "urllib3",
+        "xmlrpc",
+    }
 )
 
 #: Imports that reach the network, files, the environment, the clock, other
@@ -202,3 +238,91 @@ def test_the_purity_scan_sees_what_it_bans() -> None:
     assert {"now", "open"} <= calls & BANNED_CALLS
     dynamic = ast.parse("import importlib\nimportlib.import_module('pyeconomics.data')")
     assert _dynamic_imports(dynamic) == {"pyeconomics.data"}
+
+
+def _is_network(name: str) -> bool:
+    return any(name == n or name.startswith(n + ".") for n in NETWORK_IMPORTS)
+
+
+def _reveals(tree: ast.AST) -> bool:
+    return any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "reveal"
+        for node in ast.walk(tree)
+    )
+
+
+def test_only_the_transport_imports_a_network_library() -> None:
+    transport = SRC / "data" / "transport"
+    offenders = {}
+    for path in sorted(SRC.rglob("*.py")):
+        if transport in path.parents:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        found = sorted(
+            n for n in _imports(tree) | _dynamic_imports(tree) if _is_network(n)
+        )
+        if found:
+            offenders[path.relative_to(SRC).as_posix()] = found
+    assert offenders == {}
+
+
+def test_only_the_transport_and_the_credential_modules_reveal_a_key() -> None:
+    allowed = (SRC / "data" / "transport", SRC / "data" / "credentials")
+    offenders = [
+        path.relative_to(SRC).as_posix()
+        for path in sorted(SRC.rglob("*.py"))
+        if not any(directory in path.parents for directory in allowed)
+        and _reveals(ast.parse(path.read_text(encoding="utf-8")))
+    ]
+    assert offenders == []
+
+
+def test_the_transport_is_where_a_key_is_revealed() -> None:
+    http = ast.parse(
+        (SRC / "data" / "transport" / "http.py").read_text(encoding="utf-8")
+    )
+    assert _reveals(http)
+    for name in ("base.py", "cassette.py", "ratelimit.py", "replay.py", "__init__.py"):
+        tree = ast.parse(
+            (SRC / "data" / "transport" / name).read_text(encoding="utf-8")
+        )
+        assert not _reveals(tree), name
+
+
+def test_the_network_scan_sees_what_it_bans() -> None:
+    tree = ast.parse(
+        "import urllib3\nfrom http.client import HTTPSConnection\nimport pandas"
+    )
+    found = {n for n in _imports(tree) if _is_network(n)}
+    assert found == {"urllib3", "http.client", "http.client.HTTPSConnection"}
+    assert _reveals(ast.parse("key.reveal()"))
+    assert not _reveals(ast.parse("key.forget()"))
+
+
+def test_importing_the_data_layer_imports_neither_urllib3_nor_truststore(
+    tmp_path: Path,
+) -> None:
+    script = (
+        "import sys\n"
+        "import pyeconomics.data, pyeconomics.data.transport\n"
+        "from pyeconomics.data import registry\n"
+        "registry.validate()\n"
+        "from pyeconomics.data.transport.http import HttpTransport\n"
+        "HttpTransport()\n"
+        "names = ('urllib3', 'truststore', 'ssl')\n"
+        "hits = sorted(m for m in names if m in sys.modules)\n"
+        "print(hits)\n"
+    )
+    result = subprocess.run(  # noqa: S603 # nosec B603: fixed arguments, no shell
+        [sys.executable, "-I", "-c", script],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=120,
+    )
+    # ssl may arrive with other standard-library users; urllib3 and truststore never.
+    assert "urllib3" not in result.stdout
+    assert "truststore" not in result.stdout

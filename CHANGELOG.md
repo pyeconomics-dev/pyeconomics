@@ -49,6 +49,42 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   can be re-raised without the original exception attached.
 - The `[keyring]` extra (keyring 25.7 or later), which `[all]` includes, and
   `platformdirs` as a runtime dependency.
+- The provider contract: a source is a `pyeconomics.data.DataProvider` with a
+  `ProviderInfo` (id, terms, authentication, exact HTTPS hosts, published rate
+  limits, capabilities, extra, platforms) and a typed pipeline from a bounded
+  `Query` through `build_requests`, an exchange and `parse` to a `Series` or a
+  `Table`, plus `search`, `describe` and `vintages`. The public operations are
+  final: they refuse a source hosted mode may not serve before any request, and
+  map each final status to the error taxonomy (401 and 403 to
+  `CredentialError`, 404 to `SeriesNotFoundError`, 429 to `RateLimitError`, 5xx
+  to `TransportError`, anything else to `ResponseError`).
+- `pyeconomics.data.registry` (`ids()`, `get()`, `installed()`, `validate()`):
+  providers register through the `pyeconomics.providers` entry-point group, and
+  `validate()` reports each broken rule as `<id>: [<rule>] <detail>`. The
+  released-provider ledger exists and is enforced; it is empty until the first
+  providers ship.
+- The transport: `HttpTransport` on urllib3 and the operating system's trust
+  store, the only code that opens a socket, builds a URL or reveals a key. It
+  refuses `http://` and every host outside a provider's allowlist, redirects
+  included; caps response sizes, including decompressed ones; retries with
+  exponential backoff and full jitter, honouring `Retry-After`; holds each
+  provider to its declared limits with a sliding-window limiter; and raises
+  scrubbed errors with no exception context. `ReplayTransport` serves recorded
+  cassettes offline.
+- Library and hosted mode (`pyeconomics.data.Mode`, `configure(mode="hosted")`):
+  hosted mode refuses every source not classed hosted-safe or user-supplied at
+  fetch, whatever called it.
+- Cassettes and `scripts/record_cassettes.py`: recorded responses as canonical
+  JSON, scrubbed of every key, credential parameter, header and cookie, kept to
+  24 observations per series and 32 KiB, synthetic for a source that is not
+  hosted-safe or forbids storage, and scanned for secrets. The shared provider
+  contract suite replays them, and `pytest -m live` runs it against the real
+  APIs.
+- "Writing a provider" and a generated reference page per provider, built
+  offline; a design spike shows a session-based source (Bloomberg's Desktop API)
+  fits the contract unchanged.
+- `urllib3` and `truststore` as runtime dependencies (`truststore` is skipped on
+  Emscripten, where the browser handles TLS).
 
 ### Fixed
 

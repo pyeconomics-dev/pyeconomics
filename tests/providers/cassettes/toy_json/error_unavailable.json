@@ -1,0 +1,1 @@
+{"provider":"toy_json","recorded_on":"2026-10-15T14:00:00+00:00","requests":[{"body":null,"method":"GET","parameters":[["limit","25"],["q","outage"]],"response":{"body":"Service Unavailable","encoding":"utf-8","headers":{"content-type":"text/plain"},"status":503},"url":"https://api.toyjson.example.org/v1/search"}],"synthetic":false}

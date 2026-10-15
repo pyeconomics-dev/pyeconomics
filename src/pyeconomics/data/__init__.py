@@ -19,10 +19,18 @@ key through the chain of ADR-0011 decision 12 and returns it as a
 :func:`settings` and :func:`configure` read and override the layered
 ``pyeconomics.toml`` (:mod:`~pyeconomics.data.config`). Every registered key
 is scrubbed from log records, URLs, headers and messages
-(:mod:`~pyeconomics.data.redaction`). Only the configuration and credential
-modules read files or the environment, and later the transport and the cache
-(ADR-0011 decision 1); nothing opens a socket yet, and nothing reads the
-clock.
+(:mod:`~pyeconomics.data.redaction`).
+
+Providers (Phase 3 Step 4): a source is a :class:`DataProvider` subclass with a
+:class:`ProviderInfo`, registered through the ``pyeconomics.providers``
+entry-point group and found with :mod:`pyeconomics.data.registry`. Its
+:class:`Request` values go through a :class:`Transport`
+(:mod:`~pyeconomics.data.transport`): the one code that opens a socket, reveals
+a key and builds a URL. :class:`Mode` selects library or hosted mode, and
+hosted mode refuses every source not classed hosted-safe or user-supplied.
+Only the configuration, credential and transport modules read files, the
+environment, the network or the clock (ADR-0011 decision 1). Importing this
+package imports neither urllib3 nor truststore.
 
 Examples
 --------
@@ -41,6 +49,7 @@ from pyeconomics.core.provenance import (
     LlmUse,
     RealtimePeriod,
 )
+from pyeconomics.data import registry
 from pyeconomics.data.config import Settings, configure, settings
 from pyeconomics.data.credentials import (
     KeySource,
@@ -62,7 +71,23 @@ from pyeconomics.data.errors import (
     SeriesNotFoundError,
     TransportError,
 )
+from pyeconomics.data.modes import Mode, current_mode, require_allowed
+from pyeconomics.data.providers import (
+    Access,
+    Authentication,
+    AuthKind,
+    Capability,
+    Case,
+    DataProvider,
+    KeyPlacement,
+    Platform,
+    ProviderInfo,
+    Query,
+    RateLimit,
+    SearchHit,
+)
 from pyeconomics.data.terms import TERMS_MAX_AGE_MONTHS, CachePolicy, Terms
+from pyeconomics.data.transport.base import Request, Response, Transport
 from pyeconomics.data.types import (
     MAX_COLUMNS,
     MAX_OBSERVATIONS,
@@ -84,24 +109,39 @@ __all__ = [
     "MAX_COLUMNS",
     "MAX_OBSERVATIONS",
     "TERMS_MAX_AGE_MONTHS",
+    "Access",
+    "AuthKind",
+    "Authentication",
     "CachePolicy",
+    "Capability",
+    "Case",
     "ColumnMeta",
     "ConfigError",
     "CredentialError",
     "DataError",
+    "DataProvider",
     "DataSource",
     "DataWarning",
     "DateConvention",
+    "KeyPlacement",
     "KeySource",
     "LicenceClass",
     "LicenceError",
     "LlmUse",
+    "Mode",
     "ObservationFrequency",
     "OfflineError",
+    "Platform",
+    "ProviderInfo",
     "ProviderNotFoundError",
+    "Query",
+    "RateLimit",
     "RateLimitError",
     "RealtimePeriod",
+    "Request",
+    "Response",
     "ResponseError",
+    "SearchHit",
     "SeasonalAdjustment",
     "Secret",
     "Series",
@@ -111,14 +151,18 @@ __all__ = [
     "Table",
     "TableMeta",
     "Terms",
+    "Transport",
     "TransportError",
     "UnitRecord",
     "Vintage",
     "VintageKind",
     "Weekday",
     "configure",
+    "current_mode",
     "has_key",
     "key_variable",
+    "registry",
+    "require_allowed",
     "resolve_key",
     "settings",
 ]

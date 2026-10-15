@@ -21,8 +21,10 @@ of the sinks the canary reached, never the canary itself:
   and its ``to_dict``, ``to_json``, ``to_pandas`` and ``to_parquet`` bytes
   (:meth:`LeakCheck.result`).
 
-Steps 4, 5 and 12 add their sinks with :meth:`LeakCheck.add`: the transport,
-the cache file and bound manifests.
+Step 4 adds the transport: :meth:`LeakCheck.run` runs a call collecting its logs
+and warnings, and either its result or its exception (tests/providers/
+test_canary_transport.py). Steps 5 and 12 add their sinks with
+:meth:`LeakCheck.add`: the cache file and bound manifests.
 
 Never assert ``canary not in text``: pytest would print both sides. Collect
 names and compare the list with ``[]``, as :meth:`LeakCheck.found_in` does.
@@ -37,14 +39,14 @@ import secrets
 import traceback
 import warnings
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Final, Protocol
+from typing import TYPE_CHECKING, Any, Final, Protocol, TypeVar
 from urllib.parse import quote, quote_plus
 
 from pyeconomics.core.canonical import canonical_json
 from pyeconomics.data import Secret
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable, Mapping
+    from collections.abc import Callable, Generator, Iterable, Mapping
     from pathlib import Path
 
     from pyeconomics.core.results import Result
@@ -128,6 +130,9 @@ class Contact:
 def contact_canary() -> Contact:
     """Make a random contact in the form SEC EDGAR asks for: a name and an email."""
     return Contact(f"pyeconomics canary {secrets.token_hex(8)}@example.org")
+
+
+_T = TypeVar("_T")
 
 
 def canary(provider: str = TOY_PROVIDER, *, value: str | None = None) -> Canary:
@@ -239,6 +244,26 @@ class LeakCheck:
         self.add(sink, str(error))
         self.add(sink, repr(error))
         self.add(sink, "".join(traceback.format_exception(error)))
+
+    def run(self, call: Callable[[], _T]) -> _T | None:
+        """Run a call, collecting its logs and warnings and what it returns or raises.
+
+        A returned value is collected as its ``repr`` and, when it has one, its
+        canonical JSON; a raised exception is collected whole (:meth:`exception`)
+        and the call returns ``None``.
+        """
+        outcome: _T | None = None
+        with self.logs(), self.warnings():
+            try:
+                outcome = call()
+            except Exception as error:  # noqa: BLE001 - every failure is a sink to search
+                self.exception(error)
+                return None
+        self.add("result", repr(outcome))
+        canonical = getattr(outcome, "canonical_json", None)
+        if callable(canonical):
+            self.add("result:canonical_json", canonical())
+        return outcome
 
     def result(self, result: Result[Any, Any], directory: Path) -> None:
         """Collect a result's manifest and every export a user can write."""

@@ -1,0 +1,1 @@
+{"provider":"toy_json","recorded_on":"2026-10-15T14:00:00+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"{\"error_code\":404,\"error_message\":\"Not found.\"}","encoding":"utf-8","headers":{"content-type":"application/json"},"status":404},"url":"https://api.toyjson.example.org/v1/series/MISSING"}],"synthetic":false}

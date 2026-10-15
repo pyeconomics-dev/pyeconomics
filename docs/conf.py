@@ -29,7 +29,13 @@ project = "pyeconomics"
 copyright = "2026, Nathan Ramos, CFA"  # noqa: A001
 author = "Nathan Ramos, CFA"
 release = distribution_version("pyeconomics")
-extensions = ["myst_nb", "autoapi.extension", "sphinx.ext.napoleon", "model_pages"]
+extensions = [
+    "myst_nb",
+    "autoapi.extension",
+    "sphinx.ext.napoleon",
+    "model_pages",
+    "provider_pages",
+]
 myst_enable_extensions = ["dollarmath", "amsmath"]
 nb_execution_mode = "force"
 nb_execution_raise_on_error = True

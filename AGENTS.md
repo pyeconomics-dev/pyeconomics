@@ -26,8 +26,11 @@ pull request.
 src/pyeconomics/   the package (src layout); py.typed
 tests/             unit · golden · property · contract · parity · e2e
   checks/          tests for scripts/checks
+  providers/       the provider contract suite, the toy providers and the
+                   cassettes under cassettes/<provider>/
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
+scripts/record_cassettes.py  records a provider's cassettes live: a local act
 scripts/legacy/    the 0.2.x fixture recorder, byte-exact: never edit
 .semgrep/          project semgrep rules and their tests
 docs/adr/          architecture decision records
@@ -101,6 +104,30 @@ From Phase 3, which builds the data layer (ADR-0011):
   `isolated` fixture, `tests/config_isolation.py`). Plant keys with
   `tests/data/leakcheck.py`'s `canary()`, never a literal, and check sinks
   with `LeakCheck`: never assert on a key's value in a way pytest could print.
+- A source is a `DataProvider` subclass with a `ProviderInfo`, named in the
+  `pyeconomics.providers` entry-point group and found through
+  `pyeconomics.data.registry` (imported by that path, so it never shadows
+  `pyeconomics.registry`). Override only the `build_*` and `parse_*` hooks of
+  the declared capabilities; the public `fetch`, `search`, `describe` and
+  `vintages` are final (they hold the hosted-mode, platform and status checks).
+  `uv run python -c "from pyeconomics.data import registry; registry.validate()"`
+  must pass; it reports `<id>: [<rule>] <detail>`. "Writing a provider"
+  (`docs/data/writing-a-provider.md`) is the contract.
+- Only `data/transport/` opens a socket, builds a request URL or reveals a key
+  (`tests/data/test_layering.py`). A provider builds `Request` values from its
+  declared hosts with `request_path`; a `Request` refuses a credential
+  parameter, body field or header, because the transport attaches the key from
+  the provider's `Authentication`. Parse bodies with `Response.json()`; never
+  pickle, `eval` or `yaml.load` a response, and parse XML only with defusedxml.
+- Hosted mode (`PYECONOMICS_MODE=hosted`) refuses a source not classed
+  `hosted-safe` or `user-supplied` before any request. A provider declares the
+  source's published rate limits; the transport holds it to them.
+- Offline tests replay cassettes under `tests/providers/cassettes/<provider>/`,
+  recorded only by `uv run --no-config python scripts/record_cassettes.py`,
+  never inside a test. A source that is not hosted-safe, or forbids storage,
+  records synthetic values through its `synthesize()` hook, and its cassette
+  says `"synthetic": true`. Each provider adds its row to
+  `tests/providers/test_notices.py` and its cases to `DataProvider.cases`.
 
 ## Units
 
@@ -112,7 +139,11 @@ Rates, returns, yields and percentages are decimals in every API (`0.05`, not
 - Run tests with `uv run pytest`, never `python -m pytest`: that puts the
   working directory on `sys.path` and can import a stale copy of the package.
 - Sockets are disabled in tests (`pytest-socket`); no test touches the
-  network. Warnings are errors.
+  network. Warnings are errors. `-m "not live"` is in `addopts`; the opt-in
+  live suite is `uv run pytest -m live --force-enable-socket tests/providers`.
+- Test basenames stay unique repo-wide (mypy maps them to top-level modules):
+  the provider contract suite is `tests/providers/provider_contract.py`,
+  because `tests/contract.py` is the model contract.
 - Golden tests (cited values with tolerances) and property tests (hypothesis)
   are required for every model from Phase 2. Start a model with
   `uv run python scripts/new_model.py <id>`; the golden format is in
