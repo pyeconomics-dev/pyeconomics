@@ -43,7 +43,9 @@ def _rate_limits(info: ProviderInfo) -> str:
     if not info.rate_limits:
         return "None declared."
     lines = [
-        f"- {limit.requests} requests per {limit.per}" for limit in info.rate_limits
+        f"- {limit.requests} requests per {limit.per}"
+        + (" without a key" if limit.without_key else "")
+        for limit in info.rate_limits
     ]
     return "\n".join(lines)
 

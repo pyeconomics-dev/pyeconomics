@@ -22,7 +22,8 @@ process installs the redacting log-record factory
 (:func:`pyeconomics.data.redaction.install`). The chain logs, at DEBUG, only
 which kind of source answered. :func:`has_key` answers the same question
 without creating a secret, so a presence check prints only ``True`` or
-``False``.
+``False``. Inside :func:`withheld`, the chain finds no key for the named
+providers, so a source whose key is optional runs keyless.
 
 Examples
 --------
@@ -35,10 +36,12 @@ Examples
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import stat
 import warnings
+from contextvars import ContextVar
 from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
@@ -57,6 +60,7 @@ from pyeconomics.data.credentials.secret import Secret, key_problem
 from pyeconomics.data.errors import ConfigError, CredentialError, DataWarning
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from types import ModuleType
 
 __all__ = [
@@ -65,6 +69,7 @@ __all__ = [
     "has_key",
     "key_variable",
     "resolve_key",
+    "withheld",
 ]
 
 #: The keyring service every key is stored under; the user is the provider id.
@@ -73,6 +78,8 @@ KEYRING_SERVICE: Final = "pyeconomics"
 _logger = logging.getLogger(__name__)
 # Warnings point at the first frame outside the package: the caller's code.
 _PACKAGE_DIR: Final = str(Path(__file__).parents[2])
+# The providers whose keys the chain does not find in this context.
+_WITHHELD: ContextVar[frozenset[str]] = ContextVar("withheld", default=frozenset())
 
 
 class KeySource(StrEnum):
@@ -188,8 +195,33 @@ def _from_keyring(provider: str) -> str:
     return found.strip() if isinstance(found, str) else ""
 
 
+@contextlib.contextmanager
+def withheld(provider_id: str) -> Iterator[None]:
+    """Find no key for a provider inside the block, wherever one is stored.
+
+    A source whose key is optional (BLS) then runs keyless, as it does for a
+    user without a key; the recorder and the live suite use it for a keyless
+    case. An explicit argument still counts.
+
+    Examples
+    --------
+    >>> with withheld("bls"):
+    ...     has_key("bls")
+    False
+
+    """
+    provider = identifier(provider_id, "provider_id")
+    token = _WITHHELD.set(_WITHHELD.get() | {provider})
+    try:
+        yield
+    finally:
+        _WITHHELD.reset(token)
+
+
 def _first(provider: str, *, posix: bool | None) -> tuple[KeySource, str] | None:
     """Return the first non-empty value in the chain after the argument."""
+    if provider in _WITHHELD.get():
+        return None
     posix = os.name == "posix" if posix is None else posix
     variable = key_variable(provider)
     value = os.environ.get(variable, "").strip()

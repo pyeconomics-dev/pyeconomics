@@ -141,6 +141,10 @@ From Phase 3, which builds the data layer (ADR-0011):
   records synthetic values through its `synthesize()` hook, and its cassette
   says `"synthetic": true`. Each provider adds its row to
   `tests/providers/test_notices.py` and its cases to `DataProvider.cases`.
+  Never provoke a rate limit or an outage to record one: a 429 or 5xx case is
+  `Case(simulate=429)`. A provider module's `__all__` lists its provider
+  classes only (the registry refuses anything else), and it joins
+  `PURE_MODULES`.
 
 ## Units
 

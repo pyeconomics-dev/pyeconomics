@@ -23,6 +23,7 @@ from pyeconomics.data.credentials.chain import (
     has_key,
     key_variable,
     resolve_key,
+    withheld,
 )
 from pyeconomics.data.credentials.dotenv import parse_dotenv
 from pyeconomics.data.credentials.secret import (
@@ -43,4 +44,5 @@ __all__ = [
     "key_variable",
     "parse_dotenv",
     "resolve_key",
+    "withheld",
 ]

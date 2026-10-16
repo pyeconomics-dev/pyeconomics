@@ -25,13 +25,17 @@ providers and every registered provider. Each check takes a provider class:
 
 A live run (``uv run pytest -m live --force-enable-socket tests/providers``)
 sends the same cases through the real transport and the maintainer's or CI's
-keys; it skips the error cases only a replay can provoke (429 and 5xx).
+keys; it skips the error cases only a replay can provoke (429 and 5xx, the
+simulated ones). A replay sends a stand-in key (:func:`replay_key`), so a
+source whose key is optional builds the keyed requests it recorded; a keyless
+case runs with the key withheld, live and replayed alike.
 """
 
 from __future__ import annotations
 
 import datetime as dt
 import math
+import secrets
 from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
@@ -84,8 +88,10 @@ __all__ = [
     "check_registered",
     "check_success_case",
     "check_synthesize",
+    "live_key",
     "load_cassette",
     "replay",
+    "replay_key",
 ]
 
 #: Where every provider's cassettes live: ``CASSETTES / <provider> / <case>.json``.
@@ -130,6 +136,25 @@ def load_cassette(provider_id: str, case: Case) -> Cassette:
 def replay(provider_id: str, case: Case) -> ReplayTransport:
     """Return a transport that replays a case's cassette."""
     return ReplayTransport([load_cassette(provider_id, case)])
+
+
+def replay_key(provider: type[DataProvider], case: Case) -> str | None:
+    """The key a replay sends: a stand-in for a keyed source, none for a keyless case.
+
+    A replay never reads a key, but a source whose key is optional builds its
+    keyed requests only when one is sent, as it was when recorded.
+    """
+    if case.keyless or provider.info.auth.kind is not AuthKind.KEY:
+        return None
+    return _PLAIN_KEY
+
+
+def live_key(case: Case) -> str | None:
+    """The key a live run sends: a random made-up one for an invalid-key case.
+
+    Otherwise ``None``, so the key chain supplies the maintainer's or CI's.
+    """
+    return secrets.token_hex(16) if case.invalid_key else None
 
 
 def _registry(provider: type[DataProvider]) -> ProviderRegistry:
@@ -238,10 +263,11 @@ def check_success_case(
     transport: Transport,
     *,
     recorded_on: dt.datetime | None = None,
+    key: str | None = None,
 ) -> None:
     """Run a success case and check what comes back."""
     instance = provider()
-    result: Any = instance.run_case(case, transport=transport)
+    result: Any = instance.run_case(case, key=key, transport=transport)
     if case.operation is Capability.FETCH:
         check_frame(provider, case, result, recorded_on=recorded_on)
     elif case.operation is Capability.SEARCH:
@@ -259,12 +285,16 @@ def check_success_case(
 
 
 def check_error_case(
-    provider: type[DataProvider], case: Case, transport: Transport
+    provider: type[DataProvider],
+    case: Case,
+    transport: Transport,
+    *,
+    key: str | None = None,
 ) -> None:
     """An error cassette raises the taxonomy's error, naming the provider."""
     assert case.expect is not None
     with pytest.raises(case.expect) as caught:
-        provider().run_case(case, transport=transport)
+        provider().run_case(case, key=key, transport=transport)
     assert caught.value.provider == provider.info.id
     assert str(caught.value)
 
@@ -288,6 +318,14 @@ def check_foreign_hosts_refused(provider: type[DataProvider]) -> None:
         )
     assert foreign.calls == []
     own = Request(host=info.hosts[0], path="/v1/x")
+    if not info.follow_redirects:
+        # A source that follows no redirect gets the redirect back, unfollowed.
+        pool = FakePool(
+            FakeRaw(302, headers={"Location": "http://x.example.net/"}), BANNED
+        )
+        assert transport(pool).send(info, own, key=_PLAIN_KEY).status == 302
+        assert len(pool.calls) == 1
+        return
     for target in (
         f"http://{info.hosts[0]}/v1/x",
         "https://foreign.example.net/v1/x",
@@ -335,6 +373,7 @@ def check_hosted_mode(provider: type[DataProvider]) -> None:
     )
     assert case is not None, "a provider needs a fetch case"
     request = provider().build_requests(case.argument)[0]  # type: ignore[arg-type]
+    key = replay_key(provider, case)
     configure(mode="hosted")
     assert current_mode() is Mode.HOSTED
     for licence in LicenceClass:
@@ -345,7 +384,7 @@ def check_hosted_mode(provider: type[DataProvider]) -> None:
         spy = SpyTransport(replay(provider.info.id, case))
         if licence.hosted_allowed:
             try:
-                variant().run_case(case, transport=spy)
+                variant().run_case(case, key=key, transport=spy)
             except LicenceError:
                 # A series may carry its own class (the terms of one series); that
                 # check follows the request, so the request was sent.
@@ -353,7 +392,7 @@ def check_hosted_mode(provider: type[DataProvider]) -> None:
             assert spy.sent, f"{licence.value} is allowed, so the request is sent"
             continue
         with pytest.raises(LicenceError) as refused:
-            variant().run_case(case, transport=spy)
+            variant().run_case(case, key=key, transport=spy)
         assert spy.sent == [], f"{licence.value} reached the transport"
         assert licence.value in str(refused.value)
         assert info.terms.terms_url in str(refused.value)

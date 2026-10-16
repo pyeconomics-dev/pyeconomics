@@ -25,8 +25,10 @@ from provider_contract import (
     check_registered,
     check_success_case,
     check_synthesize,
+    live_key,
     load_cassette,
     replay,
+    replay_key,
 )
 from toys import ToyJson, ToyVintage
 
@@ -73,7 +75,11 @@ def test_a_success_cassette_replays_into_a_valid_result(
 ) -> None:
     recorded_on = load_cassette(provider.info.id, case).recorded_on
     check_success_case(
-        provider, case, replay(provider.info.id, case), recorded_on=recorded_on
+        provider,
+        case,
+        replay(provider.info.id, case),
+        recorded_on=recorded_on,
+        key=replay_key(provider, case),
     )
 
 
@@ -81,7 +87,9 @@ def test_a_success_cassette_replays_into_a_valid_result(
 def test_an_error_cassette_maps_to_the_taxonomy(
     provider: type[DataProvider], case: Case
 ) -> None:
-    check_error_case(provider, case, replay(provider.info.id, case))
+    check_error_case(
+        provider, case, replay(provider.info.id, case), key=replay_key(provider, case)
+    )
 
 
 @pytest.mark.parametrize("provider", ALL, ids=_id)
@@ -141,7 +149,7 @@ def test_live_a_real_response_parses_into_a_valid_result(
     _skip_if_barred(provider)
     from pyeconomics.data.transport import default_transport  # noqa: PLC0415
 
-    check_success_case(provider, case, default_transport())
+    check_success_case(provider, case, default_transport(), key=live_key(case))
 
 
 @pytest.mark.live
@@ -150,8 +158,8 @@ def test_live_a_real_failure_maps_to_the_taxonomy(
     provider: type[DataProvider], case: Case
 ) -> None:
     _skip_if_barred(provider)
-    if case.expect in _REPLAY_ONLY:
+    if case.expect in _REPLAY_ONLY or case.simulate is not None:
         pytest.skip("a live source is not made to rate-limit or fail on request")
     from pyeconomics.data.transport import default_transport  # noqa: PLC0415
 
-    check_error_case(provider, case, default_transport())
+    check_error_case(provider, case, default_transport(), key=live_key(case))

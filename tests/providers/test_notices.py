@@ -38,6 +38,47 @@ class Row(NamedTuple):
 
 
 NOTICES: dict[str, Row] = {
+    # FRED API terms of use, Requirements (a), read 2026-10-15.
+    "fred": Row(
+        attribution="Source: Federal Reserve Bank of St. Louis, FRED®.",
+        notice=(
+            "This product uses the FRED® API but is not endorsed or certified by "
+            "the Federal Reserve Bank of St. Louis."
+        ),
+        terms_url="https://fred.stlouisfed.org/legal/",
+        checked=dt.date(2026, 10, 15),
+    ),
+    # BLS API terms of service, "Citing Data", read 2026-10-15; each frame adds
+    # the access date the same section asks users to cite.
+    "bls": Row(
+        attribution="Source: U.S. Bureau of Labor Statistics.",
+        notice=(
+            "BLS.gov cannot vouch for the data or analyses derived from these data "
+            "after the data have been retrieved from BLS.gov."
+        ),
+        terms_url="https://www.bls.gov/developers/termsOfService.htm",
+        checked=dt.date(2026, 10, 15),
+    ),
+    # BEA API terms of service, "Attribution", read 2026-10-15.
+    "bea": Row(
+        attribution="Source: U.S. Bureau of Economic Analysis.",
+        notice=(
+            "This product uses the Bureau of Economic Analysis (BEA) Data API but "
+            "is not endorsed or certified by BEA."
+        ),
+        terms_url="https://apps.bea.gov/API/_pdf/bea_api_tos.pdf",
+        checked=dt.date(2026, 10, 15),
+    ),
+    # Census Data API terms of service, "Attribution", read 2026-10-15.
+    "census": Row(
+        attribution="Source: U.S. Census Bureau.",
+        notice=(
+            "This product uses the Census Bureau Data API but is not endorsed or "
+            "certified by the Census Bureau."
+        ),
+        terms_url="https://www.census.gov/data/developers/about/terms-of-service.html",
+        checked=dt.date(2026, 10, 15),
+    ),
     "toy_json": Row(
         attribution="Source: Toy JSON Agency (a test fixture with invented numbers).",
         notice=(

@@ -29,6 +29,10 @@ each with its :class:`ColumnMeta`, under one :class:`TableMeta`. The rules:
   its :class:`~pyeconomics.core.provenance.RealtimePeriod`; a date may then
   repeat, once per real-time period, and
   :class:`~pyeconomics.data.vintage.Vintage` selects among them (decision 6).
+- **Notes.** A frame's metadata may carry ``notes``: what the source or the
+  provider says about the data, each a snake_case code and, after ``": "``,
+  a detail, such as ``revised_data`` (a source that keeps only current
+  estimates) or ``footnote: P preliminary (2026-08-31, 2026-09-30)``.
 - **Round trips.** :meth:`Series.canonical_json` and :meth:`Series.from_json`,
   and :meth:`Series.to_pandas` and :meth:`Series.from_pandas`, are lossless
   (and the same for :class:`Table`). pandas holds the index as
@@ -102,6 +106,7 @@ __all__ = [
     "DECIMAL_KINDS",
     "FRAME_SCHEMA_VERSION",
     "MAX_COLUMNS",
+    "MAX_NOTES",
     "MAX_OBSERVATIONS",
     "PANDAS_ATTRS_KEY",
     "ColumnMeta",
@@ -120,6 +125,8 @@ __all__ = [
 MAX_OBSERVATIONS: Final = MAX_ARRAY_LENGTH
 #: The most columns a table holds.
 MAX_COLUMNS: Final = 1_000
+#: The most notes a frame's metadata carries.
+MAX_NOTES: Final = 32
 #: The layout of a frame's canonical JSON; it goes up when a key changes.
 FRAME_SCHEMA_VERSION: Final = 1
 #: The key under which a pandas object's ``attrs`` hold the metadata.
@@ -634,6 +641,20 @@ class UnitRecord:
         return cls(**values)
 
 
+def _notes(value: object) -> tuple[str, ...]:
+    """Accept notes: a snake_case code, then optionally ``": "`` and a detail."""
+    items = f.sequence(value, "notes", max_items=MAX_NOTES)
+    checked = tuple(
+        f.text(item, "each note", max_length=f.MAX_TEXT_LENGTH) for item in items
+    )
+    for note in checked:
+        f.identifier(note.split(": ", 1)[0], "a note's code")
+    if len(set(checked)) != len(checked):
+        msg = "notes must not repeat a note"
+        raise f.fail(msg)
+    return checked
+
+
 def _currency(value: object) -> None:
     """Accept ``None`` or an ISO 4217 code: three uppercase ASCII letters."""
     if value is not None and not (
@@ -676,6 +697,10 @@ class SeriesMeta:
     own where its source marks it differently)."""
     retrieved_at: dt.datetime | None = None
     """When the provider fetched it, in UTC."""
+    notes: tuple[str, ...] = ()
+    """What the source or the provider says about the data: each a snake_case
+    code, then optionally ``": "`` and a detail (``revised_data``,
+    ``footnote: P preliminary (2026-08-31)``)."""
 
     def __post_init__(self) -> None:
         """Check every field; accept enum values as well as members."""
@@ -697,6 +722,7 @@ class SeriesMeta:
                 DateConvention, self.source_dating, "source_dating"
             ),
             "retrieved_at": f.optional_instant(self.retrieved_at, "retrieved_at"),
+            "notes": _notes(self.notes),
         }
         for name, value in normalized.items():
             object.__setattr__(self, name, value)
@@ -725,6 +751,7 @@ class SeriesMeta:
             "source_dating": self.source_dating.value,
             "terms": self.terms.to_dict(),
             "retrieved_at": _iso(self.retrieved_at),
+            "notes": list(self.notes),
         }
 
     @classmethod
@@ -752,6 +779,7 @@ _SERIES_META_KEYS: Final = (
     "source_dating",
     "terms",
     "retrieved_at",
+    "notes",
 )
 
 
@@ -829,6 +857,9 @@ class TableMeta:
     """The terms the table's data came under."""
     retrieved_at: dt.datetime | None = None
     """When the provider fetched it, in UTC."""
+    notes: tuple[str, ...] = ()
+    """What the source or the provider says about the data (see
+    :attr:`SeriesMeta.notes`)."""
 
     def __post_init__(self) -> None:
         """Check every field; accept enum values as well as members."""
@@ -846,6 +877,7 @@ class TableMeta:
                 DateConvention, self.source_dating, "source_dating"
             ),
             "retrieved_at": f.optional_instant(self.retrieved_at, "retrieved_at"),
+            "notes": _notes(self.notes),
         }
         for name, value in normalized.items():
             object.__setattr__(self, name, value)
@@ -872,6 +904,7 @@ class TableMeta:
             "source_dating": self.source_dating.value,
             "terms": self.terms.to_dict(),
             "retrieved_at": _iso(self.retrieved_at),
+            "notes": list(self.notes),
         }
 
     @classmethod
@@ -896,6 +929,7 @@ _TABLE_META_KEYS: Final = (
     "source_dating",
     "terms",
     "retrieved_at",
+    "notes",
 )
 
 

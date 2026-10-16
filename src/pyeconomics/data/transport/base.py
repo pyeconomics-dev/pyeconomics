@@ -56,6 +56,7 @@ __all__ = [
     "HOST_PATTERN",
     "HTTP_METHODS",
     "KEPT_HEADERS",
+    "KEY_PLACEMENTS",
     "MAX_BODY_BYTES",
     "MAX_PARAMETERS",
     "MAX_REQUESTS_PER_OPERATION",
@@ -69,6 +70,8 @@ __all__ = [
     "retry_after_seconds",
 ]
 
+#: Where a request may ask for the key (``KeyPlacement``'s values).
+KEY_PLACEMENTS: Final = ("query", "body", "header")
 #: The methods a request may use.
 HTTP_METHODS: Final = ("GET", "POST")
 #: The most query parameters one request carries.
@@ -231,6 +234,10 @@ class Request:
         Extra non-credential headers, such as ``Accept``.
     series
         The series or table id the request concerns, so a 404 can name it.
+    key_placement
+        Where this request wants the key, ``"query"``, ``"body"`` or
+        ``"header"``, among the placements the provider's authentication
+        declares; ``None`` for its default. FRED's v2 asks for its header.
     """
 
     host: str
@@ -240,6 +247,7 @@ class Request:
     body: Any = None
     headers: tuple[tuple[str, str], ...] = ()
     series: str | None = None
+    key_placement: str | None = None
 
     def __post_init__(self) -> None:
         """Check every field, normalizing the parameters and the body."""
@@ -269,6 +277,9 @@ class Request:
         )
         object.__setattr__(self, "body", _body(self.body))
         f.optional_text(self.series, "series", max_length=128)
+        if self.key_placement not in {None, *KEY_PLACEMENTS}:
+            msg = f"a key placement is one of {', '.join(KEY_PLACEMENTS)}"
+            raise f.fail(msg)
 
 
 def _check_path(path: object) -> None:

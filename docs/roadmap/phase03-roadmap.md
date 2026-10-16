@@ -4876,6 +4876,21 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
       providers-live environment; the pattern for a
       provider, its cassettes, its tests and its entry point
       is set.
+    - Step 6 added seams the contract lacked
+      (docs/data/writing-a-provider.md): a source that pages
+      (FiscalData) overrides DataProvider.next_page; an
+      optional key that only raises limits (OpenFIGI) is
+      required=False, the hooks read self.sends_key, and a
+      limit that holds only without a key is
+      RateLimit(without_key=True); a frame's notes carry what
+      a source says about its data (Treasury's December 2021
+      methodology change is a note); a source answering a bad
+      key with a redirect sets follow_redirects=False; the
+      recorder records a 429 or 5xx case with
+      Case(simulate=429), never by provoking one; and an
+      entry-point module's __all__ lists provider classes
+      only. tests/providers/canned.py routes canned answers
+      for per-provider tests.
     - The Board's notice of 2026-07-16 says the Data Download
       Program's "Build Your Package" option goes the week of
       2026-11-09 and points users to FRED or each release
@@ -5798,6 +5813,9 @@ hygiene.
       SEP release a vintage) and nyfed (each r* and
       term-premium release a vintage) are the sources with
       vintages so far.
+    - "Recorded in metadata" means a frame's notes (Step 6):
+      a snake_case code and a detail, such as the Penn World
+      Table's release version.
     - ROADMAP §4 3.4 classes the Philadelphia, Atlanta and
       Cleveland Fed products library-only (research or
       non-commercial terms); §4 3.7 says "CBO and Penn World
@@ -7245,6 +7263,14 @@ the price. New conversation per phase-boundary hygiene.
       LicenceClass, LlmUse; Step 2) and the transform names
       (transforms.py; Step 11), so core can type and check
       bindings and records without importing the data layer.
+    - A frame's metadata carries notes (Step 6): each a
+      snake_case code and a detail. BEA's frames note
+      revised_data (its API serves only current estimates),
+      BLS's keyless frames bls_keyless, footnotes and FRED's
+      copyright status are notes too. Fetched.source() does
+      not yet copy note codes into DataSource.warnings: this
+      step decides which codes become warnings (revised_data
+      at least) and copies them there.
     - pyeconomics.data resolves concepts (Step 11) with
       vintages, transforms, alignment and DataSource records,
       and its public get() works offline through
@@ -12084,6 +12110,25 @@ forward whatever is still open here.
     vintage is an `as_of` more than a day old; `user-supplied` data is never
     stored. `PYECONOMICS_TTL_<PROVIDER>=0` turns a provider's cache off, and
     an override applies to entries stored afterwards.
+  - Step 6 (providers FRED and ALFRED, BLS, BEA, Census, 2026-10-15): the
+    first real sources needed seams the contract lacked, added in-step
+    (`upstream-gap`, Steps 2 and 4): frame metadata `notes` (`SeriesMeta`
+    and `TableMeta`; Steps 7, 9 and 12 patched to use them); a key slot per
+    placement (`KeySlot`, `Authentication.alternates`,
+    `Request.key_placement`) for FRED's v1 query key and v2 header key;
+    `DataProvider.sends_key`, `credentials.withheld()`, `Case.keyless` and
+    `RateLimit.without_key` for BLS's optional key; `DataProvider.next_page`
+    for paging (FRED v2, FiscalData); `ProviderInfo.follow_redirects` and
+    `classify_error` for any status outside 2xx (Census answers a bad key with
+    a redirect whose page and cookie echo the key: a `security` finding fixed
+    in-step); and `Case.simulate`, so the recorder records a 429 or a 5xx
+    without provoking one. The contract suite's replay now sends a stand-in key
+    and its live run sends a made-up key for an `invalid_key` case (a latent
+    Step 4 bug). FRED's current terms live at fred.stlouisfed.org/legal/ and
+    forbid storage and AI or machine-learning use (`llm_use` forbidden); the
+    old docs/api/terms_of_use.html page is stale. Census has required a key on
+    every query since May 2026. An entry-point module's `__all__` lists
+    provider classes only.
 
 ---
 

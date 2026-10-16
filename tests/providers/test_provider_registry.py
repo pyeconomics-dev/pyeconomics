@@ -71,15 +71,24 @@ def _fresh_cache() -> Iterator[None]:
     refresh()
 
 
-def test_the_installed_registry_is_empty_until_providers_register() -> None:
-    assert registry.ids() == ()
+#: The providers this distribution registers (Phase 3 Step 6 on).
+BUILT_IN = ("bea", "bls", "census", "fred")
+
+
+def test_the_installed_registry_holds_the_built_in_providers_and_validates() -> None:
+    assert set(BUILT_IN) <= set(registry.ids())
     registry.validate()
     assert installed() is installed()
 
 
-def test_the_entry_point_group_exists_and_is_empty_in_this_distribution() -> None:
+def test_the_entry_point_group_names_each_built_in_providers_module() -> None:
     assert ENTRY_POINT_GROUP == "pyeconomics.providers"
-    assert list(importlib.metadata.entry_points(group=ENTRY_POINT_GROUP)) == []
+    points = {
+        point.name: point.value
+        for point in importlib.metadata.entry_points(group=ENTRY_POINT_GROUP)
+        if point.dist is not None and point.dist.name == "pyeconomics"
+    }
+    assert points == {name: f"pyeconomics.data.providers.{name}" for name in BUILT_IN}
 
 
 def test_the_facade_looks_providers_up_by_id(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -236,7 +245,7 @@ def test_refresh_makes_the_next_use_discover_again(
     name = module(monkeypatch, "fake_refreshed", __all__=["ToyJson"], ToyJson=ToyJson)
     point = FakeEntryPoint("a", name, dist=FakeDistribution("pack"))
     monkeypatch.setattr(importlib.metadata, "entry_points", lambda *, group: [point])
-    assert registry.ids() == ()  # still the cached, empty registry
+    assert "toy_json" not in registry.ids()  # still the cached registry
     refresh()
     assert registry.ids() == ("toy_json",)
 

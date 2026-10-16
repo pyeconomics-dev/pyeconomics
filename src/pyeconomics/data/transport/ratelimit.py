@@ -62,7 +62,12 @@ class _Window:
     def __init__(self, limit: RateLimit) -> None:
         self.size = limit.requests
         self.span = float(limit.window_seconds)
+        self.keyless_only = limit.without_key is True
         self.grants: deque[float] = deque(maxlen=limit.requests)
+
+    def applies(self, *, keyed: bool) -> bool:
+        """Whether a request counts against this limit."""
+        return not (keyed and self.keyless_only)
 
     def earliest(self) -> float:
         """Return the first time another grant keeps the window within its limit."""
@@ -101,8 +106,11 @@ class ProviderLimiter:
         self._windows = tuple(_Window(limit) for limit in limits)
         self._last = float("-inf")
 
-    def acquire(self, sleep: Callable[[float], None]) -> float:
+    def acquire(self, sleep: Callable[[float], None], *, keyed: bool = False) -> float:
         """Reserve the next grant time within every limit, and sleep until it.
+
+        A limit that holds only without a key (``RateLimit.without_key``) does
+        not count a request sent with one (``keyed``).
 
         Returns
         -------
@@ -114,11 +122,10 @@ class ProviderLimiter:
         RateLimitError
             If the wait would exceed :attr:`max_wait`; nothing is reserved.
         """
+        windows = [w for w in self._windows if w.applies(keyed=keyed)]
         with self._lock:
             now = self._clock()
-            grant = max(
-                now, self._last, *(window.earliest() for window in self._windows)
-            )
+            grant = max(now, self._last, *(window.earliest() for window in windows))
             wait = grant - now
             if wait > self.max_wait:
                 msg = (
@@ -126,7 +133,7 @@ class ProviderLimiter:
                     f"could go in {wait:.0f} seconds"
                 )
                 raise RateLimitError(msg, provider=self.provider, retry_after=wait)
-            for window in self._windows:
+            for window in windows:
                 window.grants.append(grant)
             self._last = grant
         if wait > 0.0:
@@ -147,13 +154,18 @@ class RateLimiters:
         self._clock = clock
         self._max_wait = max_wait
         self._lock = threading.Lock()
-        self._limiters: dict[tuple[str, tuple[tuple[int, str], ...]], ProviderLimiter]
+        self._limiters: dict[
+            tuple[str, tuple[tuple[int, str, bool], ...]], ProviderLimiter
+        ]
         self._limiters = {}
 
     def for_provider(self, info: ProviderInfo) -> ProviderLimiter:
         """Return the limiter for a provider's declared limits."""
         limits = tuple(info.rate_limits)
-        key = (info.id, tuple((limit.requests, limit.per) for limit in limits))
+        key = (
+            info.id,
+            tuple((limit.requests, limit.per, limit.without_key) for limit in limits),
+        )
         with self._lock:
             limiter = self._limiters.get(key)
             if limiter is None:
