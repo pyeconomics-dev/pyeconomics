@@ -26,8 +26,8 @@ provider's terms is a test.
 Examples
 --------
 >>> from pyeconomics.data import registry
->>> registry.ids()
-()
+>>> {"bea", "bls", "census", "fred"} <= set(registry.ids())
+True
 >>> registry.validate()
 
 """
