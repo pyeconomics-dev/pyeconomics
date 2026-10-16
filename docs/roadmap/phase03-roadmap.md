@@ -4005,9 +4005,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 6 — Providers: FRED and ALFRED, BLS, BEA, Census
+## Step 6 — Providers: FRED and ALFRED, BLS, BEA, Census ✅
 
-**Status:** Not started
+**Status:** Complete — PR #118 (2026-10-16)
 
 > **Goal:** Register the four keyed US providers and the automation that
 > watches every provider. Add `src/pyeconomics/data/providers/fred.py`
@@ -11636,7 +11636,7 @@ workflow above maps directly to the corresponding row below.
 | 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #111 |
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
-| 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
+| 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
