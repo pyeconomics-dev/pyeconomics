@@ -1,0 +1,1 @@
+{"provider":"census","recorded_on":"2026-10-16T14:27:57+00:00","requests":[{"body":null,"method":"GET","parameters":[["for","state:06"],["get","NAME,B99999_999E"]],"response":{"body":"error: unknown variable 'B99999_999E'","encoding":"utf-8","headers":{"content-type":"text/plain;charset=utf-8"},"status":400},"url":"https://api.census.gov/data/2024/acs/acs1"}],"synthetic":false}

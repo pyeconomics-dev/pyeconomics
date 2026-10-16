@@ -26,7 +26,11 @@ capabilities it declares and nothing else:
 - ``classify_error`` maps a source's own error body to the error taxonomy when the
   status code alone does not.
 - ``exchange`` is the seam a non-HTTP source overrides: the default sends each
-  request through the :class:`~.transport.base.Transport`.
+  request through the :class:`~.transport.base.Transport`, and follows
+  ``next_page`` for a source that pages its answers.
+- :attr:`DataProvider.sends_key` tells the build and parse hooks whether the
+  transport will attach a key, so a source whose key is optional (BLS) can
+  choose its keyed or keyless API.
 
 The public methods (:meth:`DataProvider.fetch`, :meth:`~DataProvider.search`,
 :meth:`~DataProvider.describe`, :meth:`~DataProvider.vintages`) are final: they
@@ -68,9 +72,11 @@ datetime.date(2020, 1, 1)
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt  # noqa: TC003 - pydantic resolves Query's date fields
 import re
 import sys
+from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from typing import (
@@ -100,7 +106,7 @@ from pyeconomics.core.provenance import DATA_DATE_BOUNDS, VINTAGE_LABEL_PATTERN
 from pyeconomics.data import cache, modes
 from pyeconomics.data.cache.policy import DEFAULT_TTL_SECONDS, Fetched, Origin
 from pyeconomics.data.config import GUIDE_URL
-from pyeconomics.data.credentials import key_variable
+from pyeconomics.data.credentials import has_key, key_variable, withheld
 from pyeconomics.data.errors import (
     CredentialError,
     DataError,
@@ -127,7 +133,7 @@ from pyeconomics.data.types import (
 from pyeconomics.data.vintage import Vintage
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Generator, Iterable, Mapping, Sequence
 
     from pyeconomics.data.credentials import Secret
     from pyeconomics.data.terms import Terms
@@ -144,12 +150,14 @@ __all__ = [
     "Case",
     "DataProvider",
     "KeyPlacement",
+    "KeySlot",
     "Platform",
     "ProviderInfo",
     "Query",
     "RateLimit",
     "SearchHit",
     "current_platform",
+    "sends_key",
     "tail",
 ]
 
@@ -174,6 +182,11 @@ _FINAL_METHODS: Final = (
     "run_case",
 )
 _SECONDS: Final = {"second": 1, "minute": 60, "day": 86_400}
+#: The statuses a recorder may stand in for (``Case.simulate``): the failures no
+#: well-behaved client provokes on purpose.
+SIMULATED_STATUSES: Final = frozenset({429, 500, 502, 503, 504})
+# Whether the operation running in this context sends a key (see sends_key).
+_SENDS_KEY: ContextVar[bool | None] = ContextVar("sends_key", default=None)
 
 
 class Capability(StrEnum):
@@ -230,6 +243,23 @@ class KeyPlacement(StrEnum):
     HEADER = "header"
 
 
+@dataclass(frozen=True, slots=True)
+class KeySlot:
+    """Another place a request may ask for the key (``Request.key_placement``).
+
+    A source whose API versions take the key differently declares one: FRED's
+    v1 reads a query parameter, its v2 an ``Authorization`` header.
+    """
+
+    placement: KeyPlacement
+    name: str
+    scheme: str | None = None
+
+    def __post_init__(self) -> None:
+        """Turn the placement's value into a member; leave anything else."""
+        object.__setattr__(self, "placement", _member(KeyPlacement, self.placement))
+
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Authentication:
     """How a source is authenticated; the transport attaches it, never a provider.
@@ -255,7 +285,10 @@ class Authentication:
     """A header value's prefix, such as ``Bearer``."""
     required: bool = True
     """Whether a fetch fails without a key; ``False`` for a key that only raises
-    limits (OpenFIGI), which is sent when the chain has one."""
+    limits (OpenFIGI, BLS), which is sent when the chain has one."""
+    alternates: tuple[KeySlot, ...] = ()
+    """Other places a request may ask for the key, each a different placement:
+    a request names one with ``Request.key_placement``."""
 
     @classmethod
     def key(
@@ -265,6 +298,7 @@ class Authentication:
         *,
         scheme: str | None = None,
         required: bool = True,
+        alternates: tuple[KeySlot, ...] = (),
     ) -> Authentication:
         """Describe a key sent as a query parameter, a body field or a header."""
         return cls(
@@ -273,6 +307,28 @@ class Authentication:
             name=name,
             scheme=scheme,
             required=required,
+            alternates=alternates,
+        )
+
+    def slot(self, placement: str | None) -> KeySlot | None:
+        """Return where a request that asks for ``placement`` gets the key.
+
+        ``None`` asks for the default placement. A placement the source does not
+        declare returns ``None``.
+        """
+        if not isinstance(self.placement, KeyPlacement) or self.name is None:
+            return None
+        default = KeySlot(self.placement, self.name, self.scheme)
+        if placement is None or placement == default.placement.value:
+            return default
+        candidates: tuple[object, ...] = tuple(self.alternates)
+        return next(
+            (
+                slot
+                for slot in candidates
+                if isinstance(slot, KeySlot) and slot.placement == placement
+            ),
+            None,
         )
 
     @classmethod
@@ -285,14 +341,20 @@ class Authentication:
         object.__setattr__(self, "kind", _member(AuthKind, self.kind))
         if self.placement is not None:
             object.__setattr__(self, "placement", _member(KeyPlacement, self.placement))
+        object.__setattr__(self, "alternates", _tuple(self.alternates))
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class RateLimit:
-    """A published limit: this many requests per second, minute or day."""
+    """A published limit: this many requests per second, minute or day.
+
+    ``without_key`` marks a limit that holds only for the requests sent without
+    a key, such as BLS's 25 keyless queries a day.
+    """
 
     requests: int
     per: Literal["second", "minute", "day"]
+    without_key: bool = False
 
     @property
     def window_seconds(self) -> int:
@@ -340,6 +402,11 @@ class ProviderInfo:
     run skips a source whose terms bar it (ADR-0011 decision 18)."""
     max_response_bytes: int = DEFAULT_MAX_RESPONSE_BYTES
     """The largest response body the transport reads, in bytes."""
+    follow_redirects: bool = True
+    """Whether the transport follows a redirect (to an allowlisted HTTPS host).
+    ``False`` returns the redirect itself, for a source that answers a bad key
+    with one (Census), so ``classify_error`` sees it and nothing follows a page
+    that echoes the request."""
     ttl_seconds: int = DEFAULT_TTL_SECONDS
     """How long the cache serves an open entry (``latest``, ``first_release``,
     ``all`` or a recent ``as_of``) before fetching again, in seconds; a user's
@@ -525,10 +592,30 @@ class Case:
     """The error the operation raises, for an error cassette."""
     invalid_key: bool = False
     """Whether the recorder sends a made-up key, to record a 401 or a 403."""
+    keyless: bool = False
+    """Whether the case runs with no key, for a source whose key is optional:
+    the chain's key is withheld (:func:`~pyeconomics.data.credentials.withheld`)."""
+    simulate: int | None = None
+    """A failure status the recorder records in place of the source's answer, for
+    an error no well-behaved client provokes on purpose: a 429 or a 5xx. The
+    request is built but never sent, and the cassette is marked synthetic."""
 
     def __post_init__(self) -> None:
         """Check that the argument fits the operation."""
         f.identifier(self.name, "case name")
+        f.flag(self.keyless, "keyless")
+        f.flag(self.invalid_key, "invalid_key")
+        if self.keyless and self.invalid_key:
+            msg = "a keyless case sends no key, so it cannot send an invalid one"
+            raise f.fail(msg)
+        if self.simulate is not None and (
+            self.simulate not in SIMULATED_STATUSES or self.expect is None
+        ):
+            msg = (
+                "a simulated case stands in for a 429 or a 5xx and names the "
+                "error it expects"
+            )
+            raise f.fail(msg)
         operation = f.choice(Capability, self.operation, "operation")
         object.__setattr__(self, "operation", operation)
         if operation is Capability.BULK:
@@ -538,6 +625,20 @@ class Case:
         if not isinstance(self.argument, wants):
             msg = f"a {operation.value} case takes a {wants.__name__}"
             raise f.fail(msg)
+
+
+def sends_key(info: ProviderInfo, key: str | Secret | None = None) -> bool:
+    """Return whether the transport attaches a key to a provider's requests.
+
+    It does for a source with a key that is required, given as an argument, or
+    found by the key chain (an optional key is sent only when there is one).
+    The transport and :attr:`DataProvider.sends_key` both ask this, so a
+    provider's keyed or keyless requests always match what is sent.
+    """
+    auth = info.auth
+    if auth.kind is not AuthKind.KEY:
+        return False
+    return key is not None or auth.required or has_key(info.id)
 
 
 def tail[F: (Series, Table)](frame: F, count: int) -> F:
@@ -655,11 +756,32 @@ class DataProvider:
     def classify_error(self, request: Request, response: Response) -> DataError | None:
         """Map a source's own error body to the taxonomy, or return ``None``.
 
-        Called for a status of 400 or more before the default mapping. A source
+        Called for any status outside 2xx before the default mapping (a redirect
+        reaches it only from a source that does not follow them). A source
         that answers a missing series with HTTP 400 and a JSON message, say,
         returns a :class:`~pyeconomics.data.errors.SeriesNotFoundError` here.
         """
         return None
+
+    def next_page(self, request: Request, response: Response) -> Request | None:
+        """Return the request for the page after ``response``, or ``None``.
+
+        A source that pages its answers (FRED v2's cursor, FiscalData's page
+        numbers) overrides this; the default :meth:`exchange` follows it, and
+        ``parse`` then receives every page, in order, after its first request's.
+        """
+        return None
+
+    @property
+    def sends_key(self) -> bool:
+        """Whether the transport attaches a key in the operation now running.
+
+        A build or parse hook of a source whose key is optional reads it to
+        choose the keyed or the keyless API. Outside an operation it answers
+        for a call with no explicit key.
+        """
+        current = _SENDS_KEY.get()
+        return sends_key(self.info) if current is None else current
 
     def exchange(
         self,
@@ -671,16 +793,26 @@ class DataProvider:
         """Send the requests and return their answers, in order.
 
         The default sends each through ``transport`` (the process's HTTPS
-        transport when ``None``) and stops at the first failure status. A
-        source that is not HTTPS, a terminal's desktop session say, overrides
-        this and declares ``access=Access.SESSION`` and no hosts.
+        transport when ``None``), follows :meth:`next_page` after each answer,
+        and stops at the first failure status. A source that is not HTTPS, a
+        terminal's desktop session say, overrides this and declares
+        ``access=Access.SESSION`` and no hosts.
         """
         active = transport if transport is not None else default_transport()
         responses: list[Response] = []
-        for request in requests:
-            response = active.send(self.info, request, key=key)
-            self._check_status(request, response)
-            responses.append(response)
+        for first in requests:
+            request: Request | None = first
+            while request is not None:
+                if len(responses) >= MAX_REQUESTS_PER_OPERATION:
+                    msg = (
+                        f"{self.info.id} needs more than "
+                        f"{MAX_REQUESTS_PER_OPERATION} requests for one operation"
+                    )
+                    raise self._contract(msg)
+                response = active.send(self.info, request, key=key)
+                self._check_status(request, response)
+                responses.append(response)
+                request = self.next_page(request, response)
         return responses
 
     def synthesize(
@@ -769,8 +901,9 @@ class DataProvider:
         found = cache.lookup(self.info, checked)
         if found.fetched is not None:
             return found.fetched
-        responses = self._run(self.build_requests(checked), key, transport)
-        frame = self.parse(responses, checked)
+        with self._keyed(key):
+            responses = self._run(self.build_requests(checked), key, transport)
+            frame = self.parse(responses, checked)
         fetched = Fetched(
             self._finish(frame, checked, responses),
             Origin(warnings=found.warnings),
@@ -794,8 +927,9 @@ class DataProvider:
             msg = f"limit must be between 1 and {MAX_SEARCH_RESULTS}"
             raise f.fail(msg)
         self._gate(Capability.SEARCH)
-        responses = self._run(self.build_search(text, limit), key, transport)
-        hits = tuple(self.parse_search(responses, text, limit))
+        with self._keyed(key):
+            responses = self._run(self.build_search(text, limit), key, transport)
+            hits = tuple(self.parse_search(responses, text, limit))
         if len(hits) > limit or not all(isinstance(hit, SearchHit) for hit in hits):
             msg = f"{self.info.id}.parse_search must return at most {limit} SearchHit"
             raise self._contract(msg)
@@ -812,8 +946,9 @@ class DataProvider:
         """Describe a series without its observations (capability ``describe``)."""
         series = self._series_id(series_id)
         self._gate(Capability.DESCRIBE)
-        responses = self._run(self.build_describe(series), key, transport)
-        candidate: object = self.parse_describe(responses, series)
+        with self._keyed(key):
+            responses = self._run(self.build_describe(series), key, transport)
+            candidate: object = self.parse_describe(responses, series)
         if not isinstance(candidate, SeriesMeta) or candidate.provider != self.info.id:
             msg = f"{self.info.id}.parse_describe must return its own SeriesMeta"
             raise self._contract(msg)
@@ -834,8 +969,9 @@ class DataProvider:
         """List the dates a series changed, oldest first (capability ``vintages``)."""
         series = self._series_id(series_id)
         self._gate(Capability.VINTAGES)
-        responses = self._run(self.build_vintages(series), key, transport)
-        days = tuple(self.parse_vintages(responses, series))
+        with self._keyed(key):
+            responses = self._run(self.build_vintages(series), key, transport)
+            days = tuple(self.parse_vintages(responses, series))
         checked = tuple(f.day(day, "a vintage date", DATA_DATE_BOUNDS) for day in days)
         if len(checked) > MAX_OBSERVATIONS or checked != tuple(sorted(set(checked))):
             msg = f"{self.info.id}.parse_vintages must return sorted, distinct dates"
@@ -850,7 +986,24 @@ class DataProvider:
         key: str | Secret | None = None,
         transport: Transport | None = None,
     ) -> Series | Table | tuple[SearchHit, ...] | SeriesMeta | tuple[dt.date, ...]:
-        """Run a :class:`Case` through the public operation it names."""
+        """Run a :class:`Case` through the public operation it names.
+
+        A keyless case runs with the key chain's key withheld, and refuses an
+        explicit key.
+        """
+        if not case.keyless:
+            return self._run_case(case, key, transport)
+        if key is not None:
+            msg = f"{case.name} runs keyless, so it takes no key"
+            raise self._contract(msg)
+        with withheld(self.info.id):
+            return self._run_case(case, None, transport)
+
+    # --- internals ---------------------------------------------------------------
+
+    def _run_case(
+        self, case: Case, key: str | Secret | None, transport: Transport | None
+    ) -> Series | Table | tuple[SearchHit, ...] | SeriesMeta | tuple[dt.date, ...]:
         argument = case.argument
         if isinstance(argument, Query):
             return self.fetch(argument, key=key, transport=transport)
@@ -861,7 +1014,14 @@ class DataProvider:
             return self.describe(text, key=key, transport=transport)
         return self.vintages(text, key=key, transport=transport)
 
-    # --- internals ---------------------------------------------------------------
+    @contextlib.contextmanager
+    def _keyed(self, key: str | Secret | None) -> Generator[None]:
+        """Say, for the hooks of one operation, whether a key is sent."""
+        token = _SENDS_KEY.set(sends_key(self.info, key))
+        try:
+            yield
+        finally:
+            _SENDS_KEY.reset(token)
 
     def _unimplemented(self, hook: str) -> NoReturn:
         msg = f"{type(self).__name__} does not implement {hook}"
@@ -927,19 +1087,28 @@ class DataProvider:
             )
             raise self._contract(msg)
         responses = tuple(self.exchange(requests, key=key, transport=transport))
-        if len(responses) != len(requests) or not all(
+        if not len(requests) <= len(responses) <= MAX_REQUESTS_PER_OPERATION or not all(
             isinstance(response, Response) for response in responses
         ):
-            msg = f"{self.info.id}.exchange must return one Response per request"
+            msg = (
+                f"{self.info.id}.exchange must return a Response per request "
+                "(and per further page)"
+            )
             raise self._contract(msg)
-        for request, response in zip(requests, responses, strict=True):
-            self._check_status(request, response)
+        if len(responses) == len(requests):
+            for request, response in zip(requests, responses, strict=True):
+                self._check_status(request, response)
+        elif not all(response.ok for response in responses):
+            # Pages follow their requests, so a failure is no longer matched to
+            # the request that met it; the default exchange already mapped it.
+            msg = f"{self.info.id}.exchange returned a failed page"
+            raise ResponseError(msg, provider=self.info.id)
         return responses
 
     def _check_status(self, request: Request, response: Response) -> None:
         """Map a response's final status to the error taxonomy."""
         status, info = response.status, self.info
-        if status >= 400:  # noqa: PLR2004 - HTTP error statuses
+        if not response.ok:
             custom = self.classify_error(request, response)
             if custom is not None:
                 raise custom

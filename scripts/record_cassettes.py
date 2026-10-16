@@ -22,7 +22,11 @@ line feed:
   value, and the cassette is marked ``"synthetic": true``;
 - a case that expects an error (``Case.expect``) must raise exactly it, and one
   that does not must not; a case with ``invalid_key`` sends a random made-up key,
-  to record a 401 or a 403;
+  to record a 401 or a 403, and a ``keyless`` case runs with the key withheld;
+- a case with ``simulate`` (a 429 or a 5xx, which no well-behaved client
+  provokes on purpose) builds its real requests but sends none: each is
+  answered with that status and a ``Retry-After`` of 60 seconds, and the
+  cassette is marked synthetic;
 - the scan every cassette must pass (``scan_text``) runs before anything is
   written, and a hit names the pattern, never the value.
 
@@ -51,6 +55,7 @@ from pyeconomics.data import (
     registry,
 )
 from pyeconomics.data.transport import default_transport
+from pyeconomics.data.transport.base import Response
 from pyeconomics.data.transport.cassette import (
     MAX_CASSETTE_BYTES,
     MAX_OBSERVATIONS,
@@ -63,9 +68,16 @@ if TYPE_CHECKING:
 
     from pyeconomics.data.credentials import Secret
     from pyeconomics.data.providers.base import Case, ProviderInfo
-    from pyeconomics.data.transport.base import Request, Response, Transport
+    from pyeconomics.data.transport.base import Request, Transport
 
-__all__ = ["CASSETTES", "RecordingTransport", "main", "needs_synthetic", "record_case"]
+__all__ = [
+    "CASSETTES",
+    "RecordingTransport",
+    "SimulatingTransport",
+    "main",
+    "needs_synthetic",
+    "record_case",
+]
 
 CASSETTES: Final = (
     Path(__file__).resolve().parents[1] / "tests" / "providers" / "cassettes"
@@ -94,6 +106,28 @@ class RecordingTransport:
         response = self.inner.send(info, request, key=key)
         self.exchanges.append((request, response))
         return response
+
+
+class SimulatingTransport:
+    """Answers every request with one failure status, sending nothing.
+
+    For a case with ``simulate``: the request is the provider's own, the answer
+    the status the source documents for a limit or an outage.
+    """
+
+    def __init__(self, status: int, now: dt.datetime) -> None:
+        self.status = status
+        self.now = now
+
+    def send(
+        self,
+        info: ProviderInfo,  # noqa: ARG002 - the protocol's signature
+        request: Request,  # noqa: ARG002 - the protocol's signature
+        *,
+        key: str | Secret | None = None,  # noqa: ARG002 - nothing is sent
+    ) -> Response:
+        """Return the simulated failure."""
+        return Response(self.status, b"", self.now, (("retry-after", "60"),))
 
 
 def needs_synthetic(provider: type[DataProvider]) -> bool:
@@ -157,7 +191,10 @@ def record_case(
         or fails the secret scan. Nothing is written.
     """
     _check_case(case)
-    recorder = RecordingTransport(transport)
+    simulated = case.simulate is not None
+    recorder = RecordingTransport(
+        SimulatingTransport(case.simulate, now) if case.simulate else transport
+    )
     key = secrets.token_hex(16) if case.invalid_key else None
     try:
         with cache.bypass():  # a recording must reach the source, not the cache
@@ -173,10 +210,10 @@ def record_case(
     if not recorder.exchanges:
         msg = f"{case.name} sent no request"
         raise RecordingError(msg)
-    synthetic = needs_synthetic(type(provider))
+    synthetic = simulated or needs_synthetic(type(provider))
     exchanges = (
         _synthesize(provider, recorder.exchanges, case)
-        if synthetic
+        if synthetic and not simulated
         else recorder.exchanges
     )
     cassette = Cassette.from_exchanges(

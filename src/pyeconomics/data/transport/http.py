@@ -52,9 +52,9 @@ from urllib.parse import quote, urlencode, urljoin, urlsplit
 import pyeconomics
 from pyeconomics.data import modes, redaction
 from pyeconomics.data.config import settings
-from pyeconomics.data.credentials import has_key, resolve_key
+from pyeconomics.data.credentials import resolve_key
 from pyeconomics.data.errors import CredentialError, ResponseError, TransportError
-from pyeconomics.data.providers.base import AuthKind, KeyPlacement
+from pyeconomics.data.providers.base import AuthKind, KeyPlacement, sends_key
 from pyeconomics.data.transport.base import (
     KEPT_HEADERS,
     Request,
@@ -137,6 +137,7 @@ class _Wire:
     url: str
     headers: dict[str, str]
     payload: bytes | None
+    keyed: bool = False
 
     def __repr__(self) -> str:
         """Show nothing of the URL or headers, which may carry the key."""
@@ -298,7 +299,6 @@ class HttpTransport:
         self, info: ProviderInfo, request: Request, key: str | Secret | None
     ) -> _Wire:
         """Build the URL, headers and body, attaching the key or the contact."""
-        auth = info.auth
         params = list(request.params)
         headers = {
             "User-Agent": user_agent(self._contact(info)),
@@ -306,18 +306,22 @@ class HttpTransport:
         }
         headers.update(request.headers)
         body: Any = request.body
-        if auth.kind is AuthKind.KEY and (
-            key is not None or auth.required or has_key(info.id)
-        ):
+        keyed = sends_key(info, key)
+        if keyed:
+            slot = info.auth.slot(request.key_placement)
+            if slot is None:
+                msg = (
+                    f"{info.id} declares no {request.key_placement} placement "
+                    "for its key"
+                )
+                raise CredentialError(msg, provider=info.id)
             revealed = resolve_key(info.id, key).reveal()
-            name = auth.name or ""
-            if auth.placement is KeyPlacement.QUERY:
+            name, scheme = slot.name, slot.scheme
+            if slot.placement is KeyPlacement.QUERY:
                 params.append((name, revealed))
-            elif auth.placement is KeyPlacement.HEADER:
-                headers[name] = f"{auth.scheme} {revealed}" if auth.scheme else revealed
-            elif auth.placement is KeyPlacement.BODY and (
-                body is None or isinstance(body, dict)
-            ):
+            elif slot.placement is KeyPlacement.HEADER:
+                headers[name] = f"{scheme} {revealed}" if scheme else revealed
+            elif body is None or isinstance(body, dict):  # the body placement
                 body = {**(body or {}), name: revealed}
             else:
                 msg = f"{info.id} sends its key in a body, which this request has not"
@@ -329,7 +333,7 @@ class HttpTransport:
         if body is not None:
             headers["Content-Type"] = "application/json"
             payload = json.dumps(body, separators=(",", ":")).encode("ascii")
-        return _Wire(request.method, url, headers, payload)
+        return _Wire(request.method, url, headers, payload, keyed)
 
     def _contact(self, info: ProviderInfo) -> str | None:
         """Return the user's contact for a source that requires it."""
@@ -370,13 +374,13 @@ class HttpTransport:
             wire.payload,
         )
         for _hop in range(self._max_redirects + 1):
-            limiter.acquire(self._sleep)
+            limiter.acquire(self._sleep, keyed=wire.keyed)
             raw, failure = self._open(method, url, headers, payload)
             if raw is None:
                 return failure
             status = int(raw.status)
             location = raw.headers.get("location")
-            if status in _REDIRECT_STATUSES and location:
+            if status in _REDIRECT_STATUSES and location and info.follow_redirects:
                 self._discard(raw)
                 url = self._follow(info, url, location)
                 if status in _SWITCH_TO_GET:

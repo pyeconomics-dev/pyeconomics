@@ -478,7 +478,7 @@ def test_an_exchange_must_return_one_response_per_request() -> None:
         def exchange(self, requests: Any, *, key: Any, transport: Any) -> Any:
             return []
 
-    with pytest.raises(DataError, match="one Response per request"):
+    with pytest.raises(DataError, match="a Response per request"):
         fetch(Short(), Scripted())
 
 

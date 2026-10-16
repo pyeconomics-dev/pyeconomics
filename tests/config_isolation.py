@@ -126,7 +126,9 @@ def isolated_configuration(
     """Run the body with isolated settings, keys, keyring and redaction.
 
     ``keep_environment`` leaves the real environment, configuration directory
-    and keyring alone, for the opt-in live suite.
+    and keyring alone, for the opt-in live suite. The cache directory is the
+    test's own either way: a live test reads the source, never an entry another
+    test (or the user) stored, and leaves nothing in the user's cache.
     """
     from pyeconomics.data import cache, config, redaction  # noqa: PLC0415 - per test
 
@@ -136,13 +138,13 @@ def isolated_configuration(
             if name.startswith("PYECONOMICS_") or name.endswith("_API_KEY"):
                 monkeypatch.delenv(name)
         monkeypatch.setenv("PYECONOMICS_CONFIG_DIR", str(isolation.config_dir))
-        monkeypatch.setenv("PYECONOMICS_CACHE_DIR", str(isolation.cache_dir))
         try:
             import keyring.core  # noqa: PLC0415 - the keyring extra is optional
         except ImportError:  # pragma: no cover - the test group installs keyring
             pass
         else:
             monkeypatch.setattr(keyring.core, "_keyring_backend", isolation.keyring)
+    monkeypatch.setenv("PYECONOMICS_CACHE_DIR", str(isolation.cache_dir))
     monkeypatch.setattr(redaction, "_REGISTRY", redaction._Registry())  # noqa: SLF001
     factory = logging.getLogRecordFactory()
     config.reset()

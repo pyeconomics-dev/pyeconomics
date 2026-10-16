@@ -101,6 +101,38 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   untouched. `info()`, `entries()`, `clear()` and `path()` inspect it without
   returning a payload, `DataProvider.fetch_with_origin` returns the frame with a
   `DataSource` record, and `cache.memo()` serves repeats from memory within one call.
+- The first four providers, registered in the `pyeconomics.providers` group:
+  - `fred`: FRED and ALFRED. Series metadata, observations, search and vintage
+    dates through API v1 (the key in the query string); `as_of`,
+    `first_release` and `all` vintages through ALFRED's real-time periods; a
+    whole release as a table through API v2 (`release:<id>`, the key in an
+    `Authorization` header, paged by cursor). Each series' copyright tags set
+    its notice: a pre-approval series, and every series sourced from Moody's,
+    says its owner's permission is needed beyond personal use. `library-only`,
+    never stored, and `llm_use` forbidden, as FRED's terms read.
+  - `bls`: the Bureau of Labor Statistics. API v2 with the registration key in
+    the request body, or keyless API v1 at its lower limits when no key is set;
+    queries split into 50 series and 20 years (25 and 10 keyless); footnotes
+    such as preliminary values kept as notes; the access date in the notice.
+  - `bea`: the Bureau of Economic Analysis. NIPA, NIUnderlyingDetail, Regional
+    and ITA tables and lines; thousands separators and BEA's `(NA)`-style
+    markers parsed; every frame notes `revised_data`, because the API serves
+    only current estimates.
+  - `census`: the Census Bureau. ACS 1- and 5-year estimates for one place,
+    the economic indicators time series and international trade, with the
+    geography checked against an allowlist; a refused key is never followed to
+    the page that echoes it.
+- Frame metadata carries `notes`: what the source says about the data, each a
+  snake_case code and a detail.
+- Provider seams: per-request key placements (`KeySlot`,
+  `Request.key_placement`), `DataProvider.sends_key` and
+  `credentials.withheld()` for a source whose key is optional, rate limits that
+  hold only without a key, paging (`DataProvider.next_page`),
+  `ProviderInfo.follow_redirects`, and keyless and simulated recorder cases.
+- `providers-live.yml`, the weekly live run of every provider against its real
+  API in the locked-down `providers-live` environment, which opens one
+  `provider-live` issue when it fails, and `providers-heartbeat.yml`, the daily
+  check that the live run keeps succeeding.
 
 ### Fixed
 

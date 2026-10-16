@@ -1,0 +1,91 @@
+# .github/workflows/providers-heartbeat.yml
+# The daily check that the weekly live provider run is alive (ADR-0011
+# decision 18): it fails, and opens an issue labelled provider-live, when the
+# newest successful providers-live run on main is older than max_age_days
+# (eight by default), or there is none. It holds no secret.
+#
+# Dispatch with max_age_days 0 to make it fail on purpose, the alarm proof of
+# Step 20. Only on schedule and workflow_dispatch, never on a pull request.
+name: providers-heartbeat
+
+on:
+  schedule:
+    # Every day at 07:43 UTC.
+    - cron: "43 7 * * *"
+  workflow_dispatch:
+    inputs:
+      max_age_days:
+        description: The oldest a successful live run may be, in days (0 forces a failure)
+        required: false
+        type: number
+        default: 8
+
+permissions: {}
+
+concurrency:
+  group: providers-heartbeat
+  cancel-in-progress: false
+
+jobs:
+  heartbeat:
+    name: live run heartbeat
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      - name: Check the newest successful live run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MAX_AGE_DAYS: ${{ inputs.max_age_days }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # A scheduled run has no inputs: the default is eight days.
+          MAX_AGE_DAYS="${MAX_AGE_DAYS:-8}"
+          case "$MAX_AGE_DAYS" in
+            ''|*[!0-9]*)
+              echo "::error::max_age_days must be a whole number of days."
+              exit 1
+              ;;
+          esac
+          last=$(gh api \
+            "repos/${GH_REPO}/actions/workflows/providers-live.yml/runs?branch=main&status=success&per_page=1" \
+            --jq '.workflow_runs[0].updated_at // ""')
+          now=$(date -u +%s)
+          if [ -n "$last" ]; then
+            age=$(( (now - $(date -u -d "$last" +%s)) / 86400 ))
+            if [ "$MAX_AGE_DAYS" -gt 0 ] && [ "$age" -lt "$MAX_AGE_DAYS" ]; then
+              echo "The newest successful live run finished ${age} day(s) ago (${last})."
+              exit 0
+            fi
+            detail="The newest successful providers-live run on main finished ${age} day(s) ago (${last}); the limit is ${MAX_AGE_DAYS}."
+          else
+            detail="No successful providers-live run on main was found."
+          fi
+          echo "::error::${detail}"
+          {
+            echo "${detail}"
+            echo
+            echo "Heartbeat run: ${RUN_URL}"
+            echo
+            echo "Check the providers-live workflow: its schedule, its environment's secrets and its recent runs."
+          } > body.md
+          old=$(gh issue list --label provider-live --state open --search "providers-heartbeat in:title" \
+            --json number --jq '.[].number')
+          new=$(gh issue create --label provider-live \
+            --title "providers-heartbeat: no recent successful live run ($(date -u +%Y-%m-%d))" \
+            --body-file body.md)
+          for number in $old; do
+            gh issue close "$number" --reason "not planned" --comment "Superseded by ${new}."
+          done
+          exit 1

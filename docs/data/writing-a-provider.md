@@ -33,7 +33,8 @@ when it is created, so no provider can skip a gate.
 | `bulk` | none: it declares that one request returns a whole dataset | |
 
 `classify_error` maps a source's own error body to the taxonomy, `exchange` is
-the seam a non-HTTP source overrides, and `synthesize` replaces observed values
+the seam a non-HTTP source overrides, `next_page` returns the request for a
+source's next page (FRED v2's cursor), and `synthesize` replaces observed values
 for the recorder.
 
 ## A provider in forty lines
@@ -165,6 +166,11 @@ decisions 2 to 6); the contract suite checks them.
   mode checks that class too, after the response arrives.
 - **Size.** A query names at most 1,000 series and 100,000 observations;
   `max_observations` keeps the most recent rows.
+- **Notes.** What the source says about the data travels in the metadata's
+  `notes`: a snake_case code and, after `": "`, a detail. BEA's
+  `revised_data` (it serves only current estimates), BLS's footnotes
+  (`footnote: P preliminary (2026-08-31)`) and FRED's copyright status are
+  notes.
 
 ## Declaring the provider
 
@@ -223,6 +229,21 @@ credential. `Authentication.contact()` is for a source that wants the user's nam
 and email in the User-Agent (SEC EDGAR). The environment variable is
 `<PROVIDER>_API_KEY`.
 
+A source whose API versions take the key differently declares the others as
+`alternates`, one `KeySlot` per placement, and a request names the one it needs
+with `Request.key_placement`: FRED's v1 reads the `api_key` query parameter, its
+v2 an `Authorization: Bearer` header.
+
+A key that only raises the limits is `required=False`. The provider's build and
+parse hooks read `self.sends_key` to choose the keyed or the keyless API (BLS's
+v2 or v1), and a limit that holds only without a key is
+`RateLimit(..., without_key=True)`. A `Case` with `keyless=True` runs with the
+key chain's key withheld (`pyeconomics.data.credentials.withheld`).
+
+A source that answers a bad key with a redirect to a page that echoes the
+request (Census) sets `follow_redirects=False`: the transport returns the
+redirect, and `classify_error`, which sees every status outside 2xx, maps it.
+
 ## Errors
 
 The transport returns the final response for any HTTP status, after its retries.
@@ -267,6 +288,9 @@ uv run --no-config python scripts/record_cassettes.py fred fetch_ok error_not_fo
 
 The recorder runs each case live through the real transport with the
 maintainer's keys, then scrubs every key, credential parameter, header and cookie.
+A rate limit or an outage is never provoked on purpose: a case with
+`simulate=429` (or a 5xx) builds its real requests, sends none, records that
+status with a `Retry-After` of 60 seconds, and is marked synthetic.
 A cassette holds at most 24 observations per series and 32 KiB. **A source that
 is not hosted-safe, or that forbids storage, is recorded through its
 `synthesize()` hook, which replaces every observed value, and the cassette says

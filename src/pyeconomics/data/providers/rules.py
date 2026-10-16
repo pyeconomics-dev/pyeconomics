@@ -36,6 +36,7 @@ from pyeconomics.data.providers.base import (
     Capability,
     DataProvider,
     KeyPlacement,
+    KeySlot,
     Platform,
     ProviderInfo,
     RateLimit,
@@ -272,6 +273,8 @@ def _limit_problem(limit: object) -> str | None:
         )
     if per not in _WINDOWS:
         return f"per {per!r} is not second, minute or day"
+    if not isinstance(_get(limit, "without_key"), bool):
+        return "without_key is true or false"
     return None
 
 
@@ -292,11 +295,28 @@ def _check_rate_limits(info: ProviderInfo, report: _Report) -> None:
         if problem is not None:
             report.add("rate-limit", problem)
         else:
-            windows.append(_get(limit, "per"))
+            windows.append((_get(limit, "per"), _get(limit, "without_key")))
     if len(limits) > _MAX_LIMITS or len(set(windows)) != len(windows):
         report.add(
             "rate-limit",
-            f"declare at most {_MAX_LIMITS} limits, one per second, minute or day",
+            f"declare at most {_MAX_LIMITS} limits, one per second, minute or day "
+            "(and one more of each for requests without a key)",
+        )
+    if not isinstance(_get(info, "follow_redirects"), bool):
+        report.add("hosts", "follow_redirects is true or false")
+    auth = _get(info, "auth")
+    optional_key = (
+        isinstance(auth, Authentication)
+        and _get(auth, "kind") is AuthKind.KEY
+        and _get(auth, "required") is False
+    )
+    if not optional_key and any(
+        isinstance(limit, RateLimit) and _get(limit, "without_key") is True
+        for limit in limits
+    ):
+        report.add(
+            "rate-limit",
+            "a limit without a key belongs to a source whose key is optional",
         )
 
 
@@ -344,9 +364,25 @@ def _check_capabilities(
 
 
 def _check_key_auth(auth: Authentication, report: _Report) -> None:
-    placement, name, scheme = (
-        _get(auth, field) for field in ("placement", "name", "scheme")
+    _check_slot(
+        _get(auth, "placement"), _get(auth, "name"), _get(auth, "scheme"), report
     )
+    alternates = _get(auth, "alternates")
+    if not isinstance(alternates, tuple) or not all(
+        isinstance(slot, KeySlot) for slot in alternates
+    ):
+        report.add("auth", "alternates must be a tuple of KeySlot")
+        return
+    placements = [_get(auth, "placement"), *(slot.placement for slot in alternates)]
+    if len(set(placements)) != len(placements):
+        report.add("auth", "each key placement is declared once")
+    for slot in alternates:
+        _check_slot(slot.placement, slot.name, slot.scheme, report)
+
+
+def _check_slot(
+    placement: object, name: object, scheme: object, report: _Report
+) -> None:
     if not isinstance(placement, KeyPlacement) or not isinstance(name, str):
         report.add(
             "auth", "a key declares where it goes (query, body or header) and its name"
@@ -389,6 +425,7 @@ def _check_auth(info: ProviderInfo, report: _Report) -> None:
     elif (
         any(_get(auth, field) is not None for field in ("placement", "name", "scheme"))
         or required is False
+        or _get(auth, "alternates") != ()
     ):
         report.add(
             "auth", f"a {kind.value} source declares no key placement, name or scheme"

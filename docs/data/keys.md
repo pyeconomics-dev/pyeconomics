@@ -15,9 +15,9 @@ chain, the settings and the redaction they rely on are available now in
 | Source | Environment variable | Where to get a key |
 |--------|----------------------|--------------------|
 | FRED and ALFRED (St. Louis Fed) | `FRED_API_KEY` | Sign in at [fredaccount.stlouisfed.org](https://fredaccount.stlouisfed.org/apikeys) and request a key ([how](https://fred.stlouisfed.org/docs/api/api_key.html)) |
-| BLS (Bureau of Labor Statistics) | `BLS_API_KEY` | [BLS API registration](https://data.bls.gov/registrationEngine/) |
+| BLS (Bureau of Labor Statistics) | `BLS_API_KEY` | [BLS API registration](https://data.bls.gov/registrationEngine/); optional: without it pyeconomics reads BLS's keyless API v1 at its lower limits |
 | BEA (Bureau of Economic Analysis) | `BEA_API_KEY` | [BEA API sign-up](https://apps.bea.gov/API/signup/); BEA calls the key a UserID |
-| US Census Bureau | `CENSUS_API_KEY` | [Census API key request](https://api.census.gov/data/key_signup.html) |
+| US Census Bureau | `CENSUS_API_KEY` | [Census API key request](https://api.census.gov/data/key_signup.html); required on every query since May 2026 |
 | OpenFIGI | `OPENFIGI_API_KEY` | Optional, for higher rate limits: sign up as the [OpenFIGI documentation](https://www.openfigi.com/api/documentation) describes |
 
 Every variable is the provider's id in capitals followed by `_API_KEY`:

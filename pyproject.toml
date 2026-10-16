@@ -68,6 +68,10 @@ risk = "pyeconomics.models.risk"
 # lists its DataProvider subclasses in __all__. The built-in providers register
 # from Phase 3 Step 6; a third-party package adds its own the same way.
 [project.entry-points."pyeconomics.providers"]
+bea = "pyeconomics.data.providers.bea"
+bls = "pyeconomics.data.providers.bls"
+census = "pyeconomics.data.providers.census"
+fred = "pyeconomics.data.providers.fred"
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
