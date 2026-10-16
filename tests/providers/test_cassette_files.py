@@ -140,7 +140,8 @@ def test_a_committed_cassette_passes_the_scan(path: Path) -> None:
 
 def test_the_toy_cassettes_are_exactly_what_the_builder_makes() -> None:
     built = build()
-    on_disk = {p for p in FILES if p.is_file()}
+    toys = {"toy_json", "toy_vintage"}
+    on_disk = {p for p in FILES if p.is_file() and p.parent.name in toys}
     assert set(built) == on_disk, "run tests/providers/build_toy_cassettes.py"
     stale = sorted(
         p.name for p, document in built.items() if p.read_bytes() != document

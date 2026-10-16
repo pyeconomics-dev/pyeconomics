@@ -1,0 +1,1 @@
+{"provider":"fred","recorded_on":"2026-10-16T14:36:05+00:00","requests":[{"body":null,"method":"GET","parameters":[["file_type","json"],["series_id","UNRATE"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://api.stlouisfed.org/fred/series"}],"synthetic":true}

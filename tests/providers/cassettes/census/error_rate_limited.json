@@ -1,0 +1,1 @@
+{"provider":"census","recorded_on":"2026-10-16T14:27:57+00:00","requests":[{"body":null,"method":"GET","parameters":[["for","state:06"],["get","NAME,B19013_001E"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://api.census.gov/data/2024/acs/acs1"}],"synthetic":true}

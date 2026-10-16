@@ -210,7 +210,14 @@ def _error(body: dict[str, Any]) -> None:
     if not isinstance(error, dict):
         return
     code = str(error.get("APIErrorCode", "")).strip()
-    detail = str(error.get("APIErrorDescription") or error.get("error") or "")
+    extra = error.get("ErrorDetail")
+    detail = " ".join(
+        str(part)
+        for part in (
+            error.get("APIErrorDescription") or error.get("error") or "",
+            extra.get("Description", "") if isinstance(extra, dict) else "",
+        )
+    )
     lowered = detail.casefold()
     if code == "1" or "userid" in lowered.replace(" ", ""):
         msg = (
@@ -239,7 +246,7 @@ def _unit(row: dict[str, Any]) -> tuple[UnitRecord, bool]:
     if "percent" in lowered:
         return UnitRecord(text=text[:256], kind=UnitKind.RATE), True
     scale = float(f"1e{power}") if -15 <= power <= 15 else 1.0  # noqa: PLR2004
-    if "dollar" in lowered:
+    if "dollar" in lowered or unit.upper() == "USD":
         return UnitRecord(
             text=text[:256], kind=UnitKind.MONEY, scale=scale, currency="USD"
         ), False

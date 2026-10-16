@@ -1,0 +1,1 @@
+{"provider":"bls","recorded_on":"2026-10-16T14:27:33+00:00","requests":[{"body":{"catalog":true,"endyear":"2025","seriesid":["LNS14000000"],"startyear":"2025"},"method":"POST","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://api.bls.gov/publicAPI/v2/timeseries/data/"}],"synthetic":true}

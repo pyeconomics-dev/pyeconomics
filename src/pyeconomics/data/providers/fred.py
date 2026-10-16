@@ -119,8 +119,9 @@ _V1_LIMIT: Final = 100_000
 _V2_PAGE: Final = 500_000
 _SEARCH_NOTES: Final = 160
 _MAX_CURSOR: Final = 256
+#: The most rows of one list a synthetic cassette keeps (the Recording rule).
+_KEPT: Final = 24
 _PER_SERIES: Final = 3  # series, tags, observations
-_DAY_BEFORE: Final = dt.timedelta(days=366)
 _FREQUENCIES: Final = {
     "D": ObservationFrequency.DAILY,
     "W": ObservationFrequency.WEEKLY,
@@ -341,9 +342,9 @@ class Fred(DataProvider):
             name="fetch_table",
             operation=Capability.FETCH,
             argument=Query(
-                series=("DGS10", "DGS2"),
-                start=dt.date(2025, 6, 2),
-                end=dt.date(2025, 6, 13),
+                series=("UNRATE", "CIVPART"),
+                start=dt.date(2025, 1, 1),
+                end=dt.date(2025, 12, 31),
                 max_observations=24,
             ),
         ),
@@ -372,6 +373,11 @@ class Fred(DataProvider):
             name="search_ok",
             operation=Capability.SEARCH,
             argument="civilian unemployment rate",
+        ),
+        Case(
+            name="fetch_release",
+            operation=Capability.FETCH,
+            argument=Query(series=("release:89",), max_observations=24),
         ),
         Case(name="describe_ok", operation=Capability.DESCRIBE, argument="GDPC1"),
         Case(
@@ -424,11 +430,10 @@ class Fred(DataProvider):
         plain = (("series_id", series_id), ("file_type", "json"))
         window: list[tuple[str, str]] = []
         if query.start is not None:
-            # FRED dates a period by its first day: ask from a year before the
-            # first period end wanted, then keep the periods that end in range.
-            window.append(
-                ("observation_start", (query.start - _DAY_BEFORE).isoformat())
-            )
+            # FRED dates a period by its first day, and every period is calendar
+            # aligned, so the period holding the start began on or after 1
+            # January: ask from there and keep the periods that end in range.
+            window.append(("observation_start", f"{query.start.year:04d}-01-01"))
         if query.end is not None:
             window.append(("observation_end", query.end.isoformat()))
         if query.vintage == "latest":
@@ -620,11 +625,16 @@ class Fred(DataProvider):
             if not (query.start and pair[0] < query.start)
             and not (query.end and pair[0] > query.end)
         ]
+        # v2 sends the series' "Citation & Copyright" tag as copyright_id, and no
+        # source tags: a Moody's series is known by its notes.
         notes = entry.get("notes")
-        _, found = copyright_terms((), notes if isinstance(notes, str) else "")
-        copyright_id = entry.get("copyright_id")
-        if copyright_id not in {None, ""}:
-            found += (f"copyright: FRED copyright id {str(copyright_id)[:32]}",)
+        text = notes if isinstance(notes, str) else ""
+        tags: list[dict[str, str]] = []
+        if isinstance(entry.get("copyright_id"), str):
+            tags.append({"group_id": "cc", "name": entry["copyright_id"]})
+        if "moody" in text.casefold():
+            tags.append({"group_id": "src", "name": "moody's"})
+        terms, found = copyright_terms(tags, text)
         meta = SeriesMeta(
             provider="fred",
             series_id=s.text(entry, "series_id", "fred"),
@@ -636,7 +646,7 @@ class Fred(DataProvider):
             else None,
             seasonal_adjustment=_adjustment(entry),
             source_dating=_dating(frequency),
-            terms=FRED_TERMS,
+            terms=terms,
             notes=found,
         )
         return Series(tuple(day for day, _ in pairs), tuple(v for _, v in pairs), meta)
@@ -785,35 +795,32 @@ class Fred(DataProvider):
         a cassette stays within its caps.
         """
         payload = json.loads(response.body)
-        position = 0
-
-        def invent(row: dict[str, Any]) -> None:
-            nonlocal position
-            if row.get("value") not in _MISSING:
-                row["value"] = f"{synthetic_value(seed, position):.4f}"
-            position += 1
-
-        for row in payload.get("observations", ()):
-            invent(row)
-        for entry in payload.get("seriess", ()):
-            if isinstance(entry.get("notes"), str):
-                entry["notes"] = entry["notes"][:_SEARCH_NOTES]
+        rows = list(payload.get("observations", ()))
+        if isinstance(payload.get("seriess"), list):
+            payload["seriess"] = [_short(entry) for entry in payload["seriess"][:_KEPT]]
         if isinstance(payload.get("series"), list):
-            payload["series"] = payload["series"][:4]
+            payload["series"] = [_short(entry) for entry in payload["series"][:4]]
             for entry in payload["series"]:
-                entry["observations"] = entry.get("observations", [])[-24:]
-                if isinstance(entry.get("notes"), str):
-                    entry["notes"] = entry["notes"][:_SEARCH_NOTES]
-                for row in entry["observations"]:
-                    invent(row)
+                entry["observations"] = entry.get("observations", [])[-_KEPT:]
+                rows.extend(entry["observations"])
             payload["has_more"] = False
             payload.pop("next_cursor", None)
+        for position, row in enumerate(rows):
+            if row.get("value") not in _MISSING:
+                row["value"] = f"{synthetic_value(seed, position):.4f}"
         return Response(
             response.status,
             json.dumps(payload, separators=(",", ":")).encode(),
             response.retrieved_at,
             response.headers,
         )
+
+
+def _short(entry: dict[str, Any]) -> dict[str, Any]:
+    """Shorten a series' notes, which a synthetic cassette need not keep whole."""
+    if isinstance(entry.get("notes"), str):
+        entry["notes"] = entry["notes"][:_SEARCH_NOTES]
+    return entry
 
 
 def _dating(frequency: ObservationFrequency) -> DateConvention:
@@ -839,13 +846,17 @@ def _table(frames: Sequence[Series], table_id: str, title: str) -> Table:
     for frame in frames:
         by_day = dict(zip(frame.index, frame.values, strict=True))
         data.append(tuple(by_day.get(day) for day in index))
-    restricted = [frame for frame in frames if frame.meta.terms.notice != FRED_NOTICE]
-    terms = restricted[0].meta.terms if restricted else FRED_TERMS
+    # The table carries the most restrictive of its series' terms.
+    notices = [frame.meta.terms for frame in frames]
+    terms = next(
+        (t for t in notices if t.notice == _PRE_APPROVAL_NOTICE),
+        next((t for t in notices if t.notice != FRED_NOTICE), FRED_TERMS),
+    )
     notes = tuple(
         dict.fromkeys(
-            f"{code}: {frame.meta.series_id}"
+            f"{code}: {frame.meta.series_id}, {detail}"
             for frame in frames
-            for code in (note.split(": ", 1)[0] for note in frame.meta.notes)
+            for code, _, detail in (note.partition(": ") for note in frame.meta.notes)
         )
     )[:32]
     return Table(

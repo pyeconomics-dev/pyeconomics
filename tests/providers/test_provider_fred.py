@@ -124,7 +124,9 @@ def test_a_percent_series_is_a_decimal_indexed_by_period_ends() -> None:
     assert param(observations, "realtime_start") is None
 
 
-def test_a_date_window_asks_a_year_early_and_keeps_the_periods_that_end_in_it() -> None:
+def test_a_date_window_asks_from_new_year_and_keeps_the_periods_that_end_in_it() -> (
+    None
+):
     rows = [
         row("2024-07-01", "1.0"),
         row("2024-10-01", "2.0"),
@@ -146,7 +148,7 @@ def test_a_date_window_asks_a_year_early_and_keeps_the_periods_that_end_in_it() 
         "USD",
     )
     observations = transport.sent[2]
-    assert param(observations, "observation_start") == "2023-10-01"
+    assert param(observations, "observation_start") == "2024-01-01"
     assert param(observations, "observation_end") == "2025-03-31"
 
 
@@ -659,3 +661,44 @@ def test_live_alfred_returns_the_first_release_and_a_later_revision() -> None:
     assert value("as_of:2025-01-01") == pytest.approx(0.044)
     selected = Vintage.as_of(dt.date(2025, 1, 1)).label
     assert selected == "as_of:2025-01-01"
+
+
+# --- the recorded ALFRED cassette (synthetic values) ------------------------------
+
+
+def test_the_recorded_alfred_cassette_selects_each_vintage_from_its_rows() -> None:
+    """Every vintage replays from the one cassette: the requests do not differ.
+
+    The expected values are worked out here from the rows themselves, so the
+    test holds whatever synthetic numbers the cassette carries.
+    """
+    from provider_contract import replay, replay_key  # noqa: PLC0415
+
+    (case,) = [c for c in Fred.cases if c.name == "fetch_vintages"]
+    query = case.argument
+    assert isinstance(query, Query)
+
+    def fetch(vintage: str) -> Series:
+        found = Fred().fetch(
+            query.model_copy(update={"vintage": vintage}),
+            key=replay_key(Fred, case),
+            transport=replay("fred", case),
+        )
+        assert isinstance(found, Series)
+        return found
+
+    every = fetch("all")
+    assert every.realtime is not None
+    rows = list(zip(every.index, every.realtime, every.values, strict=True))
+    assert len({period.realtime_start for _, period, _ in rows}) > 1, "several vintages"
+    first = {day: value for day, _, value in reversed(rows)}
+    picked = fetch("first_release")
+    assert dict(zip(picked.index, picked.values, strict=True)) == first
+    for _, period, _ in rows:
+        on = period.realtime_start
+        expected = {day: value for day, p, value in rows if p.covers(on)}
+        chosen = fetch(f"as_of:{on.isoformat()}")
+        assert dict(zip(chosen.index, chosen.values, strict=True)) == expected
+    latest = {day: value for day, _, value in rows}
+    newest = fetch("as_of:2026-10-01")
+    assert dict(zip(newest.index, newest.values, strict=True)) == latest
