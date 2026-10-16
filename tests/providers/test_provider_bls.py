@@ -26,6 +26,7 @@ from pyeconomics.data import (
     ResponseError,
     SeriesNotFoundError,
     Table,
+    TransportError,
 )
 from pyeconomics.data.credentials import withheld
 from pyeconomics.data.providers.bls import (
@@ -340,6 +341,31 @@ def test_a_request_not_processed_maps_to_the_taxonomy(
     refusal = body(status="REQUEST_NOT_PROCESSED", message=[message])
     with pytest.raises(error):
         Bls().fetch(QUERY, transport=Canned(lambda _: ok(refusal)))
+
+
+def test_a_request_failed_is_a_passing_source_failure() -> None:
+    failed = body(
+        status="REQUEST_FAILED",
+        message=["Your request has failed. Please check your input parameters"],
+    )
+    with pytest.raises(TransportError, match="try again"):
+        Bls().fetch(QUERY, transport=Canned(lambda _: ok(failed)))
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Invalid Series for Series ZZZNOTASERIES1",
+        "Series does not exist for Series ZZZNOTASERIES1",
+    ],
+)
+def test_either_wording_of_an_unknown_series_is_not_found(message: str) -> None:
+    answer = body(entry("ZZZNOTASERIES1", []), message=[message])
+    with pytest.raises(SeriesNotFoundError, match="ZZZNOTASERIES1"):
+        Bls().fetch(
+            Query(series=("ZZZNOTASERIES1",), start=dt.date(2024, 1, 1)),
+            transport=Canned(lambda _: ok(answer)),
+        )
 
 
 def test_an_invalid_series_is_not_found() -> None:
