@@ -92,6 +92,13 @@ def test_every_collectable_providers_hosts_are_in_the_live_egress_allowlist() ->
     assert wanted <= allowed, f"not in the allowlist: {sorted(wanted - allowed)}"
 
 
+def test_the_live_job_lets_setup_uv_fetch_its_manifest_and_uv() -> None:
+    # setup-uv reads uv's version manifest from raw.githubusercontent.com and
+    # downloads uv from Astral's mirror: the first live run failed without them.
+    allowed = allowed_endpoints(LIVE.read_text(encoding="utf-8"), "live")
+    assert {"raw.githubusercontent.com", "releases.astral.sh"} <= allowed
+
+
 def test_the_keys_reach_only_the_pytest_step_of_the_live_job() -> None:
     text = LIVE.read_text(encoding="utf-8")
     for key in KEYS:
