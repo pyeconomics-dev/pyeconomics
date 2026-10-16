@@ -26,7 +26,9 @@
   have been retrieved from BLS.gov." and cite the date the data were accessed,
   which each frame's notice adds.
 - BLS answers its failures with HTTP 200 and a status in the body: a refused
-  key, a spent daily quota and an unknown series are mapped from it.
+  key, a spent daily quota and an unknown series are mapped from it, and its
+  own passing failure (``REQUEST_FAILED``) is a
+  :class:`~pyeconomics.data.errors.TransportError`, to try again.
 
 Examples
 --------
@@ -51,6 +53,7 @@ from pyeconomics.data.errors import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    TransportError,
 )
 from pyeconomics.data.providers import _shared as s
 from pyeconomics.data.providers.base import (
@@ -177,6 +180,11 @@ def _status(body: dict[str, Any]) -> None:
     if "threshold" in lowered or "too many" in lowered or "limit" in lowered:
         msg = "bls's daily query limit is spent for this key or address"
         raise RateLimitError(msg, provider="bls")
+    if status == "REQUEST_FAILED":
+        # BLS answers a passing failure of its own this way, with HTTP 200 and
+        # a generic message; the same request succeeds when sent again.
+        msg = "bls failed to answer the request (REQUEST_FAILED); try again"
+        raise TransportError(msg, provider="bls")
     msg = f"bls did not process the request (status {str(status)[:40]!r})"
     raise ResponseError(msg, provider="bls")
 
@@ -424,7 +432,10 @@ def _unknown(body: dict[str, Any]) -> set[str]:
     """Return the series a body's messages call invalid."""
     found = set()
     for message in body.get("message") or ():
-        match = re.search(r"Invalid Series for Series ([A-Za-z0-9]+)", str(message))
+        match = re.search(
+            r"(?:Invalid Series|Series does not exist) for Series ([A-Za-z0-9]+)",
+            str(message),
+        )
         if match:
             found.add(match.group(1).upper())
     return found

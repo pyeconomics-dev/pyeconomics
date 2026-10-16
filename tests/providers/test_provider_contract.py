@@ -32,9 +32,11 @@ from provider_contract import (
 )
 from toys import ToyJson, ToyVintage
 
-from pyeconomics.data import DataProvider, registry
+from pyeconomics.data import DataProvider, TransportError, registry
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pyeconomics.data.providers.base import Case
 
 TOYS: tuple[type[DataProvider], ...] = (ToyJson, ToyVintage)
@@ -135,6 +137,19 @@ def _live(*, errors: bool) -> list[Any]:
     return found or [_NO_REAL]
 
 
+def _once_more_after_a_passing_failure(check: Callable[[], None]) -> None:
+    """Run a live check, and once more if the source failed in passing.
+
+    A live source sometimes fails a request it answers when sent again (BLS's
+    REQUEST_FAILED, a 5xx outlasting the transport's retries); the weekly run is
+    an alarm, so one such failure must not raise it. A second one does.
+    """
+    try:
+        check()
+    except TransportError:
+        check()
+
+
 def _skip_if_barred(provider: type[DataProvider]) -> None:
     """The scheduled run skips a source whose terms bar automated collection."""
     if not provider.info.automated_collection and os.environ.get("GITHUB_ACTIONS"):
@@ -149,7 +164,11 @@ def test_live_a_real_response_parses_into_a_valid_result(
     _skip_if_barred(provider)
     from pyeconomics.data.transport import default_transport  # noqa: PLC0415
 
-    check_success_case(provider, case, default_transport(), key=live_key(case))
+    _once_more_after_a_passing_failure(
+        lambda: check_success_case(
+            provider, case, default_transport(), key=live_key(case)
+        )
+    )
 
 
 @pytest.mark.live
@@ -162,4 +181,28 @@ def test_live_a_real_failure_maps_to_the_taxonomy(
         pytest.skip("a live source is not made to rate-limit or fail on request")
     from pyeconomics.data.transport import default_transport  # noqa: PLC0415
 
-    check_error_case(provider, case, default_transport(), key=live_key(case))
+    _once_more_after_a_passing_failure(
+        lambda: check_error_case(
+            provider, case, default_transport(), key=live_key(case)
+        )
+    )
+
+
+def test_a_live_check_runs_once_more_after_a_passing_failure_only() -> None:
+    calls: list[int] = []
+
+    def flaky() -> None:
+        calls.append(1)
+        if len(calls) == 1:
+            msg = "passing"
+            raise TransportError(msg, provider="bls")
+
+    _once_more_after_a_passing_failure(flaky)
+    assert len(calls) == 2
+
+    def broken() -> None:
+        msg = "again"
+        raise TransportError(msg, provider="bls")
+
+    with pytest.raises(TransportError):
+        _once_more_after_a_passing_failure(broken)
