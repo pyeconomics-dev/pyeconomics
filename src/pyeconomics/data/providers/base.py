@@ -133,7 +133,7 @@ from pyeconomics.data.types import (
 from pyeconomics.data.vintage import Vintage
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Mapping, Sequence
+    from collections.abc import Generator, Iterable, Mapping, Sequence
 
     from pyeconomics.data.credentials import Secret
     from pyeconomics.data.terms import Terms
@@ -1015,7 +1015,7 @@ class DataProvider:
         return self.vintages(text, key=key, transport=transport)
 
     @contextlib.contextmanager
-    def _keyed(self, key: str | Secret | None) -> Iterator[None]:
+    def _keyed(self, key: str | Secret | None) -> Generator[None]:
         """Say, for the hooks of one operation, whether a key is sent."""
         token = _SENDS_KEY.set(sends_key(self.info, key))
         try:

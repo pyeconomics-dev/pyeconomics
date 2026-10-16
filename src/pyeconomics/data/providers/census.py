@@ -486,7 +486,10 @@ class Census(DataProvider):
             dataset = f"intltrade/{trade.group(1)}/hs"
         else:
             eits = _EITS.fullmatch(series_id)
-            program, category, data_type, adjusted = eits.groups()  # type: ignore[union-attr]
+            if eits is None:  # pragma: no cover - build_requests refused it
+                msg = f"{series_id!r} is not a census series id"
+                raise DataError(msg, provider="census")
+            program, category, data_type, adjusted = eits.groups()
             unit = UnitRecord(text=f"Census data type {data_type}")
             adjustment = (
                 SeasonalAdjustment.SEASONALLY_ADJUSTED
@@ -538,7 +541,7 @@ def _annotated(
     raw: object, variable: str, day: dt.date, annotated: dict[str, list[dt.date]]
 ) -> float | None:
     value = s.number(raw, "census") if raw is not None else None
-    if raw is None:
+    if value is None:
         annotated.setdefault("null: no data for this geography", []).append(day)
         return None
     if value == _CONTROLLED and variable.endswith("M"):

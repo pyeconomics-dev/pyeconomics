@@ -145,10 +145,15 @@ def _years(query: Query, per_query: int) -> list[tuple[int, int] | None]:
     Without dates BLS returns its latest three years. A start without an end
     reads ``per_query`` years from the start.
     """
-    if query.start is None and query.end is None:
+    start, end = query.start, query.end
+    if end is not None:
+        last = end.year
+        first = start.year if start is not None else last - per_query + 1
+    elif start is not None:
+        first = start.year
+        last = first + per_query - 1
+    else:
         return [None]
-    last = query.end.year if query.end else query.start.year + per_query - 1  # type: ignore[union-attr]
-    first = query.start.year if query.start else last - per_query + 1
     return [
         (year, min(year + per_query - 1, last))
         for year in range(first, last + 1, per_query)

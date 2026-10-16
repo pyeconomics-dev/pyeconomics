@@ -60,7 +60,7 @@ from pyeconomics.data.credentials.secret import Secret, key_problem
 from pyeconomics.data.errors import ConfigError, CredentialError, DataWarning
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
     from types import ModuleType
 
 __all__ = [
@@ -196,7 +196,7 @@ def _from_keyring(provider: str) -> str:
 
 
 @contextlib.contextmanager
-def withheld(provider_id: str) -> Iterator[None]:
+def withheld(provider_id: str) -> Generator[None]:
     """Find no key for a provider inside the block, wherever one is stored.
 
     A source whose key is optional (BLS) then runs keyless, as it does for a
