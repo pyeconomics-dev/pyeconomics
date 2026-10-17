@@ -1096,19 +1096,21 @@ Step 6  (FRED and ALFRED, BLS, BEA,   4 keyed providers, vintages,
          Census)                      providers-live.yml and its secrets
                                       -> implement
   |
-  +--> Step 7 (Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI) --+
-  |          5 keyless providers -> implement                 |
-  |                                                          |
-  +--> Step 8 (SDMX, World Bank, DBnomics) --------------------+
-             7 providers, [sdmx] -> implement                 |
-                                                              |
-                                           both Complete on main
-                                                              |
-Step 9  (regional Feds, CBO, PWT)     5 providers, real-time data set,
-                                      SPF -> implement
-  ↓
+  +--> Step 7 (Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI) --------+
+  |          5 keyless providers; SEC verification still required  |
+  |                                                               |
+  +--> Step 8 (SDMX, World Bank, DBnomics)                           |
+             7 providers, [sdmx] -> Complete                       |
+             |                                                     |
+             v                                                     |
+       Step 9 (regional Feds, CBO, PWT) ----------------------------+
+              5 providers; own bounded spreadsheet prerequisite    |
+                                                                   |
+                                            Steps 7 and 9 Complete on main
+                                                                   |
+                                                                   v
 Step 10 (finance research data)       10 providers, [yfinance]
-                                      → implement
+                                      -> implement
   ↓
 Step 11 (catalog + resolver)          concepts, transforms, alignment,
                                       fallback, hosted gates → implement
@@ -1181,8 +1183,10 @@ V20  verify-phase03.sh --fast and --security exit 0 in phase-verify.yml;
      the live-run alarm fired; Phases 1 and 2 stay green.
 ```
 
-Steps follow the dependencies above. Steps 7 and 8 may proceed independently
-after Step 6 is Complete; Step 9 waits for both. Step 1 closes the
+Steps follow the dependencies above. Step 7 may proceed independently of
+Steps 8 and 9. Step 8 follows completed Step 6; Step 9 follows completed Step 8
+and supplies its own spreadsheet prerequisite. Step 10 waits for both Steps
+7 and 9 to be Complete on main. Step 1 closes the
 input-validation and numerics bugs that provider values would otherwise
 flow through, and moves
 the version every later step builds towards. Step 2's ADR fixes the value
@@ -1223,8 +1227,33 @@ for Step 8 implementation, testing or its own merge.
   regenerate locks/exports and rerun affected checks. Preserve both steps'
   provider registrations, hosts, notices and status entries. Regenerate the
   provider registry expectations from the providers actually present.
-- Step 9 and later steps still wait for both Steps 7 and 8 to be Complete on
-  main. No other steps are declared parallel by this amendment.
+- The original join before Step 9 is superseded by the 2026-10-17 amendment
+  below; the remaining reconciliation and acceptance rules still apply.
+
+**Sequencing update (2026-10-17).** The maintainer authorized reviewing and
+removing Step 9's unnecessary wait for SEC access. Its five research providers
+use the completed SDK, transport, cache, recording contracts and FRED vintage
+pattern on main. They do not consume SEC EDGAR or another Step 7 provider.
+The concrete missing prerequisite is Step 7's bounded spreadsheet reader and
+its dependencies; Step 9 must supply and verify the subset it needs itself.
+
+- Step 9 may start after Step 8 is Complete, even while Step 7 is blocked.
+  Use its own branch, worktree and new conversation from current `origin/main`.
+  Step 7 remains unfinished with all original acceptance criteria, including
+  real SEC recordings and successful post-merge live verification.
+- Step 9 may reuse only the necessary shared reader functions and regression
+  tests from Step 7's branch, with provenance recorded in its PR body. Do not
+  cherry-pick the whole Step 7 implementation or register its providers.
+  Recheck parser bounds, XML protections, dependency licences and any existing
+  maintainer-approved exceptions; add only dependencies the sources require.
+  A new licence decision still requires maintainer review.
+- Step 9 may merge independently once its own offline, live, licence, security
+  and deployed checks pass. No acceptance check is waived by this amendment.
+- Whichever branch merges second rebases onto current main, reconciles shared
+  readers, dependencies, locks, exports, registry expectations, workflow hosts
+  and roadmap marks, and reruns affected checks. Preserve both implementations.
+- Step 10 and later steps wait for BOTH Steps 7 and 9 to be Complete on main.
+  This amendment authorizes no further parallel steps.
 
 ---
 
@@ -5277,8 +5306,8 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
        explicit, unhedged
        completion line — verbatim
        shape "Step 8 is
-       complete. Step 9 can start
-       once Step 7 is complete." That
+       complete. You can now move
+       on to Step 9." That
        line is the LAST line of
        the response. NOTHING
        follows it — no "Follow-ups
@@ -5571,8 +5600,10 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
 
 **Branch:** `feature/phase03-step9-providers-research-macro`
 
-**Prerequisites:** Both Steps 7 and 8 must be Complete on main before this
-step starts, regardless of which parallel provider step merged first.
+**Prerequisites:** Step 8 must be Complete on main. Step 9 may proceed in a
+separate worktree while Step 7 remains unfinished under the Execution Order's
+2026-10-17 amendment. Supply the bounded spreadsheet prerequisite below;
+Step 7's SEC access blocker does not transfer to this step.
 
 **Deploys:** GitHub Actions — the next scheduled `providers-live` run
 covers this step's providers; a `workflow_dispatch` run on `main` after
@@ -5738,8 +5769,8 @@ hygiene.
        explicit, unhedged
        completion line — verbatim
        shape "Step 9 is
-       complete. You can now move
-       on to Step 10." That
+       complete. Step 10 can start
+       once Step 7 is complete." That
        line is the LAST line of
        the response. NOTHING
        follows it — no "Follow-ups
@@ -5841,14 +5872,18 @@ hygiene.
     Philadelphia, Atlanta and Cleveland Feds' research data,
     CBO and the Penn World Table.
 
-    Current state (as of Phase 3 Step 8):
+    Baseline: completed Step 8; Step 7 may remain blocked.
 
-    - Sixteen providers are registered and pass offline and
-      live; the spreadsheet stack and the [sdmx] extra exist;
-      fred (ALFRED's real-time periods), fed_board (each
-      SEP release a vintage) and nyfed (each r* and
-      term-premium release a vintage) are the sources with
-      vintages so far.
+    - Eleven providers are registered after Step 8, unless
+      Step 7 has since merged. The SDK, transport, cache,
+      [sdmx] extra and FRED/ALFRED vintage pattern exist.
+      Read the actual registry and dependency state.
+    - The shared spreadsheet reader is on Step 7's branch
+      until either step ships it. Step 9 must bring the
+      necessary reader subset, dependencies and regression
+      tests itself if absent on main; no Step 7 provider is
+      a prerequisite. NY Fed and Fed Board implementations
+      are reference material, not assumed shipped code.
     - "Recorded in metadata" means a frame's notes (Step 6):
       a snake_case code and a detail, such as the Penn World
       Table's release version.
@@ -5870,8 +5905,11 @@ hygiene.
 
     Files to read (every file before drafting):
     - docs/adr/0011-data-platform.md (decisions 3, 6 and 7).
-    - src/pyeconomics/data/providers/ (fred.py for vintages;
-      nyfed.py for spreadsheets) and tests/providers/.
+    - src/pyeconomics/data/providers/ (fred.py for vintages)
+      and tests/providers/. If present, nyfed.py and
+      data/transport/files.py provide spreadsheet examples;
+      otherwise read them and their tests from Step 7's
+      branch using git show, without switching worktrees.
     - Each source's documentation and terms: the Real-Time
       Data Set's and SPF's documentation, GDPNow's page and
       data file, the Cleveland Fed's inflation-expectations
@@ -5893,6 +5931,27 @@ hygiene.
     <requirement>
       Read all files listed in context before making any
       changes.
+    </requirement>
+
+    <requirement>
+      Own the spreadsheet prerequisite when Step 7 has not
+      merged: port only the necessary bounded in-memory
+      reader functions from its data/transport/files.py and
+      their regression tests, or implement an equivalent
+      shared reader. Record provenance in the PR body.
+      Add openpyxl and defusedxml with --no-config, and
+      et-xmlfile or xlrd only when required by actual source
+      formats; regenerate the lock and export. Recheck
+      installed licences and previously approved exceptions,
+      retain required notices and test pins, and obtain
+      review for any new exception. Keep the XML/ZIP size,
+      entry, row and column bounds, read-only cached values,
+      disabled external links and scrubbed parser errors.
+      Include the reader in the layering checks and verify
+      supported Python/OS and Pyodide compatibility. Do not
+      carry Step 7 providers or its completion mark into
+      this PR. Reconcile duplicate shared code when Step 7
+      later rebases onto main.
     </requirement>
 
     <requirement>
@@ -5976,6 +6035,9 @@ hygiene.
   Set's matrices and the right CBO reports on synthetic data.
 - Library-only cassettes are synthetic minimal workbooks under the size
   cap; no workbook formula is evaluated.
+- The required spreadsheet reader and dependency closure ship in this PR if
+  absent on main, with bounded-parser regressions, licence checks and platform
+  compatibility verified; Step 7's unfinished providers remain separate.
 - **Deployed & verified:** after merge, a `workflow_dispatch` run of
   `providers-live.yml` on `main` succeeds with this step's providers
   included (`gh run view <id>` reads `success`).
@@ -6009,6 +6071,9 @@ hygiene.
 > half); ADR-0011 decisions 7 and 11.
 
 **Branch:** `feature/phase03-step10-providers-research-finance`
+
+**Prerequisites:** Both Steps 7 and 9 must be Complete on main. Step 9's
+independent execution does not waive Step 7's SEC verification or this join.
 
 **Deploys:** GitHub Actions — the next scheduled `providers-live` run
 covers this step's providers except yfinance; a `workflow_dispatch` run on
