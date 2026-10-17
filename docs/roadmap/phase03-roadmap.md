@@ -6113,9 +6113,9 @@ hygiene.
 
 ---
 
-## Step 10 — Providers: Asset-Pricing and Market Research Data
+## Step 10 — Providers: Asset-Pricing and Market Research Data ✅
 
-**Status:** Not started
+**Status:** Complete — PR #129 (2026-10-17)
 
 > **Goal:** Register the ten asset-pricing and market research sources the
 > finance entries need. Add `src/pyeconomics/data/providers/ken_french.py`
@@ -11921,7 +11921,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
-| 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 13      | Monetary-policy suite            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
