@@ -82,6 +82,7 @@ LICENCE_ALIASES = {
     "apache software license 2.0": "Apache-2.0",
     "bsd 2-clause": "BSD-2-Clause",
     "bsd 3-clause": "BSD-3-Clause",
+    "3-clause bsd license": "BSD-3-Clause",
     "isc license": "ISC",
     "psf license": "PSF-2.0",
     "python software foundation license": "PSF-2.0",
@@ -235,7 +236,7 @@ def licence_of(meta: Metadata) -> Licence:
         allowed = all(m is not None and m.casefold() in _ALLOWED for m in mapped)
         return Licence(text, "Classifier", allowed)
 
-    return Licence("", "no licence metadata", allowed=False)
+    return Licence("<missing>", "no licence metadata", allowed=False)
 
 
 def project_name(root: Path) -> str:

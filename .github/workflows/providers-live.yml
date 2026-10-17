@@ -54,6 +54,21 @@ jobs:
         with:
           egress-policy: block
           allowed-endpoints: >
+            cdn-api.cboe.com:443
+            community-api.coinmetrics.io:443
+            drive.usercontent.google.com:443
+            global-q.org:443
+            img1.wsimg.com:443
+            jkpfactors-data.s3.amazonaws.com:443
+            mba.tuck.dartmouth.edu:443
+            pages.stern.nyu.edu:443
+            www.aqr.com:443
+            home.treasury.gov:443
+            api.fiscaldata.treasury.gov:443
+            www.federalreserve.gov:443
+            www.newyorkfed.org:443
+            markets.newyorkfed.org:443
+            api.openfigi.com:443
             www.philadelphiafed.org:443
             www.atlantafed.org:443
             www.clevelandfed.org:443

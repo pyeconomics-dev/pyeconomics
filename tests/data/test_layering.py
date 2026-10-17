@@ -30,6 +30,22 @@ CORE = SRC / "core"
 
 #: Modules that must stay pure: the value types and the provenance record.
 PURE_MODULES = (
+    SRC / "data" / "providers" / "_finance.py",
+    SRC / "data" / "providers" / "ken_french.py",
+    SRC / "data" / "providers" / "shiller.py",
+    SRC / "data" / "providers" / "aqr.py",
+    SRC / "data" / "providers" / "hou_xue_zhang.py",
+    SRC / "data" / "providers" / "jkp.py",
+    SRC / "data" / "providers" / "open_source_asset_pricing.py",
+    SRC / "data" / "providers" / "cboe.py",
+    SRC / "data" / "providers" / "coin_metrics.py",
+    SRC / "data" / "providers" / "damodaran.py",
+    SRC / "data" / "providers" / "yfinance.py",
+    SRC / "data" / "records.py",
+    SRC / "data" / "providers" / "treasury.py",
+    SRC / "data" / "providers" / "fed_board.py",
+    SRC / "data" / "providers" / "nyfed.py",
+    SRC / "data" / "providers" / "openfigi.py",
     SRC / "data" / "providers" / "_research.py",
     SRC / "data" / "providers" / "philadelphia_fed.py",
     SRC / "data" / "providers" / "atlanta_fed.py",
@@ -77,6 +93,8 @@ PURE_MODULES = (
 #: The data layer's I/O modules: the only ones that read files, the
 #: environment or the network (ADR-0011 decision 1).
 IO_MODULES = (
+    SRC / "data" / "transport" / "yahoo.py",
+    SRC / "data" / "transport" / "recording.py",
     SRC / "data" / "transport" / "files.py",
     SRC / "data" / "cache" / "__init__.py",
     SRC / "data" / "cache" / "store.py",

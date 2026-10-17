@@ -36,9 +36,9 @@ to :func:`settings`; :func:`reset` forgets them and every override.
 Examples
 --------
 >>> Settings(offline=True, ttl={"bls": 3600})
-Settings(mode='library', offline=True, cache_dir=None, ttl={'bls': 3600})
+Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600})
 
-"""
+"""  # noqa: E501 - doctest representation cannot wrap
 
 from __future__ import annotations
 
@@ -143,6 +143,8 @@ class Settings(BaseModel):
 
     mode: Literal["library", "hosted"] = "library"
     offline: StrictBool = False
+    enable_yfinance: StrictBool = False
+    """Explicit personal-use opt-in; installing the extra does not enable it."""
     cache_dir: Path | None = None
     sec_contact: SecretStr | None = Field(default=None, repr=False)
     ttl: dict[str, Annotated[StrictInt, Field(ge=0, le=MAX_TTL_SECONDS)]] = Field(
@@ -432,6 +434,7 @@ def configure(
     *,
     mode: Literal["library", "hosted"] | None = None,
     offline: bool | None = None,
+    enable_yfinance: bool | None = None,
 ) -> Settings:
     """Override settings for the rest of the process, and return the result.
 
@@ -449,7 +452,11 @@ def configure(
     """
     update = {
         name: value
-        for name, value in (("mode", mode), ("offline", offline))
+        for name, value in (
+            ("mode", mode),
+            ("offline", offline),
+            ("enable_yfinance", enable_yfinance),
+        )
         if value is not None
     }
     _validate(update, "configure()")

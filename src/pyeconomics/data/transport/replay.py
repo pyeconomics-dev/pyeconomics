@@ -110,5 +110,10 @@ class ReplayTransport:
     ) -> Response:
         """Replay a request: refuse what hosted mode and the allowlist refuse."""
         modes.require_allowed(info.terms, provider=info.id)
-        check_host(info, request)
+        if info.access == "session":
+            if not request.host.endswith(".localhost"):
+                msg = "a replayed session request must use a logical localhost host"
+                raise TransportError(msg, provider=info.id)
+        else:
+            check_host(info, request)
         return self.answer(info.id, request)

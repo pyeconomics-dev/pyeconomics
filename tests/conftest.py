@@ -21,49 +21,21 @@ chain, and only the opt-in live run (``-m live``) selects it.
 
 from __future__ import annotations
 
-import itertools
 import os
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 from cache_support import WallClock
-from config_isolation import Home, Isolation, isolated_configuration
+from config_isolation import Home, Isolation
 from hypothesis import settings
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from pathlib import Path
 
 settings.register_profile("ci", derandomize=True, deadline=None, print_blob=True)
 settings.register_profile("dev")
 settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "dev"))
-
-
-@pytest.fixture(scope="session")
-def _isolation_root(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return tmp_path_factory.mktemp("isolated-configuration")
-
-
-_TEST_NUMBERS = itertools.count()
-
-
-@pytest.fixture(autouse=True)
-def isolated(
-    monkeypatch: pytest.MonkeyPatch,
-    _isolation_root: Path,
-    request: pytest.FixtureRequest,
-) -> Iterator[Isolation]:
-    """Give every test its own settings, keys and keyring (config_isolation.py).
-
-    The directories are named, not created, so a test that needs files makes
-    them; nothing is written for the thousands of tests that do not.
-    """
-    if (Path.cwd() / "pyeconomics.toml").exists():
-        pytest.fail("a pyeconomics.toml in the working directory would reach tests")
-    root = _isolation_root / f"test-{next(_TEST_NUMBERS)}"
-    live = request.node.get_closest_marker("live") is not None
-    with isolated_configuration(monkeypatch, root, keep_environment=live) as isolation:
-        yield isolation
 
 
 @pytest.fixture

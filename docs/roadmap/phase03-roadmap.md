@@ -6985,6 +6985,16 @@ conversation per phase-boundary hygiene.
       will declare) and the launch-catalog table.
     - docs/_ext/provider_pages.py, docs/data/keys.md,
       docs/index.md and docs/conf.py.
+
+    Step 10 integration: the four unblocked rates/identifier providers
+    and ten finance providers are delivered without SEC. Exact query
+    ids, native units, file-update semantics and source restrictions
+    are documented in docs/data/research-finance.md. OpenFIGI returns
+    Records rather than binding inputs. Damodaran requires an explicit
+    country/industry category and has no invented as-of history. Coin
+    Metrics declares ProviderInfo.never_paid=True; retain this flag
+    for the paid-feature gate. Yahoo remains off until explicit TOML
+    or configure(enable_yfinance=True) opt-in and never runs live in CI.
   </context>
 
   <goal>
@@ -12295,6 +12305,10 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 10 blocking upstream gap: test isolation is loaded from the repository
+  root through tests/isolation_plugin.py, so source-module doctests cannot
+  inspect or clear the user cache. Preserve this scope in later test changes.
 each upstream gap or deferred finding, the step whose `<task>` was
 patched, and the step or phase that owns it. Phase 4's roadmap carries
 forward whatever is still open here.

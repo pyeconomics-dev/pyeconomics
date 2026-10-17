@@ -110,6 +110,9 @@ From Phase 3, which builds the data layer (ADR-0011):
   `pyeconomics.registry`). Override only the `build_*` and `parse_*` hooks of
   the declared capabilities; the public `fetch`, `search`, `describe` and
   `vintages` are final (they hold the hosted-mode, platform and status checks).
+  A source's explicit opt-in belongs in `check_configuration`, which runs
+  before a cache read as well as before any request; a cache hit must never
+  bypass disabled-source or missing-extra checks.
   `uv run python -c "from pyeconomics.data import registry; registry.validate()"`
   must pass; it reports `<id>: [<rule>] <detail>`. "Writing a provider"
   (`docs/data/writing-a-provider.md`) is the contract.

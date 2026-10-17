@@ -348,3 +348,9 @@ no change:
 - Never print, log or record a key. A key a request echoes back is scrubbed from
   the cassette, and a failing test names the sinks that held a canary, never the
   canary.
+
+The legacy XLS reader uses xlrd under its reviewed BSD licences. Its legacy
+acknowledgement is retained here and in NOTICE, and must remain in relevant
+advertising materials:
+
+This product includes software developed by David Giffin <david@giffin.org>.

@@ -38,6 +38,104 @@ class Row(NamedTuple):
 
 
 NOTICES: dict[str, Row] = {
+    "ken_french": Row(
+        attribution="Source: Eugene F. Fama and Kenneth R. French, Data Library.",
+        notice="Copyright Eugene F. Fama and Kenneth R. French",
+        terms_url="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "shiller": Row(
+        attribution="Source: Robert J. Shiller.",
+        notice=(
+            "The data and CAPE Ratio on this spreadsheet were "
+            "developed by Robert J. Shiller using various public sources."
+        ),
+        terms_url="https://shillerdata.com/",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "damodaran": Row(
+        attribution="Source: Aswath Damodaran, Damodaran Online.",
+        notice=(
+            "The second is that you acknowledge the "
+            "parentage when you used the data from this site."
+        ),
+        terms_url="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/guide.html",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "aqr": Row(
+        attribution="Source: AQR Capital Management, LLC.",
+        notice="PAST PERFORMANCE DOES NOT GUARANTEE FUTURE RESULTS.",
+        terms_url="https://www.aqr.com/Terms-of-Use",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "hou_xue_zhang": Row(
+        attribution=(
+            "Source: Kewei Hou, Haitao Mo, Chen Xue and Lu Zhang, global-q.org."
+        ),
+        notice=None,
+        terms_url="https://global-q.org/factors.html",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "jkp": Row(
+        attribution="Source: Jensen, Kelly and Pedersen (2023), Global Factor Data.",
+        notice="Creative Commons Attribution-NonCommercial 4.0 International",
+        terms_url="https://jkpfactors.com/",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "open_source_asset_pricing": Row(
+        attribution=(
+            "Source: Andrew Y. Chen and Tom Zimmermann, Open Source Asset Pricing."
+        ),
+        notice="Data (October 2025 Release)",
+        terms_url="https://www.openassetpricing.com/data/",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "cboe": Row(
+        attribution="Source: Cboe Global Markets, VIX Index.",
+        notice="All Rights Reserved.",
+        terms_url="https://www.cboe.com/terms",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "coin_metrics": Row(
+        attribution="Source: Coin Metrics Community Network Data.",
+        notice="Creative Commons Attribution-NonCommercial 4.0 International",
+        terms_url="https://github.com/coinmetrics/data/blob/master/LICENSE",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "yfinance": Row(
+        attribution="Source: Yahoo Finance, through yfinance.",
+        notice="the Yahoo! finance API is intended for personal use only.",
+        terms_url="https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "treasury": Row(
+        attribution="Source: U.S. Department of the Treasury.",
+        notice=None,
+        terms_url="https://home.treasury.gov/footer/privacy-act",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "fed_board": Row(
+        attribution="Source: Board of Governors of the Federal Reserve System.",
+        notice=None,
+        terms_url="https://www.federalreserve.gov/disclaimer.htm",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "nyfed": Row(
+        attribution="Source: Federal Reserve Bank of New York.",
+        notice=(
+            "\u00a9 2026 Federal Reserve Bank of New York. "
+            "Content from the New York Fed subject to the Terms of Use "
+            "at newyorkfed.org."
+        ),
+        terms_url="https://www.newyorkfed.org/privacy/termsofuse.html",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "openfigi": Row(
+        attribution="Source: Bloomberg, OpenFIGI.",
+        notice=None,
+        terms_url="https://www.openfigi.com/docs/terms-of-service",
+        checked=dt.date(2026, 10, 16),
+    ),
     "philadelphia_fed": Row(
         attribution=(
             "Source: Federal Reserve Bank of Philadelphia. Croushore and "

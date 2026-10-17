@@ -27,6 +27,7 @@ data/keys
 data/cache
 data/international
 data/research
+data/research-finance
 data/writing-a-provider
 reference/models/index
 reference/providers/index

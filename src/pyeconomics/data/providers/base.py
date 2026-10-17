@@ -103,7 +103,7 @@ from pydantic import (
 from pyeconomics.core import _fields as f
 from pyeconomics.core.errors import InputError
 from pyeconomics.core.provenance import DATA_DATE_BOUNDS, VINTAGE_LABEL_PATTERN
-from pyeconomics.data import cache, modes
+from pyeconomics.data import cache, modes, redaction
 from pyeconomics.data.cache.policy import DEFAULT_TTL_SECONDS, Fetched, Origin
 from pyeconomics.data.config import GUIDE_URL
 from pyeconomics.data.credentials import has_key, key_variable, withheld
@@ -115,6 +115,7 @@ from pyeconomics.data.errors import (
     SeriesNotFoundError,
     TransportError,
 )
+from pyeconomics.data.records import Records
 from pyeconomics.data.transport import default_transport
 from pyeconomics.data.transport.base import (
     DEFAULT_MAX_RESPONSE_BYTES,
@@ -176,6 +177,7 @@ _ANCHORED_VINTAGE: Final = f"^(?:{VINTAGE_LABEL_PATTERN.pattern})$"
 _FINAL_METHODS: Final = (
     "fetch",
     "fetch_with_origin",
+    "records",
     "search",
     "describe",
     "vintages",
@@ -200,6 +202,8 @@ class Capability(StrEnum):
     """Return a series' metadata without its observations."""
     VINTAGES = "vintages"
     """List the dates a series changed, and return real-time periods in a fetch."""
+    RECORDS = "records"
+    """Fetch typed identifier mappings or filings, separate from numeric frames."""
     BULK = "bulk"
     """One request returns a whole dataset or release as a table. Informational:
     the resolver prefers one bulk call to many single ones. Requires ``fetch``."""
@@ -384,6 +388,8 @@ class ProviderInfo:
     capabilities: tuple[Capability, ...] = (Capability.FETCH,)
     """What the provider implements; each needs its ``build_*`` and ``parse_*``."""
     auth: Authentication = field(default_factory=Authentication)
+    never_paid: bool = False
+    """The source forbids use in a paid feature, independently of its class."""
     """None, a key, or the user's contact."""
     access: Access = Access.HTTPS
     """HTTPS requests through a transport, or a local session."""
@@ -621,7 +627,7 @@ class Case:
         if operation is Capability.BULK:
             msg = "bulk is a capability, not an operation: record it as a fetch"
             raise f.fail(msg)
-        wants = Query if operation is Capability.FETCH else str
+        wants = Query if operation in {Capability.FETCH, Capability.RECORDS} else str
         if not isinstance(self.argument, wants):
             msg = f"a {operation.value} case takes a {wants.__name__}"
             raise f.fail(msg)
@@ -715,6 +721,13 @@ class DataProvider:
 
     # --- hooks a provider overrides -------------------------------------------
 
+    def check_configuration(self) -> None:
+        """Check source-specific opt-in before a cache read or a request.
+
+        This hook may impose an additional refusal; the final operations still
+        enforce platform, licence, offline and status checks themselves.
+        """
+
     def build_requests(self, query: Query) -> Sequence[Request]:
         """Say what to ask for to answer ``query`` (capability ``fetch``)."""
         self._unimplemented("build_requests")
@@ -722,6 +735,14 @@ class DataProvider:
     def parse(self, responses: Sequence[Response], query: Query) -> Series | Table:
         """Turn the answers to :meth:`build_requests` into a series or a table."""
         self._unimplemented("parse")
+
+    def build_records(self, query: Query) -> Sequence[Request]:
+        """Build requests for typed records (capability ``records``)."""
+        self._unimplemented("build_records")
+
+    def parse_records(self, responses: Sequence[Response], query: Query) -> Records:
+        """Read identifier mappings or filings, never binding inputs."""
+        self._unimplemented("parse_records")
 
     def build_search(self, text: str, limit: int) -> Sequence[Request]:
         """Say what to ask for to find series by ``text`` (capability ``search``)."""
@@ -923,7 +944,18 @@ class DataProvider:
             return found.fetched
         with self._keyed(key):
             responses = self._run(self.build_requests(checked), key, transport)
-            frame = self.parse(responses, checked)
+            frame = redaction.call_scrubbed(
+                lambda: self.parse(responses, checked),
+                lambda message: ResponseError(message, provider=self.info.id),
+                catch=(
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    IndexError,
+                    StopIteration,
+                    OverflowError,
+                ),
+            )
         fetched = Fetched(
             self._finish(frame, checked, responses),
             Origin(warnings=found.warnings),
@@ -931,6 +963,48 @@ class DataProvider:
         )
         cache.save(self.info, found, fetched)
         return fetched
+
+    @final
+    def records(
+        self,
+        query: Query | Mapping[str, object],
+        *,
+        key: str | Secret | None = None,
+        transport: Transport | None = None,
+    ) -> Records:
+        """Fetch typed records through the same gates as every other operation.
+
+        Records have no frame-cache or vintage-selection semantics and cannot
+        be used by a binding. Offline mode refuses them before a request.
+        """
+        checked = self._query(query)
+        self._gate(Capability.RECORDS)
+        if checked.vintage != "latest":
+            msg = "records do not support vintage selection"
+            raise self._contract(msg)
+        with self._keyed(key):
+            responses = self._run(self.build_records(checked), key, transport)
+            result = redaction.call_scrubbed(
+                lambda: self.parse_records(responses, checked),
+                lambda message: ResponseError(message, provider=self.info.id),
+                catch=(
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    IndexError,
+                    StopIteration,
+                    OverflowError,
+                ),
+            )
+        candidate: object = result
+        if not isinstance(candidate, Records) or candidate.provider != self.info.id:
+            msg = "parse_records must return its own Records"
+            raise self._contract(msg)
+        modes.require_allowed(result.terms, provider=self.info.id)
+        if len(result.rows) > checked.max_observations:
+            msg = "records exceed the query's size bound"
+            raise self._contract(msg)
+        return result
 
     @final
     def search(
@@ -1005,7 +1079,14 @@ class DataProvider:
         *,
         key: str | Secret | None = None,
         transport: Transport | None = None,
-    ) -> Series | Table | tuple[SearchHit, ...] | SeriesMeta | tuple[dt.date, ...]:
+    ) -> (
+        Series
+        | Table
+        | Records
+        | tuple[SearchHit, ...]
+        | SeriesMeta
+        | tuple[dt.date, ...]
+    ):
         """Run a :class:`Case` through the public operation it names.
 
         A keyless case runs with the key chain's key withheld, and refuses an
@@ -1023,9 +1104,18 @@ class DataProvider:
 
     def _run_case(
         self, case: Case, key: str | Secret | None, transport: Transport | None
-    ) -> Series | Table | tuple[SearchHit, ...] | SeriesMeta | tuple[dt.date, ...]:
+    ) -> (
+        Series
+        | Table
+        | Records
+        | tuple[SearchHit, ...]
+        | SeriesMeta
+        | tuple[dt.date, ...]
+    ):
         argument = case.argument
         if isinstance(argument, Query):
+            if case.operation is Capability.RECORDS:
+                return self.records(argument, key=key, transport=transport)
             return self.fetch(argument, key=key, transport=transport)
         text = argument
         if case.operation is Capability.SEARCH:
@@ -1087,6 +1177,7 @@ class DataProvider:
             msg = f"{info.id} does not run on {where}"
             raise DataError(msg, provider=info.id)
         modes.require_allowed(info.terms, provider=info.id)
+        self.check_configuration()
         if operation is not Capability.FETCH:
             modes.require_online(provider=info.id)
 

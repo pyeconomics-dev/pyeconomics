@@ -5,3 +5,9 @@ This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 Releases of pyeconomics up to and including the 0.2.x series remain licensed
 under the MIT License, as published.
+
+The XLS reader uses xlrd, distributed under BSD-3-Clause and a legacy BSD
+licence. Its legacy licence requires the following acknowledgement in
+redistributions and advertising materials mentioning its features or use:
+
+This product includes software developed by David Giffin <david@giffin.org>.

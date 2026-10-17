@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Isolate pyeconomics' settings and keys for one test (the Credential rule).
 
-Every test (tests/conftest.py) and every documentation example
+Every test and source doctest (tests/isolation_plugin.py), and every
+documentation example
 (docs/conftest.py) runs inside :func:`isolated_configuration`:
 
 - ``PYECONOMICS_CONFIG_DIR`` and ``PYECONOMICS_CACHE_DIR`` name directories

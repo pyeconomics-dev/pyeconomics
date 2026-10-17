@@ -1,0 +1,1 @@
+{"provider":"nyfed","recorded_on":"2026-10-17T00:09:15+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://markets.newyorkfed.org/api/rates/secured/sofr/last/3.json"}],"synthetic":true}

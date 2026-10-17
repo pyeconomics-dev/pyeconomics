@@ -1,0 +1,1 @@
+{"provider":"shiller","recorded_on":"2026-10-17T17:29:44+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://img1.wsimg.com/blobby/go/e5e77e0b-59d1-44d9-ab25-4763ac982e53/downloads/1449043e-a1ed-4e2e-8e9c-7b9a2a064493/ie_data.xls"}],"synthetic":true}
