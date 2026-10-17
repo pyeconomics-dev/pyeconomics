@@ -41,6 +41,7 @@ _SPAN = {
     ObservationFrequency.ANNUAL: 15 * 366,
     ObservationFrequency.IRREGULAR: 3 * 366,
 }
+_CURVE_SPAN = 12
 _SAMPLED_PWT = {"us"}
 _SAMPLED_HORIZONS = {"median_h0", "median_h4", "median_10y"}
 
@@ -58,9 +59,9 @@ def sampled(concept: Concept) -> bool:
 def window(concept: Concept) -> dict[str, Any]:
     """Return a recent window sized to the concept's frequency."""
     today = dt.datetime.now(dt.UTC).date()
-    arguments: dict[str, Any] = {
-        "start": today - dt.timedelta(days=_SPAN[concept.frequency])
-    }
+    # Treasury answers a curve request in about 20 seconds, so its window is short.
+    span = _CURVE_SPAN if concept.needs_window else _SPAN[concept.frequency]
+    arguments: dict[str, Any] = {"start": today - dt.timedelta(days=span)}
     if concept.needs_window:
         arguments["end"] = today
     if concept.parameters:
