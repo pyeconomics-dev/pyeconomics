@@ -149,6 +149,32 @@ From Phase 3, which builds the data layer (ADR-0011):
   classes only (the registry refuses anything else), and it joins
   `PURE_MODULES`.
 
+## Catalog rules
+
+From Phase 3 Step 11, which builds the semantic catalog and resolver (ADR-0011
+decision 15):
+
+- A concept is one `Concept` in a topic module under `src/pyeconomics/data/
+  catalog/` (its shapes are in `definitions.py`). Its id is dotted snake_case
+  of three or four parts and is permanent once released: the `released-concept`
+  rule of `registry.validate()` fails on a released id the catalog lacks.
+- A concept is exact. Every candidate must deliver the concept's unit kind,
+  frequency and seasonal adjustment (with the declared transforms), and the
+  resolver fails over only between candidates that do. List the originator
+  first, then a library-only aggregator, then premium sources (Phase 6). A
+  hosted-mode request resolves an originator or refuses with a `LicenceError`; it
+  never falls back to an aggregator.
+- Verify a new concept three ways: `uv run python -c "from pyeconomics.data
+  import registry; registry.validate()"`, the offline suites under
+  `tests/data/catalog/`, and its live resolution (`uv run pytest -m live
+  --force-enable-socket tests/data/catalog/test_live_concepts.py`).
+- A transform has its name and schema in `core/transforms.py` and its
+  implementation in `data/catalog/transforms.py`; a test holds the two equal.
+  A transform never fills a gap, invents a date or carries a value forward.
+- The resolver reads no clock and does no I/O; providers fetch. Concept pages
+  and the sources summary are generated from metadata at documentation build
+  time, offline, and read no key.
+
 ## Units
 
 Rates, returns, yields and percentages are decimals in every API (`0.05`, not

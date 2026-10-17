@@ -15,6 +15,29 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- The semantic catalog and resolver (ADR-0011 decision 15): 136 concepts
+  with permanent ids such as `us.inflation.pce_core.yoy` (US prices, labour,
+  output and the output gap, policy rates, Treasury curves, r*, the SEP and SPF,
+  fiscal series, the Penn World Table, the Ken French factor and portfolio
+  sets, Shiller and Damodaran, and euro-area, UK and Canadian inputs), each a
+  definition, a fixed unit, frequency and seasonal adjustment, and candidate
+  sources in fallback order. `pyeconomics.data.resolve` tries them by mode, key,
+  extra and vintage, passes over a source with a recorded reason, fails over only
+  between identical definitions (`strict=True` never falls back), and records the
+  chain tried in every `DataSource`. Hosted mode resolves an originator or
+  refuses with a `LicenceError` that names the classes it found.
+- Explicit transforms, one vocabulary in `pyeconomics.core.transforms` and their
+  implementations in `pyeconomics.data.catalog.transforms`: percent change,
+  year over year, difference, logarithm, change dates, the ratio and sum of two
+  concepts, frequency conversion by mean, sum, first, last or period end, and
+  as-of, period and window alignment. Nothing fills a gap, invents a date or
+  carries a value forward silently.
+- The public data API: `pyeconomics.data.get`, `search`, `describe`, `vintages`
+  and `sources`, working on concepts and on `provider:series` addresses.
+  `registry.validate()` gains the `released-concept` rule and the `concept-*`
+  checks, and `data/_released.py` its concepts section.
+- Documentation: the "Data sources and keys" guide, a generated sources summary
+  and one generated page per concept, built offline from metadata.
 - Research-finance providers: Ken French, Shiller, Damodaran aggregates, AQR,
   Hou?Xue?Zhang, JKP, Open Source Asset Pricing, Cboe VIX and Coin Metrics;
   personal-use yfinance behind its extra and explicit opt-in.

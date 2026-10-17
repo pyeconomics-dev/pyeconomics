@@ -7,6 +7,7 @@ Every one derives from :class:`DataError`, itself a
 :class:`~pyeconomics.core.errors.PyeconomicsError`, and from the built-in
 exception a caller would expect:
 
+- :class:`ConceptNotFoundError` (``LookupError``): the catalog has no such concept;
 - :class:`ProviderNotFoundError` (``LookupError``): no provider has the id;
 - :class:`SeriesNotFoundError` (``LookupError``): the source has no such series;
 - :class:`CredentialError` (``PermissionError``): a key is missing or refused;
@@ -56,6 +57,7 @@ if TYPE_CHECKING:
     from pyeconomics.core.provenance import LicenceClass
 
 __all__ = [
+    "ConceptNotFoundError",
     "ConfigError",
     "CredentialError",
     "DataError",
@@ -110,6 +112,24 @@ class ProviderNotFoundError(DataError, LookupError):
         if close_matches:
             message += "; did you mean " + " or ".join(map(repr, close_matches)) + "?"
         super().__init__(message, provider=provider_id)
+        self.close_matches = tuple(close_matches)
+
+
+class ConceptNotFoundError(DataError, LookupError):
+    """The catalog has no concept with the requested id.
+
+    Examples
+    --------
+    >>> print(ConceptNotFoundError("us.inflation.pce", close_matches=("us.prices.pce",)))
+    no catalog concept has id 'us.inflation.pce'; did you mean 'us.prices.pce'?
+    """  # noqa: E501 - doctest output lines cannot wrap
+
+    def __init__(self, concept_id: str, *, close_matches: Sequence[str] = ()) -> None:
+        message = f"no catalog concept has id {concept_id!r}"
+        if close_matches:
+            message += "; did you mean " + " or ".join(map(repr, close_matches)) + "?"
+        super().__init__(message)
+        self.concept_id = concept_id
         self.close_matches = tuple(close_matches)
 
 

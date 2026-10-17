@@ -246,6 +246,8 @@ convention = "numpy"
 # Test doubles implement the transport and provider protocols, whose parameters
 # they ignore, and take what a test hands them as Any.
 "tests/providers/**" = ["ARG001", "ARG002", "ARG005", "ANN401"]
+# The scripted providers and the catalog world are test doubles of the same kind.
+"tests/data/catalog/**" = ["ARG001", "ARG002", "ARG005", "ANN401"]
 # ADR-0008 names these modules; they are only ever imported as
 # pyeconomics.core.random and pyeconomics.core.warnings, never top-level.
 "src/pyeconomics/core/random.py" = ["A005"]
@@ -295,18 +297,18 @@ python-version = "3.12"
 # tests/registry holds the toy models the result and smoke tests import too;
 # tests itself holds the strategies and the contract check, tests/golden the
 # loader and tests/data the data layer's shared frames.
-extra-paths = ["tests", "tests/data", "tests/golden", "tests/providers", "tests/registry"]
+extra-paths = ["tests", "tests/data", "tests/data/catalog", "tests/golden", "tests/providers", "tests/registry"]
 
 [tool.ty.src]
 include = ["src", "tests"]
 exclude = [".semgrep/tests", "tests/fixtures"]
 
-# tests/registry and tests/providers build invalid specifications, infos and
-# queries and misuse the API on purpose,
+# tests/registry, tests/providers and tests/data/catalog build invalid
+# specifications, infos, queries and concepts and misuse the API on purpose,
 # and mypy (the gate) already checks it; ty's complaints about those lines are
 # noise that would keep the informational check red.
 [[tool.ty.overrides]]
-include = ["tests/registry/**", "tests/providers/**"]
+include = ["tests/registry/**", "tests/providers/**", "tests/data/catalog/**"]
 
 [tool.ty.overrides.rules]
 call-non-callable = "ignore"
@@ -338,10 +340,11 @@ testpaths = ["tests", "src", "docs"]
 # tests/registry/toy_models.py is the toy catalog the registry tests share;
 # tests/strategies.py and tests/contract.py are the input strategies and the
 # contract check, tests/golden/_loader.py the golden-file loader, and
-# tests/data/frame_builders.py the data layer's shared frames. Only these
+# tests/data/frame_builders.py the data layer's shared frames, and
+# tests/data/catalog/catalog_support.py the catalog's synthetic series. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
-pythonpath = ["tests", "tests/data", "tests/golden", "tests/providers", "tests/registry"]
+pythonpath = ["tests", "tests/data", "tests/data/catalog", "tests/golden", "tests/providers", "tests/registry"]
 markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",

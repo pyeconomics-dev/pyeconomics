@@ -30,6 +30,23 @@ CORE = SRC / "core"
 
 #: Modules that must stay pure: the value types and the provenance record.
 PURE_MODULES = (
+    CORE / "transforms.py",
+    SRC / "data" / "api.py",
+    SRC / "data" / "resolver.py",
+    SRC / "data" / "catalog" / "__init__.py",
+    SRC / "data" / "catalog" / "checks.py",
+    SRC / "data" / "catalog" / "definitions.py",
+    SRC / "data" / "catalog" / "factors.py",
+    SRC / "data" / "catalog" / "fiscal.py",
+    SRC / "data" / "catalog" / "growth.py",
+    SRC / "data" / "catalog" / "international.py",
+    SRC / "data" / "catalog" / "labour.py",
+    SRC / "data" / "catalog" / "markets.py",
+    SRC / "data" / "catalog" / "output.py",
+    SRC / "data" / "catalog" / "prices.py",
+    SRC / "data" / "catalog" / "projections.py",
+    SRC / "data" / "catalog" / "rates.py",
+    SRC / "data" / "catalog" / "transforms.py",
     SRC / "data" / "providers" / "_finance.py",
     SRC / "data" / "providers" / "ken_french.py",
     SRC / "data" / "providers" / "shiller.py",
