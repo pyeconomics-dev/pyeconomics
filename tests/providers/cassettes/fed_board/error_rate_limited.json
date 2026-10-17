@@ -1,0 +1,1 @@
+{"provider":"fed_board","recorded_on":"2026-10-17T00:09:02+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv"}],"synthetic":true}

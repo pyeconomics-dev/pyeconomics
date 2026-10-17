@@ -79,6 +79,40 @@ NOTICES: dict[str, Row] = {
         terms_url="https://www.census.gov/data/developers/about/terms-of-service.html",
         checked=dt.date(2026, 10, 15),
     ),
+    "treasury": Row(
+        attribution="Source: U.S. Department of the Treasury.",
+        notice=None,
+        terms_url="https://home.treasury.gov/footer/privacy-act",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "fed_board": Row(
+        attribution="Source: Board of Governors of the Federal Reserve System.",
+        notice=None,
+        terms_url="https://www.federalreserve.gov/disclaimer.htm",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "nyfed": Row(
+        attribution="Source: Federal Reserve Bank of New York.",
+        notice=(
+            "\u00a9 2026 Federal Reserve Bank of New York. "
+            "Content from the New York Fed subject to the Terms of Use "
+            "at newyorkfed.org."
+        ),
+        terms_url="https://www.newyorkfed.org/privacy/termsofuse.html",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "sec_edgar": Row(
+        attribution="Source: U.S. Securities and Exchange Commission, EDGAR.",
+        notice=None,
+        terms_url="https://www.sec.gov/about/privacy-information",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "openfigi": Row(
+        attribution="Source: Bloomberg, OpenFIGI.",
+        notice=None,
+        terms_url="https://www.openfigi.com/docs/terms-of-service",
+        checked=dt.date(2026, 10, 16),
+    ),
     "toy_json": Row(
         attribution="Source: Toy JSON Agency (a test fixture with invented numbers).",
         notice=(

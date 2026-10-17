@@ -59,3 +59,15 @@ reason = "Ambiguous classifier only; its License field reads '2-clause BSD'. pat
 package = "cffi"
 licence = "MIT-0"
 reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached only through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi). Checked by Claude Opus 5.5, 2026-10-14."
+
+# Phase 3 Step 7: both exceptions explicitly approved by the maintainer in
+# the session on 2026-10-16 after review of the bundled licence files.
+[[exception]]
+package = "defusedxml"
+licence = "PSFL"
+reason = "defusedxml 0.7.1 wheel's LICENSE is PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2, corresponding to the allowed PSF-2.0 licence; metadata uses the legacy PSFL name. Checked by GPT-6.1 Sol, 2026-10-16. Maintainer approved in session on 2026-10-16."
+
+[[exception]]
+package = "xlrd"
+licence = "BSD"
+reason = "xlrd 2.0.2 wheel's LICENSE covers the main library under BSD-3-Clause and earlier David Giffin/Andrew Khan work under a legacy four-clause BSD licence requiring an advertising acknowledgement and retention of that acknowledgement on redistribution. The required acknowledgement is retained in NOTICE and the provider documentation; retain it in future advertising materials mentioning the licensed software's features or use. Required for the full NY Fed ACM .xls dataset. Checked by GPT-6.1 Sol, 2026-10-16. Maintainer approved in session on 2026-10-16."

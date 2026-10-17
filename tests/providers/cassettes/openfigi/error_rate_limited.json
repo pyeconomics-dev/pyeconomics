@@ -1,0 +1,1 @@
+{"provider":"openfigi","recorded_on":"2026-10-17T00:09:16+00:00","requests":[{"body":[{"idType":"ID_BB_GLOBAL","idValue":"BBG000BLNNH6"}],"method":"POST","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://api.openfigi.com/v3/mapping"}],"synthetic":true}

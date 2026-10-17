@@ -103,6 +103,7 @@ _VENDOR_CLASSES: Final = frozenset({LicenceClass.BYOK, LicenceClass.PREMIUM_LOCA
 #: Each capability and the hook pairs a provider overrides to implement it.
 _HOOKS: Final = {
     Capability.FETCH: ("build_requests", "parse"),
+    Capability.RECORDS: ("build_records", "parse_records"),
     Capability.SEARCH: ("build_search", "parse_search"),
     Capability.DESCRIBE: ("build_describe", "parse_describe"),
     Capability.VINTAGES: ("build_vintages", "parse_vintages"),

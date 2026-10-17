@@ -4955,8 +4955,9 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
 
     <requirement>
       fed_board: H.15 series (the effective federal funds
-      rate, Treasury constant maturities, the target range)
-      from the release's XML or CSV files; the SEP's median,
+      rate and Treasury constant maturities) from the release's
+      XML file; the target range from the Board's published
+      open-market target-change table (it is not in H.15); the SEP's median,
       central tendency and range for each variable and
       horizon, each meeting's release a vintage; the GSW
       file's daily parameters (BETA0 to BETA3, TAU1, TAU2)
@@ -4972,7 +4973,10 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
       SOMA endpoints; ACM term premia; the Laubach-Williams
       (United States) and Holston-Laubach-Williams (United
       States, Canada, euro area) estimates, each file release
-      a vintage; the Staff Nowcast. Terms: hosted-safe with
+      a source-labelled vintage. Preserve explicit quarterly
+      vintage sheet ids; never infer a historical availability
+      date from a sheet's quarter when the workbook does not
+      publish one. The Staff Nowcast. Terms: hosted-safe with
       the New York Fed's copyright notice and terms reference,
       and each reference rate's own terms line.
     </requirement>
@@ -5007,8 +5011,12 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
 
     <requirement>
       Dependencies (Dependency rule): `uv add --no-config`
-      openpyxl, et-xmlfile and defusedxml (pure Python,
-      floors no higher than Pyodide bundles, no upper bound);
+      openpyxl, et-xmlfile, defusedxml and xlrd (pure Python,
+      no upper bound; xlrd is needed now for the full ACM XLS
+      file). These readers are absent from Pyodide 314.0.7's
+      bundled index; install their locked pure-Python wheels
+      explicitly from PyPI before the package in that job.
+      xlwt is recorder-only in the development group;
       lock and export with --no-config; licences, pip-audit
       and dependency-review pass, with a reviewed exception
       only if the hook asks for one; the pyodide job stays

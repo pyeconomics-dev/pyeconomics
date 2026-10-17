@@ -209,11 +209,17 @@ jobs:
           #   licences hook allows it only through the reviewed entry in
           #   scripts/checks/licence_exceptions.toml, approved in that step's
           #   pull request.
+          # - defusedxml (PSFL metadata; bundled PSF Version 2) and xlrd
+          #   (BSD-3-Clause plus legacy BSD acknowledgement) were reviewed and
+          #   approved by the maintainer in the Phase 3 Step 7 session on
+          #   2026-10-16. Runtime exceptions pin the reported metadata;
+          #   NOTICE and the provider guide retain xlrd's acknowledgement.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:pypi/astroid,
             pkg:pypi/certifi,
             pkg:pypi/cffi,
+            pkg:pypi/defusedxml,
             pkg:pypi/docutils,
             pkg:pypi/hypothesis,
             pkg:pypi/numpy,
@@ -223,5 +229,6 @@ jobs:
             pkg:pypi/roman-numerals,
             pkg:pypi/simplejson,
             pkg:pypi/sphinx,
-            pkg:pypi/typing-extensions
+            pkg:pypi/typing-extensions,
+            pkg:pypi/xlrd
           comment-summary-in-pr: never

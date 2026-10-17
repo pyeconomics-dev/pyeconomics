@@ -88,6 +88,7 @@ _logger = logging.getLogger(__name__)
 _RANDOM: Final = secrets.SystemRandom()
 _POOL_LOCK: Final = threading.Lock()
 _SHARED_POOL: dict[str, Any] = {}
+_SHARED_LIMITERS: Final = RateLimiters(time.monotonic)
 
 
 def user_agent(contact: str | None = None) -> str:
@@ -216,7 +217,12 @@ class HttpTransport:
         self._max_redirects = max_redirects
         self._connect_timeout = connect_timeout
         self._read_timeout = read_timeout
-        self._limiters = RateLimiters(clock, max_wait=max_wait)
+        self._max_wait = max_wait
+        self._limiters = (
+            _SHARED_LIMITERS
+            if clock is time.monotonic
+            else RateLimiters(clock, max_wait=max_wait)
+        )
 
     # --- sending ---------------------------------------------------------------
 
@@ -374,7 +380,7 @@ class HttpTransport:
             wire.payload,
         )
         for _hop in range(self._max_redirects + 1):
-            limiter.acquire(self._sleep, keyed=wire.keyed)
+            limiter.acquire(self._sleep, keyed=wire.keyed, max_wait=self._max_wait)
             raw, failure = self._open(method, url, headers, payload)
             if raw is None:
                 return failure

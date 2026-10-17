@@ -106,7 +106,13 @@ class ProviderLimiter:
         self._windows = tuple(_Window(limit) for limit in limits)
         self._last = float("-inf")
 
-    def acquire(self, sleep: Callable[[float], None], *, keyed: bool = False) -> float:
+    def acquire(
+        self,
+        sleep: Callable[[float], None],
+        *,
+        keyed: bool = False,
+        max_wait: float | None = None,
+    ) -> float:
         """Reserve the next grant time within every limit, and sleep until it.
 
         A limit that holds only without a key (``RateLimit.without_key``) does
@@ -122,12 +128,13 @@ class ProviderLimiter:
         RateLimitError
             If the wait would exceed :attr:`max_wait`; nothing is reserved.
         """
+        ceiling = self.max_wait if max_wait is None else max_wait
         windows = [w for w in self._windows if w.applies(keyed=keyed)]
         with self._lock:
             now = self._clock()
             grant = max(now, self._last, *(window.earliest() for window in windows))
             wait = grant - now
-            if wait > self.max_wait:
+            if wait > ceiling:
                 msg = (
                     f"{self.provider}'s rate limit is spent; the next request "
                     f"could go in {wait:.0f} seconds"
