@@ -16,7 +16,8 @@ the same provider contract. None of that can start until the data contract
 is fixed and proven: the data model, licence classes as enforced metadata,
 credentials that never leak, a cache that follows each source's terms,
 vintages, a semantic catalog and live bindings into the model registry. The
-phase builds that layer over 31 free sources, completes the 50-entry launch
+phase targets 31 free sources (30 required if SEC access remains blocked,
+under the release-set exception below), completes the 50-entry launch
 catalog with its 18 live-data entries — led by a vintage-aware
 monetary-policy suite, the clearest white space the project has — and
 releases them to PyPI as the pre-release `1.0.0a2`. It runs no service
@@ -90,7 +91,8 @@ The phase lands in 20 layers:
 10. **Providers: asset-pricing and market research data** — Ken French,
     Shiller, Damodaran, AQR, Hou-Xue-Zhang, JKP, Open Source Asset Pricing,
     Cboe's VIX history, Coin Metrics and yfinance (off by default, behind a
-    `[yfinance]` extra).
+    `[yfinance]` extra); also delivers the four unblocked Step 7
+    providers before catalog work.
 11. **Semantic catalog and resolver** — concept ids such as
     `us.inflation.pce_core.yoy`, declared transforms, explicit frequency
     alignment, the fallback order, originator-only resolution in hosted
@@ -134,9 +136,36 @@ The phase lands in 20 layers:
     `.github/workflows/phase-verify.yml`, and a synthetic failure that
     proves the live run's alarm.
 
+**External-approval exception (maintainer, 2026-10-17).** Neither pending
+GitHub Sponsors approval (issue #68, submitted again on 2026-10-12) nor SEC
+access may hold up the remaining roadmap. Sponsors is a separate funding
+follow-up, not a data prerequisite. Step 7 stays unfinished until its own
+acceptance criteria pass. Step 10 delivers its four unblocked providers
+(`treasury`, `fed_board`, `nyfed`, `openfigi`) before the catalog needs them;
+only `sec_edgar` may remain deferred. No launch-model binding requires EDGAR.
+
+The **Phase 3 release provider set** is the exact source-plan set below minus
+`sec_edgar` while SEC access is unresolved: 30 required provider ids, including
+the opt-in yfinance provider. If Step 7 completes before the release candidate
+is frozen, the set is all 31. Step 18 records the exact ids, evidence and SEC
+deferral in the readiness document; Steps 19 and 20 use that recorded set.
+A changed candidate requires a fresh rehearsal and maintainer GO. Deferral
+permits no partial EDGAR registration, fabricated recording, passing skip or
+relaxed check for any shipped provider. The four recovered providers must
+pass their original Step 7 requirements in Step 10, including offline and
+post-merge live proof. Step 7's later PR must pass all five providers' original
+criteria and update release ledgers and verification without dropping ids.
+
+Steps 10–20 and Phase 3 may complete with this one named external deferral;
+Step 7's own Status and Summary Table cell remain unfinished. Step 20 records
+it in QA findings and Phase 4's carry-over, owned by the maintainer for SEC
+access and the Step 7 follow-up PR for implementation and verification. Phase 4
+may start without SEC or Sponsors approval; it exposes only verified registered
+sources. This exception supersedes earlier blanket joins and completion text.
+
 The ship test for Phase 3 is straightforward: issues #75, #81 and #85 are
 closed with regression tests; ADR-0011 is Accepted; every provider in the
-source table below is registered through the `pyeconomics.providers`
+Phase 3 release provider set is registered through the `pyeconomics.providers`
 entry-point group, declares its licence class, terms URL, terms-checked
 date, attribution and `llm_use` flag, and passes the shared contract suite
 offline in CI against recorded responses that are scrubbed, secret-scanned
@@ -1096,20 +1125,19 @@ Step 6  (FRED and ALFRED, BLS, BEA,   4 keyed providers, vintages,
          Census)                      providers-live.yml and its secrets
                                       -> implement
   |
-  +--> Step 7 (Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI) --------+
-  |          5 keyless providers; SEC verification still required  |
-  |                                                               |
-  +--> Step 8 (SDMX, World Bank, DBnomics)                           |
-             7 providers, [sdmx] -> Complete                       |
-             |                                                     |
-             v                                                     |
-       Step 9 (regional Feds, CBO, PWT) ----------------------------+
-              5 providers; own bounded spreadsheet prerequisite    |
-                                                                   |
-                                            Steps 7 and 9 Complete on main
-                                                                   |
-                                                                   v
-Step 10 (finance research data)       10 providers, [yfinance]
+  +--> Step 7 (parked SEC follow-up; NOT a join for Steps 10-20)
+  |          Completes only after all five original providers pass
+  |
+  +--> Step 8 (SDMX, World Bank, DBnomics)
+             7 providers, [sdmx] -> Complete
+             |
+             v
+       Step 9 (regional Feds, CBO, PWT)
+              5 providers; bounded XLSX reader -> Complete
+             |
+             v
+Step 10 (finance research data +      10 finance providers, [yfinance],
+         four unblocked providers)    Treasury, Fed Board, NY Fed, OpenFIGI
                                       -> implement
   ↓
 Step 11 (catalog + resolver)          concepts, transforms, alignment,
@@ -1159,7 +1187,8 @@ V5   The cache follows each source's terms: no-storage sources are
      never written; time-to-live and offline mode are tested.
 V6   Four keyed providers pass; ALFRED's first release is verified;
      the live run is green on main.
-V7   Five keyless providers pass offline and live.
+V7   Four recovered providers pass offline and live; SEC passes too
+     if included, otherwise the named external deferral is recorded.
 V8   Seven SDMX and international providers pass, with series-level
      licence gates.
 V9   Five regional-Fed and research providers pass; CBO and the Penn
@@ -1184,9 +1213,10 @@ V20  verify-phase03.sh --fast and --security exit 0 in phase-verify.yml;
 ```
 
 Steps follow the dependencies above. Step 7 may proceed independently of
-Steps 8 and 9. Step 8 follows completed Step 6; Step 9 follows completed Step 8
-and supplies its own spreadsheet prerequisite. Step 10 waits for both Steps
-7 and 9 to be Complete on main. Step 1 closes the
+Steps 8–20. Step 8 follows completed Step 6; Step 9 follows completed Step 8
+and supplies its own spreadsheet prerequisite. Step 10 follows completed
+Step 9 and owns delivery of the four unblocked Step 7 providers and legacy
+XLS support. No later step waits for Step 7's Status. Step 1 closes the
 input-validation and numerics bugs that provider values would otherwise
 flow through, and moves
 the version every later step builds towards. Step 2's ADR fixes the value
@@ -1204,7 +1234,7 @@ the providers of Steps 6–10, Step 12's bindings resolve through it, and
 Step 13's policy suite is the first consumer of both; Steps 14–17 reuse its
 patterns and each other's shared numerics. Step 18 rehearses the tree Steps
 1–17 leave on `main`, Step 19 releases it only after the maintainer's GO,
-and Step 20 is sequential after every prior step.
+and Step 20 follows Step 19, applying the named SEC deferral when needed.
 
 **Sequencing update (2026-10-16).** Step 7's remaining SEC access rejection is
 an external verification blocker. Step 8 uses the SDK, transport, cache and
@@ -1252,8 +1282,31 @@ its dependencies; Step 9 must supply and verify the subset it needs itself.
 - Whichever branch merges second rebases onto current main, reconciles shared
   readers, dependencies, locks, exports, registry expectations, workflow hosts
   and roadmap marks, and reruns affected checks. Preserve both implementations.
-- Step 10 and later steps wait for BOTH Steps 7 and 9 to be Complete on main.
-  This amendment authorizes no further parallel steps.
+- The former join before Step 10 is superseded by the external-approval
+  amendment below. Step 9's own requirements and completion remain unchanged.
+
+**Further sequencing update (maintainer, 2026-10-17).** The maintainer directed
+that the rest of development and the roadmap must not wait for external
+responses. The Overview's external-approval exception is authoritative:
+
+- Step 10 may start now, from completed Step 9. It ports only the four
+  unblocked providers and necessary shared SDK/records/XML/XLS prerequisites
+  from the parked Step 7 branch, documents provenance, rebases against the
+  stronger reader already on main, and verifies them under the original
+  Step 7 source, licence, recording, security and deployment requirements.
+  It also delivers its ten finance providers. Never copy the whole branch
+  or its completion marks, and never enable incomplete EDGAR code in main.
+- Steps 11–20 keep their normal sequential prerequisites. Their catalog,
+  bindings and model data dependencies are satisfied by the four recovered
+  providers; none requires EDGAR. No EDGAR-only concept or binding is promised
+  while its provider is absent. All other required concepts remain in scope.
+- Each active step uses its own conversation, branch and worktree from
+  current main. The parked Step 7 branch and draft PR remain preserved.
+  A returning Step 7 rebases, retains all merged providers and shared code,
+  and verifies the complete five-provider contract before its own merge.
+- Readiness, release and QA use the exact release provider set, not a false
+  31-provider claim. SEC is an explicit carry-over, not a green test or a
+  completed Step 7. Sponsors remains issue #68, independent of engineering.
 
 ---
 
@@ -4649,6 +4702,13 @@ per phase-boundary hygiene.
 
 **Branch:** `feature/phase03-step7-providers-rates`
 
+**Resumption:** This step may stay parked while Steps 10–20 and Phase 4
+proceed under the external-approval exception. Rebase its draft PR onto
+current main before resuming; retain the four providers delivered by Step 10
+and every newer provider, reader limit, dependency approval and ledger entry.
+Its remaining implementation may be SEC-only, but completion still requires
+all five original providers' acceptance checks. Do not restart finished steps.
+
 **Deploys:** GitHub Actions — the next scheduled `providers-live` run
 covers this step's providers; a `workflow_dispatch` run on `main` after
 merge proves them, and the `SEC_CONTACT` secret, live.
@@ -4812,8 +4872,8 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
        explicit, unhedged
        completion line — verbatim
        shape "Step 7 is
-       complete. You can now move
-       on to Step 8." That
+       complete. Continue from the
+       roadmap's current unfinished step." That
        line is the LAST line of
        the response. NOTHING
        follows it — no "Follow-ups
@@ -6072,13 +6132,18 @@ hygiene.
 > the scheduled live run, because Yahoo's terms bar automated collection;
 > add xlrd as a runtime dependency for the legacy `.xls` sources; record
 > synthetic cassettes for every library-only source; and extend the live
-> run. Parent: ROADMAP §4 3.4; §5 "Data terms"; ROADMAP §2 gap 15 (its data
+> run. First recover Treasury, Fed Board, NY Fed and OpenFIGI from Step 7
+> if absent on main, including their original verification requirements.
+> Parent: ROADMAP §4 3.4; §5 "Data terms"; ROADMAP §2 gap 15 (its data
 > half); ADR-0011 decisions 7 and 11.
 
 **Branch:** `feature/phase03-step10-providers-research-finance`
 
-**Prerequisites:** Both Steps 7 and 9 must be Complete on main. Step 9's
-independent execution does not waive Step 7's SEC verification or this join.
+**Prerequisites:** Step 9 must be Complete on main. Step 7 may remain parked
+for SEC access. This step must first deliver `treasury`, `fed_board`, `nyfed`
+and `openfigi` and their shared prerequisites if absent on main, with the
+original Step 7 criteria for those four sources. No SEC dependency transfers
+to this step. See the Overview's external-approval exception.
 
 **Deploys:** GitHub Actions — the next scheduled `providers-live` run
 covers this step's providers except yfinance; a `workflow_dispatch` run on
@@ -6332,7 +6397,8 @@ conversation per phase-boundary hygiene.
       member's uncompressed size and on the member count;
       nothing is extracted to disk, so no path in an archive
       is ever followed.
-    - Every source here except Damodaran's aggregates is
+    - Of the ten finance sources, every source except
+      Damodaran's aggregates is
       library-only: its cassettes are synthetic, nothing from
       it is bundled in the wheel, and no published value is
       committed except a golden case's cited handful (Steps
@@ -6354,8 +6420,10 @@ conversation per phase-boundary hygiene.
 
     Current state (as of Phase 3 Step 9):
 
-    - Twenty-one providers are registered and pass offline
-      and live; spreadsheet parsing (openpyxl, defusedxml)
+    - Sixteen providers are registered after Step 9, or more
+      if Step 7 has since merged. Inspect actual main; never
+      assume its five providers are already present.
+      Spreadsheet parsing (openpyxl, defusedxml)
       and vintage-keeping research sources exist; the
       [sdmx] extra carries certifi's reviewed exception.
     - ROADMAP §5 "Data terms": the Ken French Data Library is
@@ -6385,6 +6453,13 @@ conversation per phase-boundary hygiene.
     - docs/adr/0011-data-platform.md (decisions 7, 10 and
       11) and this roadmap's Licence and Recording rules.
     - src/pyeconomics/data/providers/ and tests/providers/.
+      Read Step 7's complete task and its parked branch's
+      four unblocked providers, tests, real recordings,
+      SDK records capability, XML/XLS readers, recorder,
+      licence notices/exceptions, live hosts and Pyodide
+      support. Compare each with current main before reuse;
+      preserve Step 9's stronger reader and memory-only
+      workbook writer. Do not import SEC implementation.
     - Each source's data page and terms: the Ken French Data
       Library, Robert Shiller's data page, Damodaran Online,
       AQR's data sets, global-q.org, jkpfactors.com, Open
@@ -6394,7 +6469,8 @@ conversation per phase-boundary hygiene.
   </context>
 
   <goal>
-    The ten providers are registered, validated and pass the
+    The four recovered providers and ten finance providers
+    are registered, validated and pass the
     contract suite offline; all but yfinance pass live in the
     scheduled run; yfinance works only once enabled; every
     library-only cassette is synthetic; and the [yfinance]
@@ -6409,10 +6485,33 @@ conversation per phase-boundary hygiene.
 
     <requirement>
       Kickoff, one batched question to the maintainer: the
-      reviewed licence exceptions for xlrd, peewee and any
-      other package the hook reports, and the yfinance
-      enabling mechanism below. Record the answers in the PR
-      body.
+      new licence exceptions for peewee and any other
+      package the hook reports, and the yfinance enabling
+      mechanism below. Existing approvals for xlrd and
+      defusedxml persist; verify and retain their exact
+      notices and conditions, without asking again. Record
+      existing approvals and any new answers in the PR body.
+    </requirement>
+
+    <requirement>
+      First deliver treasury, fed_board, nyfed and openfigi
+      if absent from main, satisfying their full source
+      contracts in Step 7, its non-EDGAR records capability,
+      source-specific real recordings and error cases,
+      canaries, attribution, units, vintage semantics,
+      hosted gates, entry points and offline contract tests.
+      Port only their needed shared SDK and bounded XML/XLS
+      reader/recorder closure; retain main's XLSX limits,
+      safe XML, memory-only writes and all current providers.
+      Preserve the approved xlrd legacy acknowledgement and
+      check the entire dependency closure on all platforms.
+      Document the parked branch/commit provenance and exact
+      reused files in this PR. No sec_edgar entry point,
+      live case or host is added until Step 7 verifies it.
+      The four recovered providers join this step's main
+      post-merge live proof, with no skip for SEC access.
+      If they already merged, verify them rather than
+      duplicate implementation. Do not mark Step 7 complete here.
     </requirement>
 
     <requirement>
@@ -6503,6 +6602,13 @@ conversation per phase-boundary hygiene.
 
 ### Step 10 acceptance criteria
 
+- `treasury`, `fed_board`, `nyfed` and `openfigi` are present and meet
+  their original Step 7 criteria: source contracts, real trimmed recordings,
+  offline tests, canaries, notices, units/vintages, safe readers and Pyodide.
+  Their shared prerequisites and licences pass the gate; all four are included
+  in the successful post-merge live run. No partial SEC provider is registered
+  and no Step 7 completion mark is carried. The minimum registry is now 30 ids
+  (31 only if Step 7 independently completes).
 - The ten providers are registered, `pyeconomics.data.registry.validate()`
   passes, and each declares its class, terms URL and date, attribution,
   notices and `llm_use` flag; Coin Metrics carries CC BY-NC 4.0 and its
@@ -6554,6 +6660,10 @@ conversation per phase-boundary hygiene.
 > licensing policy" rules 1 and 3; ADR-0011 decisions 6, 7 and 15.
 
 **Branch:** `feature/phase03-step11-catalog`
+
+**Prerequisites:** Step 10 Complete on main, including the four recovered
+providers. Step 7's SEC deferral does not block this step. Do not add an
+EDGAR-only catalog candidate while that provider is absent.
 
 **Deploys:** Documentation → the Read the Docs `main` preview, rebuilt
 from `main` on merge with the data guide, the sources summary and the
@@ -6840,7 +6950,8 @@ conversation per phase-boundary hygiene.
       storage; offline mode raises OfflineError for a miss,
       which the resolver reports or tries the next source on,
       and search, describe and vintages refuse to run offline.
-    - Thirty-one providers are registered and pass the
+    - The Phase 3 release provider set (30 ids if SEC is
+      deferred, otherwise 31) is registered and passes the
       contract suite offline and live (yfinance on demand);
       each declares its class, terms, notices, llm_use, cache
       policy and capabilities; the sources with vintages are
@@ -10008,6 +10119,10 @@ conversation per phase-boundary hygiene.
 
 **Branch:** `feature/phase03-step18-release-gate`
 
+**Prerequisites:** Step 17 Complete on main. Step 7 and Sponsors approval
+may remain pending under the Overview's exception. Freeze and audit the exact
+release provider set in this step; the maintainer's GO is still required.
+
 **Deploys:** TestPyPI — `pyeconomics 1.0.0a2.devN`, tagged on `main`'s
 HEAD at kickoff and published through `release.yml`'s `testpypi`
 environment; the readiness document lands on merge; nothing reaches PyPI.
@@ -10021,8 +10136,8 @@ environment; the readiness document lands on merge; nothing reaches PyPI.
 | Conversation | **New**                                       |
 
 **Model rationale:** Knowledge is PRIMARY — an evidenced checklist an
-irreversible upload is judged against, a licence and terms audit of 31
-providers, an artifact and metadata review — and agentic work SECONDARY: the
+irreversible upload is judged against, a licence and terms audit of the
+release provider set, an artifact and metadata review — and agentic work SECONDARY: the
 TestPyPI rehearsal, clean installs and the live recipe. Phase 2's gate is
 the pattern and the GO or NO-GO is the maintainer's, so complexity is
 Medium, with an A floor in knowledge, and the operator's posture sends
@@ -10275,8 +10390,9 @@ knowledge (HLE 50.0% vs 49.9%). New conversation per phase-boundary hygiene.
 
     Current state (as of Phase 3 Step 17):
 
-    - All 50 launch-catalog ids are registered; 31 providers
-      pass the contract suite offline and (except yfinance)
+    - All 50 launch-catalog ids are registered; the Phase 3
+      release provider set (30 ids, or 31 with verified SEC)
+      passes the contract suite offline and (except yfinance)
       in the weekly live run; the catalog, bindings and
       schema-2 manifests work end to end; main reads
       1.0.0a2.dev1 unless a fix bumped it.
@@ -10341,12 +10457,22 @@ knowledge (HLE 50.0% vs 49.9%). New conversation per phase-boundary hygiene.
          with a card, cited goldens, invariant tests and a
          docs page; models re-versioned in this phase listed
          with their changelog entries.
-      2. Provider audit: for each of the 31 providers, its
+      2. Provider audit: for each release-set provider, its
          class, terms URL and checked date (none older than
          13 months), attribution, required notice, llm_use,
          cache policy and whether its cassettes are
          synthetic; the classes this phase settled (OECD,
-         CBO, the Penn World Table).
+         CBO, the Penn World Table). List the exact required
+         30 ids from the source plan, plus sec_edgar only
+         after Step 7 completes and its proof is verified.
+         Compare this independent expected set to installed
+         entry points; never derive the expected set merely
+         from whatever happens to be installed. Record SEC's
+         external blocker, owner and carry-over when absent;
+         state explicitly that Step 7 is not complete.
+         Do not block rehearsal or GO solely for that named
+         deferral or pending Sponsors approval. Every shipped
+         provider retains its full acceptance requirements.
       3. Credentials and redaction: the canary suite, the
          secret-reveal and credential-logging rules, the
          whole-tree secret scan, no repository secret, the
@@ -10412,6 +10538,10 @@ knowledge (HLE 50.0% vs 49.9%). New conversation per phase-boundary hygiene.
 
 ### Step 18 acceptance criteria
 
+- The readiness document lists the independently checked exact release
+  provider set, with SEC's blocker, owner and follow-up if deferred. Every
+  required non-SEC provider passes; no EDGAR capability is promised while
+  absent. The rehearsed artifacts and maintainer decision cover this set.
 - `v1.0.0a2.devN` is tagged on `main`, and TestPyPI lists its wheel and
   sdist, each with a provenance; the release smoke passed with and without
   extras.
@@ -10443,10 +10573,11 @@ knowledge (HLE 50.0% vs 49.9%). New conversation per phase-boundary hygiene.
 > lists — `CITATION.cff`, the README's status banner (the PyPI page), the
 > documentation index's count (50 model families across 13 domains), a
 > dated `[1.0.0a2]` CHANGELOG section, the release notes
-> `docs/releases/1.0.0a2.md` (the data platform, 31 providers, 18 new
+> `docs/releases/1.0.0a2.md` (the data platform, 30 providers while SEC is
+> deferred, otherwise 31; 18 new
 > models, the manifest's schema 2 as a breaking change, the re-versioned
 > models and the known limitations), `core/_released.py` extended to 50
-> ids and `data/_released.py` filled with the 31 provider ids and the
+> ids and `data/_released.py` filled with the release provider set and the
 > released concept ids — re-running the ADR-0010 floor check and ADR-0003's
 > milestone check first. After the merge, tag `v1.0.0a2` on `main`;
 > `release.yml` builds, waits for the maintainer's approval in the `pypi`
@@ -10456,6 +10587,11 @@ knowledge (HLE 50.0% vs 49.9%). New conversation per phase-boundary hygiene.
 > the GitHub release as a pre-release. Parent: ROADMAP §4 3.8; ADR-0003.
 
 **Branch:** `feature/phase03-step19-release`
+
+**Prerequisites:** Step 18 Complete with a GO for this exact candidate and
+release provider set. A still-deferred Step 7 or pending Sponsors application
+adds no prerequisite. Release notes must disclose EDGAR's absence if deferred;
+the ledger must match the rehearsed set, never the planned count alone.
 
 **Deploys:** PyPI — `pyeconomics 1.0.0a2` as a pre-release, from tag
 `v1.0.0a2` on the merged release commit, through the `pypi` environment's
@@ -10760,8 +10896,9 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
     without extras; the live recipe passes from a clean
     install; plain `pip install pyeconomics` still installs
     0.2.6; the GitHub release v1.0.0a2 is a public
-    pre-release; and the ledgers guard 50 model ids, 31
-    provider ids and the released concept ids.
+    pre-release; and the ledgers guard 50 model ids, the
+    Phase 3 release provider set (30 or 31 ids) and the
+    released concept ids.
   </goal>
 
   <requirements>
@@ -10793,7 +10930,7 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
       cover it in tests/checks/test_release_ledger.py. Run it
       for 1.0.0a2: core/_released.py lists 50 ids (the 18
       new ones first released in 1.0.0a2) and
-      data/_released.py the 31 providers and the released
+      data/_released.py the exact release provider set and the released
       concepts; validate() and
       pyeconomics.data.registry.validate() pass.
     </requirement>
@@ -10864,7 +11001,7 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
   `CITATION.cff` and the dated `[1.0.0a2]` CHANGELOG section agree; the
   release notes and README describe the pre-release and its limitations.
 - `core/_released.py` lists the 50 launch-catalog ids and
-  `data/_released.py` the 31 provider ids and the released concept ids;
+  `data/_released.py` the exact release provider set and the released concept ids;
   `validate()`, `pyeconomics.data.registry.validate()` and
   `release_ledger.py --check` pass.
 - The built artifacts differ from the rehearsal's only by the readiness
@@ -10907,6 +11044,9 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
 > Implementation Verification.
 
 **Branch:** `feature/phase03-step20-verify`
+
+**Prerequisites:** Step 19 Complete. Apply the named SEC exception to the
+checks below; keep Step 7's own status unfinished and preserve its draft PR.
 
 **Deploys:** nothing beyond merge — the CI matrix entry is live on merge;
 the required-check update and the synthetic alarms are part of the step.
@@ -11177,8 +11317,9 @@ conversation per phase-boundary hygiene.
     pyeconomics. Phase 3. Step 20: QA and verification
     script.
 
-    Steps 1 through 19 have been implemented: 1.0.0a2 is on
-    PyPI; 31 providers, the catalog, bindings and 18 new
+    Steps 1 through 19 except the explicitly deferred SEC
+    work have been implemented: 1.0.0a2 is on PyPI; the
+    release provider set (30 or 31 ids), catalog, bindings and 18 new
     models are on main; providers-live.yml and
     providers-heartbeat.yml run on schedule.
 
@@ -11224,8 +11365,14 @@ conversation per phase-boundary hygiene.
     only; providers-heartbeat.yml likewise; permissions: {}
     at the top of both and issues: write only in the report
     job and the heartbeat job; the ALFRED test's citations.
-    Step 7 (30–32): the five keyless providers; no "Build
-    Your Package" URL; openpyxl and defusedxml.
+    Step 7 (30–32): the four recovered keyless providers;
+    EDGAR only when verified and released; otherwise the
+    named SEC deferral recorded in readiness and QA, with
+    no SEC entry point or catalog candidate. No "Build Your
+    Package" URL; openpyxl and defusedxml. These checks
+    must fail for any missing required provider or partial
+    EDGAR registration; report the SEC deferral explicitly
+    rather than reporting its provider tests as passed.
     Step 8 (33–35): the [sdmx] extra; the seven providers;
     certifi's reviewed exception.
     Step 9 (36–38): the five research providers; no TBD class
@@ -11256,8 +11403,9 @@ conversation per phase-boundary hygiene.
     tag on main.
     Step 19 (69–73): the v1.0.0a2 tag; the dated CHANGELOG
     section; the model ledger holding every id of this
-    roadmap's table; the provider ledger holding all 31
-    ids; the release notes.
+    roadmap's table; the provider ledger holding the exact
+    release provider set recorded by readiness; the release
+    notes disclose SEC when deferred.
     Step 20 self-checks (74–78): verify-phase03.sh exists
     and is executable; docs/phase03-qa-findings.md exists;
     docs/roadmap/phase03-roadmap.md exists; phase-verify.yml's
@@ -11410,11 +11558,14 @@ conversation per phase-boundary hygiene.
         shipped and Phase 4 as next.
       - Consistency audit: the Phase 3 "Acceptance criteria"
         there match this roadmap's V1–V20 checks, as amended
-        by Steps 2 and 9.
+        by Steps 2 and 9 and the external-approval exception.
       And in THIS roadmap, same commit: its phase-level
       `**Status:**` line reads `Complete — <YYYY-MM-DD>`, the
-      title and every step heading end in ✅, and every step's
-      Summary Table Status cell reads `Complete — PR #<n>`.
+      title and every required step heading end in ✅, and
+      their Summary Table Status cells read `Complete — PR #<n>`.
+      If SEC remains deferred, preserve Step 7's unfinished
+      heading, Status line and Summary Table cell; carry its
+      named blocker and follow-up into QA and Phase 4.
     </requirement>
 
     <requirement>
@@ -11438,6 +11589,11 @@ conversation per phase-boundary hygiene.
 
 ### Step 20 acceptance criteria
 
+- The verifier compares the exact required source-plan set (minus only
+  the approved SEC deferral) with the readiness record, installed providers
+  and released-id ledger. Any other omission or partial EDGAR registration
+  fails. QA findings and Phase 4 carry-over name the SEC blocker, owner and
+  Step 7 follow-up. Phase completion must not change Step 7's own status.
 - `scripts/verify-phase03.sh` exists, is executable, and passes on a clean
   tree post-implementation, with its static checks, Step 20 self-checks and
   the V1–V20 matrix in all six modes.
@@ -11460,12 +11616,14 @@ conversation per phase-boundary hygiene.
 - **Security gate clean** (always the final criterion): the pre-commit
   security gate passed on this step's diff and the security workflow is
   green.
-- **Phase closed, nothing carried.** Every finding recorded in
+- **Phase closed, every finding assigned.** Every finding recorded in
   `docs/phase03-qa-findings.md` has a destination (fixed, an issue number,
   or a named phase that owns it), the "Not in scope" section below is
-  current, and no un-tracked item remains. Every step of this roadmap, this
-  one included, reads `**Status:** Complete — PR #…` on `main` under a ✅
-  heading, the Summary Table's Status column and this roadmap's
+  current, and no un-tracked item remains. Every required step of this roadmap,
+  this one included, reads `**Status:** Complete — PR #…` on `main` under a ✅
+  heading. If SEC is deferred, Step 7 alone keeps its unfinished status,
+  heading and Summary Table cell, with its named carry-over recorded. All
+  other Summary Table Status cells and this roadmap's
   phase-level Status line say `Complete` under a ✅ title, and the parent
   project roadmap's Phase 3 entry (under a ✅ heading), its summary-table
   row, and its header status line say `Complete` — all landed in this
@@ -11591,10 +11749,17 @@ workflow above maps directly to the corresponding row below.
 
 > **Automated in CI.** `phase-verify.yml` → V7.1; `ci.yml` → V7.2.
 
+Apply the Overview's named SEC exception: checks 30–32 and the four recovered
+providers remain mandatory. When EDGAR is deferred, verify its recorded
+deferral and absence from the shipped entry points and catalog; report its
+unrun tests as deferred, never PASS. Include its contact canary and full
+contract only when Step 7 delivers it. This is not a generic optional-provider
+skip: any other missing source, or partially enabled EDGAR, fails verification.
+
 | ID   | Check                                                              | Automation                                                                |
 | ---- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | V7.1 | Static checks 30–32 all PASS.                                      | `phase-verify.yml --fast`.                                                |
-| V7.2 | Their contract and provider tests pass offline, the SEC-contact canary included. | `ci.yml` tests matrix (`--python` locally).               |
+| V7.2 | Shipped providers' contract and provider tests pass offline; the SEC-contact canary is required when EDGAR is delivered, otherwise its named deferral is verified. | `ci.yml` tests matrix (`--python` locally). |
 
 ### V8 — Providers: SDMX sources, World Bank, DBnomics
 
@@ -11710,7 +11875,7 @@ workflow above maps directly to the corresponding row below.
 
 | ID    | Check                                                             | Automation                                                                |
 | ----- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| V19.1 | Static checks 69–73 PASS (`v1.0.0a2` on `main`, the dated CHANGELOG section, the model ledger with every id of this roadmap's table, the provider ledger with all 31 ids, the release notes). | `phase-verify.yml --fast`. |
+| V19.1 | Static checks 69–73 PASS (`v1.0.0a2` on `main`, the dated CHANGELOG section, the model ledger with every id of this roadmap's table, the provider ledger with the exact 30- or 31-id release set, the release notes and any SEC deferral). | `phase-verify.yml --fast`. |
 | V19.2 | PyPI's `1.0.0a2` lists a wheel and an sdist, each with a provenance, and the GitHub release `v1.0.0a2` is a published pre-release. | `--live` (PyPI JSON and integrity APIs; `gh release view`). |
 | V19.3 | A clean `pip install --pre pyeconomics==1.0.0a2` runs `scripts/smoke.py --all --min-domains 13`, and with its extras `--extras`; with no FRED key it fetches a BLS series (keyless through API v1, or through v2 with the tester's BLS key, as recorded); with the tester's own FRED key it runs the Taylor rule for a past date on ALFRED vintages; plain `pip install pyeconomics` installs 0.2.6. | `--post`. |
 
@@ -12033,7 +12198,7 @@ EFFORT: Medium
 THINKING: On
 CONVERSATION: New
 RATIONALE: TASK: knowledge, agentic secondary — an evidenced release
-checklist, a 31-provider terms audit, a TestPyPI rehearsal and a live
+checklist, a release-set provider terms audit, a TestPyPI rehearsal and a live
 recipe. PICK: GPT-6.1 Sol leads GPT-6 Sol at Medium at the same price (HLE
 49.9% vs 41.0%, Terminal-Bench 4.0 48.0% vs 18.7%); GPT-6 Astra is within
 noise at five times the price. EFFORT: Medium, the ladder value, because
@@ -12133,6 +12298,15 @@ Carried over during execution — the Triage rule's carry-over checklist:
 each upstream gap or deferred finding, the step whose `<task>` was
 patched, and the step or phase that owns it. Phase 4's roadmap carries
 forward whatever is still open here.
+
+- External access: Phase 3 Step 7 / draft PR #124 remains unfinished while
+  SEC rejects access. Step 10 delivers its four unblocked providers under
+  their original checks. If SEC is still deferred at release, Step 18 records
+  the exact 30-id release set and Step 20 hands the named SEC follow-up to
+  Phase 4 without blocking it. Maintainer owns the external response; the
+  rebased Step 7 PR owns real SEC recordings, full five-provider validation,
+  live proof and ledger/verifier updates. Sponsors issue #68 is a separate
+  maintainer-owned funding follow-up and does not gate either phase.
 
 - From Phase 2's carry-over list, Not-in-scope list and QA findings,
   absorbed by this roadmap:
@@ -12241,12 +12415,14 @@ forward whatever is still open here.
 _This roadmap is the execution plan for Phase 3. Each step's
 `**Status:**` line is flipped by that step's own PR (Status rule), so this
 file on `main` is the phase's ledger — `grep -n '^\*\*Status:\*\*'`
-reports progress. After all steps and verification pass, and every finding
+reports progress. After the required steps and verification pass (with
+only the named SEC exception permitted), and every finding
 has a destination, Phase 3 is complete — declared with the line "Phase 3 is
 complete. You can now move on to Phase 4." and nothing after it — and Phase
 4 (Programmatic Surfaces: CLI, REST API, MCP & Exports) inherits
 `pyeconomics 1.0.0a2` on PyPI: 50 verified models whose bindings resolve
-live data on real-time vintages; 31 providers with enforced licence
+live data on real-time vintages; 30 verified providers while SEC is deferred,
+or 31 once Step 7 completes, with enforced licence
 classes, attribution and `llm_use` flags behind a Python data API (`get`,
 `search`, `describe`, `vintages`, `sources`) that its `data` commands,
 `series` routes and MCP tools wrap; a credential chain and redaction its
