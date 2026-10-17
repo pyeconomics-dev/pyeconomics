@@ -5087,9 +5087,9 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 8 — Providers: SDMX Sources, World Bank, DBnomics
+## Step 8 — Providers: SDMX Sources, World Bank, DBnomics ✅
 
-**Status:** Not started
+**Status:** Complete — PR #125 (2026-10-16)
 
 > **Goal:** Register the international providers. Add the `[sdmx]` extra
 > (sdmx1) and, on it, `src/pyeconomics/data/providers/imf.py`, `oecd.py`,
@@ -11674,7 +11674,7 @@ workflow above maps directly to the corresponding row below.
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
-| 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
