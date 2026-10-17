@@ -5576,9 +5576,9 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
 
 ---
 
-## Step 9 — Providers: Regional Fed Research, CBO, Penn World Table
+## Step 9 — Providers: Regional Fed Research, CBO, Penn World Table ✅
 
-**Status:** Not started
+**Status:** Complete — PR #127 (2026-10-17)
 
 > **Goal:** Register the research sources the monetary-policy suite and
 > the macro entries need for real-time and forecast inputs. Add
@@ -11745,7 +11745,7 @@ workflow above maps directly to the corresponding row below.
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
-| 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
