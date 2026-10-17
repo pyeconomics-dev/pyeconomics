@@ -622,6 +622,19 @@ vintages and a semantic catalog — over the free sources, then complete the
 launch catalog with its 18 live-data entries, led by a vintage-aware
 monetary-policy suite, released as `1.0.0a2`.
 
+**External approvals (maintainer, 2026-10-17):** Pending GitHub Sponsors
+approval (issue #68; resubmitted 2026-10-12) does not gate engineering or
+releases. SEC access is a separate external blocker in Phase 3 Step 7.
+Step 10 must recover Treasury, Fed Board, NY Fed and OpenFIGI with their full
+original verification; Steps 10–20 then proceed without waiting for Step 7.
+Phase 3 may release with the exact 30 non-SEC providers and complete while
+Step 7 remains explicitly unfinished, carrying SEC access and its provider
+verification to a follow-up. If verified before the release candidate is
+frozen, SEC makes 31. Readiness, release notes, ledgers and QA must disclose
+the exact set and deferral; no shipped provider's checks are waived. Phase 4
+may start and expose verified sources without SEC or Sponsors approval. The
+phase roadmap's external-approval exception defines the handoff and checks.
+
 **Complexity:** High · **Risk:** Medium · **Cloud cost:** $0 ·
 **Handles sensitive data:** Yes — users' provider API keys (FRED, BLS,
 BEA and other free-but-keyed sources)
@@ -825,9 +838,9 @@ Both classifications were checked on 2026-10-17 in Phase 3 Step 9.
   vintages.
 - **Security:** redaction tests prove no key reaches a log, error,
   manifest, cache file or export; recorded fixtures pass the secret scan;
-  the semgrep rule against `pickle` and `eval` is green; the SEC EDGAR
-  User-Agent carries the user's configured contact, never a hard-coded
-  address; no provider builds a request URL from unvalidated user input.
+  the semgrep rule against `pickle` and `eval` is green; when SEC EDGAR is
+  delivered, its User-Agent carries the user's configured contact, never a
+  hard-coded address; no provider builds a request URL from unvalidated user input.
 
 ---
 
@@ -1531,8 +1544,11 @@ ChatGPT Pro 5x as backup.
 
 - Gate G1 carry-over (issue #68): the `pyeconomics-dev` GitHub Sponsors
   listing goes live, and `.github/FUNDING.yml` and `funding.json` regain
-  their Sponsors entries. Do it as soon as the listing is approved; this
-  step is only the latest point. `verify-phase01.sh` then requires the
+  their Sponsors entries. Do it as soon as the listing is approved. If
+  approval is still pending at 8.1, retain issue #68 as a maintainer-owned
+  external follow-up and continue the roadmap; do not invent a live listing
+  or block development, releases or a phase's completion on the response.
+  `verify-phase01.sh` then requires the
   listing (V11.4), because FUNDING.yml names it.
 
 - A memo in `docs/decisions/` records the Gate G3 metrics against their
