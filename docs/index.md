@@ -23,6 +23,7 @@ quickstart
 tutorials/first-model
 conventions
 results
+data/index
 data/keys
 data/cache
 data/international
@@ -31,6 +32,8 @@ data/research-finance
 data/writing-a-provider
 reference/models/index
 reference/providers/index
+reference/concepts/index
+reference/sources
 autoapi/index
 errata
 notices

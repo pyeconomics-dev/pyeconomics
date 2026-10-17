@@ -102,7 +102,12 @@ def test_both_toy_providers_pass() -> None:
 
 
 def test_every_rule_slug_has_a_toy_violation() -> None:
-    provided = set(VIOLATIONS) | {"released", "duplicate-id", "spec"}
+    provided = set(VIOLATIONS) | {
+        "released",
+        "released-concept",
+        "duplicate-id",
+        "spec",
+    }
     assert provided == set(RULES)
 
 

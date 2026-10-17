@@ -56,7 +56,20 @@ from pyeconomics.core.provenance import (
     LlmUse,
     RealtimePeriod,
 )
-from pyeconomics.data import cache, registry
+from pyeconomics.data import cache, catalog, registry
+from pyeconomics.data.api import (
+    CandidateInfo,
+    ConceptInfo,
+    Hit,
+    SearchResult,
+    SourceInfo,
+    candidates_by_mode,
+    describe,
+    get,
+    search,
+    sources,
+    vintages,
+)
 from pyeconomics.data.cache.policy import Fetched, Origin
 from pyeconomics.data.config import Settings, configure, settings
 from pyeconomics.data.credentials import (
@@ -67,6 +80,7 @@ from pyeconomics.data.credentials import (
     resolve_key,
 )
 from pyeconomics.data.errors import (
+    ConceptNotFoundError,
     ConfigError,
     CredentialError,
     DataError,
@@ -96,6 +110,7 @@ from pyeconomics.data.providers import (
     SearchHit,
 )
 from pyeconomics.data.records import FigiMapping, Records
+from pyeconomics.data.resolver import Resolved, Skip, resolve
 from pyeconomics.data.terms import TERMS_MAX_AGE_MONTHS, CachePolicy, Terms
 from pyeconomics.data.transport.base import Request, Response, Transport
 from pyeconomics.data.types import (
@@ -123,9 +138,12 @@ __all__ = [
     "AuthKind",
     "Authentication",
     "CachePolicy",
+    "CandidateInfo",
     "Capability",
     "Case",
     "ColumnMeta",
+    "ConceptInfo",
+    "ConceptNotFoundError",
     "ConfigError",
     "CredentialError",
     "DataError",
@@ -135,6 +153,7 @@ __all__ = [
     "DateConvention",
     "Fetched",
     "FigiMapping",
+    "Hit",
     "KeyPlacement",
     "KeySlot",
     "KeySource",
@@ -154,15 +173,19 @@ __all__ = [
     "RealtimePeriod",
     "Records",
     "Request",
+    "Resolved",
     "Response",
     "ResponseError",
     "SearchHit",
+    "SearchResult",
     "SeasonalAdjustment",
     "Secret",
     "Series",
     "SeriesMeta",
     "SeriesNotFoundError",
     "Settings",
+    "Skip",
+    "SourceInfo",
     "Table",
     "TableMeta",
     "Terms",
@@ -173,12 +196,20 @@ __all__ = [
     "VintageKind",
     "Weekday",
     "cache",
+    "candidates_by_mode",
+    "catalog",
     "configure",
     "current_mode",
+    "describe",
+    "get",
     "has_key",
     "key_variable",
     "registry",
     "require_allowed",
+    "resolve",
     "resolve_key",
+    "search",
     "settings",
+    "sources",
+    "vintages",
 ]

@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Final
 
 from pyeconomics.core import _fields as f
 from pyeconomics.core.errors import InputError
-from pyeconomics.core.provenance import LicenceClass, LlmUse
+from pyeconomics.core.provenance import CONCEPT_ID_PATTERN, LicenceClass, LlmUse
 from pyeconomics.data.config import MAX_TTL_SECONDS
 from pyeconomics.data.providers.base import (
     Access,
@@ -51,7 +51,13 @@ if TYPE_CHECKING:
     from pyeconomics.core._released import Released
     from pyeconomics.core.registry import Provider
 
-__all__ = ["RULES", "Problem", "check_provider", "check_released"]
+__all__ = [
+    "RULES",
+    "Problem",
+    "check_provider",
+    "check_released",
+    "check_released_concepts",
+]
 
 #: Every rule slug ``validate()`` can report. Tests hold each to a toy violation.
 RULES: Final = (
@@ -69,6 +75,7 @@ RULES: Final = (
     "platforms",
     "size-cap",
     "released",
+    "released-concept",
     "duplicate-id",
     "spec",
 )
@@ -536,4 +543,33 @@ def check_released(
             )
         if detail is not None:
             problems.append(Problem(released_id, "released", detail))
+    return problems
+
+
+def check_released_concepts(
+    released: Mapping[str, Released], concept_ids: set[str]
+) -> list[Problem]:
+    """Check the released-concept ledger against the catalog (ADR-0011 decision 15).
+
+    A released concept id never disappears and is never renamed: a concept has
+    no aliases, so each entry's canonical id is the id itself. The problem names
+    the concept id and the rule ``released-concept``.
+    """
+    problems: list[Problem] = []
+    for released_id in sorted(released):
+        entry = released[released_id]
+        detail: str | None = None
+        if (
+            not CONCEPT_ID_PATTERN.fullmatch(released_id)
+            or not _VERSION.fullmatch(entry.first_version)
+            or entry.canonical_id != released_id
+        ):
+            detail = "the ledger entry is malformed: a concept id names itself"
+        elif released_id not in concept_ids:
+            detail = (
+                "no longer in the catalog; a released concept id is never "
+                "deleted or renamed (ADR-0011 decision 15)"
+            )
+        if detail is not None:
+            problems.append(Problem(released_id, "released-concept", detail))
     return problems

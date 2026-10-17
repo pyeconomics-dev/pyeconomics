@@ -44,7 +44,7 @@ from typing import TYPE_CHECKING, Final, Protocol
 
 from pyeconomics.core.errors import RegistryError
 from pyeconomics.core.registry import Provider as Distribution
-from pyeconomics.data._released import PROVIDERS
+from pyeconomics.data._released import CONCEPTS, PROVIDERS
 from pyeconomics.data.errors import ProviderNotFoundError
 from pyeconomics.data.providers.base import DataProvider, ProviderInfo
 from pyeconomics.data.providers.rules import (
@@ -52,6 +52,7 @@ from pyeconomics.data.providers.rules import (
     Problem,
     check_provider,
     check_released,
+    check_released_concepts,
 )
 
 if TYPE_CHECKING:
@@ -206,9 +207,14 @@ class ProviderRegistry:
         )
 
     def problems(
-        self, *, released: Mapping[str, Released] | None = None
+        self,
+        *,
+        released: Mapping[str, Released] | None = None,
+        released_concepts: Mapping[str, Released] | None = None,
     ) -> list[Problem]:
         """Return every problem with the registry; empty when it is sound."""
+        from pyeconomics.data import catalog  # noqa: PLC0415 - the catalog imports us
+
         problems = list(self._conflicts)
         for provider_id in sorted(self._by_id):
             registration = self._by_id[provider_id]
@@ -216,11 +222,26 @@ class ProviderRegistry:
         problems += check_released(
             PROVIDERS if released is None else released, set(self._by_id)
         )
+        problems += check_released_concepts(
+            CONCEPTS if released_concepts is None else released_concepts,
+            set(catalog.ids()),
+        )
         return problems
 
-    def validate(self, *, released: Mapping[str, Released] | None = None) -> None:
+    def validate(
+        self,
+        *,
+        released: Mapping[str, Released] | None = None,
+        released_concepts: Mapping[str, Released] | None = None,
+    ) -> None:
         """Check every provider against the rules; see :func:`validate`."""
-        problems = self.problems(released=released)
+        self._raise(
+            self.problems(released=released, released_concepts=released_concepts)
+        )
+
+    @staticmethod
+    def _raise(problems: list[Problem]) -> None:
+        """Raise one error listing every problem, if there are any."""
         if problems:
             lines = [str(problem) for problem in problems]
             noun = "problem" if len(lines) == 1 else "problems"
@@ -233,6 +254,7 @@ def validate(
     registry: ProviderRegistry | None = None,
     *,
     released: Mapping[str, Released] | None = None,
+    released_concepts: Mapping[str, Released] | None = None,
 ) -> None:
     """Check every provider, or raise one error listing every problem.
 
@@ -240,7 +262,12 @@ def validate(
     complete terms, attribution, notice, ``llm_use`` and cache policy, exact
     HTTPS hosts, published rate limits, declared capabilities with the hooks that
     implement them, authentication the redaction layer can scrub, the extra it
-    needs, its platforms and size cap, and the released-id ledger.
+    needs, its platforms and size cap, and the released-id ledger. It also holds
+    the catalog to the released-concept ledger (rule ``released-concept``: a
+    released concept id missing from the catalog) and, for the installed
+    registry, checks that every catalog candidate names a registered provider and
+    a series it accepts, and that derived concepts have operands and no loop (the
+    ``concept-*`` rules of :mod:`pyeconomics.data.catalog.checks`).
 
     Parameters
     ----------
@@ -248,13 +275,21 @@ def validate(
         The registry to check; the installed one by default.
     released
         The released-provider ledger; the shipped one by default.
+    released_concepts
+        The released-concept ledger; the shipped one by default.
 
     Raises
     ------
     RegistryError
         Listing every problem, each as ``<provider>: [<rule>] <detail>``.
     """
-    (registry or installed()).validate(released=released)
+    checked = registry or installed()
+    problems = checked.problems(released=released, released_concepts=released_concepts)
+    if registry is None:
+        from pyeconomics.data.catalog import checks  # noqa: PLC0415 - see problems()
+
+        problems += checks.problems(checked)
+    ProviderRegistry._raise(problems)  # noqa: SLF001 - one error format for both
 
 
 def ids() -> tuple[str, ...]:

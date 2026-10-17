@@ -7075,7 +7075,12 @@ conversation per phase-boundary hygiene.
       importing the data layer; exported from
       pyeconomics.core. A test asserts the names
       catalog/transforms.py implements equal the names core
-      declares, in both directions.
+      declares, in both directions. The names are pct_change,
+      yoy, diff, log, changes_only (the dates a step series
+      moved), ratio and add (two concepts, the primary balance
+      needs the sum), convert, align_to, asof, period and
+      window; the text form is `name` or `name(key=value,
+      ...)` with one canonical spelling.
     </requirement>
 
     <requirement>
@@ -7524,6 +7529,33 @@ the price. New conversation per phase-boundary hygiene.
       tests/data/leakcheck.py.
     - The tests named above, tests/registry/toy_models.py and
       tests/contract.py.
+
+    Step 11 integration (as built): data.resolve(concept, *,
+    start, end, as_of, vintage, mode, strict, provider,
+    parameters, max_observations, transport, registry) returns
+    a Resolved(frame, sources, concept, skipped): one DataSource
+    per source read (a derived concept has one per operand, each
+    naming the derived concept and ending its transforms with
+    the combining transform), and a Skip(provider, series,
+    reason, detail, licence) for each candidate passed over, the
+    reason one of data.resolver.REASONS and recorded in the
+    record's warnings as skipped_<provider>_<reason>. A
+    DataSource carries the concept, the canonical transform
+    texts, the vintage label, the real-time period of the last
+    row, the window and the fallback_chain; its `field` is None,
+    for bind() to set with dataclasses.replace. A concept that
+    needs a window (Treasury curves) or a parameter (the SEP
+    `meeting`) says so (Concept.needs_window, .parameters); bind
+    passes parameters= through. The resolver fails over only
+    between answers that match the concept's frequency, seasonal
+    adjustment and unit kind (a decimal kind must be known
+    exactly), skips a candidate that cannot honour the vintage
+    (so a LATEST policy passes vintage="latest" itself and adds
+    revised_data), and applies the explicit mode to a series'
+    own terms. get/search/describe/vintages/sources are in
+    data/api.py. The frame's `notes` are untouched: copying
+    revised_data and the others into DataSource.warnings is this
+    step's.
   </context>
 
   <goal>
@@ -8034,6 +8066,21 @@ conversation per phase-boundary hygiene.
     - The Monetary Policy Report box, the Atlanta Fed's
       Taylor Rule Utility and the Cleveland Fed's simple
       monetary policy rules page and spreadsheet.
+
+    Step 11 concept ids (as built) for the profiles: us.inflation.
+    pce_core.yoy, us.unemployment.rate, us.unemployment.
+    noncyclical_rate, us.neutral_rate.hlw (and .laubach_williams),
+    us.policy_rate.effective, .target_upper and .target_lower,
+    us.output_gap.cbo and us.output_gap.real_potential, the SEP
+    as us.sep.medians and us.sep.policy_rate_longer_run (both take
+    the `meeting` parameter: nothing guesses the latest meeting),
+    the SPF as us.spf.<cpi|core_cpi|pce|core_pce|unemployment>.
+    median_h0..h4 (survey quarter to four quarters ahead) and
+    us.spf.<cpi|pce>.median_10y, and ea/gb/ca inflation
+    (<economy>.inflation.<hicp|cpi>.yoy), policy rates
+    (<economy>.policy_rate.headline), output gaps
+    (<economy>.output_gap.oecd) and ea/ca neutral_rate.hlw. No
+    gb r* exists: use a constant.
   </context>
 
   <goal>
@@ -12305,6 +12352,25 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 11 (catalog and resolver, 2026-10-17): the catalog is 136 concepts in
+  `data/catalog/` (its shapes in `definitions.py`, deliberately not
+  `concepts.py`, which a `catalog.concepts()` function would shadow). Contract
+  additions made in-step: the `add` transform (the primary balance is the sum of
+  net lending and interest); `ConceptNotFoundError`; `sources(check_keys=False)`
+  so the documentation build looks at no key; `registry.validate()` takes
+  `released_concepts=` and runs the `concept-*` rules of
+  `data/catalog/checks.py` (its `deep=True` series check, which builds requests
+  for extra-gated providers and so imports the HTTP stack, runs in a test, not in
+  `validate()`); the resolver judges a series' own terms by the mode it was asked
+  for, as the provider judges them by the configured one. Two catalog facts for
+  later steps: keyless BLS (API v1) reports a rate with no unit kind, so a rate
+  concept needs a BLS key to use BLS and otherwise falls to FRED; and PWT's `rkna`
+  is a capital-services index (`rnna` is the capital stock in 2021 dollars), both
+  carried as concepts. The weekly live run now also resolves every candidate of
+  every concept (`tests/data/catalog/test_live_concepts.py`). The Treasury curve
+  files are slow to read (about 6 minutes for 20 months), so live windows for
+  them are 60 days.
 
 - Step 10 blocking upstream gap: test isolation is loaded from the repository
   root through tests/isolation_plugin.py, so source-module doctests cannot
