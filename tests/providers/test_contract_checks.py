@@ -100,7 +100,11 @@ def test_an_error_cassette_that_raises_a_different_error_is_caught() -> None:
 
 def test_a_library_only_source_without_a_synthesize_hook_is_caught() -> None:
     terms = replace(ToyJson.info.terms, licence=LicenceClass.LIBRARY_ONLY)
-    library = variant(ToyJson, info=replace(ToyJson.info, terms=terms))
+    library = variant(
+        ToyJson,
+        info=replace(ToyJson.info, terms=terms),
+        synthesize=DataProvider.synthesize,
+    )
     with pytest.raises(AssertionError, match="implement synthesize"):
         check_synthesize(library)
     check_synthesize(ToyVintage)

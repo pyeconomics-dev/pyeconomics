@@ -1,0 +1,1 @@
+{"provider":"oecd","recorded_on":"2026-10-17T02:44:22+00:00","requests":[{"body":null,"method":"GET","parameters":[["references","all"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://sdmx.oecd.org/public/rest/v1/dataflow/OECD.SDD.STES/DSD_STES%40DF_FINMARK/latest"}],"synthetic":true}

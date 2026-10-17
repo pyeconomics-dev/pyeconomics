@@ -42,6 +42,15 @@ PURE_MODULES = (
     SRC / "data" / "modes.py",
     SRC / "data" / "providers" / "__init__.py",
     SRC / "data" / "providers" / "_shared.py",
+    SRC / "data" / "providers" / "_international.py",
+    SRC / "data" / "providers" / "_sdmx.py",
+    SRC / "data" / "providers" / "bis.py",
+    SRC / "data" / "providers" / "dbnomics.py",
+    SRC / "data" / "providers" / "ecb.py",
+    SRC / "data" / "providers" / "eurostat.py",
+    SRC / "data" / "providers" / "imf.py",
+    SRC / "data" / "providers" / "oecd.py",
+    SRC / "data" / "providers" / "world_bank.py",
     SRC / "data" / "providers" / "base.py",
     SRC / "data" / "providers" / "bea.py",
     SRC / "data" / "providers" / "bls.py",
@@ -67,6 +76,7 @@ IO_MODULES = (
     SRC / "data" / "config.py",
     SRC / "data" / "credentials" / "chain.py",
     SRC / "data" / "transport" / "http.py",
+    SRC / "data" / "transport" / "sdmx.py",
     SRC / "data" / "transport" / "replay.py",
 )
 

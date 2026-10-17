@@ -225,9 +225,8 @@ def check_frame(
     meta = frame.meta
     assert meta.provider == info.id
     terms = meta.terms
-    assert (terms.terms_url, terms.attribution, terms.checked) == (
+    assert (terms.terms_url, terms.checked) == (
         info.terms.terms_url,
-        info.terms.attribution,
         info.terms.checked,
     )
     assert terms.attribution.strip()
@@ -270,6 +269,12 @@ def check_success_case(
     result: Any = instance.run_case(case, key=key, transport=transport)
     if case.operation is Capability.FETCH:
         check_frame(provider, case, result, recorded_on=recorded_on)
+        terms = result.meta.terms
+        if recorded_on is not None and (
+            terms.licence is not LicenceClass.HOSTED_SAFE
+            or terms.cache.value == "forbidden"
+        ):
+            assert load_cassette(provider.info.id, case).synthetic
     elif case.operation is Capability.SEARCH:
         assert result
         assert all(isinstance(hit, SearchHit) for hit in result)

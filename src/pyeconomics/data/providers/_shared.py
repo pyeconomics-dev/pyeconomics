@@ -120,7 +120,7 @@ def number(raw: object, provider: str, *, missing: Iterable[str] = ()) -> float 
             return None
         plain = stripped.replace(",", "")
         if not _NUMBER.fullmatch(plain):
-            msg = f"{provider} sent a value that is not a number: {stripped[:16]!r}"
+            msg = f"{provider} sent a value that is not a number"
             raise ResponseError(msg, provider=provider)
         value = float(plain)
     if not math.isfinite(value):

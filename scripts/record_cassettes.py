@@ -51,6 +51,9 @@ from pyeconomics.data import (
     DataProvider,
     LicenceClass,
     Query,
+    Series,
+    SeriesMeta,
+    Table,
     cache,
     registry,
 )
@@ -196,9 +199,10 @@ def record_case(
         SimulatingTransport(case.simulate, now) if case.simulate else transport
     )
     key = secrets.token_hex(16) if case.invalid_key else None
+    result = None
     try:
         with cache.bypass():  # a recording must reach the source, not the cache
-            provider.run_case(case, key=key, transport=recorder)
+            result = provider.run_case(case, key=key, transport=recorder)
     except DataError as error:
         if case.expect is None or not isinstance(error, case.expect):
             msg = f"{case.name} raised {type(error).__name__}: {error}"
@@ -210,7 +214,33 @@ def record_case(
     if not recorder.exchanges:
         msg = f"{case.name} sent no request"
         raise RecordingError(msg)
-    synthetic = simulated or needs_synthetic(type(provider))
+    if not simulated:
+        recorder.exchanges = list(
+            provider.trim_recordings(
+                recorder.exchanges,
+                case.argument
+                if isinstance(case.argument, Query)
+                else Query(series=("recording",), max_observations=24),
+            )
+        )
+    terms = (
+        result.meta.terms
+        if isinstance(result, Series | Table)
+        else result.terms
+        if isinstance(result, SeriesMeta)
+        else None
+    )
+    synthetic = (
+        simulated
+        or needs_synthetic(type(provider))
+        or (
+            terms is not None
+            and (
+                terms.licence is not LicenceClass.HOSTED_SAFE
+                or terms.cache.value == "forbidden"
+            )
+        )
+    )
     exchanges = (
         _synthesize(provider, recorder.exchanges, case)
         if synthetic and not simulated

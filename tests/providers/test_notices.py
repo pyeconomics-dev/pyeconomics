@@ -38,6 +38,64 @@ class Row(NamedTuple):
 
 
 NOTICES: dict[str, Row] = {
+    "bis": Row(
+        attribution="Source: Bank for International Settlements.",
+        notice=(
+            "their inclusion in the publication or product will not "
+            "result in any additional charge to subscribers or other"
+            " users;"
+        ),
+        terms_url="https://data.bis.org/help/legal",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "dbnomics": Row(
+        attribution="Source: DBnomics and the original data provider.",
+        notice=(
+            "Data distributed by DBnomics is subject to the same "
+            "license and terms of use as its original source "
+            "provider."
+        ),
+        terms_url="https://db.nomics.world/about",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "ecb": Row(
+        attribution="Source: European Central Bank.",
+        notice="the information may be obtained free of charge through this website.",
+        terms_url="https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "eurostat": Row(
+        attribution="Source: Eurostat.",
+        notice=(
+            "Source: [digital object identifier (DOI) number of the "
+            "Eurostat dataset], [access date]"
+        ),
+        terms_url="https://ec.europa.eu/eurostat/help/copyright-notice",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "imf": Row(
+        attribution="Source: International Monetary Fund.",
+        notice=(
+            "For any potential commercial reuse of IMF Data, email "
+            "copyright@imf.org to request permission."
+        ),
+        terms_url="https://www.imf.org/en/about/copyright-and-terms",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "oecd": Row(
+        attribution="Source: OECD.",
+        notice=(
+            "OECD (year), (dataset name),(data source) DOI or URL (accessed on (date))."
+        ),
+        terms_url="https://www.oecd.org/en/about/terms-conditions.html",
+        checked=dt.date(2026, 10, 16),
+    ),
+    "world_bank": Row(
+        attribution="The World Bank: Dataset name: Data source (if known).",
+        notice=None,
+        terms_url="https://www.worldbank.org/ext/en/legal/terms-conditions/datasets",
+        checked=dt.date(2026, 10, 16),
+    ),
     # FRED API terms of use, Requirements (a), read 2026-10-15.
     "fred": Row(
         attribution="Source: Federal Reserve Bank of St. Louis, FRED®.",

@@ -1,0 +1,1 @@
+{"provider":"eurostat","recorded_on":"2026-10-17T02:44:44+00:00","requests":[{"body":null,"method":"GET","parameters":[["references","descendants"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/prc_hicp_midx/latest"}],"synthetic":true}

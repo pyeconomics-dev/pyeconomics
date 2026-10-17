@@ -59,3 +59,15 @@ reason = "Ambiguous classifier only; its License field reads '2-clause BSD'. pat
 package = "cffi"
 licence = "MIT-0"
 reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached only through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi). Checked by Claude Opus 5.5, 2026-10-14."
+
+# Phase 3 Step 8: maintainer approved certifi in the session on 2026-10-16.
+[[exception]]
+package = "certifi"
+licence = "MPL-2.0"
+reason = "certifi 2026.7.22 dist-info/licenses/LICENSE applies MPL-2.0 to the Mozilla CA certificate bundle. The bundle is distributed unmodified with its licence preserved; requests is reached through the optional sdmx extra. Checked by GPT-6.1 Sol, 2026-10-16; maintainer approved in that session."
+
+# Maintainer approved sdmx1's metadata exception in the 2026-10-16 session.
+[[exception]]
+package = "sdmx1"
+licence = "Apache Software License"
+reason = "sdmx1 2.27.0 dist-info/licenses/LICENSE is Apache License Version 2.0, January 2004, already on ADR-0004's allowlist. Only its classifier is ambiguous. Checked by GPT-6.1 Sol, 2026-10-16; maintainer approved in the 2026-10-16 session."

@@ -180,10 +180,11 @@ jobs:
           #   permissive; the licences hook allows it only through the
           #   reviewed entry in scripts/checks/licence_exceptions.toml, which
           #   the maintainer approved in Phase 2 Step 1.
-          # - certifi (MPL-2.0) and docutils (mixed licence classifiers) are
-          #   docs-group dependencies only. The licences hook confirms both
-          #   are outside the runtime/all-extras closure; pip-audit audits
-          #   them through pylock.toml's --all-groups export.
+          # - certifi (MPL-2.0) is runtime through [sdmx] from Phase 3 Step 8;
+          #   its unmodified certificate bundle carries the maintainer-approved
+          #   exception in licence_exceptions.toml. sdmx1's Apache classifier
+          #   is ambiguous; its reviewed LICENSE is Apache-2.0.
+          #   docutils remains docs-only; all-groups pip-audit covers both.
           # - Other docs-only packages flagged by dependency-review:
           #   astroid (LGPL-2.1-or-later, AutoAPI's static parser), parso
           #   (MIT AND Python-2.0), roman-numerals (BSD-3-Clause AND 0BSD AND
@@ -222,6 +223,7 @@ jobs:
             pkg:pypi/patsy,
             pkg:pypi/roman-numerals,
             pkg:pypi/simplejson,
+            pkg:pypi/sdmx1,
             pkg:pypi/sphinx,
             pkg:pypi/typing-extensions
           comment-summary-in-pr: never

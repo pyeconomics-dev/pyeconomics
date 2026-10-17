@@ -236,7 +236,7 @@ def _cassette(
     requests = _requests(provider, case)
     answers = canned[case.name]
     assert len(requests) == len(answers), case.name
-    synthetic = needs_synthetic(provider_class)
+    synthetic = needs_synthetic(provider_class) or case.name == "fetch_restricted"
     exchanges: list[tuple[Request, Response]] = []
     for position, (request, (status, headers, body)) in enumerate(
         zip(requests, answers, strict=True)

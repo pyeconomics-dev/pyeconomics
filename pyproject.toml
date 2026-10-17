@@ -68,6 +68,13 @@ risk = "pyeconomics.models.risk"
 # lists its DataProvider subclasses in __all__. The built-in providers register
 # from Phase 3 Step 6; a third-party package adds its own the same way.
 [project.entry-points."pyeconomics.providers"]
+bis = "pyeconomics.data.providers.bis"
+dbnomics = "pyeconomics.data.providers.dbnomics"
+ecb = "pyeconomics.data.providers.ecb"
+eurostat = "pyeconomics.data.providers.eurostat"
+imf = "pyeconomics.data.providers.imf"
+oecd = "pyeconomics.data.providers.oecd"
+world_bank = "pyeconomics.data.providers.world_bank"
 bea = "pyeconomics.data.providers.bea"
 bls = "pyeconomics.data.providers.bls"
 census = "pyeconomics.data.providers.census"
@@ -92,14 +99,19 @@ keyring = [
     "keyring>=25.7",
 ]
 all = [
+    "sdmx1>=2.27",
     "keyring>=25.7",
     "plotly>=7.1.0",
     "statsmodels>=0.15.0",
+]
+sdmx = [
+    "sdmx1>=2.27",
 ]
 
 # PEP 735 groups: development-only, never published (ADR-0002).
 [dependency-groups]
 test = [
+    "sdmx1>=2.27",
     "hypothesis>=6.168.5",
     "jsonschema>=4.26.0",
     "keyring>=25.7",
@@ -195,6 +207,11 @@ convention = "numpy"
 "tests/models/performance/test_return_measurement.py" = ["ERA001"]
 # The provider hooks take arguments a subclass uses and the base class does not.
 "src/pyeconomics/data/providers/base.py" = ["ARG002"]
+# Capability hooks retain the base protocol parameters even when unused.
+"src/pyeconomics/data/providers/_sdmx.py" = ["ARG002"]
+"src/pyeconomics/data/providers/world_bank.py" = ["ARG002"]
+"src/pyeconomics/data/providers/dbnomics.py" = ["ARG002"]
+
 # Test doubles implement the transport and provider protocols, whose parameters
 # they ignore, and take what a test hands them as Any.
 "tests/providers/**" = ["ARG001", "ARG002", "ARG005", "ANN401"]

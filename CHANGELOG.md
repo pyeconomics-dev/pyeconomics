@@ -15,6 +15,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- International data providers: IMF, OECD, ECB, BIS and Eurostat via the optional
+  `sdmx` extra; World Bank v2 and DBnomics REST clients. Structure-validated
+  SDMX keys, confined sessions, and series-specific licence restrictions.
+
 - ADR-0011, the data platform: eighteen accepted decisions on the data
   model, missing values, vintages, licence classes and `llm_use`, the
   provider contract, the HTTP stack, extras, credentials, redaction, the

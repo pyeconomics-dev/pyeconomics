@@ -1,0 +1,1 @@
+{"provider":"bis","recorded_on":"2026-10-17T02:44:19+00:00","requests":[{"body":null,"method":"GET","parameters":[["references","all"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://stats.bis.org/api/v1/dataflow/BIS/WS_CBPOL/latest"}],"synthetic":true}

@@ -58,6 +58,13 @@ jobs:
             api.bls.gov:443
             apps.bea.gov:443
             api.census.gov:443
+            api.worldbank.org:443
+            api.db.nomics.world:443
+            data-api.ecb.europa.eu:443
+            stats.bis.org:443
+            api.imf.org:443
+            sdmx.oecd.org:443
+            ec.europa.eu:443
             github.com:443
             api.github.com:443
             objects.githubusercontent.com:443
