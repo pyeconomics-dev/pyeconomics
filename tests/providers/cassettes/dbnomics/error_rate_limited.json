@@ -1,0 +1,1 @@
+{"provider":"dbnomics","recorded_on":"2026-10-17T02:34:23+00:00","requests":[{"body":null,"method":"GET","parameters":[["metadata","1"],["observations","1"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://api.db.nomics.world/v22/series/ECB/EXR/A.USD.EUR.SP00.A"}],"synthetic":true}

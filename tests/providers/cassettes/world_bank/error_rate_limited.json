@@ -1,0 +1,1 @@
+{"provider":"world_bank","recorded_on":"2026-10-17T02:34:17+00:00","requests":[{"body":null,"method":"GET","parameters":[["format","json"],["per_page","1000"]],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://api.worldbank.org/v2/sources/2/series/NY.GDP.MKTP.CD/metadata"}],"synthetic":true}

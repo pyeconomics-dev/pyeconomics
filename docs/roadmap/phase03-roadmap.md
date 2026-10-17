@@ -324,7 +324,7 @@ id is permanent once released, as a model id is (ADR-0003).
 | `sec_edgar`                 | SEC EDGAR: submissions, company facts, XBRL frames                      | in-house (edgartools rejected) | hosted-safe                         | the user's configured contact        | 7    |
 | `openfigi`                  | OpenFIGI: identifier mapping                                            | in-house             | hosted-safe                                   | optional key                         | 7    |
 | `imf`                       | IMF (SDMX): IFS, BOP, DOTS, WEO                                         | sdmx1 `[sdmx]`       | library-only until the IMF grants permission  | none                                 | 8    |
-| `oecd`                      | OECD (SDMX): public datasets                                            | sdmx1 `[sdmx]`       | hosted-safe minus marked exceptions; TBD (ADR-0005) | none                           | 8    |
+| `oecd`                      | OECD (SDMX): public datasets                                            | sdmx1 `[sdmx]`       | hosted-safe minus marked exceptions (terms checked 2026-10-16) | none                           | 8    |
 | `ecb`                       | ECB (SDMX): FX reference rates, €STR, monetary statistics              | sdmx1 `[sdmx]`       | hosted-safe                                   | none                                 | 8    |
 | `bis`                       | BIS (SDMX): policy rates, credit, property prices, effective FX rates  | sdmx1 `[sdmx]`       | hosted-safe, never paywalled                  | none                                 | 8    |
 | `eurostat`                  | Eurostat (SDMX): public datasets                                        | sdmx1 `[sdmx]`       | hosted-safe minus listed exceptions           | none                                 | 8    |
@@ -5277,8 +5277,8 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
        explicit, unhedged
        completion line — verbatim
        shape "Step 8 is
-       complete. You can now move
-       on to Step 9." That
+       complete. Step 9 can start
+       once Step 7 is complete." That
        line is the LAST line of
        the response. NOTHING
        follows it — no "Follow-ups

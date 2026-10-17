@@ -26,7 +26,13 @@ from leakcheck import LeakCheck, canary
 from provider_contract import CASSETTES, load_cassette, replay
 from toys import ToyJson, ToyVintage
 
-from pyeconomics.data import LicenceClass, Query, SeriesNotFoundError, registry
+from pyeconomics.data import (
+    DataProvider,
+    LicenceClass,
+    Query,
+    SeriesNotFoundError,
+    registry,
+)
 from pyeconomics.data.registry import ProviderRegistry
 from pyeconomics.data.transport.base import Request, Response
 from pyeconomics.data.transport.http import HttpTransport
@@ -147,10 +153,13 @@ def test_the_recording_rule_decides_when_a_cassette_is_synthetic() -> None:
 
 def test_a_source_that_must_be_synthetic_but_cannot_synthesize_is_refused() -> None:
     case = case_named(ToyJson, "fetch_ok")
+    missing = type(
+        "MissingSynthesis",
+        (library_only(ToyJson),),
+        {"synthesize": DataProvider.synthesize},
+    )
     with pytest.raises(recorder.RecordingError, match="implement synthesize"):
-        recorder.record_case(
-            library_only(ToyJson)(), case, replay("toy_json", case), NOW
-        )
+        recorder.record_case(missing(), case, replay("toy_json", case), NOW)
 
 
 def test_a_case_that_asks_for_too_many_observations_is_refused() -> None:
@@ -290,3 +299,9 @@ def test_it_refuses_an_unknown_provider_or_case(
     assert "no data provider is registered" in capsys.readouterr().err
     assert recorder.main(["toy_json", "no_such_case"], transport=Dispatch()) == 2
     assert "has no case no_such_case" in capsys.readouterr().err
+
+
+def test_a_series_restriction_makes_a_public_providers_recording_synthetic() -> None:
+    case = case_named(ToyJson, "fetch_restricted")
+    made = recorder.record_case(ToyJson(), case, replay("toy_json", case), NOW)
+    assert made.synthetic

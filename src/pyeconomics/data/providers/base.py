@@ -181,7 +181,7 @@ _FINAL_METHODS: Final = (
     "vintages",
     "run_case",
 )
-_SECONDS: Final = {"second": 1, "minute": 60, "day": 86_400}
+_SECONDS: Final = {"second": 1, "minute": 60, "hour": 3_600, "day": 86_400}
 #: The statuses a recorder may stand in for (``Case.simulate``): the failures no
 #: well-behaved client provokes on purpose.
 SIMULATED_STATUSES: Final = frozenset({429, 500, 502, 503, 504})
@@ -346,14 +346,14 @@ class Authentication:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class RateLimit:
-    """A published limit: this many requests per second, minute or day.
+    """A published limit: this many requests per second, minute, hour or day.
 
     ``without_key`` marks a limit that holds only for the requests sent without
     a key, such as BLS's 25 keyless queries a day.
     """
 
     requests: int
-    per: Literal["second", "minute", "day"]
+    per: Literal["second", "minute", "hour", "day"]
     without_key: bool = False
 
     @property
@@ -814,6 +814,26 @@ class DataProvider:
                 responses.append(response)
                 request = self.next_page(request, response)
         return responses
+
+    def trim_recordings(
+        self, exchanges: Sequence[tuple[Request, Response]], query: Query
+    ) -> Sequence[tuple[Request, Response]]:
+        """Trim a recording with the complete operation available for metadata."""
+        return tuple(
+            (request, self.trim_recording(request, response, query))
+            for request, response in exchanges
+        )
+
+    def trim_recording(
+        self, request: Request, response: Response, query: Query
+    ) -> Response:
+        """Trim a live recorder response without inventing observations.
+
+        Called by the deliberate local recorder only, after the full answer
+        parsed successfully. Third-party sources may keep the default when
+        their requests already bound responses to the cassette size cap.
+        """
+        return response
 
     def synthesize(
         self, request: Request, response: Response, *, seed: str

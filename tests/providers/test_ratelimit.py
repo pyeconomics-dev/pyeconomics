@@ -166,3 +166,15 @@ def test_the_max_wait_reaches_the_limiters_it_makes() -> None:
     unit.acquire(clock.sleep)
     with pytest.raises(RateLimitError):
         unit.acquire(clock.sleep)
+
+
+def test_the_hourly_window_refuses_the_sixty_first_request_until_it_expires() -> None:
+    unit, clock = limiter(RateLimit(requests=60, per="hour"), max_wait=0.0)
+    for _ in range(60):
+        assert unit.acquire(clock.sleep) == 0.0
+    with pytest.raises(RateLimitError) as caught:
+        unit.acquire(clock.sleep)
+    assert caught.value.retry_after == 3600.0
+    assert clock.slept == []
+    clock.now = 3600.0
+    assert unit.acquire(clock.sleep) == 0.0

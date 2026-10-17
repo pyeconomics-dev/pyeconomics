@@ -92,7 +92,7 @@ _PLACEHOLDERS: Final = frozenset(
 )
 _TOKEN: Final = re.compile(r"[A-Za-z][A-Za-z0-9_.$\[\]-]{0,63}")
 _SCHEME: Final = re.compile(r"[A-Za-z][A-Za-z0-9-]{0,31}")
-_WINDOWS: Final = ("second", "minute", "day")
+_WINDOWS: Final = ("second", "minute", "hour", "day")
 _MAX_HOSTS: Final = 16
 _MAX_LIMITS: Final = 4
 _MAX_REQUESTS_PER_WINDOW: Final = 1_000_000
@@ -272,7 +272,7 @@ def _limit_problem(limit: object) -> str | None:
             f"{_MAX_REQUESTS_PER_WINDOW}"
         )
     if per not in _WINDOWS:
-        return f"per {per!r} is not second, minute or day"
+        return f"per {per!r} is not second, minute, hour or day"
     if not isinstance(_get(limit, "without_key"), bool):
         return "without_key is true or false"
     return None
@@ -299,7 +299,7 @@ def _check_rate_limits(info: ProviderInfo, report: _Report) -> None:
     if len(limits) > _MAX_LIMITS or len(set(windows)) != len(windows):
         report.add(
             "rate-limit",
-            f"declare at most {_MAX_LIMITS} limits, one per second, minute or day "
+            f"at most {_MAX_LIMITS} limits, one per second, minute, hour or day "
             "(and one more of each for requests without a key)",
         )
     if not isinstance(_get(info, "follow_redirects"), bool):

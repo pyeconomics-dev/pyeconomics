@@ -278,7 +278,7 @@ def test_the_transport_holds_a_keyless_request_to_the_keyless_limit() -> None:
         (
             (RateLimit(requests=1, per="day"), RateLimit(requests=2, per="day")),
             Optional.info.auth,
-            "one per second, minute or day",
+            "one per second, minute, hour or day",
         ),
     ],
 )

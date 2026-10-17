@@ -261,6 +261,22 @@ class ToyJson(DataProvider):
             for series in query.series
         )
 
+    def synthesize(
+        self, request: Request, response: Response, *, seed: str
+    ) -> Response:
+        """Replace values when a hosted-safe toy returns a restricted series."""
+        import json  # noqa: PLC0415 - only the recorder needs it
+
+        payload = json.loads(response.body)
+        for position, row in enumerate(payload.get("observations", ())):
+            row["value"] = f"{synthetic_value(seed, position):.4f}"
+        return Response(
+            response.status,
+            json.dumps(payload, separators=(",", ":")).encode(),
+            response.retrieved_at,
+            response.headers,
+        )
+
     def classify_error(self, request: Request, response: Response) -> DataError | None:
         """The source answers an unknown series with HTTP 400 and a message."""
         if response.status == 400:
