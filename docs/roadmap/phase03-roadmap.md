@@ -1094,15 +1094,18 @@ Step 5  (cache + offline mode)        SQLite store, licence-aware policy,
   ↓
 Step 6  (FRED and ALFRED, BLS, BEA,   4 keyed providers, vintages,
          Census)                      providers-live.yml and its secrets
-                                      → implement
-  ↓
-Step 7  (Treasury, Fed Board, NY Fed, 5 keyless providers → implement
-         SEC EDGAR, OpenFIGI)
-  ↓
-Step 8  (SDMX, World Bank, DBnomics)  7 providers, [sdmx] → implement
-  ↓
+                                      -> implement
+  |
+  +--> Step 7 (Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI) --+
+  |          5 keyless providers -> implement                 |
+  |                                                          |
+  +--> Step 8 (SDMX, World Bank, DBnomics) --------------------+
+             7 providers, [sdmx] -> implement                 |
+                                                              |
+                                           both Complete on main
+                                                              |
 Step 9  (regional Feds, CBO, PWT)     5 providers, real-time data set,
-                                      SPF → implement
+                                      SPF -> implement
   ↓
 Step 10 (finance research data)       10 providers, [yfinance]
                                       → implement
@@ -1178,8 +1181,10 @@ V20  verify-phase03.sh --fast and --security exit 0 in phase-verify.yml;
      the live-run alarm fired; Phases 1 and 2 stay green.
 ```
 
-Steps are sequential by dependency. Step 1 closes the input-validation and
-numerics bugs that provider values would otherwise flow through, and moves
+Steps follow the dependencies above. Steps 7 and 8 may proceed independently
+after Step 6 is Complete; Step 9 waits for both. Step 1 closes the
+input-validation and numerics bugs that provider values would otherwise
+flow through, and moves
 the version every later step builds towards. Step 2's ADR fixes the value
 types, vintages, licence terms and stack choices that every later layer
 encodes, and its `Series` and `Table` are what Step 3's redaction protects
@@ -1195,12 +1200,31 @@ the providers of Steps 6–10, Step 12's bindings resolve through it, and
 Step 13's policy suite is the first consumer of both; Steps 14–17 reuse its
 patterns and each other's shared numerics. Step 18 rehearses the tree Steps
 1–17 leave on `main`, Step 19 releases it only after the maintainer's GO,
-and Step 20 is sequential after every prior step. The provider steps share
-`pyproject.toml` (extras and entry points), `uv.lock`, the generated source
-documentation, the live run's egress allowlist and this roadmap's Summary
-Table, and a contract fix found in one must reach the next, so no steps are
-drawn in parallel; the Worktree rule's declared-parallelism case does not
-arise in this phase.
+and Step 20 is sequential after every prior step.
+
+**Sequencing update (2026-10-16).** Step 7's remaining SEC access rejection is
+an external verification blocker. Step 8 uses the SDK, transport, cache and
+live workflow already shipped in Steps 4-6; it does not consume the Step 7
+providers or spreadsheet readers. Waiting for SEC is therefore unnecessary
+for Step 8 implementation, testing or its own merge.
+
+- Steps 7 and 8 each use their own branch, worktree and conversation, both
+  cut from `origin/main`. Step 8's prerequisite is completed Step 6, even
+  while Step 7 remains unfinished. Carry this roadmap-only sequencing
+  amendment onto Step 8's branch at kickoff if it has not reached main;
+  do not carry Step 7's incomplete provider implementation onto that branch.
+- Either step may merge first once its required pre-merge checks pass; each
+  then performs its own post-merge live verification before completion.
+  A blocked step stays unfinished; this exception waives no fixture, licence,
+  security, CI or deployed-verification requirement.
+- The providers share `pyproject.toml`, `uv.lock`, source documentation, the
+  live workflow, registry tests and this roadmap. Rebase the second branch
+  onto current main before merge, resolve shared-file conflicts explicitly,
+  regenerate locks/exports and rerun affected checks. Preserve both steps'
+  provider registrations, hosts, notices and status entries. Regenerate the
+  provider registry expectations from the providers actually present.
+- Step 9 and later steps still wait for both Steps 7 and 8 to be Complete on
+  main. No other steps are declared parallel by this amendment.
 
 ---
 
@@ -5093,6 +5117,12 @@ Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
 
 **Branch:** `feature/phase03-step8-providers-international`
 
+**Prerequisite exception:** Completed Step 6 is sufficient to start this step
+under the Execution Order's declared parallelism with Step 7. Use a separate
+worktree and conversation, starting from `origin/main`; carry the roadmap-only
+sequencing amendment if needed. Step 7's SEC blocker does not transfer to this
+step. Each step keeps its own acceptance criteria and completion mark.
+
 **Deploys:** GitHub Actions — the next scheduled `providers-live` run
 covers this step's providers; a `workflow_dispatch` run on `main` after
 merge proves them live.
@@ -5361,12 +5391,15 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
     pyeconomics. Phase 3. Step 8: providers — the SDMX
     sources, the World Bank and DBnomics.
 
-    Current state (as of Phase 3 Step 7):
+    Baseline: completed Phase 3 Step 6. Step 7 may still be
+    in progress under the Execution Order's parallelism.
 
-    - Nine providers are registered and pass offline and
-      live; the spreadsheet stack (openpyxl, defusedxml) is a
-      runtime dependency; no extra pulls in a data client
-      yet.
+    - The SDK, transport, cache and live workflow are shipped;
+      four keyed providers pass offline and live. If Step 7
+      has merged, its five providers and spreadsheet stack
+      are also present. Neither is required by this step.
+      No extra pulls in a data client yet. Read the actual
+      registry and dependency state at kickoff.
     - sdmx1 2.27.0 (Apache-2.0 classifier) depends on lxml,
       requests, pandas, platformdirs, python-dateutil and
       packaging; requests brings certifi (MPL-2.0), outside
@@ -5545,6 +5578,9 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
 > decisions 6 and 7.
 
 **Branch:** `feature/phase03-step9-providers-research-macro`
+
+**Prerequisites:** Both Steps 7 and 8 must be Complete on main before this
+step starts, regardless of which parallel provider step merged first.
 
 **Deploys:** GitHub Actions — the next scheduled `providers-live` run
 covers this step's providers; a `workflow_dispatch` run on `main` after
