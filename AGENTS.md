@@ -207,9 +207,9 @@ quality toolchain. CI re-runs the same hooks as required checks.
 
 ## The step lifecycle
 
-Roadmap steps run one at a time, each in its own conversation, following six
-stages with no exceptions (ROADMAP §5 "Step lifecycle"; the phase roadmap's
-Overview restates them):
+Roadmap steps run one at a time unless the Execution Order explicitly permits
+parallel steps. Each runs in its own conversation, following all six stages
+(ROADMAP §5 "Step lifecycle"; the phase roadmap's Overview restates them):
 
 1. **Create the branch first.** Before any other action, run
    `git checkout -b <the step's **Branch:** line>` from a clean, up-to-date
@@ -233,8 +233,9 @@ Overview restates them):
 
 **Status rule.** The phase roadmap on `main` is the ledger. A step is complete
 exactly when its own pull request, carrying its `Complete` line, merges. Never
-mark a step complete from your own reading of the git history, and never start
-a step whose predecessor does not read `Complete`.
+mark a step complete from your own reading of the git history. Start a step
+only after its prerequisites read `Complete`, following any explicit parallelism
+or prerequisite exception in the roadmap's Execution Order.
 
 **Triage rule.** Classify every finding that is not the step before acting on
 it (ROADMAP §5 "Defect handling & triage"). Each class has one destination and
