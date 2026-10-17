@@ -237,6 +237,13 @@ mark a step complete from your own reading of the git history. Start a step
 only after its prerequisites read `Complete`, following any explicit parallelism
 or prerequisite exception in the roadmap's Execution Order.
 
+Phase 3's named external-approval exception permits Steps 10–20 and the
+phase to complete with SEC EDGAR explicitly deferred, after Step 10 verifies
+the four unblocked Step 7 providers. It does not mark Step 7 complete or waive
+any shipped provider's checks. Use the roadmap's exact release provider set
+and carry-over rules; neither SEC access nor GitHub Sponsors approval gates
+independent development or Phase 4 entry.
+
 **Triage rule.** Classify every finding that is not the step before acting on
 it (ROADMAP §5 "Defect handling & triage"). Each class has one destination and
 a label: `spec-rot` (edit the step's task now), `upstream-gap` (patch the
