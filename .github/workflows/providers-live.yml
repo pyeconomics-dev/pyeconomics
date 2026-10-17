@@ -58,6 +58,13 @@ jobs:
             api.bls.gov:443
             apps.bea.gov:443
             api.census.gov:443
+            home.treasury.gov:443
+            api.fiscaldata.treasury.gov:443
+            www.federalreserve.gov:443
+            www.newyorkfed.org:443
+            markets.newyorkfed.org:443
+            data.sec.gov:443
+            api.openfigi.com:443
             github.com:443
             api.github.com:443
             objects.githubusercontent.com:443
@@ -92,6 +99,7 @@ jobs:
           BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          PYECONOMICS_SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
           PROVIDERS_LIVE_SIMULATE_FAILURE: ${{ inputs.simulate_failure && '1' || '' }}
         run: >-
           uv run --locked pytest -m live --force-enable-socket -q

@@ -285,6 +285,10 @@ jobs:
           holidays_version=$(uv run --no-project python -c 'import pathlib, tomllib; print(next(p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] == "holidays"))')
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url https://pypi.org/simple \
             --only-binary=:all: --no-deps "holidays==$holidays_version"
+          # These pure-Python readers are absent from the Pyodide package index.
+          readers=$(uv run --no-project python -c 'import pathlib, tomllib; print(" ".join(p["name"] + "==" + p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] in {"openpyxl", "et-xmlfile", "defusedxml", "xlrd"}))')
+          "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url https://pypi.org/simple \
+            --only-binary=:all: --no-deps $readers
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url "file://$index" dist/*.whl
       - name: Run the smoke script in Pyodide
         shell: bash

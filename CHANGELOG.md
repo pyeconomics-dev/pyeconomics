@@ -15,6 +15,12 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Treasury, Federal Reserve Board, New York Fed, SEC EDGAR and OpenFIGI
+  providers, with typed filing and identifier records separate from numeric
+  frames, bounded in-memory spreadsheet and XML readers, decimal rates and
+  source notices. Default HTTP transports share rate allowances across the
+  process; the SEC contact is attached only by the transport.
+
 - ADR-0011, the data platform: eighteen accepted decisions on the data
   model, missing values, vintages, licence classes and `llm_use`, the
   provider contract, the HTTP stack, extras, credentials, redaction, the

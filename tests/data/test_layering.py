@@ -47,7 +47,13 @@ PURE_MODULES = (
     SRC / "data" / "providers" / "bls.py",
     SRC / "data" / "providers" / "census.py",
     SRC / "data" / "providers" / "fred.py",
+    SRC / "data" / "providers" / "nyfed.py",
+    SRC / "data" / "providers" / "openfigi.py",
+    SRC / "data" / "providers" / "sec_edgar.py",
+    SRC / "data" / "providers" / "fed_board.py",
+    SRC / "data" / "providers" / "treasury.py",
     SRC / "data" / "providers" / "rules.py",
+    SRC / "data" / "records.py",
     SRC / "data" / "redaction.py",
     SRC / "data" / "registry.py",
     SRC / "data" / "terms.py",
@@ -67,6 +73,8 @@ IO_MODULES = (
     SRC / "data" / "config.py",
     SRC / "data" / "credentials" / "chain.py",
     SRC / "data" / "transport" / "http.py",
+    SRC / "data" / "transport" / "files.py",
+    SRC / "data" / "transport" / "recording.py",
     SRC / "data" / "transport" / "replay.py",
 )
 

@@ -210,6 +210,11 @@ def record_case(
     if not recorder.exchanges:
         msg = f"{case.name} sent no request"
         raise RecordingError(msg)
+    if isinstance(case.argument, Query) and not simulated:
+        recorder.exchanges = [
+            (request, provider.trim_recording(request, response, case.argument))
+            for request, response in recorder.exchanges
+        ]
     synthetic = simulated or needs_synthetic(type(provider))
     exchanges = (
         _synthesize(provider, recorder.exchanges, case)

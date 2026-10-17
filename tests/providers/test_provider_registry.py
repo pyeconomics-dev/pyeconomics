@@ -72,7 +72,17 @@ def _fresh_cache() -> Iterator[None]:
 
 
 #: The providers this distribution registers (Phase 3 Step 6 on).
-BUILT_IN = ("bea", "bls", "census", "fred")
+BUILT_IN = (
+    "bea",
+    "bls",
+    "census",
+    "fred",
+    "treasury",
+    "fed_board",
+    "nyfed",
+    "sec_edgar",
+    "openfigi",
+)
 
 
 def test_the_installed_registry_holds_the_built_in_providers_and_validates() -> None:

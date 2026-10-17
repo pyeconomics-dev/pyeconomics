@@ -15,6 +15,7 @@ import os
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from leakcheck import contact_canary
 from provider_contract import (
     _REPLAY_ONLY,
     check_cases,
@@ -33,6 +34,8 @@ from provider_contract import (
 from toys import ToyJson, ToyVintage
 
 from pyeconomics.data import DataProvider, TransportError, registry
+from pyeconomics.data.config import reset
+from pyeconomics.data.providers.base import AuthKind
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -97,7 +100,11 @@ def test_an_error_cassette_maps_to_the_taxonomy(
 @pytest.mark.parametrize("provider", ALL, ids=_id)
 def test_the_transport_refuses_a_foreign_host_and_http(
     provider: type[DataProvider],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    if provider.info.auth.kind is AuthKind.CONTACT:
+        monkeypatch.setenv("PYECONOMICS_SEC_CONTACT", contact_canary().value)
+        reset()
     check_foreign_hosts_refused(provider)
 
 

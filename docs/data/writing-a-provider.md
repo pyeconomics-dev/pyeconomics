@@ -348,3 +348,55 @@ no change:
 - Never print, log or record a key. A key a request echoes back is scrubbed from
   the cassette, and a failing test names the sinks that held a canary, never the
   canary.
+
+
+## Records and file sources
+
+A provider declares `Capability.RECORDS` for identifier mappings and filing
+lists, implementing `build_records` and `parse_records`. Its final `records`
+operation applies the same platform, hosted-mode and transport checks as every
+other operation. It returns bounded, immutable `Records` containing `FigiMapping`
+or `Filing` values with terms and retrieval time. Records round-trip through
+strict canonical JSON, contain no document paths or URLs, and are never frame
+cache entries or model binding inputs. Offline and vintage queries refuse them.
+
+For example, OpenFIGI accepts `TICKER:IBM` or `ID_BB_GLOBAL:BBG000BLNNH6` through
+`registry.get("openfigi").records(Query(series=(... ,)))`. EDGAR's records operation
+accepts `submissions:320193`; its numeric fetch accepts
+`concept:320193:us-gaap:Assets:USD`, `facts:320193:us-gaap:Assets:USD`, and
+`frame:us-gaap:Assets:USD:CY2024Q1I:320193`. CIKs are zero-padded. Configure the
+SEC contact as described in [Keys and configuration](keys.md).
+
+Treasury dataset ids are `par_nominal`, `par_real`, `debt`, `statement` and
+`average_interest`; curve queries require start and end dates. Board ids are
+`h15:RIFSPFF_N.B` (or another released H.15 series), `target_range`, `gsw` and
+`sep:YYYY-MM-DD`. The target range comes from the Board's open-market operations
+page, because it is absent from H.15. GSW beta coefficients use decimal rate
+units and tau uses years. SEP's horizons, including longer run, are columns;
+meeting dates index its releases.
+
+New York Fed ids are `sofr`, `effr`, `obfr`, `tgcr`, `bgcr`, `repo`,
+`reverse_repo`, `soma`, `acm`, `lw`, `hlw` and `nowcast`. Reference-rate notices
+travel with each frame. The ACM file contains daily fitted yields, risk-neutral
+yields and term premia at one- through ten-year maturities. Its XLS reader is
+lazy, as is the XLSX reader used by r* and the Staff Nowcast.
+
+The XLS reader uses xlrd under its BSD licences. Its legacy licence requires
+this acknowledgement, which must also remain in redistributions and advertising
+materials mentioning its features or use:
+
+This product includes software developed by David Giffin <david@giffin.org>.
+
+Explicit r* vintage ids select the published workbook sheet, for example
+`lw:2005q1` or `hlw:2025Q1`. A quarterly sheet label identifies a data vintage;
+it does not establish the release's historical availability date. These ids
+therefore do not promise `as_of` or `first_release` selection. In particular,
+HLW's workbook omits historical publication dates, so assigning quarter ends as
+release dates would introduce look-ahead bias.
+
+A file source may implement `trim_recording(request, response, query)` to keep
+a handful of genuine observations in the original file format. Only the
+explicit local recorder calls this hook, after parsing the full answer. It
+runs before any required synthetic replacement and before the cassette's
+redaction, size and secret checks. Tests verify that trimming preserves parsed
+values; ordinary fetches never trim the source's answer.
