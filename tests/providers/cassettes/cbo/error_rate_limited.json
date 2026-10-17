@@ -1,0 +1,1 @@
+{"provider":"cbo","recorded_on":"2026-10-17T13:44:52+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/economic/economic_projections/schema.json"}],"synthetic":true}

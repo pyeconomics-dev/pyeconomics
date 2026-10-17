@@ -162,6 +162,8 @@ jobs:
         with:
           fail-on-severity: high
           # ADR-0004's allowlist.
+          # defusedxml: PSFL metadata, bundled PSF Version 2; maintainer approved
+          # 2026-10-16. et-xmlfile: MIT, with permissive Python-derived code.
           allow-licenses: MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, NCSA, PSF-2.0
           # Development tools, never distributed or linked (ADR-0004 keeps
           # them outside the allowlist; the licences hook checks the real
@@ -213,6 +215,8 @@ jobs:
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:pypi/astroid,
+            pkg:pypi/defusedxml,
+            pkg:pypi/et-xmlfile,
             pkg:pypi/certifi,
             pkg:pypi/cffi,
             pkg:pypi/docutils,

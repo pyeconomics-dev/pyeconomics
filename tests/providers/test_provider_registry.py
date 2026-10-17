@@ -73,6 +73,11 @@ def _fresh_cache() -> Iterator[None]:
 
 #: The providers this distribution registers (Phase 3 Step 6 on).
 BUILT_IN = (
+    "atlanta_fed",
+    "cbo",
+    "cleveland_fed",
+    "penn_world_table",
+    "philadelphia_fed",
     "bea",
     "bis",
     "bls",

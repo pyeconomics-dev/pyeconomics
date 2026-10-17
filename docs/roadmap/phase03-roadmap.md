@@ -333,8 +333,8 @@ id is permanent once released, as a model id is (ADR-0003).
 | `philadelphia_fed`          | Philadelphia Fed: Real-Time Data Set, Survey of Professional Forecasters | in-house            | library-only                                  | none                                 | 9    |
 | `atlanta_fed`               | Atlanta Fed: GDPNow                                                     | in-house             | library-only                                  | none                                 | 9    |
 | `cleveland_fed`             | Cleveland Fed: inflation expectations                                   | in-house             | library-only                                  | none                                 | 9    |
-| `cbo`                       | CBO: budget and economic projections, potential output                  | in-house             | TBD, classified at Step 9                     | none                                 | 9    |
-| `penn_world_table`          | Penn World Table: national accounts, capital, TFP                       | in-house             | TBD, classified at Step 9                     | none                                 | 9    |
+| `cbo`                       | CBO: budget and economic projections, potential output                  | in-house             | hosted-safe (public domain; read 2026-10-17)                     | none                                 | 9    |
+| `penn_world_table`          | Penn World Table: national accounts, capital, TFP                       | in-house             | hosted-safe (CC BY 4.0; read 2026-10-17)                     | none                                 | 9    |
 | `ken_french`                | Ken French Data Library: factors and portfolios                         | in-house             | library-only; fetched at runtime, never bundled | none                               | 10   |
 | `shiller`                   | Robert Shiller: long-run US equity data                                 | in-house             | library-only                                  | none                                 | 10   |
 | `damodaran`                 | Damodaran Online: industry aggregates (ERP, betas, multiples)          | in-house             | hosted-safe for aggregates, with credit; no bulk mirror | none                       | 10   |
@@ -5576,9 +5576,9 @@ Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence Index
 
 ---
 
-## Step 9 — Providers: Regional Fed Research, CBO, Penn World Table
+## Step 9 — Providers: Regional Fed Research, CBO, Penn World Table ✅
 
-**Status:** Not started
+**Status:** Complete — PR #127 (2026-10-17)
 
 > **Goal:** Register the research sources the monetary-policy suite and
 > the macro entries need for real-time and forecast inputs. Add
@@ -5977,6 +5977,11 @@ hygiene.
 
     <requirement>
       cbo: from each Budget and Economic Outlook's data files,
+      using CBO's own machine-readable CSV repository where
+      the current Budget and Economic Data page directs
+      automated users (verified 2026-10-17). Retain every
+      report available in that official archive, record its
+      coverage and exact publication date, not its month label:
       potential GDP, potential labour force, the noncyclical
       rate of unemployment, the output gap and the ten-year
       economic projections, each report's release date a
@@ -11740,7 +11745,7 @@ workflow above maps directly to the corresponding row below.
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
 | 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
-| 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |

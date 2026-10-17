@@ -560,11 +560,25 @@ wheels = [
 ]
 
 [[packages]]
+name = "defusedxml"
+version = "0.7.1"
+index = "https://pypi.org/simple"
+sdist = { url = "https://files.pythonhosted.org/packages/0f/d5/c66da9b79e5bdb124974bfe172b4daf3c984ebd9c2a06e2b8a4dc7331c72/defusedxml-0.7.1.tar.gz", upload-time = 2021-03-08T10:59:26Z, size = 75520, hashes = { sha256 = "1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl", upload-time = 2021-03-08T10:59:24Z, size = 25604, hashes = { sha256 = "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61" } }]
+
+[[packages]]
 name = "docutils"
 version = "0.22.4"
 index = "https://pypi.org/simple"
 sdist = { url = "https://files.pythonhosted.org/packages/ae/b6/03bb70946330e88ffec97aefd3ea75ba575cb2e762061e0e62a213befee8/docutils-0.22.4.tar.gz", upload-time = 2025-12-18T19:00:26Z, size = 2291750, hashes = { sha256 = "4db53b1fde9abecbb74d91230d32ab626d94f6badfc575d6db9194a49df29968" } }
 wheels = [{ url = "https://files.pythonhosted.org/packages/02/10/5da547df7a391dcde17f59520a231527b8571e6f46fc8efb02ccb370ab12/docutils-0.22.4-py3-none-any.whl", upload-time = 2025-12-18T19:00:18Z, size = 633196, hashes = { sha256 = "d0013f540772d1420576855455d050a2180186c91c15779301ac2ccb3eeb68de" } }]
+
+[[packages]]
+name = "et-xmlfile"
+version = "2.0.0"
+index = "https://pypi.org/simple"
+sdist = { url = "https://files.pythonhosted.org/packages/d3/38/af70d7ab1ae9d4da450eeec1fa3918940a5fafb9055e934af8d6eb0c2313/et_xmlfile-2.0.0.tar.gz", upload-time = 2024-10-25T17:25:40Z, size = 17234, hashes = { sha256 = "dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/c1/8b/5fe2cc11fee489817272089c4203e679c63b570a5aaeb18d852ae3cbba6a/et_xmlfile-2.0.0-py3-none-any.whl", upload-time = 2024-10-25T17:25:39Z, size = 18059, hashes = { sha256 = "7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa" } }]
 
 [[packages]]
 name = "executing"
@@ -1382,6 +1396,13 @@ version = "20260602.2.5"
 index = "https://pypi.org/simple"
 sdist = { url = "https://files.pythonhosted.org/packages/08/db/5cd1d99caea4bf39fd477686ded4b9b70dff3c7673b5d84ef2d96a4f5aab/numpy_typing_compat-20260602.2.5.tar.gz", upload-time = 2026-06-02T15:52:39Z, size = 4593, hashes = { sha256 = "1885a678e9a24564839ed5d1711c0031735fb7de7f0b5ed88d550e5d45a8d4f9" } }
 wheels = [{ url = "https://files.pythonhosted.org/packages/b1/a4/9376b38b7387a0296b1f626b966e5503578625c9673777db1b45bf70acb0/numpy_typing_compat-20260602.2.5-py3-none-any.whl", upload-time = 2026-06-02T15:52:34Z, size = 5881, hashes = { sha256 = "21ba7757c8924d359a9ed3ab2163c282a70983ae64498fdba6d1892a6641c8b1" } }]
+
+[[packages]]
+name = "openpyxl"
+version = "3.1.5"
+index = "https://pypi.org/simple"
+sdist = { url = "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz", upload-time = 2024-06-28T14:03:44Z, size = 186464, hashes = { sha256 = "cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl", upload-time = 2024-06-28T14:03:41Z, size = 250910, hashes = { sha256 = "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2" } }]
 
 [[packages]]
 name = "optype"
@@ -2543,6 +2564,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f6/a8/65d865185ecb18ee45b85cd99b34aedb3d8a4a9fe0438dab695e1390dbb7/ty-0.0.85-py3-none-win_amd64.whl", upload-time = 2026-10-06T22:05:36Z, size = 14112013, hashes = { sha256 = "2636f8255b97c357dac1f9f50ca58f58a49642c8adb5c76643f483401a577014" } },
     { url = "https://files.pythonhosted.org/packages/24/40/110b4f01af47fbb061f03e2f8e85cb30dd3d9ea614b2059dfaa058a044a5/ty-0.0.85-py3-none-win_arm64.whl", upload-time = 2026-10-06T22:05:39Z, size = 13825189, hashes = { sha256 = "953574167a79d9dba7781238879955fa37fea405393710bfe53069ac82dff4d9" } },
 ]
+
+[[packages]]
+name = "types-defusedxml"
+version = "0.7.0.20260504"
+index = "https://pypi.org/simple"
+sdist = { url = "https://files.pythonhosted.org/packages/da/d2/4553c8fa9cdebfe1e84b950cf790a4d2376a97fa016e43f7c65323fa6c7d/types_defusedxml-0.7.0.20260504.tar.gz", upload-time = 2026-05-04T05:22:50Z, size = 10729, hashes = { sha256 = "2ab2828a3f97111ba1c16cee273ad4124a831fc9198c41bf8368ff6ea48ad300" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/bf/2d/8a4b5ba1d732b8bc691f0efbb1c6f77cb5f6f473b2afe181d83d910773c5/types_defusedxml-0.7.0.20260504-py3-none-any.whl", upload-time = 2026-05-04T05:22:49Z, size = 13467, hashes = { sha256 = "a959e3a0a43b93e464bd625d91ec9193a2703ddc10443bdd627792485fae0b10" } }]
+
+[[packages]]
+name = "types-openpyxl"
+version = "3.1.5.20261017"
+index = "https://pypi.org/simple"
+sdist = { url = "https://files.pythonhosted.org/packages/af/13/ce0b36e7e29ee31ec75d6718d48d28d2d48ad319ddf4665f81c8f3a8fc95/types_openpyxl-3.1.5.20261017.tar.gz", upload-time = 2026-10-17T06:20:01Z, size = 102026, hashes = { sha256 = "3deb3b6279b65ab379c126df0ee1fd27500c9628edb8d9667d73f637462917dc" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/2b/17/a091e90fde3e90eff9168354269626e210a4c3c688910d8c9176b8a08cb4/types_openpyxl-3.1.5.20261017-py3-none-any.whl", upload-time = 2026-10-17T06:19:59Z, size = 165886, hashes = { sha256 = "3315cfebad290cc7ade1fccaf3a46ee820b3a8e7df726ff4f18d30ab7f383d68" } }]
 
 [[packages]]
 name = "typing-extensions"

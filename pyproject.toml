@@ -32,8 +32,10 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "defusedxml>=0.7.1",
     "holidays>=0.106",
     "numpy>=2.4",
+    "openpyxl>=3.1.5",
     "pandas>=3.0",
     "platformdirs>=4.9.4",
     "pydantic>=2.12",
@@ -68,6 +70,11 @@ risk = "pyeconomics.models.risk"
 # lists its DataProvider subclasses in __all__. The built-in providers register
 # from Phase 3 Step 6; a third-party package adds its own the same way.
 [project.entry-points."pyeconomics.providers"]
+philadelphia_fed = "pyeconomics.data.providers.philadelphia_fed"
+atlanta_fed = "pyeconomics.data.providers.atlanta_fed"
+cleveland_fed = "pyeconomics.data.providers.cleveland_fed"
+cbo = "pyeconomics.data.providers.cbo"
+penn_world_table = "pyeconomics.data.providers.penn_world_table"
 bis = "pyeconomics.data.providers.bis"
 dbnomics = "pyeconomics.data.providers.dbnomics"
 ecb = "pyeconomics.data.providers.ecb"
@@ -143,6 +150,8 @@ dev = [
     "ruff>=0.16.10",
     "scipy-stubs>=1.18.1.1",
     "ty>=0.0.85",
+    "types-defusedxml>=0.7.0.20260504",
+    "types-openpyxl>=3.1.5.20261017",
 ]
 docs = [
     "myst-nb>=1.4.0",

@@ -793,8 +793,11 @@ launch-catalog table, where one id carries a family's variants as a method
 input (the output-gap filters, the factor models, the GARCH variants, the
 risk-based allocations).
 
-CBO and Penn World Table data are classified in Phase 3 before either
-feeds the hosted site.
+CBO data are **hosted-safe** as public-domain US government works
+([copyright policy](https://www.cbo.gov/about/privacy)). Penn World Table
+11.0 is **hosted-safe** under CC BY 4.0 with the authors' required citation
+([release and licence](https://www.rug.nl/ggdc/productivity/pwt/)).
+Both classifications were checked on 2026-10-17 in Phase 3 Step 9.
 
 #### 3.8 Release `1.0.0a2`
 

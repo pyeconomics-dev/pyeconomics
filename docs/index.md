@@ -26,6 +26,7 @@ results
 data/keys
 data/cache
 data/international
+data/research
 data/writing-a-provider
 reference/models/index
 reference/providers/index
