@@ -30,6 +30,12 @@ CORE = SRC / "core"
 
 #: Modules that must stay pure: the value types and the provenance record.
 PURE_MODULES = (
+    SRC / "data" / "providers" / "_research.py",
+    SRC / "data" / "providers" / "philadelphia_fed.py",
+    SRC / "data" / "providers" / "atlanta_fed.py",
+    SRC / "data" / "providers" / "cleveland_fed.py",
+    SRC / "data" / "providers" / "cbo.py",
+    SRC / "data" / "providers" / "penn_world_table.py",
     CORE / "_fields.py",
     CORE / "provenance.py",
     SRC / "data" / "__init__.py",
@@ -71,6 +77,7 @@ PURE_MODULES = (
 #: The data layer's I/O modules: the only ones that read files, the
 #: environment or the network (ADR-0011 decision 1).
 IO_MODULES = (
+    SRC / "data" / "transport" / "files.py",
     SRC / "data" / "cache" / "__init__.py",
     SRC / "data" / "cache" / "store.py",
     SRC / "data" / "config.py",

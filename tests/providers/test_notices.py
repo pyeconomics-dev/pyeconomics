@@ -38,6 +38,58 @@ class Row(NamedTuple):
 
 
 NOTICES: dict[str, Row] = {
+    "philadelphia_fed": Row(
+        attribution=(
+            "Source: Federal Reserve Bank of Philadelphia. Croushore and "
+            "Stark (2001), A Real-Time Data Set for Macroeconomists."
+        ),
+        notice=(
+            "The content provided on this website may be used for informa"
+            "tional, educational, and research purposes only."
+        ),
+        terms_url="https://www.philadelphiafed.org/about-us/privacy-notice",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "atlanta_fed": Row(
+        attribution="Source: Federal Reserve Bank of Atlanta, GDPNow.",
+        notice=(
+            "Permission is granted to reproduce for personal and educational use only."
+        ),
+        terms_url="https://www.atlantafed.org/research-and-data/data/gdpnow",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "cleveland_fed": Row(
+        attribution="Source: Federal Reserve Bank of Cleveland.",
+        notice=(
+            "The information is used for noncommercial, personal, or educ"
+            "ational purposes only (i.e., not for private gain)"
+        ),
+        terms_url="https://www.clevelandfed.org/privacy",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "cbo": Row(
+        attribution="Source: Congressional Budget Office.",
+        notice=(
+            "Government documents are in the public domain and are not pr"
+            "otected by copyright law."
+        ),
+        terms_url="https://www.cbo.gov/about/privacy",
+        checked=dt.date(2026, 10, 17),
+    ),
+    "penn_world_table": Row(
+        attribution=(
+            "Penn World Table 11.0 by Robert C. Feenstra, Robert Inklaar "
+            "and Marcel P. Timmer."
+        ),
+        notice=(
+            "Feenstra, Robert C., Robert Inklaar and Marcel P. Timmer (20"
+            '15), "The Next Generation of the Penn World Table" American '
+            "Economic Review, 105(10), 3150-3182, available for download "
+            "at www.ggdc.net/pwt"
+        ),
+        terms_url="https://www.rug.nl/ggdc/productivity/pwt/",
+        checked=dt.date(2026, 10, 17),
+    ),
     "bis": Row(
         attribution="Source: Bank for International Settlements.",
         notice=(
@@ -61,7 +113,10 @@ NOTICES: dict[str, Row] = {
     "ecb": Row(
         attribution="Source: European Central Bank.",
         notice="the information may be obtained free of charge through this website.",
-        terms_url="https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html",
+        terms_url=(
+            "https://www.ecb.europa.eu/services/using-our-site/disclaimer"
+            "/html/index.en.html"
+        ),
         checked=dt.date(2026, 10, 16),
     ),
     "eurostat": Row(

@@ -71,3 +71,8 @@ reason = "certifi 2026.7.22 dist-info/licenses/LICENSE applies MPL-2.0 to the Mo
 package = "sdmx1"
 licence = "Apache Software License"
 reason = "sdmx1 2.27.0 dist-info/licenses/LICENSE is Apache License Version 2.0, January 2004, already on ADR-0004's allowlist. Only its classifier is ambiguous. Checked by GPT-6.1 Sol, 2026-10-16; maintainer approved in the 2026-10-16 session."
+
+[[exception]]
+package = "defusedxml"
+licence = "PSFL"
+reason = "defusedxml 0.7.1 wheel's LICENSE is PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2, corresponding to the allowed PSF-2.0 licence; metadata uses the legacy PSFL name. Checked by GPT-6.1 Sol, 2026-10-16. Maintainer approved in session on 2026-10-16."

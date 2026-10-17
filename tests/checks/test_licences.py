@@ -291,6 +291,7 @@ def test_exceptions_file_validation(tmp_path: Path) -> None:
 # extra's on Linux, in Phase 3 Step 3's). The file started empty (ADR-0004); a
 # new entry needs a new review, and this set changes with it.
 REVIEWED_EXCEPTIONS = {
+    "defusedxml",  # Maintainer approved 2026-10-16, carried from Step 7.
     "certifi",
     "sdmx1",
     "cffi",

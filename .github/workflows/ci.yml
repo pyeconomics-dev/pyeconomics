@@ -285,6 +285,10 @@ jobs:
           holidays_version=$(uv run --no-project python -c 'import pathlib, tomllib; print(next(p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] == "holidays"))')
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url https://pypi.org/simple \
             --only-binary=:all: --no-deps "holidays==$holidays_version"
+          # These pure-Python readers are absent from the Pyodide package index.
+          readers=$(uv run --no-project python -c 'import pathlib, tomllib; print(" ".join(p["name"] + "==" + p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] in {"openpyxl", "et-xmlfile", "defusedxml"}))')
+          "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url https://pypi.org/simple \
+            --only-binary=:all: --no-deps $readers
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url "file://$index" dist/*.whl
       - name: Run the smoke script in Pyodide
         shell: bash
@@ -295,6 +299,7 @@ jobs:
           cd "$RUNNER_TEMP/pyodide-smoke"
           "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'import numpy, pandas, pydantic, scipy; print("numpy", numpy.__version__, "scipy", scipy.__version__, "pandas", pandas.__version__, "pydantic", pydantic.VERSION)'
           "$RUNNER_TEMP/pyodide-venv/bin/python" smoke.py --min-domains 11
+          "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'from pyeconomics.data.transport.files import spreadsheet, workbook; assert spreadsheet(workbook({"data": ((1,),)}), "data", "smoke") == ((1,),)'
 
   docs:
     name: docs

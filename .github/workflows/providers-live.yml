@@ -54,6 +54,11 @@ jobs:
         with:
           egress-policy: block
           allowed-endpoints: >
+            www.philadelphiafed.org:443
+            www.atlantafed.org:443
+            www.clevelandfed.org:443
+            dataverse.nl:443
+            objectstore.surf.nl:443
             api.stlouisfed.org:443
             api.bls.gov:443
             apps.bea.gov:443

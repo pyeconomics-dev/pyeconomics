@@ -1,0 +1,1 @@
+{"provider":"penn_world_table","recorded_on":"2026-10-17T14:18:39+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://dataverse.nl/api/access/datafile/554105"}],"synthetic":true}

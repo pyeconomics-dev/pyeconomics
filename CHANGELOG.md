@@ -15,6 +15,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Research data providers for Philadelphia Fed real-time matrices and SPF,
+  Atlanta Fed GDPNow, Cleveland Fed inflation expectations, CBO projections
+  and Penn World Table 11.0, with bounded in-memory spreadsheet parsing.
+
 - International data providers: IMF, OECD, ECB, BIS and Eurostat via the optional
   `sdmx` extra; World Bank v2 and DBnomics REST clients. Structure-validated
   SDMX keys, confined sessions, and series-specific licence restrictions.
