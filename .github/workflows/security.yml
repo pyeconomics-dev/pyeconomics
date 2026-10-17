@@ -212,10 +212,17 @@ jobs:
           #   licences hook allows it only through the reviewed entry in
           #   scripts/checks/licence_exceptions.toml, approved in that step's
           #   pull request.
+          # Step 10: maintainer-reviewed xlrd legacy BSD, peewee/protobuf
+          # missing metadata, and multitasking Apache-2.0 exceptions. Exact
+          # metadata and notices remain pinned by the local licences gate.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:pypi/astroid,
             pkg:pypi/defusedxml,
+            pkg:pypi/xlrd,
+            pkg:pypi/peewee,
+            pkg:pypi/multitasking,
+            pkg:pypi/protobuf,
             pkg:pypi/et-xmlfile,
             pkg:pypi/certifi,
             pkg:pypi/cffi,

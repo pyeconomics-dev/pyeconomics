@@ -61,6 +61,7 @@ from pyeconomics.data import (
 )
 from pyeconomics.data.errors import CredentialError
 from pyeconomics.data.providers.base import AuthKind, Capability, Case
+from pyeconomics.data.records import Records
 from pyeconomics.data.registry import ProviderRegistry
 from pyeconomics.data.transport.base import Request, Transport
 from pyeconomics.data.transport.cassette import Cassette
@@ -265,9 +266,18 @@ def check_success_case(
     key: str | None = None,
 ) -> None:
     """Run a success case and check what comes back."""
+    if provider.info.id == "yfinance":
+        configure(enable_yfinance=True)
     instance = provider()
     result: Any = instance.run_case(case, key=key, transport=transport)
-    if case.operation is Capability.FETCH:
+    if case.operation is Capability.RECORDS:
+        assert isinstance(result, Records)
+        assert result.provider == provider.info.id
+        assert result.terms == provider.info.terms
+        assert type(result).from_json(result.canonical_json()) == result
+        assert isinstance(case.argument, Query)
+        assert len(result.rows) <= case.argument.max_observations
+    elif case.operation is Capability.FETCH:
         check_frame(provider, case, result, recorded_on=recorded_on)
         terms = result.meta.terms
         if recorded_on is not None and (
@@ -298,6 +308,8 @@ def check_error_case(
 ) -> None:
     """An error cassette raises the taxonomy's error, naming the provider."""
     assert case.expect is not None
+    if provider.info.id == "yfinance":
+        configure(enable_yfinance=True)
     with pytest.raises(case.expect) as caught:
         provider().run_case(case, key=key, transport=transport)
     assert caught.value.provider == provider.info.id
@@ -372,12 +384,21 @@ def check_hosted_mode(provider: type[DataProvider]) -> None:
         (
             c
             for c in provider.cases
-            if c.expect is None and c.operation is Capability.FETCH
+            if c.expect is None
+            and c.operation in {Capability.FETCH, Capability.RECORDS}
         ),
         None,
     )
     assert case is not None, "a provider needs a fetch case"
-    request = provider().build_requests(case.argument)[0]  # type: ignore[arg-type]
+    if provider.info.id == "yfinance":
+        configure(enable_yfinance=True)
+    instance = provider()
+    build = (
+        instance.build_records
+        if case.operation is Capability.RECORDS
+        else instance.build_requests
+    )
+    request = build(case.argument)[0]  # type: ignore[arg-type]
     key = replay_key(provider, case)
     configure(mode="hosted")
     assert current_mode() is Mode.HOSTED

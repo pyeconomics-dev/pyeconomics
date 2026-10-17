@@ -5,10 +5,11 @@
 
 from __future__ import annotations
 
+import csv
 import datetime as dt
 import math
 from html import escape
-from io import BytesIO
+from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -16,16 +17,53 @@ from pyeconomics.data.errors import ResponseError
 from pyeconomics.data.redaction import call_scrubbed
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
 MAX_EXPANDED_BYTES = 96 * 1024 * 1024
+MAX_MEMBER_BYTES = MAX_EXPANDED_BYTES
 MAX_ARCHIVE_ENTRIES = 512
 MAX_SHEET_ROWS = 100_100
 MAX_SHEET_COLUMNS = 1000
 MAX_SHEET_CELLS = 2_000_000
 
 
-def archive(body: bytes, provider: str) -> dict[str, bytes]:
+def csv_document(rows: Sequence[Sequence[object]]) -> bytes:
+    """Write a small synthetic CSV in memory, quoting names correctly."""
+    stream = StringIO(newline="")
+    csv.writer(stream, lineterminator="\n").writerows(rows)
+    return stream.getvalue().encode("utf-8")
+
+
+def zip_document(members: Mapping[str, bytes]) -> bytes:
+    """Write a deterministic in-memory archive, without following member paths."""
+    stream = BytesIO()
+    with ZipFile(stream, "w") as zipped:
+        for name, body in members.items():
+            zipped.writestr(ZipInfo(name), body, compress_type=ZIP_DEFLATED)
+    return stream.getvalue()
+
+
+def legacy_workbook(sheet: str, rows: Sequence[Sequence[object]]) -> bytes:
+    """Write a recorder-only XLS fixture in memory; xlwt is development-only."""
+    import xlwt  # noqa: PLC0415
+
+    book = xlwt.Workbook()
+    target = book.add_sheet(sheet)
+    for i, row in enumerate(rows):
+        for j, value in enumerate(row):
+            if value is not None:
+                if isinstance(value, dt.date):
+                    target.write(i, j, value, xlwt.easyxf(num_format_str="YYYY-MM-DD"))
+                else:
+                    target.write(i, j, value)
+    stream = BytesIO()
+    book.save(stream)
+    return stream.getvalue()
+
+
+def archive(
+    body: bytes, provider: str, *, selected: frozenset[str] | None = None
+) -> dict[str, bytes]:
     """Read a bounded ZIP in memory, refusing encryption and duplicate members."""
 
     def read() -> dict[str, bytes]:
@@ -36,13 +74,31 @@ def archive(body: bytes, provider: str) -> dict[str, bytes]:
             members = zipped.infolist()
             if (
                 len(members) > MAX_ARCHIVE_ENTRIES
-                or sum(m.file_size for m in members) > MAX_EXPANDED_BYTES
+                or sum(
+                    m.file_size
+                    for m in members
+                    if selected is None or m.filename in selected
+                )
+                > MAX_EXPANDED_BYTES
                 or len({m.filename for m in members}) != len(members)
-                or any(m.flag_bits & 1 for m in members)
+                or any(
+                    m.flag_bits & 1 or m.file_size > MAX_MEMBER_BYTES for m in members
+                )
+                or any(
+                    m.filename.startswith(("/", "\\"))
+                    or "\\" in m.filename
+                    or ".." in m.filename.split("/")
+                    or ":" in m.filename.split("/", 1)[0]
+                    for m in members
+                )
             ):
                 msg = "archive exceeds its bounds or has duplicate or encrypted members"
                 raise ValueError(msg)
-            return {m.filename: zipped.read(m) for m in members}
+            return {
+                m.filename: zipped.read(m)
+                for m in members
+                if selected is None or m.filename in selected
+            }
 
     return call_scrubbed(
         read, lambda message: ResponseError(message, provider=provider)
@@ -115,6 +171,60 @@ def spreadsheet(body: bytes, sheet: str, provider: str) -> tuple[tuple[Any, ...]
     return call_scrubbed(
         read, lambda message: ResponseError(message, provider=provider)
     )
+
+
+def selected_spreadsheet(
+    body: bytes, sheet: str, provider: str
+) -> tuple[tuple[Any, ...], ...]:
+    """Read one sheet from a multi-dataset workbook within the existing limits.
+
+    AQR's daily workbook expands beyond 96 MiB across its many datasets. Only
+    the selected sheet and its shared metadata are decompressed; the normal
+    reader then enforces the same XML, byte, row, column and cell caps. All
+    directory entries still pass the path, encryption and per-member checks.
+    """
+
+    def select() -> bytes:
+        import re  # noqa: PLC0415
+
+        from defusedxml.ElementTree import fromstring, tostring  # noqa: PLC0415
+
+        required = frozenset(
+            {
+                "[Content_Types].xml",
+                "_rels/.rels",
+                "xl/workbook.xml",
+                "xl/_rels/workbook.xml.rels",
+                "xl/styles.xml",
+                "xl/sharedStrings.xml",
+            }
+        )
+        metadata = archive(body, provider, selected=required)
+        root = fromstring(metadata["xl/workbook.xml"], forbid_dtd=True)
+        sheets = next(e for e in root if e.tag.endswith("}sheets"))
+        chosen = next(e for e in sheets if e.attrib.get("name") == sheet)
+        relation = chosen.attrib["{" + _REL + "}id"]
+        relationships = fromstring(
+            metadata["xl/_rels/workbook.xml.rels"], forbid_dtd=True
+        )
+        target = next(
+            e.attrib["Target"] for e in relationships if e.attrib["Id"] == relation
+        )
+        if not re.fullmatch(r"(?:/xl/)?worksheets/sheet\d+\.xml", target):
+            msg = "worksheet relationship has an unsupported target"
+            raise ValueError(msg)
+        path = target.lstrip("/") if target.startswith("/xl/") else "xl/" + target
+        members = archive(body, provider, selected=required | {path})
+        for other in list(sheets):
+            if other is not chosen:
+                sheets.remove(other)
+        members["xl/workbook.xml"] = tostring(root)
+        return zip_document(members)
+
+    reduced = call_scrubbed(
+        select, lambda message: ResponseError(message, provider=provider)
+    )
+    return spreadsheet(reduced, sheet, provider)
 
 
 _MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
@@ -218,3 +328,43 @@ def workbook(sheets: Mapping[str, tuple[tuple[object, ...], ...]]) -> bytes:
             info.external_attr = 0o600 << 16
             zipped.writestr(info, xml.encode("utf-8"), compress_type=ZIP_DEFLATED)
     return stream.getvalue()
+
+
+def legacy_spreadsheet(
+    body: bytes, sheet: str, provider: str
+) -> tuple[tuple[Any, ...], ...]:
+    """Read XLS in memory; macros and external links are ignored."""
+
+    def read() -> tuple[tuple[Any, ...], ...]:
+        import xlrd  # noqa: PLC0415 - lazy legacy file reader
+
+        if len(body) > MAX_EXPANDED_BYTES:
+            msg = "legacy workbook exceeds the size cap"
+            raise ValueError(msg)
+        book = xlrd.open_workbook(file_contents=body, on_demand=True)
+        try:
+            source = book.sheet_by_name(sheet)
+            if (
+                source.nrows > MAX_SHEET_ROWS
+                or source.ncols > MAX_SHEET_COLUMNS
+                or source.nrows * source.ncols > MAX_SHEET_CELLS
+            ):
+                msg = "legacy worksheet exceeds its row or column bound"
+                raise ValueError(msg)
+            return tuple(
+                tuple(
+                    None
+                    if cell.ctype == xlrd.XL_CELL_ERROR
+                    else xlrd.xldate_as_datetime(cell.value, book.datemode)
+                    if cell.ctype == xlrd.XL_CELL_DATE
+                    else cell.value
+                    for cell in source.row(i)
+                )
+                for i in range(source.nrows)
+            )
+        finally:
+            book.release_resources()
+
+    return call_scrubbed(
+        read, lambda message: ResponseError(message, provider=provider)
+    )

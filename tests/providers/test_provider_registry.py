@@ -73,6 +73,20 @@ def _fresh_cache() -> Iterator[None]:
 
 #: The providers this distribution registers (Phase 3 Step 6 on).
 BUILT_IN = (
+    "ken_french",
+    "shiller",
+    "aqr",
+    "hou_xue_zhang",
+    "jkp",
+    "open_source_asset_pricing",
+    "cboe",
+    "coin_metrics",
+    "damodaran",
+    "yfinance",
+    "treasury",
+    "fed_board",
+    "nyfed",
+    "openfigi",
     "atlanta_fed",
     "cbo",
     "cleveland_fed",

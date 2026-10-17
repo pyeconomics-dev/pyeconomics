@@ -155,7 +155,7 @@ def test_unparseable_spdx_raises(expression: str) -> None:
             "GNU General Public License v3 (GPLv3) AND MIT License",
             False,
         ),
-        ({}, "", False),
+        ({}, "<missing>", False),
     ],
 )
 def test_licence_of_metadata(
@@ -216,7 +216,9 @@ def test_disallowed_and_missing_licences_fail() -> None:
     _, failures = licences.check(data, "pyeconomics", {}, distribution=distribution)
     assert [f.split(":")[0] for f in failures] == ["bare 1.0", "gpl 1.0"]
     assert any(f.startswith("gpl 1.0: GPL-3.0-only") for f in failures)
-    assert any(f.startswith("bare 1.0: - [no licence metadata]") for f in failures)
+    assert any(
+        f.startswith("bare 1.0: <missing> [no licence metadata]") for f in failures
+    )
 
 
 def test_uninstalled_or_stale_package_fails() -> None:
@@ -291,6 +293,10 @@ def test_exceptions_file_validation(tmp_path: Path) -> None:
 # extra's on Linux, in Phase 3 Step 3's). The file started empty (ADR-0004); a
 # new entry needs a new review, and this set changes with it.
 REVIEWED_EXCEPTIONS = {
+    "xlrd",
+    "peewee",
+    "multitasking",
+    "protobuf",
     "defusedxml",  # Maintainer approved 2026-10-16, carried from Step 7.
     "certifi",
     "sdmx1",

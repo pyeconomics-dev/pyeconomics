@@ -58,13 +58,13 @@ reason = "Ambiguous classifier only; its License field reads '2-clause BSD'. pat
 [[exception]]
 package = "cffi"
 licence = "MIT-0"
-reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached only through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi). Checked by Claude Opus 5.5, 2026-10-14."
+reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi), and from Phase 3 Step 10 through yfinance -> curl_cffi on all operating systems. Checked by Claude Opus 5.5, 2026-10-14."
 
 # Phase 3 Step 8: maintainer approved certifi in the session on 2026-10-16.
 [[exception]]
 package = "certifi"
 licence = "MPL-2.0"
-reason = "certifi 2026.7.22 dist-info/licenses/LICENSE applies MPL-2.0 to the Mozilla CA certificate bundle. The bundle is distributed unmodified with its licence preserved; requests is reached through the optional sdmx extra. Checked by GPT-6.1 Sol, 2026-10-16; maintainer approved in that session."
+reason = "certifi 2026.7.22 dist-info/licenses/LICENSE applies MPL-2.0 to the Mozilla CA certificate bundle. The bundle is distributed unmodified with its licence preserved; requests is reached through the optional sdmx and yfinance extras; yfinance also reaches certifi through curl_cffi. Checked by GPT-6.1 Sol, 2026-10-16; maintainer approved in that session."
 
 # Maintainer approved sdmx1's metadata exception in the 2026-10-16 session.
 [[exception]]
@@ -76,3 +76,23 @@ reason = "sdmx1 2.27.0 dist-info/licenses/LICENSE is Apache License Version 2.0,
 package = "defusedxml"
 licence = "PSFL"
 reason = "defusedxml 0.7.1 wheel's LICENSE is PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2, corresponding to the allowed PSF-2.0 licence; metadata uses the legacy PSFL name. Checked by GPT-6.1 Sol, 2026-10-16. Maintainer approved in session on 2026-10-16."
+
+[[exception]]
+package = "xlrd"
+licence = "BSD"
+reason = "xlrd 2.0.2 wheel's LICENSE covers the main library under BSD-3-Clause and earlier David Giffin/Andrew Khan work under a legacy four-clause BSD licence requiring an advertising acknowledgement and retention of that acknowledgement on redistribution. The required acknowledgement is retained in NOTICE and the provider documentation; retain it in future advertising materials mentioning the licensed software's features or use. Required for the full NY Fed ACM .xls dataset. Checked by GPT-6.1 Sol, 2026-10-16. Maintainer approved in session on 2026-10-16."
+
+[[exception]]
+package = "peewee"
+licence = "<missing>"
+reason = "peewee 4.5.3 wheel LICENSE is MIT; its installed distribution omits licence metadata. Checked by GPT-6.1 Sol, 2026-10-17; maintainer approved in this session."
+
+[[exception]]
+package = "multitasking"
+licence = "Apache"
+reason = "multitasking 0.0.13 wheel LICENSE.txt is Apache License Version 2.0; its License field abbreviates it to Apache. Checked by GPT-6.1 Sol, 2026-10-17; maintainer approved in this session."
+
+[[exception]]
+package = "protobuf"
+licence = "<missing>"
+reason = "protobuf 7.36.2 Windows, macOS and Linux wheel LICENSE is BSD-3-Clause; the cp315/pure-Python wheel omits metadata, while older ABI wheels label it 3-Clause BSD License. Checked by GPT-6.1 Sol, 2026-10-17; maintainer approved in this session."

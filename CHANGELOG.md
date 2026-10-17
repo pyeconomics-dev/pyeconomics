@@ -15,6 +15,13 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Research-finance providers: Ken French, Shiller, Damodaran aggregates, AQR,
+  Hou?Xue?Zhang, JKP, Open Source Asset Pricing, Cboe VIX and Coin Metrics;
+  personal-use yfinance behind its extra and explicit opt-in.
+- Treasury, Federal Reserve Board, New York Fed and OpenFIGI, with typed
+  identifier mappings, bounded legacy XLS and selected-sheet XLSX readers.
+  SEC EDGAR remains deferred in its separate roadmap step.
+
 - Research data providers for Philadelphia Fed real-time matrices and SPF,
   Atlanta Fed GDPNow, Cleveland Fed inflation expectations, CBO projections
   and Penn World Table 11.0, with bounded in-memory spreadsheet parsing.

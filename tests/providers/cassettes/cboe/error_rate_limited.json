@@ -1,0 +1,1 @@
+{"provider":"cboe","recorded_on":"2026-10-17T17:29:51+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"}],"synthetic":true}

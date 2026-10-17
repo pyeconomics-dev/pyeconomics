@@ -1,0 +1,1 @@
+{"provider":"aqr","recorded_on":"2026-10-17T17:32:48+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://www.aqr.com/-/media/AQR/Documents/Insights/Data-Sets/Betting-Against-Beta-Equity-Factors-Monthly.xlsx"}],"synthetic":true}

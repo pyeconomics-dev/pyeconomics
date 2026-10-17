@@ -95,6 +95,7 @@ from pyeconomics.data.providers import (
     RateLimit,
     SearchHit,
 )
+from pyeconomics.data.records import FigiMapping, Records
 from pyeconomics.data.terms import TERMS_MAX_AGE_MONTHS, CachePolicy, Terms
 from pyeconomics.data.transport.base import Request, Response, Transport
 from pyeconomics.data.types import (
@@ -133,6 +134,7 @@ __all__ = [
     "DataWarning",
     "DateConvention",
     "Fetched",
+    "FigiMapping",
     "KeyPlacement",
     "KeySlot",
     "KeySource",
@@ -150,6 +152,7 @@ __all__ = [
     "RateLimit",
     "RateLimitError",
     "RealtimePeriod",
+    "Records",
     "Request",
     "Response",
     "ResponseError",

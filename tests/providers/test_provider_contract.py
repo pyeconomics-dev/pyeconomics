@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from pyeconomics.data.providers.base import Case
 
 TOYS: tuple[type[DataProvider], ...] = (ToyJson, ToyVintage)
+pytestmark = pytest.mark.filterwarnings("ignore:.*\\[yahoo_personal_use\\]")
 REAL: tuple[type[DataProvider], ...] = tuple(
     type(registry.get(provider_id)) for provider_id in registry.ids()
 )
@@ -152,7 +153,10 @@ def _once_more_after_a_passing_failure(check: Callable[[], None]) -> None:
 
 def _skip_if_barred(provider: type[DataProvider]) -> None:
     """The scheduled run skips a source whose terms bar automated collection."""
-    if not provider.info.automated_collection and os.environ.get("GITHUB_ACTIONS"):
+    if not provider.info.automated_collection and (
+        os.environ.get("GITHUB_ACTIONS")
+        or os.environ.get("PYECONOMICS_LIVE_YFINANCE") != "1"
+    ):
         pytest.skip("its terms bar automated collection: run it on a local machine")
 
 
