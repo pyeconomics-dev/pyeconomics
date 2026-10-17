@@ -6633,9 +6633,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 11 — Semantic Catalog and Resolver
+## Step 11 — Semantic Catalog and Resolver ✅
 
-**Status:** Not started
+**Status:** Complete — PR #130 (2026-10-17)
 
 > **Goal:** Give users and models one vocabulary for data, and one place where
 > licence and mode decide which source answers. Add
@@ -11969,7 +11969,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
-| 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
+| 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 13      | Monetary-policy suite            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 14      | Catalog: macro                   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
@@ -12369,8 +12369,8 @@ Carried over during execution — the Triage rule's carry-over checklist:
   is a capital-services index (`rnna` is the capital stock in 2021 dollars), both
   carried as concepts. The weekly live run now also resolves every candidate of
   every concept (`tests/data/catalog/test_live_concepts.py`). The Treasury curve
-  files are slow to read (about 6 minutes for 20 months), so live windows for
-  them are 60 days.
+  files answer in about 20 seconds per request (the source's speed), so the live
+  windows for them are 12 days.
 
 - Step 10 blocking upstream gap: test isolation is loaded from the repository
   root through tests/isolation_plugin.py, so source-module doctests cannot
