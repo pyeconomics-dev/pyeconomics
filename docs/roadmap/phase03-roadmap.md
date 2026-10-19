@@ -7186,9 +7186,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 12 — Live Bindings and Vintage-Aware Runs
+## Step 12 — Live Bindings and Vintage-Aware Runs ✅
 
-**Status:** Not started
+**Status:** Complete — PR #132 (2026-10-18)
 
 > **Goal:** Connect the data layer to the model registry without making a single
 > model impure. Add `src/pyeconomics/core/binding.py` (`Binding`, its as-of
@@ -8017,6 +8017,26 @@ conversation per phase-boundary hygiene.
       manifest; the catalog holds the US inflation, labour,
       output, policy-rate, Treasury, r*, SEP and SPF
       concepts and the euro-area, UK and Canadian inputs.
+    - Step 12 as built: bind(model_id, /, *, as_of, vintage,
+      mode, profile, concepts, parameters, **overrides)
+      returns a Bound (run(model_id, bound) takes it); a
+      concept's parameters (the SEP `meeting`) go in
+      `parameters={"meeting": ...}` and nothing guesses them;
+      an override of a bound field is recorded as
+      user-supplied and a plain input is carried unrecorded.
+      A binding reads a SERIES concept: a table concept is
+      refused, so us.sep.medians (a table), the Treasury curves
+      and the factor sets cannot be bound, and this step adds
+      the series concepts its us_sep profile reads (ids are
+      permanent: dotted snake_case of three or four parts).
+      Binding.transform is one more one-series
+      transform before the as-of rule; AsOf.PERIOD reads past
+      the date because a period is dated by its last day. A
+      date with nothing published raises; a source usable in
+      the mode that keeps no vintages is read as revised data
+      with the revised_data warning. The toy bound models and
+      scripted providers are tests/data/bindings/bound_support.py;
+      `scripts/new_model.py <id> --bound` scaffolds a bound model.
     - No macro package, entry point or golden directory
       exists; the registry holds Phase 2's 32 ids;
       tests/models/test_registry_is_not_empty.py pins
@@ -8170,7 +8190,9 @@ conversation per phase-boundary hygiene.
       gap as Okun-scaled unemployment; profile us_output_gap
       binds the same inputs but the CBO output gap (real
       against potential GDP) for the gap; profile us_sep binds
-      the SEP medians and its longer-run rate; us_spf the SPF
+      series concepts for the SEP medians this step adds to the
+      catalog (a binding reads a series, and us.sep.medians is a
+      table) and the longer-run rate; us_spf the SPF
       medians; ea, gb and ca bind each economy's inflation,
       gap, r* where the New York Fed publishes one (a constant
       otherwise) and policy rate through ECB, Eurostat, OECD
@@ -11970,7 +11992,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
-| 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
 | 13      | Monetary-policy suite            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 14      | Catalog: macro                   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
@@ -12352,6 +12374,32 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 12 (live bindings and vintage-aware runs, 2026-10-18): `core/binding.py`
+  holds `AsOf`, `VintagePolicy`, `Binding`, `Bound`, `CandidateNote`,
+  `field_shapes` and `user_supplied` (annotation reading shared with the
+  validator through `core/_annotations.py`), and `data/bindings.py` holds `bind`,
+  `bind_model`, `validate_bindings` and `candidate_notes`. `pyeconomics.bind` is
+  exported lazily (PEP 562), because `import pyeconomics` must load no data module
+  (`tests/data/test_layering.py`). Contract additions made in-step: `bind` takes
+  `parameters=` (a concept's parameters, which Step 13's SEP concepts need and the
+  ADR's summary signature omits); a `Bound` carries `model_id` (`run` refuses
+  another model's) and `as_of`; `bind_model` takes the `transport` and `registry`
+  seams so an override field may have any name; `Fetched.source()` copies the notes
+  in `cache.policy.NOTE_WARNINGS` (`revised_data`, `bls_keyless`) into a record's
+  warning codes; and the resolver's final error ignores a `vintage_unsupported`
+  skip when naming the cause, so a missing key or an empty offline cache still
+  raises `CredentialError` or `OfflineError`. Facts for later steps: a binding reads
+  a series concept, never a table, so Step 13 adds the SEP series concepts its
+  `us_sep` profile binds (its task is patched); `AsOf.PERIOD` reads past the date,
+  because a period is dated by its last day; a real-time bind is skipped to revised
+  data only when no source usable in the mode declares `vintages`; the card's "Data"
+  section appears only for a model with bindings (`BOUND_SECTION_TITLES`) and
+  `registry.describe` / the model-page generator import the data layer only for
+  such a model. The Phase 2 tests the Cross-phase rule lists were narrowed, none
+  deleted (`test_spec`, `test_validate_rules`, `test_manifest`, `test_runner`,
+  `test_cards`); `verify-phase01.sh` and `verify-phase02.sh` needed no change.
+  The toy bound models and scripted providers are `tests/data/bindings/`.
 
 - Step 11 (catalog and resolver, 2026-10-17): the catalog is 136 concepts in
   `data/catalog/` (its shapes in `definitions.py`, deliberately not

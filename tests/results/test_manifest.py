@@ -65,7 +65,7 @@ def walk(value: object) -> Any:  # noqa: ANN401 - yields every key and string va
 
 def test_the_manifest_records_the_environment_it_ran_in() -> None:
     manifest = zero().manifest
-    assert manifest.schema_version == MANIFEST_SCHEMA_VERSION == 1
+    assert manifest.schema_version == MANIFEST_SCHEMA_VERSION == 2
     assert (manifest.model_id, manifest.model_version) == (
         "fixed_income.toy_zero_coupon",
         1,
@@ -163,8 +163,14 @@ def test_a_hand_built_manifest_freezes_what_it_is_given() -> None:
     assert manifest.data_sources == ()
 
 
-def test_the_manifest_holds_no_volatile_or_sensitive_value() -> None:
-    """Keys and values: no clock, host, user, path or environment value."""
+def test_the_manifest_of_a_run_without_data_holds_no_volatile_or_sensitive_value() -> (
+    None
+):
+    """Keys and values: no clock, host, user, path or environment value.
+
+    Schema 2 lets a data source record its retrieval time, a fact about the data;
+    a run that read no data has no such record, so its manifest is as before.
+    """
     manifest = zero().manifest.to_dict()
     keys = [k for k in walk(manifest) if isinstance(k, str)]
     values = [str(v) for v in walk(manifest)]

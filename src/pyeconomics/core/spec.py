@@ -39,6 +39,8 @@ from pydantic.fields import FieldInfo
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
+    from pyeconomics.core.binding import Binding
+
 __all__ = [
     "CALCULATION_FIELD",
     "DEFAULT_ALIAS_REMOVAL",
@@ -274,8 +276,9 @@ class ModelSpec:
     charts: tuple[ChartSpec, ...] = ()
     aliases: tuple[Alias, ...] = ()
     changelog: tuple[ChangelogEntry, ...] = ()
-    bindings: tuple[object, ...] = ()
-    """Reserved for Phase 3's data bindings; empty until then."""
+    bindings: tuple[Binding, ...] = ()
+    """The data that fills input fields, grouped into profiles; empty for a model
+    that reads no data (ADR-0011 decision 16)."""
     extra: str | None = None
     """The pyeconomics extra whose library ``compute`` imports, or ``None``."""
 

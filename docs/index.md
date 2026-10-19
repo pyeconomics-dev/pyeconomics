@@ -24,6 +24,7 @@ tutorials/first-model
 conventions
 results
 data/index
+data/bindings
 data/keys
 data/cache
 data/international

@@ -19,7 +19,9 @@ of the sinks the canary reached, never the canary itself:
   (:meth:`LeakCheck.warnings`);
 - ``manifest`` and ``result:<export>``: a result's manifest in canonical JSON
   and its ``to_dict``, ``to_json``, ``to_pandas`` and ``to_parquet`` bytes
-  (:meth:`LeakCheck.result`).
+  (:meth:`LeakCheck.result`);
+- ``bound:to_dict`` and ``bound:repr``: the values and data records ``bind``
+  returns, before any run (:meth:`LeakCheck.bound`; Step 12).
 
 Step 4 adds the transport: :meth:`LeakCheck.run` runs a call collecting its logs
 and warnings, and either its result or its exception (tests/providers/
@@ -49,6 +51,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Iterable, Mapping
     from pathlib import Path
 
+    from pyeconomics.core.binding import Bound
     from pyeconomics.core.results import Result
 
 __all__ = [
@@ -264,6 +267,11 @@ class LeakCheck:
         if callable(canonical):
             self.add("result:canonical_json", canonical())
         return outcome
+
+    def bound(self, bound: Bound) -> None:
+        """Collect what ``bind`` returned: its records in canonical JSON, its repr."""
+        self.add("bound:to_dict", canonical_json(bound.to_dict()))
+        self.add("bound:repr", repr(bound))
 
     def result(self, result: Result[Any, Any], directory: Path) -> None:
         """Collect a result's manifest and every export a user can write."""

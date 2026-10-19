@@ -16,6 +16,7 @@ from pyeconomics import registry
 from pyeconomics.core import (
     DOMAINS,
     Alias,
+    Binding,
     ChangelogEntry,
     ChartKind,
     ChartSpec,
@@ -100,6 +101,11 @@ def test_sequences_are_held_as_tuples() -> None:
     assert built.tags == ("x",)
     assert isinstance(built.examples, tuple)
     assert built.bindings == ()
+
+
+def test_bindings_are_held_as_a_tuple_of_binding_declarations() -> None:
+    binding = Binding("rate", "us.unemployment.rate")
+    assert spec(bindings=[binding]).bindings == (binding,)
 
 
 def test_a_lone_string_is_one_item_not_a_tuple_of_characters() -> None:

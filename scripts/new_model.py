@@ -5,7 +5,7 @@
 
 Usage, from the repository root:
 
-    uv run python scripts/new_model.py <domain>.<name>
+    uv run python scripts/new_model.py <domain>.<name> [--bound]
 
 It creates three files for the id, each a skeleton the checks reject until it is
 completed:
@@ -16,6 +16,12 @@ completed:
   placeholder source and case, no edge case);
 - ``tests/models/<domain>/test_<name>.py``: a property test marked for the
   skeleton's one invariant, which fails until it asserts something.
+
+With ``--bound`` the skeleton reads data: its input is a rate, the specification
+declares one :class:`~pyeconomics.core.binding.Binding` of it to a catalog concept
+(``us.unemployment.rate``), its example is the value that binding would read, and
+the property test carries a bound example to complete (bind the model with a
+replay transport, run it and assert on the manifest's records).
 
 An id with a family, ``<domain>.<family>.<name>``, uses ``<family>_<name>`` as the
 file name. For a domain with no package yet it also creates the package's
@@ -55,14 +61,14 @@ from __future__ import annotations
 from pydantic import Field
 
 from pyeconomics.core import (
-    ChangelogEntry,
+{binding_import}    ChangelogEntry,
     CostClass,
     Evidence,
     Example,
     Invariant,
     ModelInputs,
     ModelOutputs,
-    Ratio,
+    {unit},
     model,
 )
 
@@ -72,13 +78,13 @@ __all__ = ["{stem}"]
 class {camel}Inputs(ModelInputs):
     """The inputs: each declares a unit, bounds and a description."""
 
-    value: Ratio = Field(ge=-1e6, le=1e6, description="TODO: describe this input")
+    value: {unit} = Field({bounds}, description="TODO: describe this input")
 
 
 class {camel}Outputs(ModelOutputs):
     """The outputs: each declares a unit, bounds and a description."""
 
-    result: Ratio = Field(ge=-1e6, le=1e6, description="TODO: describe this output")
+    result: {unit} = Field({bounds}, description="TODO: describe this output")
 
 
 @model(
@@ -95,8 +101,8 @@ class {camel}Outputs(ModelOutputs):
     invariants=(
         Invariant(id="todo_invariant", statement="TODO: a property of every output."),
     ),
-    examples=(Example(name="todo_example", inputs={{"value": 0.0}}),),
-    changelog=(ChangelogEntry(version=1, note="First version."),),
+    examples=(Example(name="todo_example", inputs={{"value": {example}}}),),
+{bindings}    changelog=(ChangelogEntry(version=1, note="First version."),),
 )
 def {stem}(inputs: {camel}Inputs) -> {camel}Outputs:
     """Compute the outputs from the inputs. A pure function: no I/O."""
@@ -161,7 +167,39 @@ def test_todo_invariant(raw: Mapping[str, Any]) -> None:
     run_model({stem}, raw)
     msg = "state the invariant and assert it"
     raise NotImplementedError(msg)
+{bound_test}'''
+
+_BOUND_TEST: Final = '''
+
+def test_bound_example() -> None:
+    """Bind the model's data offline, run it and check the manifest's records."""
+    msg = (
+        "complete the bound example: pyeconomics.data.bind_model({stem}, as_of=..., "
+        "transport=<a replay transport>) reads the model's binding; run the Bound "
+        "with run_model and assert on result.manifest.data_sources"
+    )
+    raise NotImplementedError(msg)
 '''
+
+#: What ``--bound`` changes in the module skeleton, and what its absence leaves.
+_BOUND_MODULE: Final = {
+    "binding_import": "    Binding,\n",
+    "unit": "Rate",
+    "bounds": "ge=-0.99, le=10.0",
+    "example": "0.04",
+    "bindings": (
+        "    # Real time by default: the value published by the evaluation date.\n"
+        "    # Binding(..., vintage=VintagePolicy.LATEST) reads revised data.\n"
+        '    bindings=(Binding("value", "us.unemployment.rate"),),\n'
+    ),
+}
+_UNBOUND_MODULE: Final = {
+    "binding_import": "",
+    "unit": "Ratio",
+    "bounds": "ge=-1e6, le=1e6",
+    "example": "0.0",
+    "bindings": "",
+}
 
 
 class ScaffoldError(ValueError):
@@ -219,8 +257,12 @@ def _confined(target: Path, root: Path) -> None:
         raise ScaffoldError(msg)
 
 
-def plan(model_id: str, root: Path = REPO, *, year: int | None = None) -> Scaffold:
+def plan(
+    model_id: str, root: Path = REPO, *, year: int | None = None, bound: bool = False
+) -> Scaffold:
     """Decide what to create for ``model_id`` below ``root``.
+
+    With ``bound`` the skeleton declares one data binding and a bound example.
 
     Raises
     ------
@@ -229,13 +271,15 @@ def plan(model_id: str, root: Path = REPO, *, year: int | None = None) -> Scaffo
         target already exists (nothing is created then).
     """
     domain, stem = parse_id(model_id)
-    values = {
+    values: dict[str, object] = {
         "model_id": model_id,
         "domain": domain,
         "stem": stem,
         "camel": "".join(part.capitalize() for part in stem.split("_")),
         "year": year or dt.datetime.now(tz=dt.UTC).year,
+        **(_BOUND_MODULE if bound else _UNBOUND_MODULE),
     }
+    values["bound_test"] = _BOUND_TEST.format(**values) if bound else ""
     package = root / "src" / "pyeconomics" / "models" / domain
     new_domain = not (package / "__init__.py").exists()
     files = {
@@ -291,9 +335,14 @@ def main(argv: list[str], root: Path = REPO) -> int:
         prog="new_model.py", description="Scaffold a new catalog model."
     )
     parser.add_argument("model_id", help="the permanent id, <domain>.<name>")
+    parser.add_argument(
+        "--bound",
+        action="store_true",
+        help="declare a data binding (on us.unemployment.rate) and a bound example",
+    )
     arguments = parser.parse_args(argv[1:])
     try:
-        scaffold = plan(arguments.model_id, root)
+        scaffold = plan(arguments.model_id, root, bound=arguments.bound)
         created = write(scaffold)
     except ScaffoldError as error:
         print(f"new_model: {error}", file=sys.stderr)
@@ -306,6 +355,12 @@ def main(argv: list[str], root: Path = REPO) -> int:
         '`uv run python -c "from pyeconomics import registry; registry.validate()"` '
         "and `uv run pytest`."
     )
+    if arguments.bound:
+        check = "from pyeconomics import data; data.validate_bindings()"
+        print(
+            "The model is bound: replace the example binding with the model's own, "
+            f'then run `uv run python -c "{check}"`.'
+        )
     return 0
 
 

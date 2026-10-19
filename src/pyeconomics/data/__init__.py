@@ -28,6 +28,13 @@ series whose terms forbid storage has no cache path at all. Offline mode
 :class:`OfflineError` on a miss. :meth:`DataProvider.fetch_with_origin` returns a
 :class:`Fetched`, the frame with an :class:`Origin` and a ``DataSource`` record.
 
+Bindings (Phase 3 Step 12): :func:`bind` resolves a model's data bindings
+(:class:`Binding`, declared in :mod:`pyeconomics.core.binding`) through the
+catalog as of a date, on real-time vintages by default, and returns a
+:class:`Bound` of the values and one ``DataSource`` record per bound field, which
+``pyeconomics.run`` puts in the result's manifest. :func:`validate_bindings`
+checks every model's bindings against the installed catalog.
+
 Providers (Phase 3 Step 4): a source is a :class:`DataProvider` subclass with a
 :class:`ProviderInfo`, registered through the ``pyeconomics.providers``
 entry-point group and found with :mod:`pyeconomics.data.registry`. Its
@@ -49,6 +56,7 @@ True
 
 """
 
+from pyeconomics.core.binding import AsOf, Binding, Bound, VintagePolicy
 from pyeconomics.core.provenance import (
     DATA_DATE_BOUNDS,
     DataSource,
@@ -69,6 +77,12 @@ from pyeconomics.data.api import (
     search,
     sources,
     vintages,
+)
+from pyeconomics.data.bindings import (
+    bind,
+    bind_model,
+    candidate_notes,
+    validate_bindings,
 )
 from pyeconomics.data.cache.policy import Fetched, Origin
 from pyeconomics.data.config import Settings, configure, settings
@@ -135,8 +149,11 @@ __all__ = [
     "MAX_OBSERVATIONS",
     "TERMS_MAX_AGE_MONTHS",
     "Access",
+    "AsOf",
     "AuthKind",
     "Authentication",
+    "Binding",
+    "Bound",
     "CachePolicy",
     "CandidateInfo",
     "Capability",
@@ -194,8 +211,12 @@ __all__ = [
     "UnitRecord",
     "Vintage",
     "VintageKind",
+    "VintagePolicy",
     "Weekday",
+    "bind",
+    "bind_model",
     "cache",
+    "candidate_notes",
     "candidates_by_mode",
     "catalog",
     "configure",
@@ -211,5 +232,6 @@ __all__ = [
     "search",
     "settings",
     "sources",
+    "validate_bindings",
     "vintages",
 ]

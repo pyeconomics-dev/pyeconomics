@@ -11,6 +11,7 @@ import types
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import bound_support as bound
 import pytest
 from toy_models import mean_return, variant, zero_coupon
 
@@ -44,6 +45,23 @@ def test_cards_and_domain_indexes(generator: ModuleType, tmp_path: Path) -> None
     )
     assert "toy_zero_coupon" in (page.parent / "index.md").read_text()
     assert "foundations/index" in (tmp_path / "index.md").read_text()
+
+
+def test_a_bound_models_page_lists_the_sources_of_its_concepts(
+    generator: ModuleType, tmp_path: Path
+) -> None:
+    catalog = Registry.from_models(zero_coupon, bound.unemployment)
+    generator.write_pages(tmp_path, catalog)
+    page = (tmp_path / "macro" / "toy_unemployment.md").read_text(encoding="utf-8")
+    assert "## Data" in page
+    assert "### Sources" in page
+    assert "- **bls** (hosted-safe)" in page
+    assert "- **fred** (library-only)" in page
+    plain = (tmp_path / "fixed_income" / "toy_zero_coupon.md").read_text(
+        encoding="utf-8"
+    )
+    assert "## Data" not in plain
+    assert plain == ModelCard.from_model(zero_coupon).to_markdown()
 
 
 @pytest.mark.parametrize("defect", ["missing", "extra", "misplaced"])

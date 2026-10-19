@@ -43,7 +43,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
 from pyeconomics.core.canonical import canonical_json
-from pyeconomics.core.provenance import DataSource, LicenceClass
+from pyeconomics.core.provenance import MAX_WARNINGS, DataSource, LicenceClass
 from pyeconomics.data.redaction import is_credential_parameter
 from pyeconomics.data.terms import CachePolicy
 from pyeconomics.data.types import Series, SeriesMeta, Table
@@ -59,6 +59,7 @@ __all__ = [
     "CLOSED_AFTER",
     "DEFAULT_TTL_SECONDS",
     "DISCARDED_WARNING",
+    "NOTE_WARNINGS",
     "OFFLINE_WARNING",
     "CacheKey",
     "Fetched",
@@ -73,6 +74,13 @@ __all__ = [
 OFFLINE_WARNING: Final = "served_offline"
 #: The warning code for an entry that failed its checks and was deleted.
 DISCARDED_WARNING: Final = "cache_entry_discarded"
+#: The frame notes (``SeriesMeta.notes``) a record repeats as a warning code:
+#: the ones that say something about the whole series a run read. ``revised_data``
+#: is a source that keeps only its current estimates, so a historical evaluation
+#: on it uses information not available at the time; ``bls_keyless`` is a series
+#: read without a catalog, so its unit and seasonal adjustment are unknown. The
+#: dated notes (footnotes, annotations, missing-value markers) stay on the frame.
+NOTE_WARNINGS: Final = frozenset({"revised_data", "bls_keyless"})
 #: An ``as_of`` vintage is closed once its date is more than this long ago. A
 #: source dates a vintage in its own time zone, so the margin keeps "yesterday"
 #: from counting as closed while it may still change.
@@ -289,11 +297,17 @@ class Fetched:
         dataset, the vintage label, the observation window, the retrieval time
         (a cached entry keeps its original one), the licence, attribution, notice,
         terms page and ``llm_use`` the data came under, and whether the cache or
-        offline mode served it. A binding adds the concept, the field and the
+        offline mode served it. Its warning codes are the origin's, then the
+        frame's notes that say something about the whole series
+        (:data:`NOTE_WARNINGS`). A binding adds the concept, the field and the
         transforms (Phase 3 Step 12) with :func:`dataclasses.replace`.
         """
         frame, meta = self.frame, self.frame.meta
         terms = meta.terms
+        codes = (note.partition(": ")[0] for note in meta.notes)
+        warnings = dict.fromkeys(
+            (*self.origin.warnings, *(c for c in codes if c in NOTE_WARNINGS))
+        )
         identifier = meta.series_id if isinstance(meta, SeriesMeta) else meta.table_id
         window = (frame.index[0], frame.index[-1]) if frame.index else (None, None)
         return DataSource(
@@ -311,5 +325,5 @@ class Fetched:
             llm_use=terms.llm_use,
             cache_hit=self.origin.cache_hit,
             served_offline=self.origin.served_offline,
-            warnings=self.origin.warnings,
+            warnings=tuple(warnings)[:MAX_WARNINGS],
         )

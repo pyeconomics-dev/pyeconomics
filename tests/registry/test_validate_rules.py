@@ -18,6 +18,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from pyeconomics.core import (
     Alias,
+    AsOf,
+    Binding,
     ChangelogEntry,
     ChartKind,
     ChartSpec,
@@ -136,6 +138,15 @@ class UnmarkedDateField(tm.ZeroCouponInputs):
         ge=dt.date(1900, 1, 1),
         le=dt.date(2200, 12, 31),
         description="A date with no unit marker",
+    )
+
+
+class DatedField(tm.ZeroCouponInputs):
+    when: DateValue = Field(
+        dt.date(2026, 1, 1),
+        ge=dt.date(1900, 1, 1),
+        le=dt.date(2200, 12, 31),
+        description="A sound date",
     )
 
 
@@ -258,6 +269,14 @@ def _reference(**changes: object) -> Callable[[], Registry]:
         ZC,
         references=(Reference(**{**fields, **changes}),),  # type: ignore[arg-type]
     )
+
+
+CONCEPT = "us.unemployment.rate"
+
+
+def _bound(*bindings: object, base: Model[Any, Any] = ZC) -> Callable[[], Registry]:
+    """A model with these bindings, which only the bindings rule should object to."""
+    return lambda: broken(base, bindings=bindings)
 
 
 def _alias_clash() -> Registry:
@@ -439,7 +458,51 @@ CASES: dict[str, list[Case]] = {
         case(_alias_clash),
         case(_alias_twice),
     ],
-    "bindings": [case(lambda: broken(ZC, bindings=(object(),)))],
+    "bindings": [
+        case(lambda: broken(ZC, bindings=(object(),))),
+        # a field that does not exist, or is not a field a number can fill
+        case(_bound(Binding("no_such_field", CONCEPT))),
+        case(_bound(Binding("Bad Field", CONCEPT))),
+        case(
+            lambda: broken(ZC, inputs=DatedField, bindings=(Binding("when", CONCEPT),))
+        ),
+        # one field bound twice in one profile (the same field in two is fine)
+        case(_bound(Binding("rate", CONCEPT), Binding("rate", CONCEPT))),
+        # a window on a scalar field, an array field without one
+        case(_bound(Binding("rate", CONCEPT, as_of=AsOf.WINDOW, window=4))),
+        case(_bound(Binding("returns", CONCEPT), base=tm.mean_return)),
+        case(
+            _bound(
+                Binding("returns", CONCEPT, as_of=AsOf.WINDOW, window=253),
+                base=tm.mean_return,
+            )
+        ),
+        # a window given without the window rule, or the rule without a window
+        case(_bound(Binding("rate", CONCEPT, window=4))),
+        case(_bound(Binding("rate", CONCEPT, as_of=AsOf.WINDOW))),
+        case(
+            _bound(
+                Binding("returns", CONCEPT, as_of=AsOf.WINDOW, window=0),
+                base=tm.mean_return,
+            )
+        ),
+        # bindings but no default profile
+        case(_bound(Binding("rate", CONCEPT, profile="forecast"))),
+        # a concept id outside decision 15's grammar
+        case(_bound(Binding("rate", "Not A Concept"))),
+        case(_bound(Binding("rate", "us.rate"))),
+        # a transform the vocabulary does not declare, with bad parameters, that
+        # reads two series, or that picks observations (the as-of rule's job)
+        case(_bound(Binding("rate", CONCEPT, transform="no_such_transform"))),
+        case(_bound(Binding("rate", CONCEPT, transform="pct_change(periods=0)"))),
+        case(_bound(Binding("rate", CONCEPT, transform="pct_change(speed=2)"))),
+        case(_bound(Binding("rate", CONCEPT, transform="ratio"))),
+        case(_bound(Binding("rate", CONCEPT, transform="asof(date=2020-01-01)"))),
+        # an as-of rule or vintage policy that is not one
+        case(_bound(Binding("rate", CONCEPT, as_of="sometimes"))),  # type: ignore[arg-type]
+        case(_bound(Binding("rate", CONCEPT, vintage="eventually"))),  # type: ignore[arg-type]
+        case(_bound(Binding("rate", CONCEPT, profile="Not Snake"))),
+    ],
     "duplicate-id": [case(_duplicate_id)],
     "spec": [case(lambda: broken(ZC, references=(object(),)))],
 }
@@ -489,8 +552,9 @@ def test_validate_lists_every_problem_at_once() -> None:
     with pytest.raises(RegistryError) as caught:
         registry.validate(released={})
     rules = [line.split("[")[1].split("]")[0] for line in caught.value.problems]
-    assert rules == ["title", "summary", "evidence", "bindings"]
-    assert str(caught.value).startswith("the model registry has 4 problems:")
+    # The object is not a binding, and without one there is no default profile.
+    assert rules == ["title", "summary", "evidence", "bindings", "bindings"]
+    assert str(caught.value).startswith("the model registry has 5 problems:")
 
 
 def test_a_single_problem_reads_in_the_singular() -> None:

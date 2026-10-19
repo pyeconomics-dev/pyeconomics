@@ -90,4 +90,11 @@ def describe(model_id: str) -> dict[str, Any]:
     ModelNotFoundError
         If no model or alias has the id.
     """
-    return _describe(_core.installed().resolve(model_id, stacklevel=_CALLER))
+    model = _core.installed().resolve(model_id, stacklevel=_CALLER)
+    if not model.spec.bindings:
+        return _describe(model)
+    # The card's "Data" section lists the sources that can fill each bound
+    # concept, which only the data layer can read: import it for a bound model.
+    from pyeconomics.data.bindings import candidate_notes  # noqa: PLC0415
+
+    return _describe(model, candidate_notes(model))

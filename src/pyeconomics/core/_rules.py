@@ -37,7 +37,7 @@ from typing import (
     get_origin,
 )
 
-from annotated_types import Ge, GroupedMetadata, Gt, Le, Lt, MaxLen
+from annotated_types import Ge, Gt, Le, Lt
 from pydantic import (
     AllowInfNan,
     BaseModel,
@@ -46,11 +46,20 @@ from pydantic import (
     SkipValidation,
     WrapValidator,
 )
-from pydantic.fields import FieldInfo
 
+from pyeconomics.core._annotations import flatten, max_length
+from pyeconomics.core.binding import (
+    DEFAULT_PROFILE,
+    AsOf,
+    Binding,
+    FieldShape,
+    VintagePolicy,
+    field_shapes,
+)
 from pyeconomics.core.context import collect_warnings
 from pyeconomics.core.errors import InputError, MissingOptionalDependencyError
 from pyeconomics.core.model import ModelInputs, ModelOutputs
+from pyeconomics.core.provenance import CONCEPT_ID_PATTERN
 from pyeconomics.core.spec import (
     CALCULATION_FIELD,
     DOMAINS,
@@ -63,6 +72,7 @@ from pyeconomics.core.spec import (
     Evidence,
     union_discriminator,
 )
+from pyeconomics.core.transforms import MAX_TRANSFORM_PERIODS, parse_transform
 from pyeconomics.core.units import Unit, UnitKind
 
 if TYPE_CHECKING:
@@ -153,19 +163,6 @@ class _Report:
 # --- walking a field's type ------------------------------------------------
 
 
-def _flatten(metadata: Iterable[object]) -> list[object]:
-    """Expand ``Field(...)`` objects and grouped constraints into their parts."""
-    flat: list[object] = []
-    for item in metadata:
-        if isinstance(item, FieldInfo):
-            flat.extend(_flatten(item.metadata))
-        elif isinstance(item, GroupedMetadata):
-            flat.extend(_flatten(item))
-        else:
-            flat.append(item)
-    return flat
-
-
 def _bounds(metadata: Sequence[object]) -> tuple[Any, Any]:
     """Return the tightest lower and upper bound in the metadata, or ``None``."""
     lows: list[Any] = [m.ge for m in metadata if isinstance(m, Ge)]
@@ -173,11 +170,6 @@ def _bounds(metadata: Sequence[object]) -> tuple[Any, Any]:
     highs: list[Any] = [m.le for m in metadata if isinstance(m, Le)]
     highs += [m.lt for m in metadata if isinstance(m, Lt)]
     return (max(lows) if lows else None, min(highs) if highs else None)
-
-
-def _max_length(metadata: Sequence[object]) -> int | None:
-    lengths = [m.max_length for m in metadata if isinstance(m, MaxLen)]
-    return min(lengths) if lengths else None
 
 
 def _finite_number(value: object) -> bool:
@@ -190,6 +182,11 @@ def _finite_number(value: object) -> bool:
 
 def _is_str(value: object) -> bool:
     return isinstance(value, str)
+
+
+def _is_a(value: object, kind: type) -> bool:
+    """Say whether a value is of a class, for a declaration nothing has checked."""
+    return isinstance(value, kind)
 
 
 def _is_int(value: object) -> bool:
@@ -260,7 +257,7 @@ def _check_date(tp: object, metadata: Sequence[object], site: _Site) -> None:
 
 
 def _check_string(_tp: object, metadata: Sequence[object], site: _Site) -> None:
-    if _max_length(metadata) is None:
+    if max_length(metadata) is None:
         site.report.add(
             "field-length", f"{site.path} is a string with no maximum length"
         )
@@ -271,7 +268,7 @@ def _check_tuple(tp: object, metadata: Sequence[object], site: _Site) -> None:
     if not args:
         site.report.add("field-type", f"{site.path} is a tuple with no item type")
     elif len(args) == 2 and args[1] is Ellipsis:  # noqa: PLR2004 - tuple[X, ...]
-        if _max_length(metadata) is None:
+        if max_length(metadata) is None:
             site.report.add(
                 "field-length", f"{site.path} is an array with no maximum length"
             )
@@ -286,7 +283,7 @@ def _check_mapping(tp: object, metadata: Sequence[object], site: _Site) -> None:
     if len(args) != 2:  # noqa: PLR2004 - key and value
         site.report.add("field-type", f"{site.path} is an unconstrained dict")
         return
-    if _max_length(metadata) is None:
+    if max_length(metadata) is None:
         site.report.add("field-length", f"{site.path} is a dict with no maximum length")
     _walk(args[0], [], site.under("{key}"))
     _walk(args[1], [], site.under("{value}"))
@@ -381,7 +378,7 @@ def _walk(tp: object, metadata: Sequence[object], site: _Site) -> None:
             continue
         args = get_args(tp)
         tp = args[0]
-        added = _flatten(args[1:])
+        added = flatten(args[1:])
         _report_bypass(added, site)
         metadata = [*metadata, *added]
     origin = get_origin(tp)
@@ -402,7 +399,7 @@ def _check_fields(cls: type[BaseModel], site: _Site) -> None:
             site.report.add(
                 "field-description", f"{field_site.path} has no description"
             )
-        metadata = _flatten(info.metadata)
+        metadata = flatten(info.metadata)
         _report_bypass(metadata, field_site)
         _walk(info.annotation, metadata, field_site)
 
@@ -469,10 +466,7 @@ class _Checker:
         self.invariants()
         self.charts()
         self.aliases()
-        if self.spec.bindings:
-            self.report.add(
-                "bindings", "bindings are reserved for Phase 3 and must be empty"
-            )
+        self.bindings()
         return self.report.problems
 
     def text(self, value: object, rule: str, what: str, limit: int) -> None:
@@ -728,6 +722,148 @@ class _Checker:
                     "is not a major release after 1.0 (ADR-0003)",
                 )
 
+    def bindings(self) -> None:
+        """Hold the data bindings to their structural rules (ADR-0011 decision 16).
+
+        Whether a concept exists in the installed catalog is the data layer's to
+        check (``pyeconomics.data.validate_bindings``): core never imports it.
+        """
+        spec = self.spec
+        if not spec.bindings:
+            return
+        shapes = field_shapes(spec.inputs) if self.types_ok else None
+        bound: set[tuple[object, object]] = set()
+        profiles: set[object] = set()
+        declared: tuple[object, ...] = spec.bindings  # nothing checked it yet
+        for position, binding in enumerate(declared, start=1):
+            if not isinstance(binding, Binding):
+                self.report.add("bindings", f"binding {position} is not a Binding")
+                continue
+            profiles.add(binding.profile)
+            where = f"binding {binding.field!r} (profile {binding.profile!r})"
+            if (binding.profile, binding.field) in bound:
+                self.report.add("bindings", f"{where} binds the field twice")
+            bound.add((binding.profile, binding.field))
+            self.binding(binding, where, shapes)
+        if DEFAULT_PROFILE not in profiles:
+            self.report.add(
+                "bindings", f"declares bindings but no '{DEFAULT_PROFILE}' profile"
+            )
+
+    def binding(
+        self,
+        binding: Binding,
+        where: str,
+        shapes: dict[str, tuple[FieldShape, ...]] | None,
+    ) -> None:
+        add = self.report.add
+        if not _is_str(binding.field) or not SNAKE_CASE.fullmatch(binding.field):
+            add("bindings", f"{where}: the field name is not snake_case")
+        if not _is_str(binding.profile) or not SNAKE_CASE.fullmatch(binding.profile):
+            add("bindings", f"{where}: the profile name is not snake_case")
+        if not _is_str(binding.concept) or not CONCEPT_ID_PATTERN.fullmatch(
+            binding.concept
+        ):
+            add(
+                "bindings",
+                f"{where}: concept {binding.concept!r} is not a concept id "
+                "(dotted snake_case of three or four parts, ADR-0011 decision 15)",
+            )
+        self.binding_transform(binding, where)
+        rule_ok = _is_a(binding.as_of, AsOf)
+        if not rule_ok:
+            add("bindings", f"{where}: as_of {binding.as_of!r} is not an AsOf rule")
+        if not _is_a(binding.vintage, VintagePolicy):
+            add(
+                "bindings",
+                f"{where}: vintage {binding.vintage!r} is not a VintagePolicy",
+            )
+        window = binding.window
+        window_ok = (
+            isinstance(window, int)
+            and not isinstance(window, bool)
+            and 1 <= window <= MAX_TRANSFORM_PERIODS
+        )
+        if rule_ok and (binding.as_of is AsOf.WINDOW) != (window is not None):
+            add(
+                "bindings",
+                f"{where}: a window goes with the '{AsOf.WINDOW.value}' rule, and only "
+                "with that rule",
+            )
+        elif window is not None and not window_ok:
+            add(
+                "bindings",
+                f"{where}: window {window!r} is not a whole number from 1 to "
+                f"{MAX_TRANSFORM_PERIODS}",
+            )
+        if shapes is not None and _is_str(binding.field):
+            self.binding_field(binding, where, shapes, window if window_ok else None)
+
+    def binding_transform(self, binding: Binding, where: str) -> None:
+        if binding.transform is None:
+            return
+        try:
+            parsed = parse_transform(binding.transform)
+        except InputError as error:
+            self.report.add("bindings", f"{where}: {_first_line(error)}")
+            return
+        if parsed.spec.operands != 1:
+            self.report.add(
+                "bindings",
+                f"{where}: transform '{parsed.name}' reads two series; a binding's "
+                "transform reads the one series its concept resolves to",
+            )
+        elif parsed.spec.group == "alignment":
+            self.report.add(
+                "bindings",
+                f"{where}: transform '{parsed.name}' picks observations at a date; "
+                "choose that with as_of and window",
+            )
+
+    def binding_field(
+        self,
+        binding: Binding,
+        where: str,
+        shapes: dict[str, tuple[FieldShape, ...]],
+        window: int | None,
+    ) -> None:
+        found = shapes.get(binding.field)
+        if not found:
+            known = ", ".join(sorted(shapes))
+            self.report.add(
+                "bindings", f"{where}: not an input field (the fields are {known})"
+            )
+            return
+        if {shape.array for shape in found} == {True, False}:
+            self.report.add(
+                "bindings",
+                f"{where}: the field is an array in one calculation and a scalar "
+                "in another",
+            )
+            return
+        shape = found[0]
+        if shape.kind is None or shape.kind is UnitKind.DATE:
+            self.report.add(
+                "bindings", f"{where}: only a numeric field can be bound to data"
+            )
+        if shape.array and binding.as_of is not AsOf.WINDOW:
+            self.report.add(
+                "bindings",
+                f"{where}: an array field needs the '{AsOf.WINDOW.value}' rule and "
+                "a window",
+            )
+        elif not shape.array and binding.as_of is AsOf.WINDOW:
+            self.report.add("bindings", f"{where}: a scalar field cannot take a window")
+        longest = min(
+            (s.max_length for s in found if s.max_length is not None), default=None
+        )
+        if window is not None and longest is not None and window > longest:
+            self.report.add(
+                "bindings",
+                f"{where}: the window of {window} exceeds the field's maximum "
+                f"length of {longest}",
+            )
+
 
 def _member_calculations(
     members: Sequence[Any], side: str, report: _Report
@@ -786,6 +922,11 @@ def _is_array_field(member: type[BaseModel], name: str) -> bool:
 
 
 # --- examples ----------------------------------------------------------------
+
+
+def _first_line(error: Exception) -> str:
+    """Return an error's first line: what is wrong, without the rest."""
+    return (str(error).splitlines() or [type(error).__name__])[0]
 
 
 def _first_error(error: InputError) -> str:

@@ -71,6 +71,7 @@ from pydantic import (
     ValidationError,
 )
 
+from pyeconomics.core.binding import Bound
 from pyeconomics.core.errors import InputError, MissingOptionalDependencyError
 from pyeconomics.core.spec import Alias, ModelSpec
 from pyeconomics.core.units import (
@@ -99,6 +100,7 @@ if TYPE_CHECKING:
     from pydantic.json_schema import JsonSchemaValue
     from pydantic_core import CoreSchema
 
+    from pyeconomics.core.binding import Binding
     from pyeconomics.core.spec import (
         ChangelogEntry,
         ChartSpec,
@@ -455,15 +457,24 @@ class Model[I: ModelInputs, O: ModelOutputs]:
         Parameters
         ----------
         inputs
-            An instance of the input model (checked again), or a mapping of
-            field values.
+            An instance of the input model (checked again), a mapping of field
+            values, or a :class:`~pyeconomics.core.binding.Bound` bound for this
+            model, whose values are checked like any mapping.
 
         Raises
         ------
         InputError
-            If a value is missing, unknown, out of bounds, NaN or infinite. The
-            error carries pydantic's details.
+            If a value is missing, unknown, out of bounds, NaN or infinite, or a
+            ``Bound`` was bound for another model. The error carries pydantic's
+            details.
         """
+        if isinstance(inputs, Bound):
+            if inputs.model_id != self.id:
+                msg = (
+                    f"these values were bound for {inputs.model_id!r}, not {self.id!r}"
+                )
+                raise InputError(msg)
+            inputs = dict(inputs.values)
         try:
             return self.input_adapter.validate_python(inputs)
         except ValidationError as error:
@@ -557,6 +568,7 @@ def model[I: ModelInputs, O: ModelOutputs](  # noqa: PLR0913 - the spec's fields
     no_invariants_reason: str | None = None,
     charts: Iterable[ChartSpec] = (),
     aliases: Sequence[Alias | str] = (),
+    bindings: Iterable[Binding] = (),
     extra: str | None = None,
 ) -> Callable[[Callable[[I], O]], Model[I, O]]:
     """Declare a model: pair a pure function with its specification.
@@ -597,6 +609,11 @@ def model[I: ModelInputs, O: ModelOutputs](  # noqa: PLR0913 - the spec's fields
         Charts of array outputs.
     aliases
         Retired ids that still resolve, with a warning.
+    bindings
+        The data that fills input fields, as
+        :class:`~pyeconomics.core.binding.Binding` declarations grouped into
+        profiles. They are plain data: the model stays pure, and
+        ``pyeconomics.bind`` resolves them before ``compute`` runs.
     extra
         The extra whose library ``compute`` imports, if any.
     """
@@ -623,6 +640,7 @@ def model[I: ModelInputs, O: ModelOutputs](  # noqa: PLR0913 - the spec's fields
             charts=tuple(charts),
             aliases=tuple(Alias(id=a) if isinstance(a, str) else a for a in aliases),
             changelog=tuple(changelog),
+            bindings=tuple(bindings),
             extra=extra,
         )
         return Model(spec, compute)

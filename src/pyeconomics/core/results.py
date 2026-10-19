@@ -6,8 +6,9 @@
 A :class:`Result` is immutable and holds the validated inputs, the validated
 outputs, the warnings the run recorded and a
 :class:`~pyeconomics.core.manifest.Manifest`. Its canonical JSON
-(:meth:`Result.to_json`) is the same bytes on every run of the same inputs in
-the same environment, which is what the cross-surface parity tests compare. A
+(:meth:`Result.to_json`) is the same bytes on every run of the same inputs and
+the same data records in the same environment, which is what the cross-surface
+parity tests compare. A
 :class:`BatchResult` is the same for many input rows.
 
 Build results with :func:`pyeconomics.run` and :func:`pyeconomics.run_batch`
@@ -29,14 +30,16 @@ from pyeconomics.core import tables
 from pyeconomics.core.canonical import canonical_json
 from pyeconomics.core.manifest import Manifest
 from pyeconomics.core.model import Model, ModelInputs, ModelOutputs
+from pyeconomics.core.provenance import LicenceClass
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Iterable, Iterator, Sequence
     from os import PathLike
 
     import pandas as pd
 
     from pyeconomics.core.cards import ModelCard
+    from pyeconomics.core.provenance import DataSource
 
 __all__ = ["BatchResult", "Result", "ResultWarning"]
 
@@ -68,8 +71,8 @@ class Result[I: ModelInputs, O: ModelOutputs]:
     warnings
         The warnings the model recorded through ``pyeconomics.core.warn``.
     manifest
-        The provenance and fingerprints; see
-        :class:`~pyeconomics.core.manifest.Manifest`.
+        The provenance and fingerprints, with the records of the data a bound run
+        read; see :class:`~pyeconomics.core.manifest.Manifest`.
     model
         The model object, for :meth:`card` and :meth:`plot`.
     """
@@ -89,8 +92,13 @@ class Result[I: ModelInputs, O: ModelOutputs]:
         inputs: I,
         outputs: O,
         warnings: Sequence[ResultWarning] = (),
+        data_sources: Iterable[DataSource] = (),
     ) -> Result[I, O]:
-        """Assemble a result and its manifest from a run's parts."""
+        """Assemble a result and its manifest from a run's parts.
+
+        ``data_sources`` are the records of the data a bound run read; they go
+        into the manifest, not into the hashed body.
+        """
         inputs_json = inputs.model_dump(mode="json")
         body = {
             "model_id": model.id,
@@ -104,6 +112,7 @@ class Result[I: ModelInputs, O: ModelOutputs]:
             model_version=model.version,
             inputs=inputs_json,
             body=body,
+            data_sources=data_sources,
         )
         return cls(
             model_id=model.id,
@@ -114,6 +123,23 @@ class Result[I: ModelInputs, O: ModelOutputs]:
             manifest=manifest,
             model=model,
         )
+
+    def attributions(self) -> tuple[str, ...]:
+        """Return the attribution and required notices of the data the run read.
+
+        The texts of the manifest's records, de-duplicated and in record order:
+        every attribution first, then every required notice. A value the caller
+        supplied needs neither. Exports print these wherever the data appears
+        (ADR-0005); a run that read no data returns an empty tuple.
+        """
+        records = [
+            record
+            for record in self.manifest.data_sources
+            if record.licence is not LicenceClass.USER_SUPPLIED
+        ]
+        attributions = (record.attribution for record in records)
+        notices = (record.notice for record in records if record.notice)
+        return tuple(dict.fromkeys((*attributions, *notices)))
 
     def to_dict(self) -> dict[str, Any]:
         """Return the result as JSON-ready values (dates are ISO 8601 strings)."""

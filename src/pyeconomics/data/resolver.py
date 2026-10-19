@@ -738,9 +738,12 @@ def _exhausted(
             provider=skipped[0].provider,
             licence=skipped[0].licence or LicenceClass.LIBRARY_ONLY,
         )
-    if reasons == {"key_missing"}:
+    # A source that cannot read the vintage asked for is not why nothing answered:
+    # the key or the cache of the one that could is.
+    blocking = reasons - {"vintage_unsupported"}
+    if blocking == {"key_missing"}:
         return CredentialError(prefix + listing)
-    if reasons == {"offline"}:
+    if blocking == {"offline"}:
         return OfflineError(prefix + listing)
     return DataError(prefix + listing)
 

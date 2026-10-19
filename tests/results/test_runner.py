@@ -62,7 +62,7 @@ def test_run_returns_a_result_with_inputs_outputs_warnings_and_manifest() -> Non
     assert result.outputs.price == pytest.approx(100 / 1.05**10)
     assert result.warnings == ()
     assert result.manifest.model_id == ZERO_ID
-    assert result.manifest.data_sources == ()
+    assert result.manifest.data_sources == ()  # it read no data: no binding, no record
 
 
 def test_inputs_may_be_a_mapping_an_input_model_or_keywords() -> None:
