@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import datetime as dt
 from dataclasses import replace
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import pytest
 from bound_support import REFERENCE
@@ -394,11 +394,16 @@ def test_windows_on_different_calendars_are_not_aligned() -> None:
 
     fiscal = Binding("a", "x.y.z", as_of=AsOf.WINDOW, window=3)
     calendar = Binding("b", "x.y.w", as_of=AsOf.WINDOW, window=3)
-    ends = _window_ends(
+    # Stand-ins: the alignment reads only each fetched binding's series.
+    fetched = cast(
+        "dict[Binding, Any]",
         {
-            fiscal: SimpleNamespace(series=annual(9)),  # type: ignore[dict-item]
-            calendar: SimpleNamespace(series=annual(12)),  # type: ignore[dict-item]
+            fiscal: SimpleNamespace(series=annual(9)),
+            calendar: SimpleNamespace(series=annual(12)),
         },
+    )
+    ends = _window_ends(
+        fetched,
         None,
     )
     assert ends == {}
