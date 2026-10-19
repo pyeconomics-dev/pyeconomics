@@ -66,6 +66,7 @@ def test_a_run_records_one_data_source_per_bound_field() -> None:
 def test_the_manifest_dict_carries_the_records_in_canonical_form() -> None:
     result = run_model(bs.unemployment, bound_at())
     records = result.manifest.to_dict()["data_sources"]
+    assert isinstance(records, list)
     assert records == [result.manifest.data_sources[0].to_dict()]
     (record,) = records
     assert isinstance(record, dict)
@@ -262,7 +263,7 @@ def test_an_arrow_export_carries_the_records_in_its_metadata(tmp_path: Path) -> 
 def test_a_bound_is_immutable_and_reads_its_values() -> None:
     bound = bound_at()
     with pytest.raises(TypeError):
-        bound.values["unemployment"] = 0.5  # type: ignore[index]
+        bound.values["unemployment"] = 0.5  # type: ignore[index]  # ty: ignore[invalid-assignment]
     assert bound.overridden == ()
     assert bound.to_dict()["values"] == {"unemployment": 0.039}
     canonical_json(bound.to_dict())  # JSON-ready
@@ -273,7 +274,7 @@ def test_a_bound_checks_its_parts() -> None:
     with pytest.raises(InputError, match="snake_case"):
         Bound(model_id="a.b", profile="Not Snake", values={}, sources=(record,))
     with pytest.raises(InputError, match="DataSource"):
-        Bound(model_id="a.b", profile="default", values={}, sources=("x",))  # type: ignore[arg-type]
+        Bound(model_id="a.b", profile="default", values={}, sources=("x",))  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
     with pytest.raises(InputError, match="snake_case"):
         Bound(model_id="a.b", profile="default", values={"Not A Field": 1.0})
 

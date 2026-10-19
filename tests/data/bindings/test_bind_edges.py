@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from typing import TYPE_CHECKING
 
 import bound_support as bs
 import pytest
@@ -29,11 +30,14 @@ from pyeconomics.data import (
 )
 from pyeconomics.data import bindings as bnd
 
+if TYPE_CHECKING:
+    from pyeconomics.data import DataProvider
+
 DAYS = tuple(dt.date(2024, 3, day) for day in (4, 5, 6, 7, 8, 11, 12, 13, 14, 15))
 TEN_YEAR = bs.bound_to("us.treasury.nominal_10y")
 
 
-def dgs10() -> type:
+def dgs10() -> type[DataProvider]:
     series = Series(
         DAYS,
         tuple(0.040 + 0.0005 * i for i in range(len(DAYS))),
