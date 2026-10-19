@@ -4713,31 +4713,24 @@ all five original providers' acceptance checks. Do not restart finished steps.
 covers this step's providers; a `workflow_dispatch` run on `main` after
 merge proves them, and the `SEC_CONTACT` secret, live.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | GPT-6.1 Sol                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High        |
-| Platform     | Codex                                         |
-| Intelligence | Medium                                        |
-| Conversation | **New**                                       |
+| Setting      | Cost                                     | Balanced                                | Quality                                 |
+| ------------ | ---------------------------------------- | --------------------------------------- | --------------------------------------- |
+| Model        | GPT-6.1 Sol                              | Opus 5.5                                | Opus 5.5                                |
+| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | GPT-6.1 Sol — Codex · Intelligence High | GPT-6.1 Sol — Codex · Intelligence High |
+| Platform     | Codex                                    | Claude Code                             | Claude Code                             |
+| Effort       | Intelligence Low                         | Effort Medium                           | Effort High                             |
+| Thinking     | —                                        | On                                      | On                                      |
+| Conversation | **New**                                  | **New**                                 | **New**                                 |
 
-**Model rationale:** Coding is PRIMARY and knowledge SECONDARY: five
-documented, keyless sources implemented on an SDK, a contract suite and a
-recorder that Steps 4 and 6 already proved, where the knowledge is each
-source's file layout, units and notices. Complexity is Medium — bounded,
-well-specified work in known code — so A in coding suffices, and the
-operator's posture sends Medium, GPT-adequate work to Codex on the ChatGPT
-Pro 5x plan, the lane with slack, $0 marginal. GPT-6.1 Sol is the pick: at
-Intelligence Medium, where this step runs, it leads GPT-6 Sol, at the same
-price, on Terminal-Bench 4.0 (48.0% vs 18.7%), HLE (49.9% vs 41.0%) and the
-AA Intelligence Index (47.8 vs 39.8), with SciCode level (53.2 vs 53.8);
-GPT-6 Astra is within noise of it on the AA Intelligence Index (49.6) at
-five times the price. Codex opens on its provider default; set GPT-6.1 Sol
-at Intelligence Medium, the ladder value, because the pattern is set and the
-contract suite and the live run check every provider. The backup is Sonnet
-5.5 on Claude Code at Effort High, the cell `roadmodel backup` prints: at
-High, Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence
-Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was GPT-6.1 Sol · Intelligence
+> Medium. Coding PRIMARY, knowledge SECONDARY, Medium, not novel: five
+> documented keyless sources on a proven SDK. The ladder's Balanced column
+> (the user-context's budget) is Opus 5.5 at Medium on Claude Code; the old
+> single-column pick was Codex.
+
+**Model rationale:** Coding is PRIMARY and knowledge or agentic work SECONDARY; complexity is Medium and the step is not novel. The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at Medium, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -7745,34 +7738,23 @@ the price. New conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | Claude Opus 5.5                               |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence XHigh      |
-| Platform     | Claude Code                                   |
-| Effort       | Extra High                                    |
-| Thinking     | On                                            |
-| Conversation | **New**                                       |
+| Setting      | Cost                                    | Balanced                                 | Quality                                  |
+| ------------ | --------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                             | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                   | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
+| Thinking     | —                                       | On                                       | On                                       |
+| Conversation | **New**                                 | **New**                                  | **New**                                  |
 
-**Model rationale:** Coding is PRIMARY and knowledge SECONDARY: each rule
-must follow its published definition exactly — the Board's Monetary Policy
-Report, Taylor (1993) and (1999), the first-difference and ELB-adjusted
-forms — and reproduce two Reserve Banks' published prescriptions from their
-stated inputs, while matching 4,000-odd legacy cases or explaining each
-difference. Complexity is High, and reproducing external figures from
-real-time data and reconciling a legacy suite is multi-step verification
-across many files, the ladder's Extra High condition. High requires S in
-coding; with knowledge secondary, Opus 5.5 (S in both) outranks Sonnet 5.5
-(A in knowledge) and wins the cost tie-break against Fable 5.1 (HLE 61.4%).
-Claude Code on the claude.ai Max plan pays for it, $0 marginal while the
-weekly pool reads `headroom`. Claude Code opens on Opus 5.5 at its Medium
-default; Extra High is the raise this step's verification burden earns, and
-not Max, because the formulas are published and the goldens and fixtures
-check them. Thinking stays On. The backup is GPT-6.1 Sol on Codex under
-ChatGPT Pro 5x at Intelligence XHigh, the cell `roadmodel backup` prints: it
-costs what GPT-6 Sol does and beats it on the AA Intelligence Index at every
-effort, and GPT-6 Astra is within noise of it at five times the price. New
-conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Extra High.
+> Coding PRIMARY, knowledge SECONDARY, High, not novel. The ladder's Balanced
+> column is Opus 5.5 at High; the Quality column (XHigh) is the raise if the
+> verification burden or a tight pool says so.
+
+**Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -8321,31 +8303,23 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | Claude Opus 5.5                               |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence XHigh      |
-| Platform     | Claude Code                                   |
-| Effort       | High                                          |
-| Thinking     | On                                            |
-| Conversation | **New**                                       |
+| Setting      | Cost                                    | Balanced                                 | Quality                                  |
+| ------------ | --------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                             | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                   | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
+| Thinking     | —                                       | On                                       | On                                       |
+| Conversation | **New**                                 | **New**                                  | **New**                                  |
 
-**Model rationale:** Coding is PRIMARY and knowledge SECONDARY: four filters
-whose end-point and frequency conventions differ by paper, two estimators
-whose standard errors depend on a stated lag rule, growth and debt
-identities, and a probit whose published coefficients apply to a spread in
-percentage points — every one a place where a silent convention changes the
-number. Complexity is High; the methods are published and oracles check
-them, so not Extra High. High requires S in coding; with knowledge
-secondary, Opus 5.5 (S in both) outranks Sonnet 5.5 (A in knowledge) and
-wins the cost tie-break against Fable 5.1 (SciCode 66.9). Claude Code on the
-claude.ai Max plan pays for it, $0 marginal while the weekly pool reads
-`headroom`. Claude Code opens on Opus 5.5 at its Medium default; High is the
-raise for convention-sensitive numerics. Thinking stays On. The backup is
-GPT-6.1 Sol on Codex under ChatGPT Pro 5x at Intelligence XHigh, the cell
-`roadmodel backup` prints: it costs what GPT-6 Sol does and beats it on the
-AA Intelligence Index at every effort, and GPT-6 Astra is within noise of it
-at five times the price. New conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Effort High.
+> Model and effort unchanged (Balanced column); the single-column table
+> becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
+> XHigh.
+
+**Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -8833,32 +8807,23 @@ at five times the price. New conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | Claude Opus 5.5                               |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence XHigh      |
-| Platform     | Claude Code                                   |
-| Effort       | High                                          |
-| Thinking     | On                                            |
-| Conversation | **New**                                       |
+| Setting      | Cost                                    | Balanced                                 | Quality                                  |
+| ------------ | --------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                             | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                   | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
+| Thinking     | —                                       | On                                       | On                                       |
+| Conversation | **New**                                 | **New**                                  | **New**                                  |
 
-**Model rationale:** Coding is PRIMARY and knowledge SECONDARY: curve
-fitting is a bounded non-linear least-squares problem with known
-identification traps, the interest-rate tree must be calibrated exactly
-before OAS means anything, and the implied premium and CAPE each have
-conventions (cash-flow definition, terminal growth, real deflation) that
-change the number. Complexity is High; the methods are published and
-identities and oracles check them, so not Extra High. High requires S in
-coding; with knowledge secondary, Opus 5.5 (S in both) outranks Sonnet 5.5
-(A in knowledge) and wins the cost tie-break against Fable 5.1 (SciCode
-66.9). Claude Code on the claude.ai Max plan pays for it, $0 marginal while
-the weekly pool reads `headroom`. Claude Code opens on Opus 5.5 at its
-Medium default; High is the raise for calibration and solver numerics.
-Thinking stays On. The backup is GPT-6.1 Sol on Codex under ChatGPT Pro 5x
-at Intelligence XHigh, the cell `roadmodel backup` prints: it costs what
-GPT-6 Sol does and beats it on the AA Intelligence Index at every effort,
-and GPT-6 Astra is within noise of it at five times the price. New
-conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Effort High.
+> Model and effort unchanged (Balanced column); the single-column table
+> becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
+> XHigh.
+
+**Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -9292,32 +9257,23 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | Claude Opus 5.5                               |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence XHigh      |
-| Platform     | Claude Code                                   |
-| Effort       | High                                          |
-| Thinking     | On                                            |
-| Conversation | **New**                                       |
+| Setting      | Cost                                    | Balanced                                 | Quality                                  |
+| ------------ | --------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                             | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                   | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
+| Thinking     | —                                       | On                                       | On                                       |
+| Conversation | **New**                                 | **New**                                  | **New**                                  |
 
-**Model rationale:** Coding is PRIMARY and knowledge SECONDARY: factor
-regressions turn on the factor set, the risk-free adjustment and the
-standard-error rule; the GRS and Fama-MacBeth tests on finite-sample
-corrections; Black-Litterman on τ and the view-confidence convention; and
-risk parity and HRP on solver and clustering conventions — each a silent
-choice that changes the number. Complexity is High; the methods are
-published and oracles check them, so not Extra High. High requires S in
-coding; with knowledge secondary, Opus 5.5 (S in both) outranks Sonnet 5.5
-(A in knowledge) and wins the cost tie-break against Fable 5.1 (HLE 61.4%).
-Claude Code on the claude.ai Max plan pays for it, $0 marginal while the
-weekly pool reads `headroom`. Claude Code opens on Opus 5.5 at its Medium
-default; High is the raise for convention-sensitive statistics and
-optimization. Thinking stays On. The backup is GPT-6.1 Sol on Codex under
-ChatGPT Pro 5x at Intelligence XHigh, the cell `roadmodel backup` prints: it
-costs what GPT-6 Sol does and beats it on the AA Intelligence Index at every
-effort, and GPT-6 Astra is within noise of it at five times the price. New
-conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Effort High.
+> Model and effort unchanged (Balanced column); the single-column table
+> becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
+> XHigh.
+
+**Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -9755,32 +9711,23 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | Claude Opus 5.5                               |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence XHigh      |
-| Platform     | Claude Code                                   |
-| Effort       | High                                          |
-| Thinking     | On                                            |
-| Conversation | **New**                                       |
+| Setting      | Cost                                    | Balanced                                 | Quality                                  |
+| ------------ | --------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                             | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                   | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
+| Thinking     | —                                       | On                                       | On                                       |
+| Conversation | **New**                                 | **New**                                  | **New**                                  |
 
-**Model rationale:** Coding is PRIMARY and knowledge SECONDARY: wrapping
-arch and statsmodels correctly means knowing their conventions — arch's
-preference for percent-scaled returns, statsmodels' warning-filter resets,
-Cholesky ordering in impulse responses, the deterministic terms of
-Johansen's test — and stating each on the card. Complexity is High; the
-estimators are maintained libraries, so the hard part is conventions and
-verification, not novelty, and High rather than Extra High fits. High
-requires S in coding; with knowledge secondary, Opus 5.5 (S in both)
-outranks Sonnet 5.5 (A in knowledge) and wins the cost tie-break against
-Fable 5.1 (HLE 61.4%). Claude Code on the claude.ai Max plan pays for it, $0
-marginal while the weekly pool reads `headroom`. Claude Code opens on Opus
-5.5 at its Medium default; High is the raise for exact adapter conventions.
-Thinking stays On. The backup is GPT-6.1 Sol on Codex under ChatGPT Pro 5x
-at Intelligence XHigh, the cell `roadmodel backup` prints: it costs what
-GPT-6 Sol does and beats it on the AA Intelligence Index at every effort,
-and GPT-6 Astra is within noise of it at five times the price. New
-conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Effort High.
+> Model and effort unchanged (Balanced column); the single-column table
+> becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
+> XHigh.
+
+**Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -10206,30 +10153,23 @@ release provider set in this step; the maintainer's GO is still required.
 HEAD at kickoff and published through `release.yml`'s `testpypi`
 environment; the readiness document lands on merge; nothing reaches PyPI.
 
-| Setting      | Value                                         |
-| ------------ | --------------------------------------------- |
-| Model        | GPT-6.1 Sol                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh       |
-| Platform     | Codex                                         |
-| Intelligence | Medium                                        |
-| Conversation | **New**                                       |
+| Setting      | Cost                                        | Balanced                                 | Quality                                  |
+| ------------ | ------------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6 Luna                                  | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Gemini 3.8 Flash — Antigravity · Effort Low | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                       | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence XHigh                          | Effort High                              | Effort XHigh                             |
+| Thinking     | —                                           | On                                       | On                                       |
+| Conversation | **New**                                     | **New**                                  | **New**                                  |
 
-**Model rationale:** Knowledge is PRIMARY — an evidenced checklist an
-irreversible upload is judged against, a licence and terms audit of the
-release provider set, an artifact and metadata review — and agentic work SECONDARY: the
-TestPyPI rehearsal, clean installs and the live recipe. Phase 2's gate is
-the pattern and the GO or NO-GO is the maintainer's, so complexity is
-Medium, with an A floor in knowledge, and the operator's posture sends
-Medium, GPT-adequate work to Codex on the ChatGPT Pro 5x plan, the lane with
-slack, $0 marginal. At Intelligence Medium, where this step runs, GPT-6.1
-Sol leads GPT-6 Sol, at the same price, on HLE (49.9% vs 41.0%),
-Terminal-Bench 4.0 (48.0% vs 18.7%) and the AA Intelligence Index (47.8 vs
-39.8); GPT-6 Astra is within noise of it on the AA Intelligence Index (49.6)
-at five times the price. Codex opens on its provider default; set GPT-6.1
-Sol at Intelligence Medium, the ladder value for Medium work. The backup is
-Sonnet 5.5 on Claude Code at Effort XHigh, the cell `roadmodel backup`
-prints: at XHigh, Sonnet 5.5 stands level with GPT-6.1 Sol at Medium in
-knowledge (HLE 50.0% vs 49.9%). New conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was GPT-6.1 Sol · Intelligence
+> Medium. Knowledge PRIMARY, agentic SECONDARY, Medium: the ladder's Balanced
+> column is Opus 5.5 at High on Claude Code, with GPT-6.1 Sol at Intelligence
+> XHigh as backup; the old pick was Codex.
+
+**Model rationale:** Knowledge is PRIMARY and agentic work SECONDARY; complexity is Medium. The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -10678,30 +10618,23 @@ approval; the GitHub release `v1.0.0a2`; the Read the Docs `main` preview
 rebuilt at the merge commit with the release's guide. Plain `pip install
 pyeconomics` keeps resolving 0.2.6.
 
-| Setting      | Value                                           |
-| ------------ | ----------------------------------------------- |
-| Model        | GPT-6.1 Sol                                     |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High          |
-| Platform     | Codex                                           |
-| Intelligence | Medium                                          |
-| Conversation | **New**                                         |
+| Setting      | Cost                                     | Balanced                               | Quality                                 |
+| ------------ | ---------------------------------------- | -------------------------------------- | --------------------------------------- |
+| Model        | GPT-6.1 Sol                              | GPT-6.1 Sol                            | Opus 5.5                                |
+| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | Opus 5.5 — Claude Code · Effort Medium | GPT-6.1 Sol — Codex · Intelligence High |
+| Platform     | Codex                                    | Codex                                  | Claude Code                             |
+| Effort       | Intelligence Low                         | Intelligence High                      | Effort High                             |
+| Thinking     | —                                        | —                                      | On                                      |
+| Conversation | **New**                                  | **New**                                | **New**                                 |
 
-**Model rationale:** Agentic work is PRIMARY and coding SECONDARY: executing
-the gated release — version, ledgers, merge, tag, approval, publication and
-verification in clean environments, including the live recipe — where each
-action is checked before the next. The gate removed the judgement calls, so
-complexity is Medium, with an A floor in agentic work, and the operator's
-posture sends Medium, GPT-adequate work to Codex on the ChatGPT Pro 5x plan,
-the lane with slack, $0 marginal. GPT-6.1 Sol is the pick: at Intelligence
-Medium, where this step runs, it leads GPT-6 Sol, at the same price, on
-Terminal-Bench 4.0 (48.0% vs 18.7%) and the AA Intelligence Index (47.8 vs
-39.8), with SciCode level (53.2 vs 53.8); GPT-6 Astra is within noise of it
-on the AA Intelligence Index (49.6) at five times the price. Codex opens on
-its provider default; set GPT-6.1 Sol at Intelligence Medium, the ladder
-value, because every action is verified as it lands. The backup is Sonnet
-5.5 on Claude Code at Effort High, the cell `roadmodel backup` prints: at
-High, Sonnet 5.5 stands level with GPT-6.1 Sol at Medium (AA Intelligence
-Index 46.8 vs 47.8). New conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was GPT-6.1 Sol · Intelligence
+> Medium. Agentic PRIMARY, coding SECONDARY, Medium: the ladder's Balanced
+> column keeps GPT-6.1 Sol on Codex but at Intelligence High, with Opus 5.5 at
+> Medium as backup.
+
+**Model rationale:** Agentic work is PRIMARY and coding SECONDARY; complexity is Medium. The ladder's Balanced column runs: GPT-6.1 Sol on Codex at High, backup Claude Opus 5.5. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -11130,31 +11063,23 @@ checks below; keep Step 7's own status unfinished and preserve its draft PR.
 **Deploys:** nothing beyond merge — the CI matrix entry is live on merge;
 the required-check update and the synthetic alarms are part of the step.
 
-| Setting      | Value                                           |
-| ------------ | ----------------------------------------------- |
-| Model        | GPT-6.1 Sol                                     |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High          |
-| Platform     | Codex                                           |
-| Intelligence | Medium                                          |
-| Conversation | **New**                                         |
+| Setting      | Cost                                     | Balanced                                | Quality                                 |
+| ------------ | ---------------------------------------- | --------------------------------------- | --------------------------------------- |
+| Model        | GPT-6.1 Sol                              | Opus 5.5                                | Opus 5.5                                |
+| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | GPT-6.1 Sol — Codex · Intelligence High | GPT-6.1 Sol — Codex · Intelligence High |
+| Platform     | Codex                                    | Claude Code                             | Claude Code                             |
+| Effort       | Intelligence Low                         | Effort Medium                           | Effort High                             |
+| Thinking     | —                                        | On                                      | On                                      |
+| Conversation | **New**                                  | **New**                                 | **New**                                 |
 
-**Model rationale:** Coding is PRIMARY and agentic work SECONDARY: 78
-independent static checks translated from Phase 2's script, a twenty-group
-V-matrix, its pytest twin, a CI matrix entry, live reads of GitHub, PyPI and
-Read the Docs, and two dispatched alarm proofs. The work is numerous but
-mechanical against a proven template, so complexity is Medium, with an A
-floor in coding, and the operator's posture sends Medium, GPT-adequate work
-to Codex on the ChatGPT Pro 5x plan, the lane with slack, $0 marginal.
-GPT-6.1 Sol is the pick: at Intelligence Medium, where this step runs, it
-leads GPT-6 Sol, at the same price, on Terminal-Bench 4.0 (48.0% vs 18.7%),
-HLE (49.9% vs 41.0%) and the AA Intelligence Index (47.8 vs 39.8), with
-SciCode level (53.2 vs 53.8); GPT-6 Astra is within noise of it on the AA
-Intelligence Index (49.6) at five times the price. Codex opens on its
-provider default; set GPT-6.1 Sol at Intelligence Medium, the ladder value
-for a patterned translation. The backup is Sonnet 5.5 on Claude Code at
-Effort High, the cell `roadmodel backup` prints: at High, Sonnet 5.5 stands
-level with GPT-6.1 Sol at Medium (AA Intelligence Index 46.8 vs 47.8). New
-conversation per phase-boundary hygiene.
+**Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Settings updated 2026-10-18 (refresh): was GPT-6.1 Sol · Intelligence
+> Medium. Coding PRIMARY, agentic SECONDARY, Medium: the ladder's Balanced
+> column is Opus 5.5 at Medium on Claude Code, with GPT-6.1 Sol at
+> Intelligence High as backup; the old pick was Codex.
+
+**Model rationale:** Coding is PRIMARY and knowledge or agentic work SECONDARY; complexity is Medium and the step is not novel. The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at Medium, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -11987,20 +11912,20 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
-| 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | GPT-6.1 Sol | Codex  | Intelligence Medium | --       | New  | Not started |
+| 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
-| 13      | Monetary-policy suite            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
-| 14      | Catalog: macro                   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
-| 15      | Catalog: fixed income + equity   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
-| 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code  | Effort High         | On       | New  | Not started |
-| 17      | Catalog: econometrics            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
-| 18      | 1.0.0a2 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
-| 19      | 1.0.0a2 release                  | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
-| 20      | QA + verify-phase03.sh           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Not started |
+| 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Not started |
+| 20      | QA + verify-phase03.sh           | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
 | V1      | Core hardening                   | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V2      | ADR-0011 + data model            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V3      | Credentials + redaction          | CI: phase-verify.yml, ci.yml, security.yml | -- | --     | --       | --   | --          |
@@ -12114,18 +12039,14 @@ on the cost tie-break (SciCode 66.9). EFFORT: High for exact source
 semantics on a settled SDK; the live run checks them, so not Extra High.
 
 PROMPT: Step 7 — Providers: Treasury, Fed Board, New York Fed, EDGAR, OpenFIGI
-MODEL: GPT-6.1 Sol
-BACKUP: Claude Sonnet 5.5
-PLATFORM: Codex
+MODEL: Claude Opus 5.5
+BACKUP: GPT-6.1 Sol
+PLATFORM: Claude Code
 EFFORT: Medium
 THINKING: On
+ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, knowledge secondary — five documented keyless
-sources implemented on a proven SDK and recorder. PICK: GPT-6.1 Sol leads
-GPT-6 Sol at Medium at the same price (Terminal-Bench 4.0 48.0% vs 18.7%,
-AA Intelligence Index 47.8 vs 39.8); GPT-6 Astra is within noise at five
-times the price. EFFORT: Medium, the ladder value, because the pattern is
-set and the contract suite and live run check each provider; thinking on.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 8 — Providers: SDMX Sources, World Bank, DBnomics
 MODEL: GPT-6.1 Sol
@@ -12203,15 +12124,11 @@ PROMPT: Step 13 — Monetary-Policy Suite
 MODEL: Claude Opus 5.5
 BACKUP: GPT-6.1 Sol
 PLATFORM: Claude Code
-EFFORT: XHigh
+EFFORT: High
 THINKING: On
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, knowledge secondary — the published rule family,
-reproduced against Reserve Bank figures and 4,000-odd legacy cases. PICK:
-Opus 5.5 is S in coding and knowledge and beats Fable 5.1 on the cost
-tie-break (HLE 61.4%). EFFORT: XHigh for multi-step verification against
-external figures and fixtures; the formulas are published, so not Max.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 14 — Launch Catalog: Macroeconomics
 MODEL: Claude Opus 5.5
@@ -12221,11 +12138,7 @@ EFFORT: High
 THINKING: On
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, knowledge secondary — six macro entries: filters,
-estimators, growth and debt identities and a published probit. PICK: Opus
-5.5 is S in coding and knowledge and beats Fable 5.1 on the cost tie-break
-(SciCode 66.9). EFFORT: High for convention-sensitive numerics that
-oracles check; not Extra High.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 15 — Launch Catalog: Fixed Income and Equity
 MODEL: Claude Opus 5.5
@@ -12235,11 +12148,7 @@ EFFORT: High
 THINKING: On
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, knowledge secondary — curve fitting, a calibrated
-rate tree with OAS, the implied premium and CAPE. PICK: Opus 5.5 is S in
-coding and knowledge and beats Fable 5.1 on the cost tie-break (SciCode
-66.9). EFFORT: High for calibration and solver numerics checked by
-identities and published curves; not Extra High.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 16 — Launch Catalog: Asset Pricing and Portfolio
 MODEL: Claude Opus 5.5
@@ -12249,11 +12158,7 @@ EFFORT: High
 THINKING: On
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, knowledge secondary — factor regressions and
-tests, Black-Litterman and risk-based allocation, each convention-bound.
-PICK: Opus 5.5 is S in coding and knowledge and beats Fable 5.1 on the
-cost tie-break (HLE 61.4%). EFFORT: High for silent statistical and
-solver conventions under oracles; not Extra High.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 17 — Launch Catalog: Econometrics
 MODEL: Claude Opus 5.5
@@ -12263,54 +12168,36 @@ EFFORT: High
 THINKING: On
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, knowledge secondary — GARCH and time-series
-adapters over arch and statsmodels with their conventions stated. PICK:
-Opus 5.5 is S in coding and knowledge and beats Fable 5.1 on the cost
-tie-break (HLE 61.4%). EFFORT: High for adapter conventions and
-verification of maintained estimators; not Extra High.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 18 — 1.0.0a2 Readiness Gate
-MODEL: GPT-6.1 Sol
-BACKUP: Claude Sonnet 5.5
-PLATFORM: Codex
-EFFORT: Medium
+MODEL: Claude Opus 5.5
+BACKUP: GPT-6.1 Sol
+PLATFORM: Claude Code
+EFFORT: High
 THINKING: On
+ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: knowledge, agentic secondary — an evidenced release
-checklist, a release-set provider terms audit, a TestPyPI rehearsal and a live
-recipe. PICK: GPT-6.1 Sol leads GPT-6 Sol at Medium at the same price (HLE
-49.9% vs 41.0%, Terminal-Bench 4.0 48.0% vs 18.7%); GPT-6 Astra is within
-noise at five times the price. EFFORT: Medium, the ladder value, because
-the maintainer owns the GO and Phase 2's gate is the pattern; thinking on.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 19 — 1.0.0a2 Release
 MODEL: GPT-6.1 Sol
-BACKUP: Claude Sonnet 5.5
+BACKUP: Opus 5.5
 PLATFORM: Codex
-EFFORT: Medium
+EFFORT: High
 THINKING: On
 CONVERSATION: New
-RATIONALE: TASK: agentic, coding secondary — executing the gated release:
-version, ledgers, merge, tag, approval, publication and live verification.
-PICK: GPT-6.1 Sol leads GPT-6 Sol at Medium at the same price
-(Terminal-Bench 4.0 48.0% vs 18.7%, AA Intelligence Index 47.8 vs 39.8);
-GPT-6 Astra is within noise at five times the price. EFFORT: Medium, the
-ladder value, because the gate removed the judgement calls; thinking on.
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 PROMPT: Step 20 — QA and Verification Script
-MODEL: GPT-6.1 Sol
-BACKUP: Claude Sonnet 5.5
-PLATFORM: Codex
+MODEL: Claude Opus 5.5
+BACKUP: GPT-6.1 Sol
+PLATFORM: Claude Code
 EFFORT: Medium
 THINKING: On
+ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: coding, agentic secondary — the phase's verify script,
-its twin, the matrix entry, live reads and two alarm proofs. PICK: GPT-6.1
-Sol leads GPT-6 Sol at Medium at the same price (Terminal-Bench 4.0 48.0%
-vs 18.7%, AA Intelligence Index 47.8 vs 39.8); GPT-6 Astra is within noise
-at five times the price. EFFORT: Medium, the ladder value, for numerous
-but mechanical checks translated from Phase 2's script; thinking on.
-```
+RATIONALE: TASK: see Model rationale. PICK/EFFORT: the Balanced column of `roadmodel ladder` (refresh 2026-10-18).
 
 ---
 

@@ -859,20 +859,28 @@ provider keys in local mode; the hosted service's secrets
 **Phase roadmap settings** — the session that writes
 `phase04-roadmap.md` (`/roadmap-phase 4`):
 
-| Setting      | Value                                    |
-|--------------|------------------------------------------|
-| Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
-| Platform     | Claude Code                              |
-| Effort       | Max                                      |
-| Thinking     | On                                       |
-| Conversation | **New**                                  |
+| Setting      | Cost                                   | Balanced                                 | Quality                                  |
+| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
+| Thinking     | —                                      | On                                       | On                                       |
+| Conversation | **New**                                | **New**                                  | **New**                                  |
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
 > Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
 > GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
 > score --category planning --complexity high --budget best` (0.2.84): where
 > the benchmarks cannot tell two substitutes apart it takes the cheaper, and
 > GPT-6 Astra costs five times as much.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6.1 Sol · Intelligence Max. The single-column table becomes the full
+> ladder (`roadmodel ladder --category planning --complexity high --phase`);
+> Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
+> Intelligence XHigh.
 
 This roadmap must make the generators — not hand-written endpoints — the
 only way a surface gains a model, and fix the parity suite that proves
@@ -1019,20 +1027,28 @@ service's secrets
 **Phase roadmap settings** — the session that writes
 `phase05-roadmap.md` (`/roadmap-phase 5`):
 
-| Setting      | Value                                    |
-|--------------|------------------------------------------|
-| Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
-| Platform     | Claude Code                              |
-| Effort       | Max                                      |
-| Thinking     | On                                       |
-| Conversation | **New**                                  |
+| Setting      | Cost                                   | Balanced                                 | Quality                                  |
+| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
+| Thinking     | —                                      | On                                       | On                                       |
+| Conversation | **New**                                | **New**                                  | **New**                                  |
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
 > Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
 > GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
 > score --category planning --complexity high --budget best` (0.2.84): where
 > the benchmarks cannot tell two substitutes apart it takes the cheaper, and
 > GPT-6 Astra costs five times as much.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6.1 Sol · Intelligence Max. The single-column table becomes the full
+> ladder (`roadmodel ladder --category planning --complexity high --phase`);
+> Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
+> Intelligence XHigh.
 
 This roadmap must stage the first public, partly irreversible launch —
 layer by layer, with the readiness gate as its own step — and get the
@@ -1180,20 +1196,28 @@ and licensed market data
 **Phase roadmap settings** — the session that writes
 `phase06-roadmap.md` (`/roadmap-phase 6`):
 
-| Setting      | Value                                    |
-|--------------|------------------------------------------|
-| Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
-| Platform     | Claude Code                              |
-| Effort       | Max                                      |
-| Thinking     | On                                       |
-| Conversation | **New**                                  |
+| Setting      | Cost                                   | Balanced                                 | Quality                                  |
+| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
+| Thinking     | —                                      | On                                       | On                                       |
+| Conversation | **New**                                | **New**                                  | **New**                                  |
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
 > Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
 > GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
 > score --category planning --complexity high --budget best` (0.2.84): where
 > the benchmarks cannot tell two substitutes apart it takes the cheaper, and
 > GPT-6 Astra costs five times as much.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6.1 Sol · Intelligence Max. The single-column table becomes the full
+> ladder (`roadmodel ladder --category planning --complexity high --phase`);
+> Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
+> Intelligence XHigh.
 
 This roadmap must turn each vendor's terms into enforceable rules rather
 than prose, and design Bloomberg support around a Terminal that CI will
@@ -1370,20 +1394,28 @@ batches that surface everywhere automatically.
 **Phase roadmap settings** — the session that writes
 `phase07-roadmap.md` (`/roadmap-phase 7`):
 
-| Setting      | Value                                    |
-|--------------|------------------------------------------|
-| Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
-| Platform     | Claude Code                              |
-| Effort       | Max                                      |
-| Thinking     | On                                       |
-| Conversation | **New**                                  |
+| Setting      | Cost                                   | Balanced                                 | Quality                                  |
+| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
+| Thinking     | —                                      | On                                       | On                                       |
+| Conversation | **New**                                | **New**                                  | **New**                                  |
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
 > Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
 > GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
 > score --category planning --complexity high --budget best` (0.2.84): where
 > the benchmarks cannot tell two substitutes apart it takes the cheaper, and
 > GPT-6 Astra costs five times as much.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6.1 Sol · Intelligence Max. The single-column table becomes the full
+> ladder (`roadmodel ladder --category planning --complexity high --phase`);
+> Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
+> Intelligence XHigh.
 
 This roadmap must turn an open-ended ambition into a finite, ordered batch
 plan whose measure of done is the coverage matrix, with every batch held to
@@ -1519,20 +1551,28 @@ Yes — account PII, authentication, billing metadata (never card data)
 **Phase roadmap settings** — the session that writes
 `phase08-roadmap.md` (`/roadmap-phase 8`):
 
-| Setting      | Value                                    |
-|--------------|------------------------------------------|
-| Model        | Claude Opus 5.5                          |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence Max   |
-| Platform     | Claude Code                              |
-| Effort       | Max                                      |
-| Thinking     | On                                       |
-| Conversation | **New**                                  |
+| Setting      | Cost                                   | Balanced                                 | Quality                                  |
+| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
+| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
+| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
+| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
+| Thinking     | —                                      | On                                       | On                                       |
+| Conversation | **New**                                | **New**                                  | **New**                                  |
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
 > Settings updated 2026-10-14 (refresh): was Claude Opus 5.5 · Max, backup
 > GPT-6 Astra. The backup is now GPT-6.1 Sol, the BACKUP line of `roadmodel
 > score --category planning --complexity high --budget best` (0.2.84): where
 > the benchmarks cannot tell two substitutes apart it takes the cheaper, and
 > GPT-6 Astra costs five times as much.
+
+> Settings updated 2026-10-18 (refresh): was Claude Opus 5.5 · Max, backup
+> GPT-6.1 Sol · Intelligence Max. The single-column table becomes the full
+> ladder (`roadmodel ladder --category planning --complexity high --phase`);
+> Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
+> Intelligence XHigh.
 
 This roadmap must sequence money, identity and PII so that nothing paid
 ships before its legal, tax and security gates, and must honour the gate's
