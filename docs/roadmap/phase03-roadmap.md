@@ -8286,9 +8286,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 14 — Launch Catalog: Macroeconomics
+## Step 14 — Launch Catalog: Macroeconomics ✅
 
-**Status:** Not started
+**Status:** Complete — PR #144 (2026-10-19)
 
 > **Goal:** Register the six remaining macro entries on the patterns Step 13
 > proved. Add `macro.output_gap` (from potential output, or by the HP,
@@ -8325,6 +8325,10 @@ the price. New conversation per phase-boundary hygiene.
 > Model and effort unchanged (Balanced column); the single-column table
 > becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
 > XHigh.
+
+> Ran 2026-10-19: Balanced — Claude Opus 5.5 on Claude Code (effort as the
+> operator set it). The **Runs:** column; the Claude weekly pool's `tight` row
+> had passed its reset, so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -11969,7 +11973,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
 | 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #140 |
-| 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #144 |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
