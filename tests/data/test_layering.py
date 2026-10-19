@@ -31,7 +31,9 @@ CORE = SRC / "core"
 #: Modules that must stay pure: the value types and the provenance record.
 PURE_MODULES = (
     CORE / "transforms.py",
+    CORE / "binding.py",
     SRC / "data" / "api.py",
+    SRC / "data" / "bindings.py",
     SRC / "data" / "resolver.py",
     SRC / "data" / "catalog" / "__init__.py",
     SRC / "data" / "catalog" / "checks.py",
@@ -386,3 +388,36 @@ def test_importing_the_data_layer_imports_neither_urllib3_nor_truststore(
     # ssl may arrive with other standard-library users; urllib3 and truststore never.
     assert "urllib3" not in result.stdout
     assert "truststore" not in result.stdout
+
+
+def test_bind_is_exported_lazily_so_importing_pyeconomics_loads_no_data_module(
+    tmp_path: Path,
+) -> None:
+    script = (
+        "import sys\n"
+        "import pyeconomics\n"
+        "def data_modules():\n"
+        "    return [m for m in sys.modules if m.startswith('pyeconomics.data')]\n"
+        "print(len(data_modules()))\n"
+        "function = pyeconomics.bind\n"
+        "print(function.__module__, 'pyeconomics.data.bindings' in data_modules())\n"
+        "print('bind' in pyeconomics.__all__, pyeconomics.bind is function)\n"
+        "try:\n"
+        "    pyeconomics.no_such_name\n"
+        "except AttributeError as error:\n"
+        "    print(error)\n"
+    )
+    result = subprocess.run(  # noqa: S603 # nosec B603: fixed arguments, no shell
+        [sys.executable, "-I", "-c", script],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=120,
+    )
+    assert result.stdout.splitlines() == [
+        "0",
+        "pyeconomics.data.bindings True",
+        "True True",
+        "module 'pyeconomics' has no attribute 'no_such_name'",
+    ]

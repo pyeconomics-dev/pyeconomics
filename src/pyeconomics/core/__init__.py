@@ -27,6 +27,14 @@ Examples
 
 """
 
+from pyeconomics.core.binding import (
+    DEFAULT_PROFILE,
+    AsOf,
+    Binding,
+    Bound,
+    CandidateNote,
+    VintagePolicy,
+)
 from pyeconomics.core.calendars import (
     CALENDAR_IDS,
     BusinessDayConvention,
@@ -240,6 +248,7 @@ __all__ = [
     "CALENDAR_IDS",
     "DEFAULT_BOUNDS",
     "DEFAULT_DATE_BOUNDS",
+    "DEFAULT_PROFILE",
     "DEFAULT_ROOT_POLICY",
     "DEFAULT_SEED",
     "DEFAULT_TOLERANCES",
@@ -259,10 +268,14 @@ __all__ = [
     "TRANSFORM_NAMES",
     "UNIT_SCHEMA_KEY",
     "Alias",
+    "AsOf",
     "BatchResult",
+    "Binding",
+    "Bound",
     "Bounds",
     "BusinessDayConvention",
     "CalendarId",
+    "CandidateNote",
     "ChangelogEntry",
     "ChartKind",
     "ChartSpec",
@@ -334,6 +347,7 @@ __all__ = [
     "TransformSpec",
     "Unit",
     "UnitKind",
+    "VintagePolicy",
     "Volatility",
     "VolatilityArray",
     "Years",

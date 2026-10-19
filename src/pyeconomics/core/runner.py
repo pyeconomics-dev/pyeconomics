@@ -8,7 +8,10 @@ warning collector installed, validates the outputs and returns a
 :class:`~pyeconomics.core.results.Result`. :func:`run` first looks the model up by
 id in the installed registry (an alias warns and resolves to the canonical model).
 :class:`~pyeconomics.core.errors.InputError`, ``DomainError`` and
-``ConvergenceError`` propagate unchanged.
+``ConvergenceError`` propagate unchanged. A model's data is bound first
+(``pyeconomics.bind``) and the :class:`~pyeconomics.core.binding.Bound` it returns
+is run like any inputs: the result's manifest then records every series,
+vintage and retrieval time.
 
 :func:`run_batch` evaluates a scalar model over the rows of a table: a pandas or
 Polars DataFrame, anything exposing the Arrow PyCapsule stream interface, or an
@@ -31,6 +34,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import pandas as pd
 
 from pyeconomics.core._optional import import_optional
+from pyeconomics.core.binding import REVISED_DATA, Bound
 from pyeconomics.core.context import collect_warnings
 from pyeconomics.core.errors import InputError
 from pyeconomics.core.results import BatchResult, Result, ResultWarning
@@ -56,15 +60,17 @@ def run_model(
     model
         The model to run.
     inputs
-        An input model instance or a mapping of field values; or leave it out
-        and pass the fields as keywords.
+        An input model instance or a mapping of field values; a
+        :class:`~pyeconomics.core.binding.Bound` from ``pyeconomics.bind``, whose
+        data records go into the result's manifest; or leave it out and pass the
+        fields as keywords.
     **fields
         The input fields as keywords.
 
     Raises
     ------
     InputError
-        If the inputs fail validation.
+        If the inputs fail validation, or a ``Bound`` was bound for another model.
     TypeError
         If both ``inputs`` and keyword fields are given.
     DomainError, ConvergenceError
@@ -75,7 +81,22 @@ def run_model(
         raw = model.compute(validated)
     outputs = model.validate_outputs(raw)
     warnings = [ResultWarning(w.code, w.text) for w in recorded]
-    return Result.build(model, validated, outputs, warnings)
+    if not isinstance(inputs, Bound):
+        return Result.build(model, validated, outputs, warnings)
+    if inputs.revised:
+        warnings.append(_revised_warning(inputs.revised))
+    return Result.build(model, validated, outputs, warnings, inputs.sources)
+
+
+def _revised_warning(fields: tuple[str, ...]) -> ResultWarning:
+    """Say which inputs are revised data: nothing passes it off as real-time."""
+    names = ", ".join(fields)
+    return ResultWarning(
+        REVISED_DATA,
+        f"The values of {names} are revised data: the latest values, not those "
+        "published on the evaluation date, so a historical evaluation on them uses "
+        "information that was not yet available.",
+    )
 
 
 def run(model_id: str, inputs: object = None, /, **fields: object) -> Result[Any, Any]:
@@ -89,8 +110,9 @@ def run(model_id: str, inputs: object = None, /, **fields: object) -> Result[Any
     model_id
         A model id or alias.
     inputs
-        An input model instance or a mapping of field values; or leave it out
-        and pass the fields as keywords.
+        An input model instance or a mapping of field values; a
+        :class:`~pyeconomics.core.binding.Bound` from ``pyeconomics.bind``; or
+        leave it out and pass the fields as keywords.
     **fields
         The input fields as keywords.
 
@@ -99,7 +121,8 @@ def run(model_id: str, inputs: object = None, /, **fields: object) -> Result[Any
     ModelNotFoundError
         If no model or alias has the id.
     InputError
-        If the inputs fail validation.
+        If the inputs fail validation, or a ``Bound`` was bound for another
+        model.
     DomainError, ConvergenceError
         As the model raises them.
     """

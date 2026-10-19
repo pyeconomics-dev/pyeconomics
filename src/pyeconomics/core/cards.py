@@ -7,17 +7,22 @@ A :class:`ModelCard` has the sections ROADMAP section 5 asks of a model: the
 title and summary, the formula (LaTeX), a variables table for the inputs and the
 outputs, assumptions, limitations, the evidence status and what it means, a worked
 example, references, a curriculum-mapping placeholder, the changelog and a
-notice. It renders to MyST Markdown (:meth:`ModelCard.to_markdown`) and in
-notebooks (``_repr_markdown_``). Phase 2 Step 7 builds the docs pages on it.
+notice. A model that declares data bindings gains a "Data" section after the
+variables: each binding's concept, transform, as-of rule and vintage policy, and,
+when the caller supplies them, the licence classes and notices of the sources that
+can fill each concept. It renders to MyST Markdown (:meth:`ModelCard.to_markdown`)
+and in notebooks (``_repr_markdown_``). Phase 2 Step 7 builds the docs pages on it.
 
 The worked example runs the specification's first example. A model whose extra is
 not installed shows why instead of outputs.
 
 Examples
 --------
->>> from pyeconomics.core.cards import SECTION_TITLES, NOTICE
+>>> from pyeconomics.core.cards import BOUND_SECTION_TITLES, SECTION_TITLES, NOTICE
 >>> SECTION_TITLES[0], NOTICE
 ('Formula', 'Educational and informational use only; not investment advice.')
+>>> BOUND_SECTION_TITLES[2]
+'Data'
 """
 
 from __future__ import annotations
@@ -26,17 +31,20 @@ import json
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Final
 
+from pyeconomics.core.binding import AsOf, VintagePolicy
 from pyeconomics.core.context import collect_warnings
 from pyeconomics.core.errors import MissingOptionalDependencyError
 from pyeconomics.core.schema import input_schema, output_schema
 from pyeconomics.core.spec import Evidence
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
+    from pyeconomics.core.binding import Binding, CandidateNote
     from pyeconomics.core.model import Model
 
 __all__ = [
+    "BOUND_SECTION_TITLES",
     "CURRICULUM_NOTE",
     "EVIDENCE_MEANING",
     "NOTICE",
@@ -74,6 +82,21 @@ SECTION_TITLES: Final = (
     "Changelog",
     "Notice",
 )
+
+#: The headings of a model with data bindings: the "Data" section follows the
+#: variables.
+BOUND_SECTION_TITLES: Final = (*SECTION_TITLES[:2], "Data", *SECTION_TITLES[2:])
+
+#: How a card words each as-of rule and vintage policy.
+_AS_OF_WORDS: Final = {
+    AsOf.LAST_ON_OR_BEFORE: "last observation on or before the date",
+    AsOf.PERIOD: "the observation of the period containing the date",
+    AsOf.WINDOW: "the last {window} observations on or before the date",
+}
+_VINTAGE_WORDS: Final = {
+    VintagePolicy.REAL_TIME: "real time: as published by the date",
+    VintagePolicy.LATEST: "latest: revised data",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,6 +237,26 @@ def _json_block(value: Mapping[str, object]) -> list[str]:
     return ["```json", json.dumps(value, indent=2, ensure_ascii=False), "```"]
 
 
+def _binding_row(binding: Binding) -> str:
+    """Render one binding as a table row."""
+    rule = _AS_OF_WORDS.get(binding.as_of, str(binding.as_of)).format(
+        window=binding.window
+    )
+    vintage = _VINTAGE_WORDS.get(binding.vintage, str(binding.vintage))
+    transform = f"`{binding.transform}`" if binding.transform else "none"
+    return (
+        f"| `{binding.field}` | `{binding.concept}` | {_cell(transform)} | "
+        f"{_cell(rule)} | {_cell(vintage)} |"
+    )
+
+
+def _candidate_line(note: CandidateNote) -> str:
+    """Render one source that can fill a concept: its class, attribution, notice."""
+    licence = note.licence.value if note.licence else "derived"
+    pieces = [f"- **{note.provider}** ({licence})", note.attribution, note.notice]
+    return " ".join(" ".join(piece.split()) for piece in pieces if piece)
+
+
 def _worked_example(model: Model[Any, Any]) -> WorkedExample | None:
     if not model.spec.examples:
         return None
@@ -257,10 +300,30 @@ class ModelCard:
     references: tuple[str, ...]
     """Each reference as one line: citation, then DOI or URL, then locator."""
     changelog: tuple[str, ...]
+    bindings: tuple[Binding, ...] = ()
+    """The model's data bindings; a non-empty tuple adds the "Data" section."""
+    candidates: tuple[tuple[str, tuple[CandidateNote, ...]], ...] = ()
+    """For each bound concept, the sources that can fill it, when known."""
 
     @classmethod
-    def from_model(cls, model: Model[Any, Any]) -> ModelCard:
-        """Build the card of a model, running its first example."""
+    def from_model(
+        cls,
+        model: Model[Any, Any],
+        candidates: Mapping[str, Sequence[CandidateNote]] | None = None,
+    ) -> ModelCard:
+        """Build the card of a model, running its first example.
+
+        Parameters
+        ----------
+        model
+            The model.
+        candidates
+            For each concept a binding names, the sources that can fill it, as
+            :class:`~pyeconomics.core.binding.CandidateNote` values. Core cannot
+            read the catalog, so the data layer supplies them
+            (``pyeconomics.data.bindings.candidate_notes``); without them the
+            "Data" section lists the bindings alone.
+        """
         spec = model.spec
         references = []
         for reference in spec.references:
@@ -288,6 +351,10 @@ class ModelCard:
             changelog=tuple(
                 f"Version {entry.version}: {entry.note}" for entry in spec.changelog
             ),
+            bindings=spec.bindings,
+            candidates=tuple(
+                (concept, tuple(notes)) for concept, notes in (candidates or {}).items()
+            ),
         )
 
     def _variables_section(self) -> list[str]:
@@ -298,6 +365,39 @@ class ModelCard:
                 if label is not None:
                     lines += [f"#### Calculation `{label}`", ""]
                 lines += [*_table(rows), ""]
+        return lines
+
+    def _data_section(self) -> list[str]:
+        """List each profile's bindings, then the sources that can fill them."""
+        lines = [
+            "## Data",
+            "",
+            (
+                "This model reads data through bindings: resolve a profile with "
+                f'`pyeconomics.bind("{self.model_id}")` and run the result. A value '
+                "read as revised data carries the `revised_data` warning."
+            ),
+            "",
+        ]
+        for profile in dict.fromkeys(binding.profile for binding in self.bindings):
+            lines += [
+                f"### Profile `{profile}`",
+                "",
+                "| Field | Concept | Transform | As of | Vintage |",
+                "| --- | --- | --- | --- | --- |",
+            ]
+            lines += [
+                _binding_row(binding)
+                for binding in self.bindings
+                if binding.profile == profile
+            ]
+            lines.append("")
+        if self.candidates:
+            lines += ["### Sources", ""]
+            for concept, notes in self.candidates:
+                lines += [f"Concept `{concept}`:", ""]
+                lines += [_candidate_line(note) for note in notes] or ["- None."]
+                lines.append("")
         return lines
 
     def _example_section(self) -> list[str]:
@@ -336,6 +436,8 @@ class ModelCard:
         for formula in self.formula:
             lines += ["$$", formula, "$$", ""]
         lines += self._variables_section()
+        if self.bindings:
+            lines += self._data_section()
         lines += ["## Assumptions", "", *_bullets(self.assumptions), ""]
         lines += ["## Limitations", "", *_bullets(self.limitations), ""]
         lines += [

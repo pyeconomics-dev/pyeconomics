@@ -11,6 +11,8 @@
 ``assumptions``, ``limitations``, ``evidence``, ``cost``, ``references``,
 ``invariants``, ``no_invariants_reason``, ``examples`` (each with ``name``,
 ``note`` and ``inputs`` as the model validates them), ``charts``, ``aliases``,
+``bindings`` (each with ``field``, ``concept``, ``transform``, ``as_of``,
+``window``, ``vintage`` and ``profile``; empty for a model that reads no data),
 ``extra``, ``changelog``, ``input_schema``, ``output_schema`` and ``card``
 (the card's Markdown).
 
@@ -19,6 +21,8 @@ Examples
 >>> from pyeconomics.core.describe import DESCRIPTION_KEYS
 >>> DESCRIPTION_KEYS[:3]
 ('id', 'version', 'domain')
+>>> DESCRIPTION_KEYS.index("bindings") < DESCRIPTION_KEYS.index("extra")
+True
 """
 
 from __future__ import annotations
@@ -30,6 +34,9 @@ from pyeconomics.core.cards import ModelCard
 from pyeconomics.core.schema import input_schema, output_schema
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pyeconomics.core.binding import CandidateNote
     from pyeconomics.core.model import Model
 
 __all__ = ["DESCRIPTION_KEYS", "describe"]
@@ -53,6 +60,7 @@ DESCRIPTION_KEYS: Final = (
     "examples",
     "charts",
     "aliases",
+    "bindings",
     "extra",
     "changelog",
     "input_schema",
@@ -61,8 +69,16 @@ DESCRIPTION_KEYS: Final = (
 )
 
 
-def describe(model: Model[Any, Any]) -> dict[str, Any]:
-    """Describe a model as JSON-ready values; see the module docstring."""
+def describe(
+    model: Model[Any, Any],
+    candidates: Mapping[str, Sequence[CandidateNote]] | None = None,
+) -> dict[str, Any]:
+    """Describe a model as JSON-ready values; see the module docstring.
+
+    ``candidates`` are the sources that can fill each bound concept, which the
+    card's "Data" section lists; core cannot read the catalog, so the data layer
+    supplies them (``pyeconomics.registry.describe`` does).
+    """
     spec = model.spec
     description: dict[str, Any] = {
         "id": spec.id,
@@ -92,10 +108,11 @@ def describe(model: Model[Any, Any]) -> dict[str, Any]:
             for chart in spec.charts
         ],
         "aliases": [asdict(alias) for alias in spec.aliases],
+        "bindings": [binding.to_dict() for binding in spec.bindings],
         "extra": spec.extra,
         "changelog": [asdict(entry) for entry in spec.changelog],
         "input_schema": input_schema(model),
         "output_schema": output_schema(model),
-        "card": ModelCard.from_model(model).to_markdown(),
+        "card": ModelCard.from_model(model, candidates).to_markdown(),
     }
     return description

@@ -376,3 +376,75 @@ def test_the_script_runs_as_a_command(tmp_path: Path) -> None:
     )
     assert run.returncode == 2
     assert "is not one of the domains" in run.stderr
+
+
+# --- --bound: a model that reads data -------------------------------------------
+
+
+def test_bound_adds_one_binding_on_a_catalog_concept_and_a_bound_example(
+    tmp_path: Path,
+) -> None:
+    nm.write(nm.plan(ID, tmp_path, year=2026, bound=True))
+    module = (tmp_path / "src/pyeconomics/models/fixed_income/convexity.py").read_text(
+        encoding="utf-8"
+    )
+    test = (tmp_path / "tests/models/fixed_income/test_convexity.py").read_text(
+        encoding="utf-8"
+    )
+    ast.parse(module)
+    ast.parse(test)
+    assert "    Binding,\n" in module
+    assert 'bindings=(Binding("value", "us.unemployment.rate"),)' in module
+    assert "value: Rate = Field(ge=-0.99, le=10.0" in module
+    assert 'inputs={"value": 0.04}' in module
+    assert "def test_bound_example() -> None:" in test
+    assert "bind_model(convexity" in test
+    assert test.count("NotImplementedError") == 2  # both skeletons fail until done
+
+
+def test_without_bound_the_skeleton_is_what_it_was(tmp_path: Path) -> None:
+    plain = nm.plan(ID, tmp_path, year=2026)
+    module = next(t for p, t in plain.files.items() if p.name == "convexity.py")
+    test = next(t for p, t in plain.files.items() if p.name == "test_convexity.py")
+    assert "Binding" not in module
+    assert "bindings=" not in module
+    assert "value: Ratio = Field(ge=-1e6, le=1e6" in module
+    assert "test_bound_example" not in test
+
+
+def test_the_bound_skeleton_is_a_valid_bound_model_whose_binding_validates(
+    tmp_path: Path,
+) -> None:
+    nm.write(nm.plan(ID, tmp_path, year=2026, bound=True))
+    path = tmp_path / "src/pyeconomics/models/fixed_income/convexity.py"
+    spec = importlib.util.spec_from_file_location("scaffolded_bound_module", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    # pydantic resolves the module's postponed annotations through sys.modules.
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    model = module.convexity
+    assert [b.concept for b in model.spec.bindings] == ["us.unemployment.rate"]
+    registry = Registry.from_models(model)
+    rules = {problem.rule for problem in registry.problems(released={})}
+    assert "bindings" not in rules  # the TODO prose fails; the binding does not
+    assert "formula" in rules
+    from pyeconomics import data  # noqa: PLC0415 - only this test needs the data layer
+
+    data.validate_bindings(registry)
+
+
+def test_main_takes_bound_and_says_how_to_check_the_binding(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert nm.main(["new_model.py", ID, "--bound"], tmp_path) == 0
+    out = capsys.readouterr().out
+    assert "validate_bindings()" in out
+    module = (tmp_path / "src/pyeconomics/models/fixed_income/convexity.py").read_text(
+        encoding="utf-8"
+    )
+    assert "Binding(" in module
+    plain = tmp_path / "plain"
+    assert nm.main(["new_model.py", ID], plain) == 0
+    assert "validate_bindings" not in capsys.readouterr().out

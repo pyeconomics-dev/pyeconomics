@@ -239,6 +239,7 @@ def test_table_cells_are_escaped() -> None:
 def test_describe_is_json_ready_and_canonical(model: Model[Any, Any]) -> None:
     description = describe(model)
     assert tuple(description) == DESCRIPTION_KEYS
+    assert description["bindings"] == []  # none of these models reads data
     canonical_json(description)
     assert json.loads(json.dumps(description)) == description
     assert description["id"] == model.id
