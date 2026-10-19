@@ -7709,9 +7709,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 13 — Monetary-Policy Suite
+## Step 13 — Monetary-Policy Suite ✅
 
-**Status:** Not started
+**Status:** Complete — PR #140 (2026-10-19)
 
 > **Goal:** Rebuild 0.2.x's four FRED-bound rules as the project's flagship: a
 > cited, vintage-aware family that reproduces the Federal Reserve's own
@@ -7753,6 +7753,10 @@ the price. New conversation per phase-boundary hygiene.
 > Coding PRIMARY, knowledge SECONDARY, High, not novel. The ladder's Balanced
 > column is Opus 5.5 at High; the Quality column (XHigh) is the raise if the
 > verification burden or a tight pool says so.
+
+> Ran 2026-10-19: Balanced — Claude Opus 5.5 on Claude Code (effort as the
+> operator set it). The **Runs:** column; the Claude weekly pool's `tight` row
+> had passed its reset, so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -11944,7 +11948,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
-| 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #140 |
 | 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
