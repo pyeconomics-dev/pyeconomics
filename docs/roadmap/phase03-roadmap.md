@@ -7186,9 +7186,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 12 — Live Bindings and Vintage-Aware Runs
+## Step 12 — Live Bindings and Vintage-Aware Runs ✅
 
-**Status:** Not started
+**Status:** Complete — PR #132 (2026-10-18)
 
 > **Goal:** Connect the data layer to the model registry without making a single
 > model impure. Add `src/pyeconomics/core/binding.py` (`Binding`, its as-of
@@ -11992,7 +11992,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
-| 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
 | 13      | Monetary-policy suite            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 14      | Catalog: macro                   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Not started |
