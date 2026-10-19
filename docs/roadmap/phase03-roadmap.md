@@ -12296,7 +12296,9 @@ Carried over during execution — the Triage rule's carry-over checklist:
   (Step 11); a candidate `vintages` flag (Step 11), because ALFRED refuses a
   real-time request for FRED's daily `EFFR`, `DFEDTARU`, `DFEDTARL`, `DGS10`,
   `DGS3MO` and `DFII10` (probed live for every FRED candidate), which made every
-  real-time bind of the funds rate raise; `bind` of a union model needs
+  real-time bind of the funds rate raise (the resolver now refuses a vintage a
+  source can never serve before it asks for a key, so a missing key is not
+  blamed for it); `bind` of a union model needs
   `calculation=` and reads only its fields, and an `AsOf.PERIOD` bind reads up to
   the end of the period containing the date, so a source without it is passed over
   (both Step 12, found when CBO's as-of-2019 read held nothing before 2021);

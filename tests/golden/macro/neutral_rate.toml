@@ -29,7 +29,7 @@ id = "hlw_united_states_2026q2"
 source = "nyfed_hlw"
 locator = "Sheet HLW Estimates, row 268 (2026-04-01, 2026Q2), column K (Natural Rate, US)"
 edge = false
-inputs = { calculation = "holston_laubach_williams", estimate = 0.0100864835850403 }
+inputs = { calculation = "holston_laubach_williams", hlw_estimate = 0.0100864835850403 }
 expected = { real_neutral_rate = 0.0100864835850403, nominal_neutral_rate = 0.030086483585040298 }
 
 [[cases]]
@@ -37,7 +37,7 @@ id = "hlw_euro_area_2026q2"
 source = "nyfed_hlw"
 locator = "Sheet HLW Estimates, row 268 (2026Q2), column M (Natural Rate, Euro Area)"
 edge = false
-inputs = { calculation = "holston_laubach_williams", estimate = 0.0008554491045615451 }
+inputs = { calculation = "holston_laubach_williams", hlw_estimate = 0.0008554491045615451 }
 expected = { real_neutral_rate = 0.0008554491045615451, nominal_neutral_rate = 0.020855449104561545 }
 note = "An r* of under a tenth of a percentage point."
 
@@ -46,7 +46,7 @@ id = "lw_united_states_2026q2"
 source = "nyfed_lw"
 locator = "Sheet data, row 268 (2026-04-01, 2026Q2), column C (one-sided rstar)"
 edge = false
-inputs = { calculation = "laubach_williams", estimate = 0.0165244303831991, policy_rate = 0.0364, inflation = 0.03 }
+inputs = { calculation = "laubach_williams", lw_estimate = 0.0165244303831991, policy_rate = 0.0364, inflation = 0.03 }
 expected = { real_neutral_rate = 0.0165244303831991, real_policy_gap = -0.010124430383199098 }
 
 [[cases]]

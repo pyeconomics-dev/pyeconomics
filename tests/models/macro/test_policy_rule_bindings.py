@@ -181,6 +181,13 @@ def _nyfed() -> type[DataProvider]:
                 quarters,
                 {"rstar_US": (0.0072, 0.0075, 0.0078, 0.0080, 0.0083)},
             ),
+            "lw": _table(
+                "nyfed",
+                "lw",
+                ObservationFrequency.QUARTERLY,
+                quarters,
+                {"rstar": (0.0121, 0.0124, 0.0127, 0.0130, 0.0133)},
+            ),
             "effr": _table(
                 "nyfed",
                 "effr",
@@ -321,11 +328,14 @@ def test_a_calculation_binds_only_its_own_fields(world: ProviderRegistry) -> Non
         bind(world, as_of=PAST, overrides={"cumulative_shortfall": 0.01})
 
 
-def test_a_period_rule_passes_over_a_source_without_the_period() -> None:
-    # CBO keeps vintages, but its quarterly file starts in 2025: as of mid-2024
+# On the quarter's last day as well: the read stops at that quarter's end, so a
+# source whose data starts the next quarter is still passed over.
+@pytest.mark.parametrize("day", [PAST, dt.date(2024, 6, 30)])
+def test_a_period_rule_passes_over_a_source_without_the_period(day: dt.date) -> None:
+    # CBO keeps vintages, but its quarterly file starts in 2024 Q3: as of Q2
     # it holds no second quarter of 2024, so the bind reads FRED's NROU instead
     # of picking CBO and failing the period.
-    quarters = period_ends(ObservationFrequency.QUARTERLY, (2025, 3), 4)
+    quarters = period_ends(ObservationFrequency.QUARTERLY, (2024, 9), 4)
     late = Series(
         quarters,
         (0.043, 0.043, 0.043, 0.043),
@@ -342,7 +352,7 @@ def test_a_period_rule_passes_over_a_source_without_the_period() -> None:
         {"quarterly:noncyclical_rate_of_unemployment": late},
         capabilities=(Capability.FETCH, Capability.VINTAGES),
     )
-    bound = bind(registry_of(_fred(), _nyfed(), cbo), as_of=PAST)
+    bound = bind(registry_of(_fred(), _nyfed(), cbo), as_of=day)
     natural = {r.field: r for r in bound.sources}["natural_unemployment"]
     assert natural.provider == "fred"
     assert natural.fallback_chain == ("cbo", "fred")
@@ -382,20 +392,30 @@ def test_the_sep_profile_needs_its_meeting_and_year(world: ProviderRegistry) -> 
         bind(world, profile="us_sep", parameters={"meeting": "2024-06-12"})
 
 
-def test_the_neutral_rate_binds_the_hlw_estimate(world: ProviderRegistry) -> None:
-    bound = bind_model(
-        neutral_rate,
-        as_of=PAST,
-        registry=world,
-        overrides={"calculation": "holston_laubach_williams"},
-    )
-    assert bound.values["estimate"] == 0.0083
-    result = run_model(neutral_rate, bound)
+def test_the_neutral_rate_binds_each_models_own_estimate(
+    world: ProviderRegistry,
+) -> None:
+    def bound_for(calculation: str) -> Bound:
+        return bind_model(
+            neutral_rate,
+            as_of=PAST,
+            registry=world,
+            overrides={"calculation": calculation},
+        )
+
+    hlw = bound_for("holston_laubach_williams")
+    assert hlw.values["hlw_estimate"] == 0.0083
+    assert "lw_estimate" not in hlw.values
+    lw = bound_for("laubach_williams")
+    assert lw.values["lw_estimate"] == 0.0133
+    concepts = {r.field: r.concept for r in lw.sources}
+    assert concepts["lw_estimate"] == "us.neutral_rate.laubach_williams"
+    result = run_model(neutral_rate, hlw)
     assert result.outputs.real_policy_gap == pytest.approx(
         0.0533 - (1.0025**12 - 1) - 0.0083
     )
     assert {r.field for r in result.manifest.data_sources} == {
-        "estimate",
+        "hlw_estimate",
         "inflation",
         "policy_rate",
     }

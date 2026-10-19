@@ -41,7 +41,8 @@ def estimates(draw: st.DrawFn) -> dict[str, Any]:
     elif calculation == "constant":
         inputs["real_rate"] = draw(REAL)
     else:
-        inputs["estimate"] = draw(REAL)
+        prefix = "lw" if calculation == "laubach_williams" else "hlw"
+        inputs[f"{prefix}_estimate"] = draw(REAL)
     return inputs
 
 
@@ -86,7 +87,7 @@ def test_a_policy_rate_needs_inflation_and_inflation_a_policy_rate(
     given_: dict[str, float],
 ) -> None:
     with pytest.raises(InputError, match="together"):
-        run(calculation="holston_laubach_williams", estimate=0.01, **given_)
+        run(calculation="holston_laubach_williams", hlw_estimate=0.01, **given_)
 
 
 def test_the_sep_rate_less_the_target_is_r_star() -> None:

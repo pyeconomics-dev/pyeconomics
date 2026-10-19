@@ -258,11 +258,14 @@ class AdjustedTaylor1993Inputs(_Level):
             "below the lower bound, still to be made up"
         ),
     )
-    lower_bound: Rate | None = Field(
+    lower_bound: Rate = Field(
         _ELB,
         ge=_RATE_MIN,
         le=_BOUND_MAX,
-        description="The effective lower bound; the Board's is 12.5 basis points",
+        description=(
+            "The effective lower bound the rule is floored at; the Board's is 12.5 "
+            "basis points"
+        ),
     )
 
 
@@ -436,6 +439,7 @@ class PathInputs(ModelInputs):
                 msg = f"{name} has {len(value)} horizons; inflation_path has {size}"
                 raise ValueError(msg)
         _band(self, measure)
+        _used_by_the_rule(self)
         level = self.rule != "first_difference"
         given = (self.neutral_real_rate is not None) + (
             self.neutral_nominal_rate is not None
@@ -460,6 +464,22 @@ class PathInputs(ModelInputs):
             msg = "smoothing needs previous_rate, the policy rate it smooths from"
             raise ValueError(msg)
         return self
+
+
+def _used_by_the_rule(inputs: PathInputs) -> None:
+    """Refuse a path input the chosen rule would ignore."""
+    if inputs.rule != "adjusted_taylor_1993" and inputs.cumulative_shortfall > 0:
+        msg = f"cumulative_shortfall is the adjusted rule's; {inputs.rule} takes none"
+        raise ValueError(msg)
+    lagged = (
+        "output_gap_lagged_path",
+        "unemployment_lagged_path",
+        "natural_unemployment_lagged_path",
+    )
+    given = [name for name in lagged if getattr(inputs, name) is not None]
+    if inputs.rule != "first_difference" and given:
+        msg = f"{given[0]} is the first-difference rule's; {inputs.rule} takes none"
+        raise ValueError(msg)
 
 
 def _measure(
@@ -1132,6 +1152,10 @@ _RULE_BINDINGS: Final = (
             "A path holds the adjusted rule's shortfall fixed, and a "
             "first-difference path accumulates its changes, so it can drift far "
             "from any level a central bank would set."
+        ),
+        (
+            "Only the default and us_output_gap profiles bind the first-difference "
+            "rule's gap four quarters back; with any other, supply it."
         ),
         (
             "The gb profile binds no neutral rate, because the New York Fed "

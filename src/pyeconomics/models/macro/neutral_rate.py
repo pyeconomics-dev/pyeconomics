@@ -110,7 +110,7 @@ class LaubachWilliamsInputs(_Neutral):
     calculation: Literal["laubach_williams"] = Field(
         "laubach_williams", description="r* from the Laubach-Williams model"
     )
-    estimate: Rate = _estimate("Laubach-Williams")
+    lw_estimate: Rate = _estimate("Laubach-Williams")
 
 
 class HolstonLaubachWilliamsInputs(_Neutral):
@@ -120,7 +120,7 @@ class HolstonLaubachWilliamsInputs(_Neutral):
         "holston_laubach_williams",
         description="r* from the Holston-Laubach-Williams model",
     )
-    estimate: Rate = _estimate("Holston-Laubach-Williams")
+    hlw_estimate: Rate = _estimate("Holston-Laubach-Williams")
 
 
 class SepLongerRunInputs(_Neutral):
@@ -231,14 +231,14 @@ def _report(
 
 
 def _laubach_williams(inputs: LaubachWilliamsInputs) -> LaubachWilliamsOutputs:
-    return LaubachWilliamsOutputs.model_validate(_report(inputs, inputs.estimate))
+    return LaubachWilliamsOutputs.model_validate(_report(inputs, inputs.lw_estimate))
 
 
 def _holston(
     inputs: HolstonLaubachWilliamsInputs,
 ) -> HolstonLaubachWilliamsOutputs:
     return HolstonLaubachWilliamsOutputs.model_validate(
-        _report(inputs, inputs.estimate)
+        _report(inputs, inputs.hlw_estimate)
     )
 
 
@@ -319,11 +319,11 @@ _SEP = Reference(
             "inflation, as the policy-rule literature uses it."
         ),
         (
-            "Profiles: default binds the HLW estimate for the United States, the "
-            "effective funds rate and core PCE inflation; laubach_williams the LW "
-            "estimate; us_sep the SEP's longer-run rate for a meeting; ea and ca "
-            "the HLW estimate, policy rate and inflation of the euro area and "
-            "Canada."
+            "Profiles: default binds the LW and HLW estimates for the United "
+            "States (each calculation reads its own), the effective funds rate and "
+            "core PCE inflation; us_sep the SEP's longer-run rate for a meeting; ea "
+            "and ca the HLW estimate, policy rate and inflation of the euro area "
+            "and Canada (the New York Fed publishes LW for the United States only)."
         ),
     ),
     limitations=(
@@ -360,14 +360,14 @@ _SEP = Reference(
             name="holston_laubach_williams",
             inputs={
                 "calculation": "holston_laubach_williams",
-                "estimate": 0.0101,
+                "hlw_estimate": 0.0101,
                 "policy_rate": 0.0364,
                 "inflation": 0.03,
             },
         ),
         Example(
             name="laubach_williams",
-            inputs={"calculation": "laubach_williams", "estimate": 0.0165},
+            inputs={"calculation": "laubach_williams", "lw_estimate": 0.0165},
         ),
         Example(
             name="sep_longer_run",
@@ -378,23 +378,21 @@ _SEP = Reference(
         ),
     ),
     bindings=(
-        Binding("estimate", "us.neutral_rate.hlw"),
+        # Each published estimate has its own field, so a calculation reads its
+        # own model's r*: the default profile binds both US estimates.
+        Binding("hlw_estimate", "us.neutral_rate.hlw"),
+        Binding("lw_estimate", "us.neutral_rate.laubach_williams"),
         Binding("policy_rate", "us.policy_rate.effective"),
         Binding("inflation", "us.inflation.pce_core.yoy"),
-        Binding(
-            "estimate", "us.neutral_rate.laubach_williams", profile="laubach_williams"
-        ),
-        Binding("policy_rate", "us.policy_rate.effective", profile="laubach_williams"),
-        Binding("inflation", "us.inflation.pce_core.yoy", profile="laubach_williams"),
         Binding(
             "longer_run_policy_rate", "us.sep.policy_rate_longer_run", profile="us_sep"
         ),
         Binding("policy_rate", "us.policy_rate.effective", profile="us_sep"),
         Binding("inflation", "us.inflation.pce_core.yoy", profile="us_sep"),
-        Binding("estimate", "ea.neutral_rate.hlw", profile="ea"),
+        Binding("hlw_estimate", "ea.neutral_rate.hlw", profile="ea"),
         Binding("policy_rate", "ea.policy_rate.headline", profile="ea"),
         Binding("inflation", "ea.inflation.hicp.yoy", profile="ea"),
-        Binding("estimate", "ca.neutral_rate.hlw", profile="ca"),
+        Binding("hlw_estimate", "ca.neutral_rate.hlw", profile="ca"),
         Binding("policy_rate", "ca.policy_rate.headline", profile="ca"),
         Binding("inflation", "ca.inflation.cpi.yoy", profile="ca"),
     ),

@@ -60,7 +60,7 @@ from pyeconomics.core.binding import (
     CandidateNote,
     FieldShape,
     VintagePolicy,
-    calculation_fields,
+    calculations,
     field_shapes,
     user_supplied,
 )
@@ -88,6 +88,8 @@ from pyeconomics.data.types import (
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    from pydantic import BaseModel
 
     from pyeconomics.core.model import Model
     from pyeconomics.core.registry import Registry
@@ -262,11 +264,12 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     chosen = _profile(model, profile)
     shapes = field_shapes(model.spec.inputs)
     given = dict(overrides or {})
-    fields = _calculation(model, given)
-    if fields is not None:
-        # A family of calculations: read only what the named one takes.
-        chosen = [binding for binding in chosen if binding.field in fields]
-        shapes = {name: shapes[name] for name in shapes if name in fields}
+    member = _calculation(model, given)
+    if member is not None:
+        # A family of calculations: read only what the named one takes, in the
+        # shapes that calculation gives its fields.
+        shapes = field_shapes(member)
+        chosen = [binding for binding in chosen if binding.field in shapes]
     unknown = sorted(set(given) - set(shapes))
     if unknown:
         known = ", ".join(sorted(shapes))
@@ -312,12 +315,12 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
 
 def _calculation(
     model: Model[Any, Any], given: Mapping[str, object]
-) -> frozenset[str] | None:
-    """Return the fields of the calculation a bind names, for a union model.
+) -> type[BaseModel] | None:
+    """Return the input model of the calculation a bind names, for a union model.
 
     A model with one set of inputs returns ``None``: every binding applies.
     """
-    families = calculation_fields(model.spec.inputs)
+    families = calculations(model.spec.inputs)
     if not families:
         return None
     named = given.get(CALCULATION_FIELD)
@@ -431,7 +434,10 @@ def _resolve(
     # published). A source with nothing up to then is skipped, not picked.
     end = day
     if binding.as_of is AsOf.PERIOD and not concept.needs_window and day is not None:
-        end = min(day + dt.timedelta(days=_SPAN_DAYS[concept.frequency]), _LAST_DAY)
+        last = tf.period_end(day, concept.frequency, concept.year_ends_in)
+        if last is None:  # a week: it ends within its span of the date
+            last = day + dt.timedelta(days=_SPAN_DAYS[concept.frequency] - 1)
+        end = min(last, _LAST_DAY)
     common: dict[str, Any] = {
         "start": start,
         "end": end,

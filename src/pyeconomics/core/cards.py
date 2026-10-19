@@ -31,7 +31,7 @@ import json
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Final
 
-from pyeconomics.core.binding import AsOf, VintagePolicy
+from pyeconomics.core.binding import AsOf, VintagePolicy, calculations
 from pyeconomics.core.context import collect_warnings
 from pyeconomics.core.errors import MissingOptionalDependencyError
 from pyeconomics.core.schema import input_schema, output_schema
@@ -304,6 +304,8 @@ class ModelCard:
     """The model's data bindings; a non-empty tuple adds the "Data" section."""
     candidates: tuple[tuple[str, tuple[CandidateNote, ...]], ...] = ()
     """For each bound concept, the sources that can fill it, when known."""
+    calculation: str | None = None
+    """For a model with several calculations, the one the card's bind call names."""
 
     @classmethod
     def from_model(
@@ -352,6 +354,7 @@ class ModelCard:
                 f"Version {entry.version}: {entry.note}" for entry in spec.changelog
             ),
             bindings=spec.bindings,
+            calculation=next(iter(calculations(spec.inputs)), None),
             candidates=tuple(
                 (concept, tuple(notes)) for concept, notes in (candidates or {}).items()
             ),
@@ -367,6 +370,12 @@ class ModelCard:
                 lines += [*_table(rows), ""]
         return lines
 
+    def _bind_call(self) -> str:
+        """Return the call that binds the model; a family names a calculation."""
+        if self.calculation is None:
+            return f'pyeconomics.bind("{self.model_id}")'
+        return f'pyeconomics.bind("{self.model_id}", calculation="{self.calculation}")'
+
     def _data_section(self) -> list[str]:
         """List each profile's bindings, then the sources that can fill them."""
         lines = [
@@ -374,8 +383,8 @@ class ModelCard:
             "",
             (
                 "This model reads data through bindings: resolve a profile with "
-                f'`pyeconomics.bind("{self.model_id}")` and run the result. A value '
-                "read as revised data carries the `revised_data` warning."
+                f"`{self._bind_call()}` and run the result. A value read as revised "
+                "data carries the `revised_data` warning."
             ),
             "",
         ]

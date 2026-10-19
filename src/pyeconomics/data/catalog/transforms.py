@@ -91,6 +91,7 @@ __all__ = [
     "merge_terms",
     "pct_change",
     "period",
+    "period_end",
     "ratio",
     "window",
     "yoy",
@@ -951,13 +952,38 @@ def asof(series: Series, date: dt.date, max_age_days: int | None = None) -> Seri
     )
 
 
+def period_end(
+    date: dt.date, frequency: ObservationFrequency, year_ends_in: int = 12
+) -> dt.date | None:
+    """Return the last day of the period at ``frequency`` that contains ``date``.
+
+    A month-based period counts from the month its year ends in (CBO's fiscal
+    year ends in September); a daily period is the day. Any other frequency
+    has no period a date alone fixes, and gives ``None``.
+
+    Examples
+    --------
+    >>> import datetime as dt
+    >>> period_end(dt.date(2024, 5, 15), ObservationFrequency.QUARTERLY)
+    datetime.date(2024, 6, 30)
+    >>> period_end(dt.date(2024, 6, 30), ObservationFrequency.QUARTERLY)
+    datetime.date(2024, 6, 30)
+    >>> period_end(dt.date(2024, 10, 1), ObservationFrequency.ANNUAL, 9)
+    datetime.date(2025, 9, 30)
+    """
+    step = _MONTHS_PER_PERIOD.get(frequency)
+    if step is not None:
+        return _group_end(_group_number(date, step, year_ends_in), step, year_ends_in)
+    if frequency in {ObservationFrequency.DAILY, ObservationFrequency.BUSINESS_DAILY}:
+        return date
+    return None
+
+
 def _period_end_of(series: Series, date: dt.date) -> dt.date | None:
     meta = series.meta
     step = _step(meta)
     if step is not None:
-        return _group_end(
-            _group_number(date, step, meta.year_ends_in), step, meta.year_ends_in
-        )
+        return period_end(date, meta.frequency, meta.year_ends_in)
     if meta.week_ends_on is not None:
         gap = (meta.week_ends_on.number - date.weekday()) % _DAYS_IN_WEEK
         return date + dt.timedelta(days=gap)

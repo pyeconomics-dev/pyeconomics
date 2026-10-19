@@ -1093,7 +1093,8 @@ def _policy_path(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
             drawn.pop(name)
     drawn.pop("gap_measure", None)
     size = draw(st.integers(min_value=1, max_value=MAX_ITEMS))
-    rule = drawn["rule"]
+    if drawn["rule"] != "adjusted_taylor_1993":
+        drawn.pop("cumulative_shortfall", None)  # the adjusted rule's alone
     inflation = st.floats(min_value=-0.2, max_value=0.5)
     gaps = st.floats(min_value=-0.3, max_value=0.3)
     rates = st.floats(min_value=0.0, max_value=0.3)
@@ -1111,21 +1112,34 @@ def _policy_path(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
     drawn[f"{stem}_path"] = middle
     if banded and draw(st.booleans()):
         drawn |= {f"{stem}_low_path": low, f"{stem}_high_path": high}
-    path = st.lists(element, min_size=size, max_size=size)
     natural = st.lists(rates, min_size=size, max_size=size)
     if measure == "unemployment":
         drawn["natural_unemployment_path"] = draw(natural)
-    if rule == "first_difference":
-        drawn["previous_rate"] = draw(_field(cls, "previous_rate"))
-        drawn[f"{stem}_lagged_path"] = draw(path)
-        if measure == "unemployment" and draw(st.booleans()):
-            drawn["natural_unemployment_lagged_path"] = draw(natural)
-    else:
-        neutral = draw(st.sampled_from(_NEUTRAL_FIELDS))
-        drawn[neutral] = draw(_field(cls, neutral))
-        if drawn.get("smoothing", 0.0) > 0 or draw(st.booleans()):
-            drawn["previous_rate"] = draw(_field(cls, "previous_rate"))
-    return drawn
+    lagged = st.lists(element, min_size=size, max_size=size)
+    return drawn | _path_rule_inputs(draw, cls, drawn, stem, (lagged, natural))
+
+
+def _path_rule_inputs(
+    draw: st.DrawFn,
+    cls: type[BaseModel],
+    drawn: dict[str, Any],
+    stem: str,
+    paths: tuple[SearchStrategy[list[float]], SearchStrategy[list[float]]],
+) -> dict[str, Any]:
+    """What a path's rule needs: lagged paths, or a neutral rate and a rate."""
+    lagged, natural = paths
+    extra: dict[str, Any] = {}
+    if drawn["rule"] == "first_difference":
+        extra["previous_rate"] = draw(_field(cls, "previous_rate"))
+        extra[f"{stem}_lagged_path"] = draw(lagged)
+        if stem == "unemployment" and draw(st.booleans()):
+            extra["natural_unemployment_lagged_path"] = draw(natural)
+        return extra
+    neutral = draw(st.sampled_from(_NEUTRAL_FIELDS))
+    extra[neutral] = draw(_field(cls, neutral))
+    if drawn.get("smoothing", 0.0) > 0 or draw(st.booleans()):
+        extra["previous_rate"] = draw(_field(cls, "previous_rate"))
+    return extra
 
 
 def _policy_rule() -> SearchStrategy[dict[str, Any]]:

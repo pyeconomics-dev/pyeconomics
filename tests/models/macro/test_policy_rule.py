@@ -175,14 +175,16 @@ def test_no_smoothing_ignores_the_previous_rate(  # noqa: PLR0913, PLR0917 - the
         "neutral_real_rate": neutral,
         "inflation_weight": alpha,
         "resource_weight": beta,
-        "lower_bound": None,
     }
+    if rule != "adjusted_taylor_1993":
+        inputs["lower_bound"] = None  # the adjusted rule is floored by definition
     one = run(**inputs, previous_rate=first)
     two = run(**inputs, previous_rate=second)
     assert one == two
-    assert math.isclose(
-        one.prescribed_rate, _plain(rule, inputs), rel_tol=1e-12, abs_tol=1e-15
-    )
+    plain = _plain(rule, inputs)
+    if rule == "adjusted_taylor_1993":
+        plain = max(plain, 0.00125)
+    assert math.isclose(one.prescribed_rate, plain, rel_tol=1e-12, abs_tol=1e-15)
 
 
 @pytest.mark.invariant("macro.policy_rule", "elb_floors_the_prescription")
@@ -647,6 +649,8 @@ PATH = {
             },
             "a band on the output gap",
         ),
+        ({"cumulative_shortfall": 0.01}, "cumulative_shortfall is the adjusted rule"),
+        ({"output_gap_lagged_path": [0.0, 0.0]}, "is the first-difference rule's"),
     ],
 )
 def test_a_path_refuses_inputs_that_do_not_fit(
@@ -702,3 +706,30 @@ def test_the_fan_chart_draws_the_band_and_the_central_path() -> None:
     assert upper.fill == "tonexty"
     assert list(central.x) == [0, 1, 2, 3, 4]
     assert all(a <= b <= c for a, b, c in zip(lower.y, central.y, upper.y, strict=True))
+
+
+def test_the_card_names_a_calculation_in_its_bind_call() -> None:
+    from pyeconomics.core.cards import ModelCard  # noqa: PLC0415
+
+    markdown = ModelCard.from_model(policy_rule).to_markdown()
+    assert (
+        'pyeconomics.bind("macro.policy_rule", calculation="taylor_1993")' in markdown
+    )
+
+
+def test_the_adjusted_rule_is_floored_by_definition() -> None:
+    with pytest.raises(InputError):
+        run(
+            **rule_inputs(
+                "adjusted_taylor_1993", inflation=0.0, output_gap=-0.1, lower_bound=None
+            )
+        )
+    scalar = run(**rule_inputs("adjusted_taylor_1993", inflation=0.0, output_gap=-0.1))
+    path = run(
+        calculation="path",
+        rule="adjusted_taylor_1993",
+        neutral_real_rate=0.005,
+        inflation_path=[0.0],
+        output_gap_path=[-0.1],
+    )
+    assert scalar.prescribed_rate == path.prescribed_path[0] == 0.00125

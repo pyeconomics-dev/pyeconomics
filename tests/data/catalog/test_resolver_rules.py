@@ -944,6 +944,20 @@ def test_a_series_kept_without_vintages_is_skipped_by_a_vintage_request() -> Non
     assert resolve(kept, registry=registry_of(a)).source.provider == "alpha"
 
 
+def test_a_missing_key_is_not_blamed_for_a_vintage_no_source_keeps() -> None:
+    keyed = scripted(
+        "alpha",
+        {"A": monthly(DATA, provider="alpha", terms=LIBRARY_TERMS)},
+        licence=LicenceClass.LIBRARY_ONLY,
+        capabilities=(Capability.FETCH, Capability.VINTAGES),
+        keyed=True,
+    )
+    kept = concept((Candidate(provider="alpha", series="A", vintages=False),))
+    with pytest.raises(DataError, match="keeps no vintages of A") as caught:
+        resolve(kept, as_of=dt.date(2025, 6, 30), registry=registry_of(keyed))
+    assert not isinstance(caught.value, CredentialError)
+
+
 def test_a_series_concept_over_a_table_with_no_column_named_is_passed_over() -> None:
     a = scripted("alpha", {"curve": _table()})
     with pytest.raises(DataError, match="needs a column of it"):

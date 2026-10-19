@@ -81,7 +81,7 @@ __all__ = [
     "CandidateNote",
     "FieldShape",
     "VintagePolicy",
-    "calculation_fields",
+    "calculations",
     "field_shapes",
     "user_supplied",
 ]
@@ -335,8 +335,8 @@ def _shape(tp: object, metadata: list[object]) -> FieldShape:
     return FieldShape(kind=units[-1].kind if units else None, array=False)
 
 
-def calculation_fields(inputs: object) -> dict[str, frozenset[str]]:
-    """Map each calculation of a union of inputs to the fields it takes.
+def calculations(inputs: object) -> dict[str, type[BaseModel]]:
+    """Map each calculation of a union of inputs to the input model it takes.
 
     A model whose inputs are one model, not a union on ``calculation``, gives an
     empty mapping. A bind of a union model reads only the fields of the
@@ -353,20 +353,21 @@ def calculation_fields(inputs: object) -> dict[str, frozenset[str]]:
     ...     rate: Rate = Field(ge=0, le=1, description="A rate")
     >>> class B(ModelInputs):
     ...     calculation: Literal["b"] = Field("b", description="B")
-    >>> family = Annotated[A | B, Field(discriminator="calculation")]
-    >>> fields = calculation_fields(family)
-    >>> sorted(fields["a"]), sorted(fields["b"])
+    >>> family = calculations(Annotated[A | B, Field(discriminator="calculation")])
+    >>> sorted(family["a"].model_fields), sorted(family["b"].model_fields)
     (['calculation', 'rate'], ['calculation'])
+    >>> calculations(A)
+    {}
     """
     if union_discriminator(inputs) != CALCULATION_FIELD:
         return {}
-    found: dict[str, frozenset[str]] = {}
+    found: dict[str, type[BaseModel]] = {}
     for member in union_members(inputs):
         if not (isinstance(member, type) and issubclass(member, BaseModel)):
-            continue
+            continue  # pragma: no cover - registry.validate() refuses such a union
         tag = member.model_fields.get(CALCULATION_FIELD)
         if tag is not None and isinstance(tag.default, str):
-            found[tag.default] = frozenset(member.model_fields)
+            found[tag.default] = member
     return found
 
 
