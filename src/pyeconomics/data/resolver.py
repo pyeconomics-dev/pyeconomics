@@ -482,8 +482,14 @@ def _skip_for(
     )
 
 
-def _refusal(provider: DataProvider, series: str, ask: _Ask) -> Skip | None:
-    """Return the skip a candidate earns before any request, or ``None``."""
+def _refusal(
+    provider: DataProvider, series: str, ask: _Ask, *, keeps_vintages: bool = True
+) -> Skip | None:
+    """Return the skip a candidate earns before any request, or ``None``.
+
+    A vintage the source can never serve is refused before its key is asked for,
+    so a missing key is not blamed for it.
+    """
     info = provider.info
 
     def skip(reason: str, detail: str, licence: LicenceClass | None = None) -> Skip:
@@ -505,16 +511,20 @@ def _refusal(provider: DataProvider, series: str, ask: _Ask) -> Skip | None:
             "hosted-safe and user-supplied data",
             info.terms.licence,
         )
+    if ask.selector.kind is not VintageKind.LATEST:
+        if Capability.VINTAGES not in info.capabilities:
+            return skip(
+                "vintage_unsupported",
+                f"{info.id} keeps no vintages, so {ask.selector.label} cannot be read",
+            )
+        if not keeps_vintages:
+            return skip(
+                "vintage_unsupported",
+                f"{info.id} keeps no vintages of {series}, so "
+                f"{ask.selector.label} cannot be read",
+            )
     if info.auth.kind is AuthKind.KEY and info.auth.required and not has_key(info.id):
         return skip("key_missing", f"set {info.key_variable}")
-    if (
-        ask.selector.kind is not VintageKind.LATEST
-        and Capability.VINTAGES not in info.capabilities
-    ):
-        return skip(
-            "vintage_unsupported",
-            f"{info.id} keeps no vintages, so {ask.selector.label} cannot be read",
-        )
     return None
 
 
@@ -573,7 +583,7 @@ def _fetch(candidate: Candidate, series: str, ask: _Ask) -> Fetched | Skip:
         provider = ask.registry.get(candidate.provider)
     except ProviderNotFoundError as error:
         return _skip_for(error, candidate.provider, series)
-    refusal = _refusal(provider, series, ask)
+    refusal = _refusal(provider, series, ask, keeps_vintages=candidate.vintages)
     if refusal is not None:
         return refusal
     try:
@@ -626,6 +636,10 @@ def _try_provider(
     fetched = _fetch(candidate, series, ask)
     if isinstance(fetched, Skip):
         return fetched
+    if candidate.column is not None:
+        candidate = replace(
+            candidate, column=candidate.column.format_map(ask.parameters)
+        )
     shaped = _transformed(fetched, candidate, concept, series)
     if isinstance(shaped, Skip):
         return shaped

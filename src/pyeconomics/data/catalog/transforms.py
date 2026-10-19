@@ -86,10 +86,12 @@ __all__ = [
     "changes_only",
     "convert",
     "diff",
+    "lag",
     "log",
     "merge_terms",
     "pct_change",
     "period",
+    "period_end",
     "ratio",
     "window",
     "yoy",
@@ -178,16 +180,6 @@ def _stride(meta: SeriesMeta) -> int:
     return 2 if meta.frequency is ObservationFrequency.BIWEEKLY else 1
 
 
-def _lookup(series: Series) -> dict[int, float | None]:
-    """Map each date's period number to its value; a positional series is empty."""
-    found: dict[int, float | None] = {}
-    for day, value in zip(series.index, series.values, strict=True):
-        number = _ordinal(day, series.meta)
-        if number is not None:
-            found[number] = value
-    return found
-
-
 def _number(day: dt.date, meta: SeriesMeta) -> int:
     """Return a date's period number, for a series whose periods are numbered."""
     number = _ordinal(day, meta)
@@ -197,16 +189,22 @@ def _number(day: dt.date, meta: SeriesMeta) -> int:
     return number
 
 
+def _back_rows(series: Series, count: int) -> list[int | None]:
+    """Return the row ``count`` periods (or observations) before each date's row."""
+    meta = series.meta
+    size = len(series.index)
+    if not series.index or _ordinal(series.index[0], meta) is None:
+        return [row - count if row >= count else None for row in range(size)]
+    rows = {_number(day, meta): row for row, day in enumerate(series.index)}
+    stride = _stride(meta)
+    return [rows.get(_number(day, meta) - count * stride) for day in series.index]
+
+
 def _back(series: Series, count: int) -> list[float | None]:
     """Return the value ``count`` periods (or observations) before each date."""
-    meta = series.meta
-    values = series.values
-    if not series.index or _ordinal(series.index[0], meta) is None:
-        kept = max(len(values) - count, 0)
-        return [None] * (len(values) - kept) + list(values[:kept])
-    by_number = _lookup(series)
-    stride = _stride(meta)
-    return [by_number.get(_number(day, meta) - count * stride) for day in series.index]
+    return [
+        None if row is None else series.values[row] for row in _back_rows(series, count)
+    ]
 
 
 def _with_note(notes: tuple[str, ...], note: str) -> tuple[str, ...]:
@@ -388,6 +386,52 @@ def diff(series: Series, periods: int = 1) -> Series:
         unit=replace(unit, text=_describe_unit(unit, "Change in")),
         title=f"Change in {series.meta.title}",
         transform="diff" if periods == 1 else f"diff(periods={periods})",
+    )
+
+
+def lag(series: Series, periods: int = 1) -> Series:
+    """Return, on each date, the value of the observation ``periods`` back.
+
+    The periods are counted as :func:`diff` counts them, so ``lag(periods=12)``
+    of a monthly series is the value a year earlier and a date whose earlier
+    observation is absent or missing is missing. Each value keeps the real-time
+    period of the observation it was read from.
+
+    Examples
+    --------
+    >>> import datetime as dt
+    >>> from pyeconomics.data import (
+    ...     CachePolicy, DateConvention, LicenceClass, LlmUse, ObservationFrequency,
+    ...     SeasonalAdjustment, Series, SeriesMeta, Terms, UnitRecord,
+    ... )
+    >>> terms = Terms(licence=LicenceClass.HOSTED_SAFE, terms_url="https://x.example",
+    ...     checked=dt.date(2026, 10, 15), attribution="Source: X.",
+    ...     llm_use=LlmUse.ALLOWED, cache=CachePolicy.ALLOWED)
+    >>> meta = SeriesMeta(provider="demo", series_id="X", title="X",
+    ...     unit=UnitRecord(text="Index"), frequency=ObservationFrequency.MONTHLY,
+    ...     seasonal_adjustment=SeasonalAdjustment.NOT_APPLICABLE,
+    ...     source_dating=DateConvention.PERIOD_END, terms=terms)
+    >>> months = (dt.date(2025, 1, 31), dt.date(2025, 2, 28), dt.date(2025, 3, 31))
+    >>> lag(Series(months, (1.0, 2.0, 3.0), meta)).values
+    (None, 1.0, 2.0)
+    """
+    _single(series, "lag")
+    sources = _back_rows(series, periods)
+    values = [None if source is None else series.values[source] for source in sources]
+    realtime = None
+    if series.realtime is not None:
+        realtime = tuple(
+            series.realtime[row if source is None else source]
+            for row, source in enumerate(sources)
+        )
+    title = f"{series.meta.title}, {periods} period{'s' if periods > 1 else ''} earlier"
+    return _derived(
+        series,
+        values,
+        unit=series.meta.unit,
+        title=title,
+        transform="lag" if periods == 1 else f"lag(periods={periods})",
+        realtime=realtime,
     )
 
 
@@ -908,13 +952,38 @@ def asof(series: Series, date: dt.date, max_age_days: int | None = None) -> Seri
     )
 
 
+def period_end(
+    date: dt.date, frequency: ObservationFrequency, year_ends_in: int = 12
+) -> dt.date | None:
+    """Return the last day of the period at ``frequency`` that contains ``date``.
+
+    A month-based period counts from the month its year ends in (CBO's fiscal
+    year ends in September); a daily period is the day. Any other frequency
+    has no period a date alone fixes, and gives ``None``.
+
+    Examples
+    --------
+    >>> import datetime as dt
+    >>> period_end(dt.date(2024, 5, 15), ObservationFrequency.QUARTERLY)
+    datetime.date(2024, 6, 30)
+    >>> period_end(dt.date(2024, 6, 30), ObservationFrequency.QUARTERLY)
+    datetime.date(2024, 6, 30)
+    >>> period_end(dt.date(2024, 10, 1), ObservationFrequency.ANNUAL, 9)
+    datetime.date(2025, 9, 30)
+    """
+    step = _MONTHS_PER_PERIOD.get(frequency)
+    if step is not None:
+        return _group_end(_group_number(date, step, year_ends_in), step, year_ends_in)
+    if frequency in {ObservationFrequency.DAILY, ObservationFrequency.BUSINESS_DAILY}:
+        return date
+    return None
+
+
 def _period_end_of(series: Series, date: dt.date) -> dt.date | None:
     meta = series.meta
     step = _step(meta)
     if step is not None:
-        return _group_end(
-            _group_number(date, step, meta.year_ends_in), step, meta.year_ends_in
-        )
+        return period_end(date, meta.frequency, meta.year_ends_in)
     if meta.week_ends_on is not None:
         gap = (meta.week_ends_on.number - date.weekday()) % _DAYS_IN_WEEK
         return date + dt.timedelta(days=gap)
@@ -1055,6 +1124,7 @@ IMPLEMENTATIONS: Final[Mapping[str, Callable[..., Series]]] = {
     "pct_change": pct_change,
     "yoy": yoy,
     "diff": diff,
+    "lag": lag,
     "log": log,
     "changes_only": changes_only,
     "ratio": ratio,

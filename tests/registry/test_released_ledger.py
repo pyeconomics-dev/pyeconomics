@@ -26,8 +26,11 @@ def problems(ledger: dict[str, Released]) -> list[str]:
 
 
 def test_the_shipped_ledger_covers_the_alpha_catalog() -> None:
+    # Every released id is registered; a registered id not yet released (the
+    # Phase 3 catalog, as it lands) is allowed until Phase 3 Step 19 extends the
+    # ledger to the 1.0.0a2 release.
     assert len(RELEASED) == 32
-    assert set(RELEASED) == set(registry.ids())
+    assert set(RELEASED) <= set(registry.ids())
     assert all(entry.first_version == "1.0.0a1" for entry in RELEASED.values())
     registry.validate()
 

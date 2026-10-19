@@ -28,6 +28,7 @@ from pyeconomics.core import (
 )
 from pyeconomics.core import registry as core_registry
 from pyeconomics.core.cards import (
+    BOUND_SECTION_TITLES,
     CURRICULUM_NOTE,
     EVIDENCE_MEANING,
     NOTICE,
@@ -47,7 +48,9 @@ def headings(markdown: str) -> list[str]:
 @pytest.mark.parametrize("model", MODELS, ids=IDS)
 def test_every_card_renders_every_section_in_order(model: Model[Any, Any]) -> None:
     markdown = ModelCard.from_model(model).to_markdown()
-    assert headings(markdown) == list(SECTION_TITLES)
+    # A model that reads data (the macro catalog) adds the "Data" section.
+    titles = BOUND_SECTION_TITLES if model.spec.bindings else SECTION_TITLES
+    assert headings(markdown) == list(titles)
     assert markdown.startswith(f"# {model.spec.title}\n")
     assert markdown.endswith("\n")
     assert "\r" not in markdown
@@ -239,7 +242,7 @@ def test_table_cells_are_escaped() -> None:
 def test_describe_is_json_ready_and_canonical(model: Model[Any, Any]) -> None:
     description = describe(model)
     assert tuple(description) == DESCRIPTION_KEYS
-    assert description["bindings"] == []  # none of these models reads data
+    assert description["bindings"] == [b.to_dict() for b in model.spec.bindings]
     canonical_json(description)
     assert json.loads(json.dumps(description)) == description
     assert description["id"] == model.id

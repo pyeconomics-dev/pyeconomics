@@ -552,11 +552,14 @@ def _tokens(text: str) -> list[str]:
 def _score(concept: Concept, tokens: Sequence[str]) -> int:
     """Score a concept against search tokens: topic words count most."""
     name = concept.id.lower().replace("_", " ")
+    topic = concept.id.lower().split(".")[1].split("_")
     title = concept.title.lower()
     total = 0
     for token in tokens:
         if token in name or token in title:
             total += 3
+        if token in topic:
+            total += 2
         if title.startswith(token):
             total += 2
         if token in concept.definition.lower():

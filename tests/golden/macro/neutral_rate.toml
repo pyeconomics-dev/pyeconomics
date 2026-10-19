@@ -1,0 +1,72 @@
+# tests/golden/macro/neutral_rate.toml
+model = "macro.neutral_rate"
+
+[[sources]]
+key = "nyfed_hlw"
+kind = "official"
+citation = "Federal Reserve Bank of New York. Holston-Laubach-Williams current estimates, file Holston_Laubach_Williams_current_estimates.xlsx (all estimates one-sided; final data point 2026Q2), accessed 2026-10-18."
+url = "https://www.newyorkfed.org/research/policy/rstar"
+
+[[sources]]
+key = "nyfed_lw"
+kind = "official"
+citation = "Federal Reserve Bank of New York. Laubach-Williams current estimates, file Laubach_Williams_current_estimates.xlsx (based on data available on August 26, 2026; final data point 2026Q2), accessed 2026-10-18."
+url = "https://www.newyorkfed.org/research/policy/rstar"
+
+[[sources]]
+key = "sep_june2026"
+kind = "official"
+citation = "Board of Governors of the Federal Reserve System. Summary of Economic Projections, June 17, 2026, Table 1, as reprinted in the Monetary Policy Report of July 2026, p. 45."
+url = "https://www.federalreserve.gov/monetarypolicy/files/20260710_mprfullreport.pdf"
+
+[[sources]]
+key = "neutral_identity"
+kind = "identity"
+citation = "The nominal neutral rate is r* plus the inflation objective; the real policy gap is the policy rate less inflation less r*."
+
+[[cases]]
+id = "hlw_united_states_2026q2"
+source = "nyfed_hlw"
+locator = "Sheet HLW Estimates, row 268 (2026-04-01, 2026Q2), column K (Natural Rate, US)"
+edge = false
+inputs = { calculation = "holston_laubach_williams", hlw_estimate = 0.0100864835850403 }
+expected = { real_neutral_rate = 0.0100864835850403, nominal_neutral_rate = 0.030086483585040298 }
+
+[[cases]]
+id = "hlw_euro_area_2026q2"
+source = "nyfed_hlw"
+locator = "Sheet HLW Estimates, row 268 (2026Q2), column M (Natural Rate, Euro Area)"
+edge = false
+inputs = { calculation = "holston_laubach_williams", hlw_estimate = 0.0008554491045615451 }
+expected = { real_neutral_rate = 0.0008554491045615451, nominal_neutral_rate = 0.020855449104561545 }
+note = "An r* of under a tenth of a percentage point."
+
+[[cases]]
+id = "lw_united_states_2026q2"
+source = "nyfed_lw"
+locator = "Sheet data, row 268 (2026-04-01, 2026Q2), column C (one-sided rstar)"
+edge = false
+inputs = { calculation = "laubach_williams", lw_estimate = 0.0165244303831991, policy_rate = 0.0364, inflation = 0.03 }
+expected = { real_neutral_rate = 0.0165244303831991, real_policy_gap = -0.010124430383199098 }
+
+[[cases]]
+id = "sep_longer_run_june_2026"
+source = "sep_june2026"
+locator = "Table 1, federal funds rate, median, longer run: 3.1"
+edge = false
+inputs = { calculation = "sep_longer_run", longer_run_policy_rate = 0.031 }
+expected = { real_neutral_rate = 0.011, nominal_neutral_rate = 0.031 }
+
+[[cases]]
+id = "negative_constant_rate"
+source = "neutral_identity"
+edge = true
+inputs = { calculation = "constant", real_rate = -0.005, policy_rate = 0.0, inflation = 0.02, inflation_target = 0.02 }
+expected = { real_neutral_rate = -0.005, nominal_neutral_rate = 0.015, real_policy_gap = -0.015 }
+
+[[cases]]
+id = "nominal_is_real_plus_target"
+source = "neutral_identity"
+edge = false
+inputs = { calculation = "constant", real_rate = 0.01, inflation_target = 0.025 }
+expected = { real_neutral_rate = 0.01, nominal_neutral_rate = 0.035 }

@@ -57,7 +57,7 @@ def test_the_evidence_statuses_and_cost_classes() -> None:
         "historical",
     ]
     assert [c.value for c in CostClass] == ["instant", "light", "heavy"]
-    assert [k.value for k in ChartKind] == ["line", "bar", "scatter"]
+    assert [k.value for k in ChartKind] == ["line", "bar", "scatter", "band"]
 
 
 @pytest.mark.parametrize(

@@ -137,6 +137,9 @@ class ChartKind(StrEnum):
     LINE = "line"
     BAR = "bar"
     SCATTER = "scatter"
+    BAND = "band"
+    """A shaded band between the first two ``y`` fields (lower, then upper),
+    with any further ``y`` fields drawn as lines over it: a fan chart."""
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

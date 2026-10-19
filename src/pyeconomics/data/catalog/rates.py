@@ -22,6 +22,12 @@ _TREASURY_NOTE: Final = (
     "Treasury labels its curve files by business day, which the data layer "
     "records as irregular; the concept's cadence is daily all the same."
 )
+#: ALFRED holds no vintages of FRED's daily rate series (checked 2026-10-18: a
+#: real-time request for each is refused), so a binding reads them as revised data.
+_NO_ALFRED: Final = (
+    "ALFRED keeps no vintages of this daily series, so a real-time request skips "
+    "it and a binding reads it as revised data."
+)
 _CURVE_WINDOW: Final = (
     "Treasury serves its curve files by date range, so a request needs both "
     "start and end."
@@ -75,7 +81,13 @@ def _yield(
                 delivers=ObservationFrequency.IRREGULAR,
                 note=_TREASURY_NOTE,
             ),
-            Candidate(provider="fred", series=fred, tier=Tier.AGGREGATOR),
+            Candidate(
+                provider="fred",
+                series=fred,
+                tier=Tier.AGGREGATOR,
+                vintages=False,
+                note=_NO_ALFRED,
+            ),
         ),
         needs_window=True,
         notes=(_CURVE_WINDOW,),
@@ -98,7 +110,13 @@ CONCEPTS: Final = (
         seasonal_adjustment=SeasonalAdjustment.NOT_SEASONALLY_ADJUSTED,
         candidates=(
             Candidate(provider="nyfed", series="effr", column="percentRate"),
-            Candidate(provider="fred", series="EFFR", tier=Tier.AGGREGATOR),
+            Candidate(
+                provider="fred",
+                series="EFFR",
+                tier=Tier.AGGREGATOR,
+                vintages=False,
+                note=_NO_ALFRED,
+            ),
         ),
         section=_POLICY,
     ),
@@ -130,10 +148,11 @@ CONCEPTS: Final = (
                 series="DFEDTARU",
                 transforms=("changes_only",),
                 tier=Tier.AGGREGATOR,
+                vintages=False,
                 note=(
                     "FRED's daily series starts on 2008-12-16, when the range "
                     "began; only the dates it changed are kept, as the Board "
-                    "lists them."
+                    "lists them. ALFRED keeps no vintages of it."
                 ),
             ),
         ),
@@ -165,7 +184,11 @@ CONCEPTS: Final = (
                 series="DFEDTARL",
                 transforms=("changes_only",),
                 tier=Tier.AGGREGATOR,
-                note="FRED's daily series starts on 2008-12-16, when the range began.",
+                vintages=False,
+                note=(
+                    "FRED's daily series starts on 2008-12-16, when the range "
+                    "began. ALFRED keeps no vintages of it."
+                ),
             ),
         ),
         section=_POLICY,

@@ -78,6 +78,10 @@ MINIMUM = {
     "us.neutral_rate.hlw",
     "us.sep.medians",
     "us.sep.policy_rate_longer_run",
+    "us.sep.core_pce_inflation",
+    "us.sep.pce_inflation",
+    "us.sep.unemployment",
+    "us.sep.unemployment_longer_run",
     "us.spf.cpi.median_h4",
     "us.spf.core_pce.median_h4",
     "us.spf.unemployment.median_h0",
@@ -232,6 +236,41 @@ def test_the_sep_concepts_take_a_checked_meeting_parameter() -> None:
     for bad in ("", "2026-9-16", "2026-09-16 ", "../x", "x" * 40):
         with pytest.raises(Exception, match="meeting"):
             parameter.check(bad)
+
+
+def test_the_sep_series_concepts_read_one_median_each() -> None:
+    for name in ("core_pce_inflation", "pce_inflation", "unemployment"):
+        concept = catalog.get(f"us.sep.{name}")
+        assert concept.shape is Shape.SERIES
+        assert {p.name for p in concept.parameters} == {"meeting", "year"}
+        (candidate,) = concept.candidates
+        assert isinstance(candidate, Candidate)
+        assert candidate.column is not None
+        assert candidate.column.endswith("_median_{year}")
+    longer_run = catalog.get("us.sep.unemployment_longer_run")
+    assert [p.name for p in longer_run.parameters] == ["meeting"]
+
+
+#: FRED's daily rate series, which ALFRED refuses a real-time request for (checked
+#: live on 2026-10-18 for every FRED candidate in the catalog).
+NO_ALFRED = {"DFEDTARL", "DFEDTARU", "DFII10", "DGS10", "DGS3MO", "EFFR"}
+
+
+def test_the_fred_series_alfred_keeps_no_vintages_of_are_marked() -> None:
+    fred = {
+        c.series: c.vintages
+        for concept in catalog.concepts()
+        for c in concept.candidates
+        if isinstance(c, Candidate) and c.provider == "fred"
+    }
+    assert {series for series, kept in fred.items() if not kept} == NO_ALFRED
+    others = {
+        c.provider
+        for concept in catalog.concepts()
+        for c in concept.candidates
+        if isinstance(c, Candidate) and not c.vintages
+    }
+    assert others == {"fred"}
 
 
 def test_the_target_range_records_the_2008_switch() -> None:

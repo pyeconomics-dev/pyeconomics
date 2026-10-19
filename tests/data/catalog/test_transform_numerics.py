@@ -68,6 +68,34 @@ def test_a_gap_in_the_dates_gives_a_missing_value_and_not_a_wrong_comparison() -
     close(apply("diff", gappy).values, [None, 2.0, None])
 
 
+def test_lag_reads_the_value_periods_back_on_each_date() -> None:
+    result = apply("lag(periods=2)", monthly([1.0, 2.0, 3.0, 4.0]))
+    close(result.values, [None, None, 1.0, 2.0])
+    assert result.index == monthly([0.0] * 4).index
+    assert result.meta.unit == monthly([0.0]).meta.unit
+    assert "transformed: lag(periods=2)" in result.meta.notes
+
+
+def test_lag_counts_periods_by_date_so_a_gap_is_missing() -> None:
+    index = (dt.date(2024, 3, 31), dt.date(2024, 6, 30), dt.date(2024, 12, 31))
+    gappy = series(ObservationFrequency.QUARTERLY, index, [1.0, 2.0, 4.0])
+    close(apply("lag", gappy).values, [None, 1.0, None])  # Q3 is absent
+
+
+def test_lag_counts_observations_on_a_daily_series() -> None:
+    daily = series(
+        ObservationFrequency.DAILY, days(dt.date(2024, 1, 1), 3), [1.0, 2.0, 3.0]
+    )
+    close(apply("lag", daily).values, [None, 1.0, 2.0])
+
+
+def test_lag_keeps_the_real_time_period_of_the_value_it_reads() -> None:
+    periods = [RealtimePeriod(dt.date(2024, m, 1)) for m in (2, 3, 4)]
+    selected = monthly([1.0, 2.0, 3.0], realtime=periods)
+    result = apply("lag", selected)
+    assert result.realtime == (periods[0], periods[0], periods[1])
+
+
 def test_a_missing_value_or_a_non_positive_base_gives_a_missing_value() -> None:
     result = apply("pct_change", monthly([100.0, None, 120.0, 0.0, 5.0, -4.0, 3.0]))
     close(result.values, [None, None, None, -1.0, None, -4.0 / 5.0 - 1, None])
@@ -156,7 +184,7 @@ def test_several_vintages_per_date_are_refused() -> None:
         [1.0, 2.0],
         realtime=[first, second],
     )
-    for text in ("pct_change", "yoy", "diff", "log", "changes_only"):
+    for text in ("pct_change", "yoy", "diff", "lag", "log", "changes_only"):
         with pytest.raises(DataError, match="several vintages"):
             apply(text, stacked)
 

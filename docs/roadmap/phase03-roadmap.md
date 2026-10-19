@@ -7709,9 +7709,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 13 — Monetary-Policy Suite
+## Step 13 — Monetary-Policy Suite ✅
 
-**Status:** Not started
+**Status:** Complete — PR #140 (2026-10-19)
 
 > **Goal:** Rebuild 0.2.x's four FRED-bound rules as the project's flagship: a
 > cited, vintage-aware family that reproduces the Federal Reserve's own
@@ -7753,6 +7753,10 @@ the price. New conversation per phase-boundary hygiene.
 > Coding PRIMARY, knowledge SECONDARY, High, not novel. The ladder's Balanced
 > column is Opus 5.5 at High; the Quality column (XHigh) is the raise if the
 > verification burden or a tight pool says so.
+
+> Ran 2026-10-19: Balanced — Claude Opus 5.5 on Claude Code (effort as the
+> operator set it). The **Runs:** column; the Claude weekly pool's `tight` row
+> had passed its reset, so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -8220,8 +8224,11 @@ the price. New conversation per phase-boundary hygiene.
     <requirement>
       Real-time evaluation: an offline test binds the default
       profile as of a past date on synthetic ALFRED-shaped
-      cassettes and checks each DataSource's real-time period
-      covers that date; a live test (marked live, run by the
+      cassettes and checks the real-time period of each
+      DataSource whose source keeps vintages covers that date,
+      and that the rest carry revised_data (the New York Fed's
+      r* and funds rate keep none, and ALFRED keeps none of
+      FRED's daily EFFR); a live test (marked live, run by the
       weekly run with the FRED key) runs the Taylor (1993)
       rule for a past date on ALFRED vintages and checks the
       manifest records the vintages and that a LATEST run of
@@ -8564,6 +8571,23 @@ the price. New conversation per phase-boundary hygiene.
       their golden, property, contract and parity tests;
       binding profiles and real-time vintages work end to
       end.
+    - Step 13 as built: a bind of a model with several
+      calculations needs calculation=... and reads only that
+      calculation's fields; lag(periods=n) binds a value n
+      periods back; an AsOf.PERIOD binding reads up to the end
+      of the period containing the date, so a source without
+      that period is passed over. Real-time facts: ALFRED keeps
+      no vintages of FRED's daily EFFR, target range, DGS10,
+      DGS3MO or DFII10 (catalog candidates vintages=False, read
+      as revised data), the New York Fed's files keep none, and
+      CBO's archive starts 2024-02, so a CBO-only concept
+      (us.output_gap.cbo) cannot be read as published before
+      then: bind us.output_gap.real_potential (GDPC1 over
+      GDPPOT, both in ALFRED) with the default
+      LAST_ON_OR_BEFORE rule (the quarter's GDP comes after it)
+      for a historical gap. Issue #135: nyfed effr fails on a
+      whole-history or end-only request (FRED answers instead in
+      library mode).
     - The catalog holds real and potential GDP, CBO's output
       gap and noncyclical rate, the unemployment rate,
       inflation and SPF expectations, nominal GDP growth,
@@ -9079,6 +9103,12 @@ the price. New conversation per phase-boundary hygiene.
     - Damodaran's aggregates may be displayed with credit
       (not library-only), so a golden case may cite a handful
       of his published values; Shiller's may not.
+    - From Step 13: no source keeps vintages of the Treasury
+      yields (Treasury keeps none and ALFRED none of FRED's
+      DGS10, DGS3MO or DFII10), so a bind of them as of a date
+      reads revised data and says so; a bind of a model with
+      several calculations needs calculation=...; ChartKind
+      has a band kind for a range around a line.
 
     Files to read (every file before drafting):
     - This roadmap's Overview (launch-catalog table, Citation
@@ -11918,7 +11948,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
 | 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
-| 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #140 |
 | 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
@@ -12261,6 +12291,34 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 13 (monetary-policy suite, 2026-10-18): `models/macro/` holds
+  `macro.policy_rule` and `macro.neutral_rate` behind the `macro` entry point.
+  Contract changes made in-step under the Contract-change rule, each the smallest
+  that works: the `lag(periods=n)` transform (Step 11's vocabulary); a candidate
+  `column` that takes `{parameter}` placeholders, for the SEP's year-keyed columns
+  (Step 11); a candidate `vintages` flag (Step 11), because ALFRED refuses a
+  real-time request for FRED's daily `EFFR`, `DFEDTARU`, `DFEDTARL`, `DGS10`,
+  `DGS3MO` and `DFII10` (probed live for every FRED candidate), which made every
+  real-time bind of the funds rate raise (the resolver now refuses a vintage a
+  source can never serve before it asks for a key, so a missing key is not
+  blamed for it); `bind` of a union model needs
+  `calculation=` and reads only its fields, and an `AsOf.PERIOD` bind reads up to
+  the end of the period containing the date, so a source without it is passed over
+  (both Step 12, found when CBO's as-of-2019 read held nothing before 2021);
+  `ChartKind.BAND` (Phase 2's chart contract); the Board's SEP parser dropped row
+  footnote numbers from column names (Step 10's `fed_board`); concept search weighs
+  a token in the id's topic (Step 11). Steps 11 and 12 read Complete, so their
+  tasks stand as history and the changes are recorded here; Steps 14 and 15's
+  tasks carry the facts they need. Facts for later steps: the New York Fed's r* and
+  funds rate keep no vintages and CBO's archive starts 2024-02, so a real-time bind
+  reads them as revised data, labelled (a CBO-only concept cannot be read as
+  published before 2024-02); a quarterly GDP-based gap is read at the last quarter
+  published (`LAST_ON_OR_BEFORE`), not the date's quarter. Deferred: issue #135
+  (`nyfed` effr fails a whole-history or end-only request; FRED answers in library
+  mode, so a hosted bind of the funds rate has no source) and issue #136 (cached
+  frames outlive a provider's parse fix), both owned by later work, not Step 13.
+  The narrowed registry and ledger pins accept unreleased ids until Step 19.
 
 - Step 12 (live bindings and vintage-aware runs, 2026-10-18): `core/binding.py`
   holds `AsOf`, `VintagePolicy`, `Binding`, `Bound`, `CandidateNote`,

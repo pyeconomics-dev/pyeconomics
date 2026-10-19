@@ -15,6 +15,7 @@ replay answers a request only when it matches the recorded one.
 from __future__ import annotations
 
 import datetime as dt
+import re
 import secrets
 from pathlib import Path
 from typing import Any
@@ -23,7 +24,7 @@ import pytest
 
 from pyeconomics import data
 from pyeconomics.core.provenance import LicenceClass
-from pyeconomics.data import Mode, ObservationFrequency, Table
+from pyeconomics.data import DataError, Mode, ObservationFrequency, Table
 from pyeconomics.data.transport.replay import ReplayTransport
 
 CASSETTES = Path(__file__).resolve().parents[2] / "providers" / "cassettes"
@@ -266,6 +267,34 @@ def test_the_sep_medians_keep_only_median_columns_for_the_named_meeting() -> Non
         max_observations=3,
     )
     assert one.source.series_id == "sep:2026-09-16:federal_funds_rate_median_Longer_run"
+    # A row label's footnote number is not part of the variable's name.
+    assert "core_pce_inflation_median_2026" in result.frame.column_names
+    assert not any(re.search(r"_\d_median_", n) for n in result.frame.column_names)
+
+
+def test_the_sep_series_concepts_read_a_meeting_and_a_projection_year() -> None:
+    core = data.get(
+        "us.sep.core_pce_inflation",
+        parameters={"meeting": "2026-09-16", "year": "2026"},
+        transport=replay("fed_board", "sep"),
+        max_observations=3,
+    )
+    assert core.source.series_id == "sep:2026-09-16:core_pce_inflation_median_2026"
+    assert core.frame.index == (dt.date(2026, 9, 16),)
+    longer = data.get(
+        "us.sep.unemployment_longer_run",
+        parameters={"meeting": "2026-09-16"},
+        transport=replay("fed_board", "sep"),
+        max_observations=3,
+    )
+    assert longer.source.series_id.endswith("unemployment_rate_median_Longer_run")
+    with pytest.raises(DataError, match="has no column"):
+        data.get(
+            "us.sep.unemployment",
+            parameters={"meeting": "2026-09-16", "year": "2031"},
+            transport=replay("fed_board", "sep"),
+            max_observations=3,
+        )
 
 
 def test_a_vintage_request_reads_the_cbo_vintage_in_force_on_the_date() -> None:

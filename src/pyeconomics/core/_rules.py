@@ -68,6 +68,7 @@ from pyeconomics.core.spec import (
     MAX_TITLE_LENGTH,
     MODEL_ID,
     SNAKE_CASE,
+    ChartKind,
     CostClass,
     Evidence,
     union_discriminator,
@@ -695,6 +696,12 @@ class _Checker:
                 self.report.add(
                     "charts",
                     f"chart {chart.id!r} needs y fields and a known calculation",
+                )
+            if chart.kind is ChartKind.BAND and len(chart.y) < 2:  # noqa: PLR2004
+                self.report.add(
+                    "charts",
+                    f"chart {chart.id!r} is a band: its first two y fields are the "
+                    "lower and upper edges",
                 )
             for name in dict.fromkeys((chart.x, *chart.y)):
                 if not all(_is_array_field(m, name) for m in members):

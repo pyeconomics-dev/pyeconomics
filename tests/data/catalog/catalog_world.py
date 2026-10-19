@@ -131,9 +131,10 @@ def _values(kind: UnitKind | None, count: int, *, steps: bool) -> list[float]:
 def _columns(users: list[tuple[Concept, Candidate]]) -> list[str]:
     """Name the columns a source table needs for every candidate that reads it."""
     names: list[str] = []
-    for _, candidate in users:
+    for concept, candidate in users:
         if candidate.column is not None:
-            wanted = [candidate.column]
+            examples = {p.name: p.example for p in concept.parameters}
+            wanted = [candidate.column.format_map(examples)]
         elif candidate.columns:
             wanted = [source for _, source in candidate.columns]
         elif candidate.keep is not None:
