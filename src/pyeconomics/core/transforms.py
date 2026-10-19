@@ -22,7 +22,7 @@ it.
 
 Every transform is pure, never fills a gap and never invents a date:
 
-- *change* transforms (``pct_change``, ``yoy``, ``diff``, ``log``,
+- *change* transforms (``pct_change``, ``yoy``, ``diff``, ``lag``, ``log``,
   ``changes_only``) turn a series into another on its own dates;
 - ``convert`` changes the observation frequency by an explicit method;
 - ``ratio`` and ``add`` combine two series; ``align_to`` reads one series on another's
@@ -296,6 +296,14 @@ TRANSFORMS: Final[Mapping[str, TransformSpec]] = MappingProxyType(
                     "diff",
                     "The difference from the observation `periods` back, in the "
                     "series' own unit.",
+                    _PERIODS,
+                ),
+                _spec(
+                    "lag",
+                    "The value of the observation `periods` back, on each date: "
+                    "`lag(periods=12)` of a monthly series is its value a year "
+                    "earlier. A date with no observation that far back is "
+                    "missing.",
                     _PERIODS,
                 ),
                 _spec(

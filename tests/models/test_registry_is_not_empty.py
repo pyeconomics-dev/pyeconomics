@@ -7,8 +7,9 @@ The golden harness and the contract suite parametrize over the installed
 registry. If discovery found nothing (a missing entry point, a broken install),
 they would collect no case and pass. This test makes an empty registry fail,
 pins the domains Phase 2 Steps 6 and 8 to 12 registered, and holds the registry
-to exactly the 32 ids of the Phase 2 roadmap's launch-catalog table (a later
-phase replaces "exactly" with "at least").
+to at least the 32 ids of the Phase 2 roadmap's launch-catalog table plus every
+id of the Phase 3 table whose step has landed (its Status reads Complete), and
+to no id outside the two tables (Phase 3 Step 13 narrowed "exactly the 32").
 """
 
 from __future__ import annotations
@@ -74,16 +75,41 @@ CATALOG = (
     | ECONOMETRICS
 )
 
-ROADMAP = (
-    Path(__file__).resolve().parents[2] / "docs" / "roadmap" / "phase02-roadmap.md"
-)
+MACRO = {"macro.neutral_rate", "macro.policy_rule"}
+
+ROADMAPS = Path(__file__).resolve().parents[2] / "docs" / "roadmap"
+ROADMAP = ROADMAPS / "phase02-roadmap.md"
+PHASE03 = ROADMAPS / "phase03-roadmap.md"
 #: A row of the launch-catalog table: | 30 | `risk.value_at_risk` | ... |
 CATALOG_ROW = re.compile(r"^\|\s*\d+\s*\|\s*`([a-z_]+\.[a-z_]+)`\s*\|", re.MULTILINE)
+#: A row of Phase 3's table, ending in the step that lands it: | 33 | `id` | ... | 13 |
+PHASE03_ROW = re.compile(
+    r"^\|\s*\d+\s*\|\s*`([a-z_]+\.[a-z_]+)`\s*\|.*\|\s*(\d+)\s*\|\s*$", re.MULTILINE
+)
+#: A step heading and the Status line under it.
+STEP_STATUS = re.compile(r"^## Step (\d+) — .*\n\n\*\*Status:\*\* (\S+)", re.MULTILINE)
 
 
 def launch_catalog() -> set[str]:
     """Read the ids from the Phase 2 roadmap's launch-catalog table."""
     return set(CATALOG_ROW.findall(ROADMAP.read_text(encoding="utf-8")))
+
+
+def phase03_catalog() -> dict[str, int]:
+    """Read the Phase 3 table's ids, each with the step that lands it."""
+    text = PHASE03.read_text(encoding="utf-8")
+    return {model_id: int(step) for model_id, step in PHASE03_ROW.findall(text)}
+
+
+def landed() -> set[str]:
+    """The Phase 3 ids whose step reads Complete on this tree's roadmap."""
+    text = PHASE03.read_text(encoding="utf-8")
+    complete = {
+        int(step) for step, status in STEP_STATUS.findall(text) if status == "Complete"
+    }
+    return {
+        model_id for model_id, step in phase03_catalog().items() if step in complete
+    }
 
 
 def test_the_registry_is_not_empty() -> None:
@@ -142,10 +168,24 @@ def test_step11_and_step12_domains_are_installed(
     assert {m.id for m in registry.models(domain)} == expected
 
 
+def test_the_macro_entry_point_registers_the_policy_suite() -> None:
+    assert {m.id for m in registry.models("macro")} >= MACRO
+    assert "macro" in registry.domains()
+
+
 def test_the_roadmap_table_lists_32_entries() -> None:
     assert len(launch_catalog()) == 32
     assert launch_catalog() == CATALOG
 
 
-def test_the_registry_holds_exactly_the_launch_catalog() -> None:
-    assert {m.id for m in registry.models()} == launch_catalog()
+def test_the_phase03_table_lists_18_new_entries() -> None:
+    table = phase03_catalog()
+    assert len(table) == 18
+    assert not set(table) & launch_catalog()
+    assert {model_id for model_id, step in table.items() if step == 13} == MACRO
+
+
+def test_the_registry_holds_at_least_the_launch_catalog_and_what_has_landed() -> None:
+    ids = {m.id for m in registry.models()}
+    assert ids >= launch_catalog() | landed()
+    assert ids <= launch_catalog() | set(phase03_catalog())

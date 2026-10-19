@@ -576,6 +576,16 @@ def _fetch(candidate: Candidate, series: str, ask: _Ask) -> Fetched | Skip:
     refusal = _refusal(provider, series, ask)
     if refusal is not None:
         return refusal
+    if ask.selector.kind is not VintageKind.LATEST and not candidate.vintages:
+        return Skip(
+            provider=candidate.provider,
+            series=series,
+            reason="vintage_unsupported",
+            detail=(
+                f"{candidate.provider} keeps no vintages of {series}, so "
+                f"{ask.selector.label} cannot be read"
+            ),
+        )
     try:
         query = _query(provider, candidate, series, ask)
         fetched = provider.fetch_with_origin(query, transport=ask.transport)
@@ -626,6 +636,10 @@ def _try_provider(
     fetched = _fetch(candidate, series, ask)
     if isinstance(fetched, Skip):
         return fetched
+    if candidate.column is not None:
+        candidate = replace(
+            candidate, column=candidate.column.format_map(ask.parameters)
+        )
     shaped = _transformed(fetched, candidate, concept, series)
     if isinstance(shaped, Skip):
         return shaped

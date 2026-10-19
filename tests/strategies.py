@@ -1008,3 +1008,173 @@ def _ols() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["econometrics.ols"] = _ols
+
+
+# --- macro: one resource gap, one neutral rate, a previous rate to smooth from ---
+
+_GAP_FIELDS: Final = (
+    "gap_measure",
+    "output_gap",
+    "unemployment",
+    "natural_unemployment",
+)
+_NEUTRAL_FIELDS: Final = ("neutral_real_rate", "neutral_nominal_rate")
+_LAGGED_FIELDS: Final = (
+    "output_gap_lagged",
+    "unemployment_lagged",
+    "natural_unemployment_lagged",
+)
+
+
+@st.composite
+def _resource_gap(draw: st.DrawFn, cls: type[BaseModel]) -> tuple[dict[str, Any], str]:
+    """Draw one resource gap: an output gap, or unemployment and its natural rate."""
+    measure = draw(st.sampled_from(["output", "unemployment"]))
+    drawn: dict[str, Any] = {}
+    if draw(st.booleans()):
+        drawn["gap_measure"] = measure
+    if measure == "output":
+        drawn["output_gap"] = draw(_field(cls, "output_gap"))
+    else:
+        drawn["unemployment"] = draw(_field(cls, "unemployment"))
+        drawn["natural_unemployment"] = draw(_field(cls, "natural_unemployment"))
+    return drawn, measure
+
+
+@st.composite
+def _policy_level(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """A level rule: one gap, one form of the neutral rate, smoothing with a rate."""
+    drawn = draw(_fields(cls))
+    for name in (*_GAP_FIELDS, *_NEUTRAL_FIELDS, "previous_rate"):
+        drawn.pop(name, None)
+    gap, _ = draw(_resource_gap(cls))
+    neutral = draw(st.sampled_from(_NEUTRAL_FIELDS))
+    drawn |= gap | {neutral: draw(_field(cls, neutral))}
+    if drawn.get("smoothing", 0.0) > 0 or draw(st.booleans()):
+        drawn["previous_rate"] = draw(_field(cls, "previous_rate"))
+    return drawn
+
+
+@st.composite
+def _policy_first_difference(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """The first-difference rule: the gap now and four quarters back, one measure."""
+    drawn = draw(_fields(cls))
+    for name in (*_GAP_FIELDS, *_LAGGED_FIELDS):
+        drawn.pop(name, None)
+    gap, measure = draw(_resource_gap(cls))
+    drawn |= gap
+    if measure == "output":
+        drawn["output_gap_lagged"] = draw(_field(cls, "output_gap_lagged"))
+    else:
+        drawn["unemployment_lagged"] = draw(_field(cls, "unemployment_lagged"))
+        if draw(st.booleans()):
+            drawn["natural_unemployment_lagged"] = draw(
+                _field(cls, "natural_unemployment_lagged")
+            )
+    return drawn
+
+
+def _ordered(
+    draw: st.DrawFn, element: SearchStrategy[float], size: int
+) -> tuple[list[float], list[float], list[float]]:
+    """Draw low, central and high paths, ordered at each horizon."""
+    triples = [
+        sorted(draw(st.lists(element, min_size=3, max_size=3))) for _ in range(size)
+    ]
+    return [t[0] for t in triples], [t[1] for t in triples], [t[2] for t in triples]
+
+
+@st.composite
+def _policy_path(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """A path: equal-length forecasts, an ordered band, what the rule needs."""
+    drawn = draw(_fields(cls))
+    for name in list(drawn):
+        if name.endswith("_path") or name in (*_NEUTRAL_FIELDS, "previous_rate"):
+            drawn.pop(name)
+    drawn.pop("gap_measure", None)
+    size = draw(st.integers(min_value=1, max_value=MAX_ITEMS))
+    rule = drawn["rule"]
+    inflation = st.floats(min_value=-0.2, max_value=0.5)
+    gaps = st.floats(min_value=-0.3, max_value=0.3)
+    rates = st.floats(min_value=0.0, max_value=0.3)
+    measure = draw(st.sampled_from(["output", "unemployment"]))
+    banded = draw(st.booleans())
+    low, middle, high = _ordered(draw, inflation, size)
+    drawn["inflation_path"] = middle
+    if banded:
+        drawn |= {"inflation_low_path": low, "inflation_high_path": high}
+    if draw(st.booleans()):
+        drawn["gap_measure"] = measure
+    element = gaps if measure == "output" else rates
+    stem = "output_gap" if measure == "output" else "unemployment"
+    low, middle, high = _ordered(draw, element, size)
+    drawn[f"{stem}_path"] = middle
+    if banded and draw(st.booleans()):
+        drawn |= {f"{stem}_low_path": low, f"{stem}_high_path": high}
+    path = st.lists(element, min_size=size, max_size=size)
+    natural = st.lists(rates, min_size=size, max_size=size)
+    if measure == "unemployment":
+        drawn["natural_unemployment_path"] = draw(natural)
+    if rule == "first_difference":
+        drawn["previous_rate"] = draw(_field(cls, "previous_rate"))
+        drawn[f"{stem}_lagged_path"] = draw(path)
+        if measure == "unemployment" and draw(st.booleans()):
+            drawn["natural_unemployment_lagged_path"] = draw(natural)
+    else:
+        neutral = draw(st.sampled_from(_NEUTRAL_FIELDS))
+        drawn[neutral] = draw(_field(cls, neutral))
+        if drawn.get("smoothing", 0.0) > 0 or draw(st.booleans()):
+            drawn["previous_rate"] = draw(_field(cls, "previous_rate"))
+    return drawn
+
+
+def _policy_rule() -> SearchStrategy[dict[str, Any]]:
+    """``macro.policy_rule``: each calculation's cross-field rules, constructively."""
+    module = importlib.import_module("pyeconomics.models.macro.policy_rule")
+    levels = (
+        module.Taylor1993Inputs,
+        module.Taylor1999Inputs,
+        module.BalancedApproachInputs,
+        module.ShortfallsInputs,
+        module.AdjustedTaylor1993Inputs,
+    )
+    return st.one_of(
+        *(_policy_level(cls) for cls in levels),
+        _policy_first_difference(module.FirstDifferenceInputs),
+        _policy_path(module.PathInputs),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.policy_rule.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["macro.policy_rule"] = _policy_rule
+
+
+@st.composite
+def _neutral_member(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """A neutral-rate input: a policy rate and inflation together, or neither."""
+    drawn = draw(_fields(cls))
+    drawn.pop("policy_rate", None)
+    drawn.pop("inflation", None)
+    if draw(st.booleans()):
+        drawn["policy_rate"] = draw(_field(cls, "policy_rate"))
+        drawn["inflation"] = draw(_field(cls, "inflation"))
+    return drawn
+
+
+def _neutral_rate() -> SearchStrategy[dict[str, Any]]:
+    """``macro.neutral_rate``: a policy rate needs inflation to make it real."""
+    module = importlib.import_module("pyeconomics.models.macro.neutral_rate")
+    rule = module.neutral_rate
+    return st.one_of(
+        *(
+            _neutral_member(member)
+            for member in rule.spec.input_models
+            if isinstance(member, type) and issubclass(member, BaseModel)
+        ),
+        st.sampled_from([dict(example.inputs) for example in rule.spec.examples]),
+    )
+
+
+OVERRIDES["macro.neutral_rate"] = _neutral_rate

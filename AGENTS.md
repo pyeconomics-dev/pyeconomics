@@ -171,6 +171,11 @@ decision 15):
 - A transform has its name and schema in `core/transforms.py` and its
   implementation in `data/catalog/transforms.py`; a test holds the two equal.
   A transform never fills a gap, invents a date or carries a value forward.
+- A candidate a vintage-keeping provider serves without that series' vintages
+  (FRED's daily rates, which ALFRED does not hold) is `vintages=False`: a
+  vintage request skips it and a binding reads it as revised data. Probe a new
+  FRED candidate as of a past date before you add it. A candidate's `column`
+  takes `{parameter}` placeholders as its series key does.
 - The resolver reads no clock and does no I/O; providers fetch. Concept pages
   and the sources summary are generated from metadata at documentation build
   time, offline, and read no key.
@@ -207,6 +212,10 @@ From Phase 3 Step 12, which binds models to data (ADR-0011 decision 16):
 - Test a bind with `bind_model(model, registry=..., transport=...)` over scripted
   providers (`tests/data/bindings/bound_support.py`), offline, and prove a key
   reaches no sink with `LeakCheck.bound` and `LeakCheck.result`.
+- A model with several calculations is bound with `calculation=...` and reads
+  only that calculation's fields, so one profile serves the family. A value from
+  periods back is bound with the `lag(periods=n)` transform; an `AsOf.PERIOD`
+  binding reads up to the end of the period containing the date, no further.
 
 ## Units
 

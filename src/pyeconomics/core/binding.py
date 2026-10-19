@@ -60,7 +60,11 @@ from pyeconomics.core.provenance import (
     LicenceClass,
     LlmUse,
 )
-from pyeconomics.core.spec import union_members
+from pyeconomics.core.spec import (
+    CALCULATION_FIELD,
+    union_discriminator,
+    union_members,
+)
 from pyeconomics.core.units import Unit, UnitKind
 
 if TYPE_CHECKING:
@@ -77,6 +81,7 @@ __all__ = [
     "CandidateNote",
     "FieldShape",
     "VintagePolicy",
+    "calculation_fields",
     "field_shapes",
     "user_supplied",
 ]
@@ -328,6 +333,41 @@ def _shape(tp: object, metadata: list[object]) -> FieldShape:
         return FieldShape(kind=inner.kind, array=True, max_length=max_length(metadata))
     units = [item for item in metadata if isinstance(item, Unit)]
     return FieldShape(kind=units[-1].kind if units else None, array=False)
+
+
+def calculation_fields(inputs: object) -> dict[str, frozenset[str]]:
+    """Map each calculation of a union of inputs to the fields it takes.
+
+    A model whose inputs are one model, not a union on ``calculation``, gives an
+    empty mapping. A bind of a union model reads only the fields of the
+    calculation the caller names, so a profile can serve every calculation.
+
+    Examples
+    --------
+    >>> from typing import Annotated, Literal
+    >>> from pydantic import Field
+    >>> from pyeconomics.core import Rate
+    >>> from pyeconomics.core.model import ModelInputs
+    >>> class A(ModelInputs):
+    ...     calculation: Literal["a"] = Field("a", description="A")
+    ...     rate: Rate = Field(ge=0, le=1, description="A rate")
+    >>> class B(ModelInputs):
+    ...     calculation: Literal["b"] = Field("b", description="B")
+    >>> family = Annotated[A | B, Field(discriminator="calculation")]
+    >>> fields = calculation_fields(family)
+    >>> sorted(fields["a"]), sorted(fields["b"])
+    (['calculation', 'rate'], ['calculation'])
+    """
+    if union_discriminator(inputs) != CALCULATION_FIELD:
+        return {}
+    found: dict[str, frozenset[str]] = {}
+    for member in union_members(inputs):
+        if not (isinstance(member, type) and issubclass(member, BaseModel)):
+            continue
+        tag = member.model_fields.get(CALCULATION_FIELD)
+        if tag is not None and isinstance(tag.default, str):
+            found[tag.default] = frozenset(member.model_fields)
+    return found
 
 
 def field_shapes(inputs: object) -> dict[str, tuple[FieldShape, ...]]:

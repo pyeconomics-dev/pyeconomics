@@ -15,7 +15,28 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
-- The semantic catalog and resolver (ADR-0011 decision 15): 136 concepts
+- `macro.policy_rule`, the monetary-policy suite: the Taylor (1993) and (1999),
+  balanced-approach, balanced-approach (shortfalls), adjusted Taylor (1993) and
+  first-difference rules as the Board's Monetary Policy Report and the original
+  papers define them, each with its published weights (overridable), smoothing
+  from the previous rate and an optional effective lower bound that floors the
+  smoothed rate; the resource gap as an output gap or an Okun-scaled unemployment
+  gap; the neutral rate real or nominal; and a `path` calculation over forecast
+  horizons with an optional low-high band, drawn as a fan chart. Profiles bind
+  realized US data (`default`, `us_output_gap`), the SEP (`us_sep`), the SPF
+  (`us_spf`) and the euro area, the United Kingdom and Canada; golden cases
+  reproduce the Atlanta Fed's Taylor Rule Utility and the Cleveland Fed's simple
+  rules, and a parity test holds every 0.2.x characterization fixture.
+- `macro.neutral_rate`: r* from the New York Fed's published Laubach-Williams and
+  Holston-Laubach-Williams estimates, the SEP's longer-run rate less the inflation
+  objective, or a constant, as real and nominal rates with the real policy-rate gap.
+- The `macro` entry point, and series concepts for the SEP medians a binding reads:
+  `us.sep.core_pce_inflation`, `us.sep.pce_inflation` and `us.sep.unemployment`
+  for a meeting and a projection year, and `us.sep.unemployment_longer_run`.
+- The `lag(periods=n)` transform (each date's value `n` periods back), a
+  candidate `column` that takes concept parameters as its series key does, a
+  candidate's `vintages` flag, and the `band` chart kind (a fan chart).
+- The semantic catalog and resolver (ADR-0011 decision 15): 140 concepts
   with permanent ids such as `us.inflation.pce_core.yoy` (US prices, labour,
   output and the output gap, policy rates, Treasury curves, r*, the SEP and SPF,
   fiscal series, the Penn World Table, the Ken French factor and portfolio
@@ -199,9 +220,21 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - Registry validation requires units and bounds on numeric Literal fields (#81).
 - Shared IRR recognizes roots at inclusive bracket endpoints without changing
   the smallest-root policy (#85); see the public erratum.
+- A real-time bind of the funds rate, the target range or a Treasury yield no
+  longer raises: ALFRED keeps no vintages of FRED's daily `EFFR`, `DFEDTARU`,
+  `DFEDTARL`, `DGS10`, `DGS3MO` and `DFII10`, so those candidates are marked,
+  skipped by a vintage request, and read by a binding as revised data, labelled.
+- A binding read for the period containing a date now passes over a source that
+  holds no observation up to that period's end, instead of picking it and failing.
+- The Federal Reserve Board's SEP columns no longer carry a row label's footnote
+  number (`core_pce_inflation_median_2026`, not `core_pce_inflation_4_...`).
+- A concept search ranks a concept whose topic is a query word above one that
+  only mentions it.
 
 ### Changed
 
+- A bind of a model with several calculations needs `calculation=...` and reads
+  only the bindings that calculation's fields take.
 - **Breaking for anything that parses manifests:** the manifest moves to schema 2.
   `schema_version` is 2 and `data_sources` is a list of `DataSource` records
   (always empty before) in canonical form, sorted by field. The manifest still holds

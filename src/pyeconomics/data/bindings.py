@@ -60,6 +60,7 @@ from pyeconomics.core.binding import (
     CandidateNote,
     FieldShape,
     VintagePolicy,
+    calculation_fields,
     field_shapes,
     user_supplied,
 )
@@ -69,6 +70,7 @@ from pyeconomics.core.provenance import (
     MAX_WARNINGS,
     DataSource,
 )
+from pyeconomics.core.spec import CALCULATION_FIELD
 from pyeconomics.core.transforms import canonical_transform, format_transform
 from pyeconomics.data import cache, catalog
 from pyeconomics.data import registry as provider_registry
@@ -115,6 +117,7 @@ _SPAN_DAYS: Final = {
 #: Holidays and weekends mean a business-daily window spans about 1.4 times as
 #: many days; double it, and add a month, so a window never comes up short.
 _MARGIN_DAYS: Final = 31
+_LAST_DAY: Final = DATA_DATE_BOUNDS.upper
 #: Unit kinds that are one dimensionless decimal, interchangeable for a field.
 _DIMENSIONLESS: Final = frozenset({UnitKind.RATE, UnitKind.RATIO})
 _WHOLE: Final = frozenset({UnitKind.DAYS, UnitKind.COUNT})
@@ -259,6 +262,11 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     chosen = _profile(model, profile)
     shapes = field_shapes(model.spec.inputs)
     given = dict(overrides or {})
+    fields = _calculation(model, given)
+    if fields is not None:
+        # A family of calculations: read only what the named one takes.
+        chosen = [binding for binding in chosen if binding.field in fields]
+        shapes = {name: shapes[name] for name in shapes if name in fields}
     unknown = sorted(set(given) - set(shapes))
     if unknown:
         known = ", ".join(sorted(shapes))
@@ -300,6 +308,30 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
         sources=tuple(records),
         as_of=day,
     )
+
+
+def _calculation(
+    model: Model[Any, Any], given: Mapping[str, object]
+) -> frozenset[str] | None:
+    """Return the fields of the calculation a bind names, for a union model.
+
+    A model with one set of inputs returns ``None``: every binding applies.
+    """
+    families = calculation_fields(model.spec.inputs)
+    if not families:
+        return None
+    named = given.get(CALCULATION_FIELD)
+    choices = ", ".join(sorted(families))
+    if named is None:
+        msg = (
+            f"{model.id} has several calculations; name one with "
+            f"calculation=..., one of: {choices}"
+        )
+        raise f.fail(msg)
+    if not isinstance(named, str) or named not in families:
+        msg = f"{model.id} has no calculation {named!r}; its calculations: {choices}"
+        raise f.fail(msg)
+    return families[named]
 
 
 def _profile(model: Model[Any, Any], profile: str) -> list[Binding]:
@@ -394,12 +426,15 @@ def _resolve(
         start = max(day - dt.timedelta(days=back), DATA_DATE_BOUNDS.lower)
     declared = {parameter.name for parameter in concept.parameters}
     # An observation is dated by its period's last day, so the period containing
-    # the date is dated after it: that rule reads past the date (a vintage as of
-    # the date still holds back what was not yet published).
-    reads_ahead = binding.as_of is AsOf.PERIOD and not concept.needs_window
+    # the date is dated after it: that rule reads up to that period's end, no
+    # further (a vintage as of the date still holds back what was not yet
+    # published). A source with nothing up to then is skipped, not picked.
+    end = day
+    if binding.as_of is AsOf.PERIOD and not concept.needs_window and day is not None:
+        end = min(day + dt.timedelta(days=_SPAN_DAYS[concept.frequency]), _LAST_DAY)
     common: dict[str, Any] = {
         "start": start,
-        "end": None if reads_ahead else day,
+        "end": end,
         "mode": ask.mode,
         "parameters": {k: v for k, v in ask.parameters.items() if k in declared},
         "transport": ask.transport,
@@ -425,8 +460,8 @@ def _serves_vintages(
     """Say whether some candidate usable in the mode can read a past vintage.
 
     From metadata alone: a registered provider that declares the ``vintages``
-    capability and that the mode allows, or a derived candidate whose operands
-    all can.
+    capability, keeps them for the candidate's series and that the mode allows,
+    or a derived candidate whose operands all can.
     """
     if depth > _MAX_DEPTH:  # pragma: no cover - the catalog checks forbid loops
         return False
@@ -437,6 +472,8 @@ def _serves_vintages(
                 for o in candidate.operands
             ):
                 return True
+            continue
+        if not candidate.vintages:
             continue
         try:
             info = registry.provider_class(candidate.provider).info

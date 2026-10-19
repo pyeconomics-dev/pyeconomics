@@ -123,6 +123,15 @@ input field, in each field's own unit, and one record per bound field.
 `run(model_id, bound)` and `run_model(model, bound)` take a `Bound` as their
 inputs. A `Bound` runs only the model it was bound for.
 
+A model with several calculations (a union on `calculation`, such as
+`macro.policy_rule`) needs the calculation named, `bind(..., calculation="taylor_1993")`,
+and reads only the bindings of the fields that calculation takes: a profile can
+serve every calculation, and a rule that reads no neutral rate fetches none.
+
+An `AsOf.PERIOD` binding reads the period that contains the date, which ends
+after it: the request runs to that period's end and no further, so a source with
+nothing up to then is passed over rather than picked.
+
 ## Real time by default
 
 Historical evaluation defaults to the vintage published **by the evaluation date**
@@ -134,7 +143,7 @@ future.
 | What was asked | What `bind` reads | Record |
 | --- | --- | --- |
 | `as_of` and `REAL_TIME`, a source keeps vintages | the vintage `as_of:YYYY-MM-DD` | `vintage` is `as_of:...`; `realtime` covers the date |
-| `as_of` and `REAL_TIME`, no source usable in the mode keeps vintages | the latest data | warning code `revised_data` |
+| `as_of` and `REAL_TIME`, no source usable in the mode keeps vintages of the series | the latest data | warning code `revised_data` |
 | `LATEST` | the latest data | warning code `revised_data` |
 | no `as_of` | the latest data, at the last observation | none, unless the source itself says so |
 
@@ -143,7 +152,10 @@ the `Bound` lists the fields in `bound.revised`, and the result carries a
 `revised_data` warning (so it never shares a `result_sha256` with the same
 numbers read in real time). A source that publishes only its current estimates,
 like BEA's API, marks every frame `revised_data` itself, and the record repeats
-it. A source that could answer in real time but cannot, because its key is
+it. A provider that keeps vintages may still keep none of one series: ALFRED holds
+none of FRED's daily rates (`EFFR`, the target range, `DGS10`, `DGS3MO`,
+`DFII10`), so the catalog marks those candidates `vintages=False` and they are
+read as revised data too. A source that could answer in real time but cannot, because its key is
 missing or the cache has nothing offline, is an error to fix: `bind` raises
 `CredentialError` or `OfflineError`, and never quietly reads revised data.
 

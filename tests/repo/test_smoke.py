@@ -285,7 +285,11 @@ def test_without_the_extra_the_smoke_covers_econometrics_by_its_error(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     detail = smoke.check_models(pyeconomics, min_domains=11)
-    assert detail == "registry valid; 11 domain(s) covered"
+    # A floor of 11 (Phase 2's domains); the count grows as Phase 3 registers.
+    assert (
+        detail
+        == f"registry valid; {len(pyeconomics.registry.domains())} domain(s) covered"
+    )
     out = capsys.readouterr().out
     assert "econometrics.ols: raises, naming pyeconomics[econometrics]" in out
     with pytest.raises(AssertionError, match="needs the 'econometrics' extra"):

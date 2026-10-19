@@ -90,12 +90,32 @@ def figure(result: Result[Any, Any], chart_id: str | None = None) -> Any:  # noq
     outputs = result.outputs.model_dump(mode="python")
     x = list(outputs[spec.x])
     fig = graph_objects.Figure()
-    for name in spec.y:
+    lines = spec.y
+    if spec.kind is ChartKind.BAND:
+        lower, upper, *rest = spec.y
+        lines = tuple(rest)
+        # The upper edge fills down to the lower one; an empty band draws nothing.
+        fig.add_trace(
+            graph_objects.Scatter(
+                x=x, y=list(outputs[lower]), mode="lines", line={"width": 0}, name=lower
+            )
+        )
+        fig.add_trace(
+            graph_objects.Scatter(
+                x=x,
+                y=list(outputs[upper]),
+                mode="lines",
+                line={"width": 0},
+                fill="tonexty",
+                name=upper,
+            )
+        )
+    for name in lines:
         values = list(outputs[name])
         if spec.kind is ChartKind.BAR:
             fig.add_trace(graph_objects.Bar(x=x, y=values, name=name))
         else:
-            mode = "lines" if spec.kind is ChartKind.LINE else "markers"
+            mode = "markers" if spec.kind is ChartKind.SCATTER else "lines"
             fig.add_trace(graph_objects.Scatter(x=x, y=values, mode=mode, name=name))
     fig.update_layout(
         title={"text": spec.title},

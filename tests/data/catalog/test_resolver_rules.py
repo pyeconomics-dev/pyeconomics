@@ -904,6 +904,46 @@ def test_a_series_concept_takes_a_column_of_a_table() -> None:
     assert result.source.series_id == "curve:BC_10YEAR"
 
 
+def test_a_parameter_fills_the_column_as_it_fills_the_series_key() -> None:
+    a = scripted("alpha", {"curve": _table()})
+    tenor = Parameter(
+        name="tenor", pattern=r"1MONTH|10YEAR", summary="A tenor.", example="10YEAR"
+    )
+    by_tenor = concept(
+        (Candidate(provider="alpha", series="curve", column="BC_{tenor}"),),
+        kind=UnitKind.RATE,
+        parameters=(tenor,),
+    )
+    result = resolve(by_tenor, parameters={"tenor": "1MONTH"}, registry=registry_of(a))
+    assert as_series(result.frame).values == (0.01, 0.02)
+    assert result.source.series_id == "curve:BC_1MONTH"
+    with pytest.raises(InputError, match="needs the parameter 'tenor'"):
+        resolve(by_tenor, registry=registry_of(a))
+
+
+def test_a_column_placeholder_must_be_a_declared_parameter() -> None:
+    with pytest.raises(InputError, match="placeholders"):
+        concept(
+            (Candidate(provider="alpha", series="curve", column="BC_{tenor}"),),
+            kind=UnitKind.RATE,
+        )
+
+
+def test_a_series_kept_without_vintages_is_skipped_by_a_vintage_request() -> None:
+    frame = monthly(DATA, provider="alpha", terms=LIBRARY_TERMS)
+    a = scripted(
+        "alpha",
+        {"A": frame},
+        licence=LicenceClass.LIBRARY_ONLY,
+        capabilities=(Capability.FETCH, Capability.VINTAGES),
+    )
+    kept = concept((Candidate(provider="alpha", series="A", vintages=False),))
+    with pytest.raises(DataError, match="keeps no vintages of A"):
+        resolve(kept, as_of=dt.date(2025, 6, 30), registry=registry_of(a))
+    assert calls_of(a) == []  # skipped before any request
+    assert resolve(kept, registry=registry_of(a)).source.provider == "alpha"
+
+
 def test_a_series_concept_over_a_table_with_no_column_named_is_passed_over() -> None:
     a = scripted("alpha", {"curve": _table()})
     with pytest.raises(DataError, match="needs a column of it"):

@@ -384,7 +384,10 @@ class FedBoard(DataProvider):
                 continue
             if not horizons or len(row) < 1 + 3 * len(horizons):
                 continue
-            variable = re.sub(r"[^a-z0-9]+", "_", row[0].casefold()).strip("_")
+            # A label may end in a footnote number ("Core PCE inflation 4"); it
+            # is not part of the variable's name.
+            label = re.sub(r"\d+$", "", row[0].strip())
+            variable = re.sub(r"[^a-z0-9]+", "_", label.casefold()).strip("_")
             if "projection" in variable or "june" in variable:
                 continue
             for group, statistic in enumerate(("median", "central_tendency", "range")):

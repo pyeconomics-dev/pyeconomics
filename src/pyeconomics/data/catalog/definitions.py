@@ -146,7 +146,8 @@ class Candidate:
     series: str
     """The provider's series key; ``{name}`` fills from a concept parameter."""
     column: str | None = None
-    """The column to take when the provider answers with a table."""
+    """The column to take when the provider answers with a table; ``{name}``
+    fills from a concept parameter, as in the series key."""
     columns: tuple[tuple[str, str], ...] = ()
     """For a table concept, ``(concept column, provider column)`` pairs: the
     columns kept, renamed. Empty keeps every column as the provider names it."""
@@ -160,6 +161,11 @@ class Candidate:
     concept's cadence class (Treasury labels business days irregular)."""
     options: tuple[tuple[str, _OPTION_VALUE], ...] = ()
     """Extra fields for the provider's own query model."""
+    vintages: bool = True
+    """Whether the provider keeps this series' vintages, where it keeps any.
+    ``False`` for a series a vintage-keeping provider serves only as it stands
+    (FRED's daily rates, which ALFRED does not hold): a real-time request skips
+    it, and a binding reads it as revised data."""
     note: str | None = None
     """A sentence for the concept page: a quirk of this source."""
 
@@ -176,6 +182,7 @@ class Candidate:
         if self.delivers is not None:
             f.choice(ObservationFrequency, self.delivers, "delivers")
         f.optional_text(self.note, "a candidate's note", max_length=_MAX_DEFINITION)
+        f.flag(self.vintages, "vintages")
         object.__setattr__(
             self, "transforms", tuple(canonical_transform(t) for t in self.transforms)
         )
@@ -207,8 +214,11 @@ class Candidate:
 
     @property
     def placeholders(self) -> frozenset[str]:
-        """The parameter names the series key uses."""
-        return frozenset(_PLACEHOLDER.findall(self.series))
+        """The parameter names the series key and the column use."""
+        found = _PLACEHOLDER.findall(self.series)
+        if self.column is not None:
+            found += _PLACEHOLDER.findall(self.column)
+        return frozenset(found)
 
 
 @dataclass(frozen=True, slots=True)

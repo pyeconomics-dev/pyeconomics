@@ -1,0 +1,191 @@
+# tests/golden/macro/policy_rule.toml
+model = "macro.policy_rule"
+
+[[sources]]
+key = "mpr2026_box4"
+kind = "identity"
+citation = "The rules of table A, box 4 (Monetary Policy Rules in the Current Environment), Monetary Policy Report, Board of Governors of the Federal Reserve System, July 2026: Taylor (1993), adjusted Taylor (1993), balanced approach and first difference, in the unemployment form (a coefficient of 2 on the gap converts it to output-gap units)."
+
+[[sources]]
+key = "mpr2023_box"
+kind = "identity"
+citation = "The balanced-approach (shortfalls) rule of table A, box Monetary Policy Rules in the Current Environment, Monetary Policy Report, Board of Governors of the Federal Reserve System, June 2023: 2 min(u* - u, 0) in place of the balanced approach's 2 (u* - u)."
+
+[[sources]]
+key = "taylor_identity"
+kind = "identity"
+citation = "Any of the level rules with inflation at its target and no resource gap prescribes the nominal neutral rate, r* plus the target."
+
+[[sources]]
+key = "atlanta_tru"
+kind = "official"
+citation = "Federal Reserve Bank of Atlanta. Taylor Rule Utility, data file taylor-rule-data.xlsx (updated October 14, 2026), accessed 2026-10-18. Prescriptions are rho x lagged rate + (1 - rho)(r* + pi* + 1.5(pi - pi*) + w x gap), with the gap in output-gap units."
+url = "https://www.atlantafed.org/cqer/research/taylor-rule"
+
+[[sources]]
+key = "cleveland_rules"
+kind = "official"
+citation = "Federal Reserve Bank of Cleveland. Simple Monetary Policy Rules, spreadsheet policy_rules_spreadsheet.xlsx, based on data and forecasts available as of September 3, 2026 (updated September 4, 2026), accessed 2026-10-18. Inputs from its Parameters and Forecasts worksheets, prescriptions from its Policy Rule Funds Rates worksheet, all in percent."
+url = "https://www.clevelandfed.org/indicators-and-data/simple-monetary-policy-rules"
+
+[[cases]]
+id = "mpr_taylor_1993"
+source = "mpr2026_box4"
+edge = false
+inputs = { calculation = "taylor_1993", inflation = 0.03, neutral_real_rate = 0.005, unemployment = 0.04, natural_unemployment = 0.042 }
+expected = { prescribed_rate = 0.042, inflation_gap_term = 0.005, resource_gap_term = 0.002, nominal_neutral_rate = 0.025 }
+note = "0.005 + 0.03 + 0.5(0.03 - 0.02) + (0.042 - 0.04)."
+
+[[cases]]
+id = "mpr_balanced_approach"
+source = "mpr2026_box4"
+edge = false
+inputs = { calculation = "balanced_approach", inflation = 0.03, neutral_real_rate = 0.005, unemployment = 0.04, natural_unemployment = 0.042 }
+expected = { prescribed_rate = 0.044, resource_gap_term = 0.004 }
+note = "Twice the Taylor (1993) weight on the unemployment gap."
+
+[[cases]]
+id = "mpr_shortfalls_ignore_a_tight_labour_market"
+source = "mpr2023_box"
+edge = false
+inputs = { calculation = "balanced_approach_shortfalls", inflation = 0.03, neutral_real_rate = 0.005, unemployment = 0.04, natural_unemployment = 0.042 }
+expected = { prescribed_rate = 0.04, resource_gap_term = 0.0 }
+
+[[cases]]
+id = "mpr_shortfalls_answer_slack"
+source = "mpr2023_box"
+edge = false
+inputs = { calculation = "balanced_approach_shortfalls", inflation = 0.03, neutral_real_rate = 0.005, unemployment = 0.05, natural_unemployment = 0.042 }
+expected = { prescribed_rate = 0.024, resource_gap_term = -0.016 }
+note = "With unemployment above its natural rate the shortfalls rule is the balanced approach."
+
+[[cases]]
+id = "mpr_adjusted_rule_at_the_lower_bound"
+source = "mpr2026_box4"
+edge = true
+inputs = { calculation = "adjusted_taylor_1993", inflation = 0.01, neutral_real_rate = 0.005, unemployment = 0.08, natural_unemployment = 0.045, cumulative_shortfall = 0.02 }
+expected = { prescribed_rate = 0.00125, unconstrained_rate = -0.045 }
+note = "Taylor (1993) prescribes -0.025; less a shortfall of 0.02 it is -0.045, and the 12.5 basis point lower bound binds."
+
+[[cases]]
+id = "mpr_adjusted_rule_after_liftoff"
+source = "mpr2026_box4"
+edge = false
+inputs = { calculation = "adjusted_taylor_1993", inflation = 0.025, neutral_real_rate = 0.005, unemployment = 0.04, natural_unemployment = 0.042, cumulative_shortfall = 0.01 }
+expected = { prescribed_rate = 0.0245 }
+note = "Taylor (1993) prescribes 0.0345; the shortfall still to make up holds the rate 0.01 lower."
+
+[[cases]]
+id = "mpr_first_difference"
+source = "mpr2026_box4"
+edge = false
+inputs = { calculation = "first_difference", inflation = 0.03, previous_rate = 0.0425, unemployment = 0.043, natural_unemployment = 0.042, unemployment_lagged = 0.04 }
+expected = { prescribed_rate = 0.0445, resource_gap_term = -0.003 }
+note = "0.0425 + 0.5(0.03 - 0.02) - (0.043 - 0.04): with the natural rate unchanged the gap's change is the unemployment rate's."
+
+[[cases]]
+id = "negative_inflation_and_no_gap"
+source = "mpr2026_box4"
+edge = true
+inputs = { calculation = "taylor_1993", inflation = -0.01, neutral_real_rate = 0.005, output_gap = 0.0 }
+expected = { prescribed_rate = -0.02, inflation_gap_term = -0.015, resource_gap_term = 0.0 }
+note = "Deflation of 1%: 0.005 - 0.01 + 0.5(-0.01 - 0.02). With no lower bound the rule prescribes a negative rate."
+
+[[cases]]
+id = "inflation_at_target_and_no_gap"
+source = "taylor_identity"
+edge = true
+inputs = { calculation = "taylor_1999", inflation = 0.02, neutral_real_rate = 0.0075, output_gap = 0.0 }
+expected = { prescribed_rate = 0.0275, nominal_neutral_rate = 0.0275 }
+
+[[cases]]
+id = "atlanta_fomc_taylor_1993_2026q3"
+source = "atlanta_tru"
+locator = "Sheet FOMCTaylor93UR, row 289 (2026:Q3): r* FOMC median 1.1875, gap 2 x FOMC U3 gap, core PCE 4-quarter inflation, target 2%, smoothing 0, gap weight 0.5"
+edge = false
+inputs = { calculation = "taylor_1993", inflation = 0.030154797484357898, neutral_real_rate = 0.011875, output_gap = 0.0003333333333333499 }
+expected = { prescribed_rate = 0.04727386289320352 }
+note = "The utility's gap is twice the unemployment gap, already in output-gap units, so it is passed as the output gap."
+
+[[cases]]
+id = "atlanta_taylor_1993_cbo_gap_2026q3"
+source = "atlanta_tru"
+locator = "Sheet Taylor93GDP, row 289 (2026:Q3): r* Laubach-Williams 1-sided 1.6524, CBO GDP gap, core PCE, target 2%, smoothing 0, gap weight 0.5"
+edge = false
+inputs = { calculation = "taylor_1993", inflation = 0.030154797484357898, neutral_real_rate = 0.016524, output_gap = 0.013901344521802209 }
+expected = { prescribed_rate = 0.058706868487437947 }
+
+[[cases]]
+id = "atlanta_heat_map_hlw_cbo_gap_2026q3"
+source = "atlanta_tru"
+locator = "Sheet HeatMapLatestQuarter, cell H7 (2026:Q3): r* HLW 1-sided 1.00864835850403, CBO GDP gap, core PCE, smoothing 0, weight 0.5"
+edge = false
+inputs = { calculation = "taylor_1993", inflation = 0.030154797484357898, neutral_real_rate = 0.0100864835850403, output_gap = 0.013901344521802209 }
+expected = { prescribed_rate = 0.05226935207247825 }
+
+[[cases]]
+id = "cleveland_cbo_taylor_1993_2026q3"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cell D10 (CBO, Taylor (1993) rule, 2026.3); Forecasts E8 (PCE) and E11 (output gap); Parameters B3 and B4"
+edge = false
+inputs = { calculation = "taylor_1993", inflation = 0.028042082766965626, neutral_real_rate = 0.010625, output_gap = 0.010632055668501316 }
+expected = { prescribed_rate = 0.04800415198469909 }
+
+[[cases]]
+id = "cleveland_cbo_core_taylor_1999_2026q3"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cell D11 (CBO, core inflation in Taylor (1999) rule, 2026.3); Forecasts E10 (core PCE) and E11"
+edge = false
+inputs = { calculation = "taylor_1999", inflation = 0.02899157010703135, neutral_real_rate = 0.010625, output_gap = 0.010632055668501316 }
+expected = { prescribed_rate = 0.05474441082904834 }
+
+[[cases]]
+id = "cleveland_spf_taylor_1993_okun_2026q3"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cell D3 (SPF, Taylor (1993) rule, 2026.3); Forecasts E4 (PCE) and E7 (unemployment); Parameters B6 (1/b = -1.2107677972236974) and B7 (SPF natural rate 4.25)"
+edge = false
+inputs = { calculation = "taylor_1993", inflation = 0.03730990673583645, neutral_real_rate = 0.010625, unemployment = 0.042, natural_unemployment = 0.0425, okun_coefficient = 1.2107677972236974 }
+expected = { prescribed_rate = 0.056892552053060604 }
+note = "The spreadsheet's output-gap proxy is (1/b)(u - u*), so the Okun coefficient is -1/b."
+
+[[cases]]
+id = "cleveland_cbo_inertial_2026q3"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cell D12 (CBO, inertial rule, 2026.3): 0.8 x C12 plus 0.2 x the core Taylor (1999) rule; Parameters B9 (rho = 0.8)"
+edge = false
+inputs = { calculation = "taylor_1999", inflation = 0.02899157010703135, neutral_real_rate = 0.010625, output_gap = 0.010632055668501316, smoothing = 0.8, previous_rate = 0.03631076923076923 }
+expected = { prescribed_rate = 0.03999749755042505 }
+
+[[cases]]
+id = "cleveland_cbo_first_difference_2026q3"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cell D15 (CBO, first-difference rule, 2026.3): C15 + 1.74(H8 - 2) - 1.19(D12 - C12)"
+edge = false
+inputs = { calculation = "first_difference", inflation = 0.02441632370475788, previous_rate = 0.03631076923076923, unemployment = 0.046, natural_unemployment = 0.0439, unemployment_lagged = 0.045, inflation_weight = 1.74, resource_weight = 1.19, okun_coefficient = 1.0 }
+expected = { prescribed_rate = 0.04280517247704795 }
+note = "The spreadsheet's rule reads inflation three quarters ahead and the last quarter's change in unemployment; the natural rate cancels."
+
+[[cases]]
+id = "cleveland_cbo_taylor_1993_path"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cells D10:L10 (CBO, Taylor (1993) rule, 2026.3 to 2028.3); Forecasts E8:M8 and E11:M11"
+edge = false
+inputs = { calculation = "path", rule = "taylor_1993", neutral_real_rate = 0.010625, inflation_path = [0.028042082766965626, 0.02703419650310912, 0.025583430797710305, 0.02441632370475788, 0.02349398511181411, 0.022926858913974835, 0.022460539234196775, 0.022054682396053016, 0.021707637623584963], output_gap_path = [0.010632055668501316, 0.009979285174103148, 0.008989930786935689, 0.008100590464726675, 0.007394612612102378, 0.006708195507480854, 0.006088992974238817, 0.00531679749572864, 0.004437629513405999] }
+expected = { prescribed_path = [0.04800415198469909, 0.04616593734171525, 0.0434951115900333, 0.04129978078950016, 0.03956328397377235, 0.03836938612470268, 0.03736030533841457, 0.03636542234194384, 0.035405271192080444] }
+
+[[cases]]
+id = "cleveland_cbo_inertial_path"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cells D12:L12 (CBO, inertial rule, 2026.3 to 2028.3): each quarter smooths from the previous quarter's prescription"
+edge = false
+inputs = { calculation = "path", rule = "taylor_1999", neutral_real_rate = 0.010625, inflation_path = [0.02899157010703135, 0.02803555193278373, 0.026098452445757703, 0.024716047285558762, 0.023779388639588728, 0.023199786528418365, 0.022698679762933383, 0.022266260775212654, 0.021893380286966524], output_gap_path = [0.010632055668501316, 0.009979285174103148, 0.008989930786935689, 0.008100590464726675, 0.007394612612102378, 0.006708195507480854, 0.006088992974238817, 0.00531679749572864, 0.004437629513405999], smoothing = 0.8, previous_rate = 0.03631076923076923 }
+expected = { prescribed_path = [0.03999749755042505, 0.04252952065499579, 0.043776138415111084, 0.044180843010701826, 0.04408241352285855, 0.04369250587830852, 0.043106407226374606, 0.04235336351280921, 0.04146323079901853] }
+
+[[cases]]
+id = "cleveland_cbo_first_difference_path"
+source = "cleveland_rules"
+locator = "worksheet Policy Rule Funds Rates, cells D15:L15 (CBO, first-difference rule, 2026.3 to 2028.3); Forecasts H8:P8 and C12:L12"
+edge = false
+inputs = { calculation = "path", rule = "first_difference", previous_rate = 0.03631076923076923, inflation_path = [0.02441632370475788, 0.02349398511181411, 0.022926858913974835, 0.022460539234196775, 0.022054682396053016, 0.021707637623584963, 0.021403003252781216, 0.021139868817585672, 0.020924867382775325], unemployment_path = [0.046, 0.046, 0.046, 0.046, 0.045, 0.045, 0.045, 0.045, 0.045], natural_unemployment_path = [0.044000000000000004, 0.044000000000000004, 0.044000000000000004, 0.044000000000000004, 0.044000000000000004, 0.044000000000000004, 0.044000000000000004, 0.044000000000000004, 0.044000000000000004], unemployment_lagged_path = [0.045, 0.046, 0.046, 0.046, 0.046, 0.045, 0.045, 0.045, 0.045], inflation_weight = 1.74, resource_weight = 1.19, okun_coefficient = 1.0 }
+expected = { prescribed_path = [0.04280517247704795, 0.04888470657160451, 0.053977441081920714, 0.058258779349423105, 0.06302392671855535, 0.06599521618359319, 0.0684364418434325, 0.07041981358603157, 0.07202908283206062] }
+note = "A first-difference path accumulates: each quarter's rate is the next quarter's previous rate."
