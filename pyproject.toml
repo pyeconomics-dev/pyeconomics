@@ -158,6 +158,7 @@ test = [
     "sybil>=10.1.0",
     "syrupy>=6.1.1",
     "vollib>=1.0.11",
+    "quantecon>=0.13.0",
 ]
 dev = [
     { include-group = "test" },
@@ -275,7 +276,7 @@ exclude = ['^\.semgrep/tests/', '^tests/fixtures/']
 # (the schema tests' validator), and numpy_financial 1.0 (the Python 3.12
 # oracle) ship no type information; only their own modules are left unchecked.
 [[tool.mypy.overrides]]
-module = ["plotly.*", "statsmodels.*", "jsonschema.*", "numpy_financial.*", "xlrd.*", "xlwt.*", "yfinance.*"]
+module = ["plotly.*", "quantecon.*", "statsmodels.*", "jsonschema.*", "numpy_financial.*", "xlrd.*", "xlwt.*", "yfinance.*"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]

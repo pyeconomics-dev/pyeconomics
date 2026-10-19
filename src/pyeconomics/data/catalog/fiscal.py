@@ -157,4 +157,31 @@ CONCEPTS: Final = (
         ),
         section=_SECTION,
     ),
+    Concept(
+        id="us.fiscal.primary_balance_to_gdp",
+        title="Federal primary balance to GDP",
+        definition=(
+            "The federal primary balance over nominal GDP, both quarterly at an "
+            "annual rate, as a ratio (-0.03 is a primary deficit of 3% of GDP), "
+            "quarterly: the primary balance the debt-dynamics identity reads."
+        ),
+        unit_kind=UnitKind.RATIO,
+        unit_text="ratio of the primary balance to annual GDP (-0.03 is -3%)",
+        frequency=_QUARTERLY,
+        seasonal_adjustment=SeasonalAdjustment.NOT_APPLICABLE,
+        candidates=(
+            Derived(
+                operands=(
+                    Operand("us.fiscal.primary_balance"),
+                    Operand("us.output.nominal_gdp"),
+                ),
+                transform="ratio",
+                note=(
+                    "BEA's primary balance over BEA's nominal GDP, both at annual "
+                    "rates: originators, so hosted mode can compute it."
+                ),
+            ),
+        ),
+        section=_SECTION,
+    ),
 )

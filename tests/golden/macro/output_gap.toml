@@ -1,0 +1,150 @@
+# tests/golden/macro/output_gap.toml
+model = "macro.output_gap"
+
+[[sources]]
+key = "cbo_history"
+kind = "official"
+citation = "Congressional Budget Office (2026). Historical Data and Economic Projections, February 2026 (publication 55022): quarterly real GDP, real potential GDP and the output gap (percent of potential), as CBO publishes them in its US-CBO/cbo-data repository, file data/economic/historical_economic/quarterly_2026-02.csv, accessed 2026-10-19."
+url = "https://github.com/US-CBO/cbo-data/blob/main/data/economic/historical_economic/quarterly_2026-02.csv"
+
+[[sources]]
+key = "cbo_projections"
+kind = "official"
+citation = "Congressional Budget Office (2026). The Budget and Economic Outlook: 2026 to 2036, 10-Year Economic Projections (publication 51135), file 51135-2026-02-Economic-Projections.xlsx, sheet 1. Quarterly, accessed 2026-10-19; the output gap is published to 0.1 percent."
+url = "https://www.cbo.gov/data/budget-economic-data"
+
+[[sources]]
+key = "gap_identity"
+kind = "identity"
+citation = "Output at potential has a zero gap in either form; actual over potential less one is CBO's definition of the output gap."
+
+[[sources]]
+key = "filter_recomputed"
+kind = "identity"
+citation = "The filters' defining equations, recomputed independently in 50-digit arithmetic (mpmath) on the log of US real GDP, 2001Q2-2007Q2, in billions of chained 2000 dollars as BEA published it on July 27, 2007 (the 2007 annual revision): Hodrick and Prescott (1997) with lambda 1,600; Baxter and King (1999) with 6 to 32 quarters and K = 12; Christiano and Fitzgerald (2003) with the same band and the drift removed; Hamilton (2018) with h = 8 and p = 4."
+
+[[cases]]
+id = "cbo_output_gap_2019q4_2020q2_2024q4"
+source = "cbo_history"
+locator = "Lines 21919/25087/15975 (2019q4), 21921/25089/15977 (2020q2) and 21939/25107/15995 (2024q4): real_gdp, real_potential_gdp, output_gap"
+edge = false
+expected = { cycle = [0.012671041794982907, -0.08830491723208767, 0.013534054499414694], gap = 0.013534054499414694, trend = [20722.820278145697, 20925.85598035592, 23271.54168652911] }
+note = "CBO's gap divided by 100; the ratio form reproduces it to every stored digit (the log form misses 2020Q2 by 0.41 points)."
+
+[cases.inputs]
+calculation = "from_potential"
+actual = [20985.4, 19078.0, 23586.5]
+potential = [20722.820278145697, 20925.85598035592, 23271.54168652911]
+
+[[cases]]
+id = "cbo_output_gap_published_2024q4"
+source = "cbo_projections"
+locator = "Sheet 1. Quarterly, column J (2024Q4): real GDP J13, real potential GDP J23, output gap J31 (1.4)"
+edge = false
+inputs = { calculation = "from_potential", actual = [23586.5], potential = [23271.5] }
+expected = { gap = 0.014 }
+tolerance = { gap = { abs = 0.0005 } }
+note = "CBO publishes the gap to 0.1 percent, computed from unrounded levels; half a unit of that precision is 0.0005."
+
+[[cases]]
+id = "no_gap_at_potential"
+source = "gap_identity"
+edge = true
+inputs = { calculation = "from_potential", actual = [21000.0], potential = [21000.0], form = "log" }
+expected = { cycle = [0.0], gap = 0.0, trend = [21000.0], start = 0 }
+note = "A single period, the shortest series."
+
+[[cases]]
+id = "hp_quarterly_bea_2007"
+source = "filter_recomputed"
+edge = false
+expected = { cycle = [
+    0.013345225131037726, 0.003088898689657416, 0.0002765269070077635,
+    0.0002806550561211809, -0.0010848392920582994, -0.0020435106139103363,
+    -0.00842060798605337, -0.012374397490741993, -0.010851077648537214,
+    0.00013797575885314664, -0.0004213089784708407, -0.0002708643207492823,
+    0.0011202557369848097, 0.002789909624027727, 0.001901048981839633,
+    0.002295585377574209, 0.0020734896877467415, 0.005851588432431785,
+    0.001709475321253148, 0.0063986407591853, 0.0053789208920592795,
+    0.0010015201721523836, -0.0008345295603343916, -0.006334174821728254,
+    -0.005014405815348269,
+], start = 0, smoothing = 1600.0 }
+tolerance = { cycle = { abs = 1e-10 } }
+note = "The model solves the banded system in float64 (condition number about 2.6e4 at lambda 1,600), so it agrees to 1e-10 in log points."
+
+[cases.inputs]
+calculation = "hp"
+frequency = "quarterly"
+form = "log"
+series = [
+    9905.9, 9871.1, 9910.0, 9977.3, 10031.6, 10090.7, 10095.8, 10126.0, 10212.7,
+    10398.7, 10467.0, 10543.6, 10634.2, 10728.7, 10796.4, 10878.4, 10954.1, 11074.3,
+    11107.2, 11238.7, 11306.7, 11336.7, 11395.5, 11412.6, 11507.9,
+]
+
+[[cases]]
+id = "baxter_king_minimum_length"
+source = "filter_recomputed"
+edge = true
+expected = { cycle = [0.0026141426977031542], start = 12, lead_lag = 12 }
+note = "2K + 1 = 25 observations, the fewest the filter takes, leave one cycle value, 2004Q2's."
+
+[cases.inputs]
+calculation = "baxter_king"
+frequency = "quarterly"
+form = "log"
+series = [
+    9905.9, 9871.1, 9910.0, 9977.3, 10031.6, 10090.7, 10095.8, 10126.0, 10212.7,
+    10398.7, 10467.0, 10543.6, 10634.2, 10728.7, 10796.4, 10878.4, 10954.1, 11074.3,
+    11107.2, 11238.7, 11306.7, 11336.7, 11395.5, 11412.6, 11507.9,
+]
+
+[[cases]]
+id = "christiano_fitzgerald_bea_2007"
+source = "filter_recomputed"
+edge = false
+expected = { cycle = [
+    0.003107724416858263, 0.0004778416543815822, -0.001750819020325665,
+    -0.003563837768760175, -0.005412118103280048, -0.0075558189369684245,
+    -0.009539144910599658, -0.010316468058933853, -0.009002817451439183,
+    -0.005665189476730502, -0.0014855032721869737, 0.0018999425765603712,
+    0.003427894171514156, 0.003247771877151674, 0.002512341630345005,
+    0.0024991928720271258, 0.0037204021463766485, 0.005637459607566653,
+    0.0071122153086057675, 0.007198413831805168, 0.0057030431328299784,
+    0.0031979907891341998, 0.000587136545281786, -0.0014042135114744276,
+    -0.00249976427924795,
+] }
+
+[cases.inputs]
+calculation = "christiano_fitzgerald"
+frequency = "quarterly"
+form = "log"
+series = [
+    9905.9, 9871.1, 9910.0, 9977.3, 10031.6, 10090.7, 10095.8, 10126.0, 10212.7,
+    10398.7, 10467.0, 10543.6, 10634.2, 10728.7, 10796.4, 10878.4, 10954.1, 11074.3,
+    11107.2, 11238.7, 11306.7, 11336.7, 11395.5, 11412.6, 11507.9,
+]
+
+[[cases]]
+id = "hamilton_bea_2007"
+source = "filter_recomputed"
+edge = false
+expected = { cycle = [
+    -0.007306047114791338, -0.0063482957824835306, -0.004763980433784083,
+    0.003947234846729054, 0.005898580806117503, 0.008256021855402666,
+    0.0016539204942733964, 0.003297172731090011, -0.0015128074946753089,
+    0.0045573095311339075, -0.0001450891693107287, 4.895341043952615e-05,
+    -0.006252898995959712, -0.0013300746841813618,
+], start = 11, horizon = 8, lags = 4 }
+tolerance = { cycle = { abs = 1e-9 } }
+note = "A regression on five nearly collinear lags of log GDP; float64 least squares agrees to 1e-9 in log points."
+
+[cases.inputs]
+calculation = "hamilton"
+frequency = "quarterly"
+form = "log"
+series = [
+    9905.9, 9871.1, 9910.0, 9977.3, 10031.6, 10090.7, 10095.8, 10126.0, 10212.7,
+    10398.7, 10467.0, 10543.6, 10634.2, 10728.7, 10796.4, 10878.4, 10954.1, 11074.3,
+    11107.2, 11238.7, 11306.7, 11336.7, 11395.5, 11412.6, 11507.9,
+]

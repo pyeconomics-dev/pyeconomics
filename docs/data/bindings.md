@@ -132,6 +132,34 @@ An `AsOf.PERIOD` binding reads the period that contains the date, which ends
 after it: the request runs to that period's end and no further, so a source with
 nothing up to then is passed over rather than picked.
 
+**Windows of one frequency end together.** A model that pairs array fields by
+position (a regression of inflation on unemployment, a gap from actual and
+potential output) must read the same periods in each. So every `AsOf.WINDOW`
+binding of one frequency (after its own transform, such as
+`convert(to=quarterly,method=mean)`) ends at the earliest of their last
+observations on or before the date, or, with no date, of their last
+observations: real GDP published to the second quarter and CBO's potential
+projected years ahead both end with the second quarter. The record's
+`window(count=...,date=...)` shows the date the windows share. Windows of
+different frequencies, or of one frequency on another calendar (a fiscal year
+ending in September beside a calendar year), are left alone.
+
+**A window takes a source with the history.** A window binding asks the resolver
+for the observations it reads (three months a quarter through
+`convert(to=quarterly,...)`, and the periods a `pct_change` reaches back), and a
+candidate with fewer is passed over as `no_observations`: an originator whose API
+serves a few recent years (BLS without years asked) gives way to an aggregator
+with the history (FRED). A source that runs years ahead (CBO's projections) can
+hold enough in all and too few up to the date the windows share; the bind asks
+again up to that date, and it gives way too. A window never takes a gap: a
+quarter's average of a month the source left out is missing, so a model that
+reads monthly data by the quarter can take each quarter's last month instead.
+
+A concept whose sources answer for a window of dates (the Treasury curves) is
+asked for enough of them to cover what the binding finally reads: a
+`convert(to=monthly,method=mean)` binding is sized in months, so the month before
+the date is always whole.
+
 ## Real time by default
 
 Historical evaluation defaults to the vintage published **by the evaluation date**

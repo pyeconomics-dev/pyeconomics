@@ -1,0 +1,45 @@
+# tests/golden/macro/recession_probability.toml
+model = "macro.recession_probability"
+
+[[sources]]
+key = "nyfed_allmonth"
+kind = "official"
+citation = "Federal Reserve Bank of New York. Probability of US Recession Predicted by Treasury Spread, data file allmonth.xls, sheet rec_prob (columns Date, 10 Year Treasury Yield, 3 Month Treasury Yield on a discount basis, its bond-equivalent, Spread, Rec_prob; data through September 2026, chart updated October 4, 2026), accessed 2026-10-19. Each probability sits on the row of the month twelve months after its spread."
+url = "https://www.newyorkfed.org/research/capital_markets/ycfaq"
+
+[[sources]]
+key = "probit_identity"
+kind = "identity"
+citation = "Phi(-0.5333 - 0.6330 S) is one half where the argument is zero: S = -0.5333 / 0.6330 = -0.8425 percentage points."
+
+[[cases]]
+id = "may_2023_inverted"
+source = "nyfed_allmonth"
+locator = "Rows 774 (01-May-2023: 3.57, 5.14, spread -1.7099906338634239) and 786 (01-May-2024: Rec_prob 0.7085398464921322)"
+edge = true
+inputs = { ten_year_yield = 0.0357, three_month_yield = 0.0514, bill_basis = "discount" }
+expected = { probability = 0.7085398464921322, spread = -0.017099906338634239 }
+note = "A negative spread; the file stores full doubles."
+
+[[cases]]
+id = "september_2026"
+source = "nyfed_allmonth"
+locator = "Rows 814 (01-Sep-2026: 4.99, 3.94, spread 0.9550923390904869) and 826 (01-Sep-2027: Rec_prob 0.12758666440605101)"
+edge = false
+inputs = { ten_year_yield = 0.0499, three_month_yield = 0.0394, bill_basis = "discount" }
+expected = { probability = 0.12758666440605101, spread = 0.009550923390904869 }
+
+[[cases]]
+id = "december_1980"
+source = "nyfed_allmonth"
+locator = "Rows 265 (01-Dec-1980: 12.84, 15.49, spread -3.5051372793788786) and 277 (01-Dec-1981: Rec_prob 0.9540492910271092)"
+edge = false
+inputs = { ten_year_yield = 0.1284, three_month_yield = 0.1549, bill_basis = "discount" }
+expected = { probability = 0.9540492910271092, spread = -0.035051372793788786 }
+
+[[cases]]
+id = "one_half_at_the_threshold"
+source = "probit_identity"
+edge = false
+inputs = { ten_year_yield = 0.021575039494470774, three_month_yield = 0.03 }
+expected = { probability = 0.5 }

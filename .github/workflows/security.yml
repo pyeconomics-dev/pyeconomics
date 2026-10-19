@@ -212,6 +212,12 @@ jobs:
           #   licences hook allows it only through the reviewed entry in
           #   scripts/checks/licence_exceptions.toml, approved in that step's
           #   pull request.
+          # - quantecon (test group only, Phase 3 Step 14: the never-skipped
+          #   oracle for macro.output_gap's Hamilton filter) publishes no licence
+          #   metadata; its repository's LICENSE is BSD-3-Clause. It pulls in
+          #   numba and llvmlite, whose LLVM part is Apache-2.0 WITH
+          #   LLVM-exception beside BSD-2-Clause. None is in the runtime closure,
+          #   which the licences hook checks; the all-groups audit covers them.
           # Step 10: maintainer-reviewed xlrd legacy BSD, peewee/protobuf
           # missing metadata, and multitasking Apache-2.0 exceptions. Exact
           # metadata and notices remain pinned by the local licences gate.
@@ -228,10 +234,12 @@ jobs:
             pkg:pypi/cffi,
             pkg:pypi/docutils,
             pkg:pypi/hypothesis,
+            pkg:pypi/llvmlite,
             pkg:pypi/numpy,
             pkg:pypi/parso,
             pkg:pypi/pathspec,
             pkg:pypi/patsy,
+            pkg:pypi/quantecon,
             pkg:pypi/roman-numerals,
             pkg:pypi/simplejson,
             pkg:pypi/sdmx1,

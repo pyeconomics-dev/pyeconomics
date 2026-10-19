@@ -1192,3 +1192,211 @@ def _neutral_rate() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["macro.neutral_rate"] = _neutral_rate
+
+
+# --- macro launch catalog: paired series, filter lengths, one share ------------
+
+#: A positive output level: realistic, or anywhere in the field's bounds.
+_OUTPUT_LEVEL: Final = st.one_of(
+    st.floats(min_value=1e2, max_value=1e5),
+    st.floats(min_value=0.0, max_value=1e15, exclude_min=True),
+)
+
+
+@st.composite
+def _output_path(draw: st.DrawFn, size: int) -> list[float]:
+    """A positive series: a random walk in logs, or levels drawn independently."""
+    if draw(st.booleans()):
+        return draw(st.lists(_OUTPUT_LEVEL, min_size=size, max_size=size))
+    level = draw(st.floats(min_value=1e2, max_value=1e5))
+    steps = draw(
+        st.lists(
+            st.floats(min_value=-0.05, max_value=0.06), min_size=size, max_size=size
+        )
+    )
+    return [level * math.exp(sum(steps[: i + 1])) for i in range(size)]
+
+
+@st.composite
+def _output_gap_inputs(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """One output-gap calculation, with a series long enough for its filter."""
+    drawn = draw(_fields(cls))
+    if "actual" in cls.model_fields:
+        size = draw(st.one_of(st.integers(1, MAX_ITEMS), _LONG))
+        drawn["actual"] = draw(_output_path(size))
+        drawn["potential"] = draw(_output_path(size))
+        return drawn
+    per_year = {"annual": 1, "quarterly": 4, "monthly": 12}[drawn["frequency"]]
+    needed = 3
+    if "horizon" in cls.model_fields:
+        h = drawn.get("horizon") or 2 * per_year
+        p = drawn.get("lags") or per_year
+        needed = 2 * p + h + 1
+    if "lead_lag" in cls.model_fields:
+        drawn["lead_lag"] = draw(st.one_of(st.none(), st.integers(1, 40)))
+        k = drawn["lead_lag"] or {1: 3, 4: 12, 12: 36}[per_year]
+        needed = 2 * k + 1
+    size = needed + draw(st.one_of(st.integers(0, MAX_ITEMS), _LONG))
+    drawn["series"] = draw(_output_path(size))
+    return drawn
+
+
+def _output_gap() -> SearchStrategy[dict[str, Any]]:
+    """``macro.output_gap``: paired levels, and series long enough to filter."""
+    module = importlib.import_module("pyeconomics.models.macro.output_gap")
+    members = (
+        module.FromPotentialInputs,
+        module.HodrickPrescottInputs,
+        module.HamiltonInputs,
+        module.BaxterKingInputs,
+        module.ChristianoFitzgeraldInputs,
+    )
+    return st.one_of(
+        *(_output_gap_inputs(cls).filter(_accepts(cls)) for cls in members),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.output_gap.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["macro.output_gap"] = _output_gap
+
+
+@st.composite
+def _sample(
+    draw: st.DrawFn,
+    cls: type[BaseModel],
+    names: Sequence[str],
+    least: int,
+    most: int = 800,
+) -> dict[str, Any]:
+    """Draw ``cls``'s inputs with the series ``names`` all of one length."""
+    drawn = draw(_fields(cls))
+    long = st.integers(min_value=min(100, most), max_value=most)
+    size = draw(st.one_of(st.integers(least, least + MAX_ITEMS), long))
+    for name in names:
+        info = cls.model_fields[name]
+        annotation, _ = _unwrap(_drop_none(info.annotation), [])
+        item = get_args(annotation)[0]
+        drawn[name] = draw(st.lists(_strategy(item, []), min_size=size, max_size=size))
+    drawn["lags"] = draw(st.one_of(st.none(), st.integers(0, min(size - 1, 100))))
+    return drawn
+
+
+@st.composite
+def _phillips(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    names = ("inflation", "expected_inflation", "unemployment", "natural_unemployment")
+    controls = draw(st.integers(0, 2))
+    drawn = draw(_sample(cls, names, 3 + controls))
+    size = len(drawn["inflation"])
+    shock = st.floats(min_value=-10.0, max_value=10.0)
+    drawn["supply_shocks"] = [
+        draw(st.lists(shock, min_size=size, max_size=size)) for _ in range(controls)
+    ] or None
+    return drawn
+
+
+def _phillips_curve() -> SearchStrategy[dict[str, Any]]:
+    """``macro.phillips_curve``: four series and any controls of one length."""
+    module = importlib.import_module("pyeconomics.models.macro.phillips_curve")
+    return st.one_of(
+        _phillips(module.PhillipsCurveInputs).filter(
+            _accepts(module.PhillipsCurveInputs)
+        ),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.phillips_curve.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["macro.phillips_curve"] = _phillips_curve
+
+
+@st.composite
+def _okun_difference(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    span = draw(st.integers(1, 4))
+    drawn = draw(_sample(cls, ("unemployment",), span + 3))
+    size = len(drawn["unemployment"])
+    drawn["span"] = span
+    drawn["output"] = draw(_output_path(size))
+    if drawn["lags"] is not None:
+        drawn["lags"] = min(drawn["lags"], size - span - 1)
+    return drawn
+
+
+def _okun_law() -> SearchStrategy[dict[str, Any]]:
+    """``macro.okun_law``: series of one length; a span the sample can carry."""
+    module = importlib.import_module("pyeconomics.models.macro.okun_law")
+    gap = ("output_gap", "unemployment", "natural_unemployment")
+    return st.one_of(
+        _sample(module.GapInputs, gap, 3).filter(_accepts(module.GapInputs)),
+        _okun_difference(module.DifferenceInputs).filter(
+            _accepts(module.DifferenceInputs)
+        ),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.okun_law.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["macro.okun_law"] = _okun_law
+
+
+@st.composite
+def _growth_accounting(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Growth series of one length, with one form of the capital share."""
+    names = ["output_growth", "capital_growth", "labour_growth"]
+    if draw(st.booleans()):
+        names.append("human_capital_growth")
+    by_share = draw(st.booleans())
+    if by_share:
+        names.append("labour_share")
+    drawn = draw(_sample(cls, names, 1, most=500))
+    drawn.pop("lags")
+    for name in ("human_capital_growth", "labour_share", "capital_share"):
+        if name not in names:
+            drawn.pop(name, None)
+    if not by_share:
+        drawn["capital_share"] = draw(_field(cls, "capital_share"))
+    return drawn
+
+
+def _solow_growth() -> SearchStrategy[dict[str, Any]]:
+    """``macro.solow_growth``: aligned growth series and one capital share."""
+    module = importlib.import_module("pyeconomics.models.macro.solow_growth")
+    return st.one_of(
+        _fields(module.SteadyStateInputs),
+        _growth_accounting(module.GrowthAccountingInputs).filter(
+            _accepts(module.GrowthAccountingInputs)
+        ),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.solow_growth.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["macro.solow_growth"] = _solow_growth
+
+
+@st.composite
+def _debt_paths(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    names = ("interest_rate", "nominal_growth", "primary_balance")
+    drawn = draw(_sample(cls, names, 1, most=100))
+    drawn.pop("lags")
+    return drawn
+
+
+def _debt_dynamics() -> SearchStrategy[dict[str, Any]]:
+    """``macro.debt_dynamics``: three paths of one length."""
+    module = importlib.import_module("pyeconomics.models.macro.debt_dynamics")
+    return st.one_of(
+        _debt_paths(module.DebtDynamicsInputs).filter(
+            _accepts(module.DebtDynamicsInputs)
+        ),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.debt_dynamics.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["macro.debt_dynamics"] = _debt_dynamics

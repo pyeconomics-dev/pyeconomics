@@ -92,6 +92,7 @@ MINIMUM = {
     "us.fiscal.debt_to_gdp",
     "us.fiscal.average_interest_rate",
     "us.fiscal.primary_balance",
+    "us.fiscal.primary_balance_to_gdp",
     # Penn World Table by economy
     "pwt.rgdpna.us.annual",
     "pwt.rkna.gb.annual",
@@ -210,6 +211,7 @@ def test_a_derived_concept_is_derived_from_series_concepts_only() -> None:
         "us.output_gap.real_potential",
         "us.fiscal.debt_to_gdp",
         "us.fiscal.primary_balance",
+        "us.fiscal.primary_balance_to_gdp",
     }
     for concept, candidate in derived:
         assert concept.shape is Shape.SERIES
