@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from pyeconomics.core.cards import ModelCard
 
 if TYPE_CHECKING:
+    from pyeconomics.core.binding import CandidateNote
     from pyeconomics.core.model import Model
 
 
@@ -41,6 +42,19 @@ def check_pages(root: Path, model_ids: tuple[str, ...]) -> None:
         raise ValueError(message)
 
 
+def _candidates(model: Model[Any, Any]) -> dict[str, tuple[CandidateNote, ...]] | None:
+    """List the sources that can fill a bound model's concepts, from metadata alone.
+
+    Only a model that declares bindings needs the data layer, which core cannot
+    import; the page of any other is built exactly as before.
+    """
+    if not model.spec.bindings:
+        return None
+    from pyeconomics.data.bindings import candidate_notes  # noqa: PLC0415
+
+    return candidate_notes(model)
+
+
 def write_pages(root: Path, catalog: Catalog) -> tuple[Path, ...]:
     """Write cards and indexes; remove stale generated Markdown only.
 
@@ -59,8 +73,9 @@ def write_pages(root: Path, catalog: Catalog) -> tuple[Path, ...]:
     domains: dict[str, list[str]] = defaultdict(list)
     for model_id in sorted(model_ids):
         domain, _, name = model_id.partition(".")
+        model = catalog.get(model_id)
         pages[Path(domain, *name.split(".")).with_suffix(".md")] = ModelCard.from_model(
-            catalog.get(model_id)
+            model, _candidates(model)
         ).to_markdown()
         domains[domain].append(name.replace(".", "/"))
     for domain, names in sorted(domains.items()):

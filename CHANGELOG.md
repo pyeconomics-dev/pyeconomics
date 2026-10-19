@@ -171,6 +171,26 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   API in the locked-down `providers-live` environment, which opens one
   `provider-live` issue when it fails, and `providers-heartbeat.yml`, the daily
   check that the live run keeps succeeding.
+- Live data bindings (ADR-0011 decision 16). A model declares
+  `pyeconomics.core.Binding` values (an input field, a catalog concept, an optional
+  transform, an as-of rule, a window and a vintage policy) in named profiles, and
+  stays pure. `pyeconomics.bind(model_id, as_of=...)` resolves a profile through the
+  catalog before the model runs, on real-time vintages by default, and returns a
+  `Bound` of the values and one `DataSource` record per bound field, which
+  `pyeconomics.run(model_id, bound)` puts in the result's manifest. Revised data
+  (a policy that asks for the latest, or a source that keeps no vintages) is
+  labelled `revised_data` on its record and in the result's warnings; an override
+  replaces a bound value and is recorded as user-supplied; `concepts=` rebinds a
+  field to a concept of the same unit kind and frequency. `registry.validate()`
+  reports every structural binding problem under the `bindings` rule, and
+  `pyeconomics.data.validate_bindings()` checks them against the catalog.
+- The model card gains a "Data" section (each binding's concept, transform, as-of
+  rule and vintage policy, and the licence classes and notices of the sources that
+  can fill it), `registry.describe()` a `bindings` key, `Result.attributions()` the
+  attribution and required notices of the data a result read, and
+  `scripts/new_model.py --bound` a scaffold with an example binding.
+- A frame note that describes the whole series (`revised_data`, `bls_keyless`) is
+  repeated as a warning code on its `DataSource` record.
 
 ### Fixed
 
@@ -182,6 +202,19 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- **Breaking for anything that parses manifests:** the manifest moves to schema 2.
+  `schema_version` is 2 and `data_sources` is a list of `DataSource` records
+  (always empty before) in canonical form, sorted by field. The manifest still holds
+  no clock of the run, host, user, path or environment value; a record's retrieval
+  time is a fact about the data. `result_sha256` and `inputs_sha256` keep their
+  definitions, so a model that reads no data has the same hashes as before.
+- `registry.describe()` and `describe()` gain a `bindings` key before `extra`; the
+  model-pages generator and `registry.describe` list the sources of a bound model's
+  concepts, importing the data layer only for such a model.
+- When the resolver can read nothing, a candidate skipped because it keeps no
+  vintage no longer hides why the one that could not answer: a missing key still
+  raises `CredentialError` and an empty cache offline still raises `OfflineError`,
+  where a request for a vintage raised a generic `DataError`.
 - Begin the Phase 3 baseline at `1.0.0a2.dev1`.
 - `foundations.time_value`, `corporate.capital_budgeting` and
   `performance.return_measurement` advance from model version 1 to 2 for the

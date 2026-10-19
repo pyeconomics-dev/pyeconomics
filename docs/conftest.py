@@ -49,6 +49,7 @@ pytest_collect_file = Sybil(
         "errata.md",
         "notices.md",
         "changelog.md",
+        "bindings.md",
         "keys.md",
         "cache.md",
         "writing-a-provider.md",

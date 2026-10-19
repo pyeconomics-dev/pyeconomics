@@ -175,6 +175,39 @@ decision 15):
   and the sources summary are generated from metadata at documentation build
   time, offline, and read no key.
 
+## Bindings rules
+
+From Phase 3 Step 12, which binds models to data (ADR-0011 decision 16):
+
+- A model reads data only through `bindings=(Binding(field, concept, ...),)` on
+  `@model`: plain data from `pyeconomics.core`, never a fetch in `compute`. A
+  model with bindings declares a `default` profile, binds a numeric field once
+  per profile, gives an array field `AsOf.WINDOW` with a `window` within its
+  `max_length`, and names a catalog concept (permanent ids, decision 15).
+  `registry.validate()` reports the structural problems under the `bindings`
+  rule; `uv run python -c "from pyeconomics import data;
+  data.validate_bindings()"` checks the concepts against the catalog.
+- Resolution lives in `pyeconomics.data.bindings` (a pure module on
+  `PURE_MODULES`); `pyeconomics.core.binding` imports nothing from the data
+  layer. `pyeconomics.bind` is exported lazily, so `import pyeconomics` still
+  loads no data module: keep any new package-root function that needs the data
+  layer behind the same lazy import (`tests/data/test_layering.py`).
+- Real time is the default. A bind with an `as_of` date reads the vintage
+  published by then; where no source usable in the mode keeps vintages, or the
+  policy is `LATEST`, it reads the latest data and records `revised_data` in the
+  field's `DataSource` and in the result's warnings. Never pass revised data off
+  as real-time, and never turn a missing key or an empty offline cache into
+  revised data: those raise. A frame note that describes the whole series becomes
+  a record's warning code only if `cache.policy.NOTE_WARNINGS` lists it.
+- Manifest schema 2: `data_sources` holds one record per bound field, sorted by
+  field. A record holds no URL but the terms page, no host, path or key, and a
+  retrieval time that is a fact about the data; the manifest holds no clock of the
+  run. `result_sha256` and `inputs_sha256` never cover the manifest. An override is
+  recorded as user-supplied by field, never by value.
+- Test a bind with `bind_model(model, registry=..., transport=...)` over scripted
+  providers (`tests/data/bindings/bound_support.py`), offline, and prove a key
+  reaches no sink with `LeakCheck.bound` and `LeakCheck.result`.
+
 ## Units
 
 Rates, returns, yields and percentages are decimals in every API (`0.05`, not

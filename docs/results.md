@@ -4,10 +4,14 @@
 validated outputs, recorded warnings and a provenance manifest. `run_batch()`
 returns a `BatchResult` for a table or iterable of mappings (at most 100,000 rows).
 
-The manifest records the schema version, model id and version, package and
+The manifest records the schema version (2), model id and version, package and
 numerical-library versions, and the seed and bit generator when applicable.
-Its `data_sources` list is empty for these data-free models. It includes no
-timestamp, filesystem path, host, username or environment value.
+Its `data_sources` list is empty for a model that reads no data; for a bound run
+(see [Binding models to data](data/bindings.md)) it holds one record per bound
+input field: the series, vintage, observation window, transforms, retrieval time,
+licence, attribution and notice. It includes no clock of the run, filesystem path,
+host, username or environment value, and no request URL or key: a record's
+retrieval time is a fact about the data, recorded where it was fetched.
 
 `inputs_sha256` hashes canonical JSON of the model id, model version and inputs.
 `result_sha256` hashes those values plus outputs and warnings. The manifest

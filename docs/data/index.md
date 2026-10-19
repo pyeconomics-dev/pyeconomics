@@ -169,6 +169,10 @@ SPF, CBO's reports) as published on a date; a source that keeps none cannot
 honour it, so the resolver skips it and records why. Revised data is a separate
 choice, and a run that uses it says so.
 
+A model that reads data does not fetch it: it declares bindings, and
+`pyeconomics.bind` resolves them as of a date on real-time vintages by default,
+labelling any revised data. See [Binding models to data](bindings.md).
+
 ## Reference
 
 The concept pages list each concept's definition, its unit, and its candidates
