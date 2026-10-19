@@ -130,6 +130,26 @@ def test_the_first_candidate_that_answers_wins_and_the_record_names_everything()
     assert calls_of(second) == []
 
 
+def test_a_candidate_with_too_few_observations_is_passed_over() -> None:
+    short = scripted("alpha", {"A": monthly(DATA[:6], provider="alpha", series_id="A")})
+    long = scripted("beta", {"B": monthly(DATA, provider="beta", series_id="B")})
+    candidates = (
+        Candidate(provider="alpha", series="A"),
+        Candidate(provider="beta", series="B", tier=Tier.AGGREGATOR),
+    )
+    result = resolve(
+        concept(candidates), min_observations=12, registry=registry_of(short, long)
+    )
+    assert result.source.provider == "beta"
+    (skip,) = result.skipped
+    assert skip.reason == "no_observations"
+    assert "6 observations in the window, fewer than the 12 asked for" in skip.detail
+    with pytest.raises(DataError, match="fewer than the 40 asked for"):
+        resolve(
+            concept(candidates), min_observations=40, registry=registry_of(short, long)
+        )
+
+
 def test_a_skipped_candidate_is_recorded_in_the_chain_the_codes_and_the_skips() -> None:
     keyed = scripted("alpha", {"A": monthly(DATA, provider="alpha")}, keyed=True)
     second = scripted("beta", {"B": monthly(DATA, provider="beta", series_id="B")})

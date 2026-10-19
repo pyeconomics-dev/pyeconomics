@@ -15,6 +15,39 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- `macro.output_gap`: the output gap from a published potential output (CBO's,
+  for the United States) or by the Hodrick-Prescott (lambda by Ravn and Uhlig's
+  rule), Hamilton (h and p by frequency), Baxter-King and Christiano-Fitzgerald
+  filters, on the log of output; it returns the trend, the cycle and the latest
+  gap as a ratio or a log difference. Golden cases reproduce CBO's published gap;
+  oracles are statsmodels' filters and QuantEcon's Hamilton filter. Its card shows
+  the gap chained into `macro.policy_rule` as a user-supplied override.
+- `macro.phillips_curve`: the inflation surprise regressed on the unemployment gap
+  with optional supply-shock controls and Newey-West errors; golden cases
+  reproduce Stock and Watson's (2018) core PCE slopes from public-domain data.
+- `macro.okun_law`: Okun's law in its gap form and its first-difference form (the
+  change in unemployment on output growth, annualized if asked, with the growth
+  that holds unemployment constant); golden cases reproduce Knotek (2007).
+- `macro.solow_growth`: the Solow steady state with Cobb-Douglas technology, the
+  golden rule and the speed of convergence, and growth accounting into capital,
+  labour, human capital and the TFP residual (log or Solow's discrete method).
+- `macro.debt_dynamics`: the debt-to-GDP path from an initial ratio and paths of
+  the effective interest rate, nominal growth and the primary balance, with r - g
+  and the debt-stabilizing primary balance; a golden case reproduces CBO's 2026
+  extended-baseline debt path.
+- `macro.recession_probability`: the New York Fed's yield-curve probit of a
+  recession twelve months ahead, from the 10-year and 3-month Treasury yields
+  (a discount-basis bill rate converted to bond-equivalent); golden cases
+  reproduce the New York Fed's published probabilities.
+- `pyeconomics.core.least_squares` (`core/regression.py`): ordinary least squares
+  by QR with classical, HC1 and Newey-West covariances (the lag an input, Newey
+  and West's 1994 rule by default), returning coefficients, standard errors,
+  t statistics, R² and residuals; bounded inputs; agrees with statsmodels.
+- The `us.fiscal.primary_balance_to_gdp` concept (BEA's federal primary balance
+  over nominal GDP). Window bindings of one frequency now end on one date, so a
+  model can pair them by position; a window read through `convert` is sized in its
+  target frequency; and a window passes over a source with too short a history
+  for the next candidate (`resolve(..., min_observations=)`).
 - `macro.policy_rule`, the monetary-policy suite: the Taylor (1993) and (1999),
   balanced-approach, balanced-approach (shortfalls), adjusted Taylor (1993) and
   first-difference rules as the Board's Monetary Policy Report and the original

@@ -1,0 +1,102 @@
+# tests/golden/macro/solow_growth.toml
+model = "macro.solow_growth"
+
+[[sources]]
+key = "solow1957"
+kind = "paper"
+citation = "Solow, R. M. (1957). Technical Change and the Aggregate Production Function. Review of Economics and Statistics, 39(3), 312-320."
+doi = "10.2307/1926047"
+
+[[sources]]
+key = "solow1956"
+kind = "paper"
+citation = "Solow, R. M. (1956). A Contribution to the Theory of Economic Growth. Quarterly Journal of Economics, 70(1), 65-94."
+doi = "10.2307/1884513"
+
+[[sources]]
+key = "mankiw1992"
+kind = "paper"
+citation = "Mankiw, N. G., Romer, D. and Weil, D. N. (1992). A Contribution to the Empirics of Economic Growth. Quarterly Journal of Economics, 107(2), 407-437."
+doi = "10.2307/2118477"
+
+[[sources]]
+key = "solow_identity"
+kind = "identity"
+citation = "With no saving there is no capital and no output per effective worker; the golden-rule saving rate of a Cobb-Douglas economy is its capital share (Phelps 1961)."
+
+[[cases]]
+id = "solow1957_table1_tornqvist"
+source = "solow1957"
+locator = "Table 1, p. 315, columns (4) share of property in income, (5) private nonfarm GNP per man-hour and (6) employed capital per man-hour, 1909-1949"
+edge = false
+expected = { output_growth = 0.017903873470126834, capital_contribution = 0.002130456931881753, labour_contribution = 0.0, tfp_growth = 0.015773416538245082, tfp_share = 0.881005809416801, periods = 40 }
+note = "Recomputed in 50-digit arithmetic from the table's data columns, not its printed column (7), whose 1924, 1931 and 1942 entries carry slips (Hogan 1958 found the 1942 one): log growth of output and capital per man-hour (labour growth zero), each year's capital share the average of its two years' (a Tornqvist index). TFP explains 0.881 of the log growth; Solow's own arithmetic attributes about seven-eighths (p. 316)."
+
+[cases.inputs]
+calculation = "growth_accounting"
+output_growth = [
+    -0.011235955056179775, 0.05032467532467533, 0.0077279752704791345,
+    0.04294478527607362, 0.0029411764705882353, -0.01906158357771261,
+    0.04633781763826607, -0.03, 0.07363770250368189, 0.05212620027434842,
+    -0.05997392438070404, 0.06796116504854369, 0.023376623376623377,
+    0.0266497461928934, 0.03337453646477132, 0.0430622009569378,
+    -0.0034403669724770644, 0.0023014959723820483, 0.003444316877152698,
+    0.02402745995423341, -0.01675977653631285, 0.02727272727272727,
+    -0.02765486725663717, -0.011376564277588168, 0.05983889528193326,
+    0.023887079261672096, 0.041357370095440084, -0.01120162932790224,
+    0.029866117404737384, 0.034, 0.04642166344294004, 0.036968576709796676,
+    0.012477718360071301, 0.03873239436619718, 0.07203389830508475,
+    0.02450592885375494, -0.0625, -0.01728395061728395, 0.022613065326633167,
+    0.044226044226044224,
+]
+capital_growth = [
+    0.019417475728155338, 0.03333333333333333, 0.018433179723502304,
+    0.00904977375565611, -0.013452914798206279, 0.02727272727272727,
+    0.035398230088495575, -0.05555555555555555, 0.004524886877828055,
+    0.11261261261261261, 0.044534412955465584, -0.011627906976744186,
+    -0.023529411764705882, 0.04819277108433735, 0.04980842911877394,
+    0.025547445255474453, 0.021352313167259787, 0.020905923344947737,
+    0.030716723549488054, 0.013245033112582781, 0.0784313725490196,
+    0.00909090909090909, -0.015015015015015015, -0.054878048780487805,
+    -0.03225806451612903, -0.043333333333333335, -0.05226480836236934,
+    -0.003676470588235294, 0.025830258302583026, -0.04316546762589928,
+    -0.011278195488721804, -0.019011406844106463, 0.023255813953488372,
+    -0.007575757575757576, 0.003816793893129771, 0.011406844106463879,
+    -0.06015037593984962, 0.0, 0.02, 0.058823529411764705,
+]
+labour_growth = [
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+]
+labour_share = [
+    0.6675, 0.6675, 0.6675, 0.668, 0.6705, 0.6655, 0.649, 0.636, 0.644, 0.652, 0.6635,
+    0.656, 0.646, 0.662, 0.6665, 0.667, 0.6685, 0.675, 0.6695, 0.665, 0.6605, 0.664,
+    0.639, 0.6205, 0.6415, 0.647, 0.646, 0.6515, 0.6645, 0.661, 0.648, 0.633, 0.6335,
+    0.651, 0.663, 0.677, 0.687, 0.6805, 0.6705, 0.671,
+]
+
+[[cases]]
+id = "mrw1992_textbook_convergence"
+source = "mankiw1992"
+locator = "Section III.A, eq. (13) and p. 423: with alpha = 1/3 and n + g + delta = 0.06 the textbook model converges at 4% a year, halfway in about 17 years"
+edge = false
+inputs = { calculation = "steady_state", saving_rate = 0.2, capital_share = 0.3333333333333333, population_growth = 0.01, technology_growth = 0.02, depreciation = 0.03 }
+expected = { convergence_speed = 0.04, half_life = 17.328679513998633 }
+note = "lambda = (n + g + delta)(1 - alpha) = 0.06 x 2/3; the half-life ln 2 / lambda is 17.33 years."
+
+[[cases]]
+id = "solow1956_cobb_douglas"
+source = "solow1956"
+locator = "Section IV, Example 2, pp. 76-77: r* = (s / n)^(1 / (1 - a)), Y/L = r*^a, K/Y = s / n"
+edge = false
+inputs = { calculation = "steady_state", saving_rate = 0.2, capital_share = 0.5, population_growth = 0.02, technology_growth = 0.0, depreciation = 0.0 }
+expected = { capital_per_effective_worker = 100.0, output_per_effective_worker = 10.0, capital_output_ratio = 10.0, consumption_per_effective_worker = 8.0 }
+note = "Solow's model has no depreciation or technical progress: (0.2 / 0.02)^2 = 100."
+
+[[cases]]
+id = "no_saving"
+source = "solow_identity"
+edge = true
+inputs = { calculation = "steady_state", saving_rate = 0.0, capital_share = 0.3 }
+expected = { capital_per_effective_worker = 0.0, output_per_effective_worker = 0.0, consumption_per_effective_worker = 0.0, golden_rule_saving_rate = 0.3 }

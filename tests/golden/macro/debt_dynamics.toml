@@ -1,0 +1,38 @@
+# tests/golden/macro/debt_dynamics.toml
+model = "macro.debt_dynamics"
+
+[[sources]]
+key = "cbo_ltbo2026"
+kind = "official"
+citation = "Congressional Budget Office (2026). The Long-Term Budget Outlook: 2026 to 2056 (February 2026). Data file 62044-2026-LTBO.xlsx, sheets 2. Debt and Deficits (debt held by the public and the primary deficit, percent of GDP) and 15. Interest Rates (the average rate on federal debt: net interest over the previous year's debt); and the Long-Term Budget Projections file 51119-2026-02-LTBO-Budget.xlsx, Supplemental Table 1, column P (fiscal-year GDP, billions of dollars). Accessed 2026-10-19 through Internet Archive captures of the cbo.gov files (cbo.gov refuses automated downloads)."
+url = "https://www.cbo.gov/data/budget-economic-data"
+
+[[sources]]
+key = "debt_identity"
+kind = "identity"
+citation = "d(t) = d(t-1)(1 + i) / (1 + g) - p: with i = g and p = 0 the ratio holds; with i below g it falls."
+
+[[cases]]
+id = "cbo_extended_baseline_2041_2045"
+source = "cbo_ltbo2026"
+locator = "62044 sheet 15 column C rows 54-58 (i, FY2041-2045); sheet 2 column F rows 109-114 (debt, FY2040-2045) and column B (primary deficit); 51119 Supplemental Table 1 column P rows 24-29 (GDP, FY2040-2045)"
+edge = false
+inputs = { initial_ratio = 1.29383, interest_rate = [0.04089, 0.0411, 0.04125, 0.04132, 0.04138], nominal_growth = [0.03781765516821226, 0.03751425530601568, 0.03744362090313268, 0.03731631980194584, 0.03694794220537011], primary_balance = [-0.01944, -0.01991, -0.01984, -0.02009, -0.02021] }
+expected = { debt_ratio_path = [1.3171, 1.34155, 1.36631, 1.39168, 1.41784] }
+tolerance = { debt_ratio_path = { abs = 5e-5 } }
+note = "Beyond CBO's ten-year window other means of financing are nil, so the identity, chained from the FY2040 ratio of 129.383 percent of GDP with CBO's own rates, growth and primary balances, reproduces each published ratio within 0.002 points; CBO shows them to 0.1 point and stores three decimals. Tolerance 0.005 points."
+
+[[cases]]
+id = "r_equals_g_holds_the_ratio"
+source = "debt_identity"
+edge = false
+inputs = { initial_ratio = 1.0, interest_rate = [0.04, 0.04], nominal_growth = [0.04, 0.04], primary_balance = [0.0, 0.0] }
+expected = { debt_ratio_path = [1.0, 1.0], interest_growth_differential = [0.0, 0.0], stabilizing_balance = [0.0, 0.0] }
+
+[[cases]]
+id = "r_below_g"
+source = "debt_identity"
+edge = true
+inputs = { initial_ratio = 1.0, interest_rate = [0.02], nominal_growth = [0.04], primary_balance = [0.0] }
+expected = { debt_ratio_path = [0.9807692307692307], stabilizing_balance = [-0.019230769230769232], interest_growth_differential = [-0.02] }
+note = "A negative r - g shrinks the ratio with a balanced primary budget; the stabilizing balance is a deficit."

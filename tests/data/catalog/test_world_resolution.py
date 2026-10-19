@@ -232,6 +232,8 @@ def test_derived_concepts_record_one_source_per_operand(
         ("us.output_gap.real_potential", 2),
         ("us.fiscal.debt_to_gdp", 2),
         ("us.fiscal.primary_balance", 2),
+        # The primary balance's two operands, over nominal GDP.
+        ("us.fiscal.primary_balance_to_gdp", 3),
     ):
         concept = catalog.get(concept_id)
         assert isinstance(concept.candidates[0], Derived)

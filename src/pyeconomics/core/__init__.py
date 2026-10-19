@@ -13,7 +13,8 @@ conversion (:mod:`~pyeconomics.core.rates`), compounding
 (:mod:`~pyeconomics.core.numerics`), cash-flow discounting and IRR
 (:mod:`~pyeconomics.core.cashflows`), zero curves with forward and par rates
 (:mod:`~pyeconomics.core.curves`), descriptive statistics
-(:mod:`~pyeconomics.core.descriptive`), the provenance record a result keeps
+(:mod:`~pyeconomics.core.descriptive`), least squares with robust errors
+(:mod:`~pyeconomics.core.regression`), the provenance record a result keeps
 of the data it read (:mod:`pyeconomics.core.provenance`, ADR-0011), and the
 error and warning taxonomy (:mod:`~pyeconomics.core.errors`,
 :mod:`~pyeconomics.core.warnings`). None of it does I/O: no network, file,
@@ -168,6 +169,12 @@ from pyeconomics.core.registry import (
     Registry,
     discover,
 )
+from pyeconomics.core.regression import (
+    Covariance,
+    LeastSquares,
+    least_squares,
+    newey_west_lags,
+)
 from pyeconomics.core.results import BatchResult, Result, ResultWarning
 from pyeconomics.core.runner import (
     MAX_BATCH_ROWS,
@@ -286,6 +293,7 @@ __all__ = [
     "CostClass",
     "Count",
     "CountArray",
+    "Covariance",
     "DataSource",
     "DateArray",
     "DateBounds",
@@ -302,6 +310,7 @@ __all__ = [
     "IndexLevelArray",
     "InputError",
     "Invariant",
+    "LeastSquares",
     "LicenceClass",
     "LlmUse",
     "Manifest",
@@ -399,9 +408,11 @@ __all__ = [
     "interpolate_rates",
     "is_business_day",
     "is_end_of_month",
+    "least_squares",
     "log_return",
     "max_drawdown",
     "model",
+    "newey_west_lags",
     "output_schema",
     "par_rate",
     "parse_transform",

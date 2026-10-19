@@ -196,6 +196,7 @@ class _Ask:
     parameters: Mapping[str, str]
     transport: Transport | None
     registry: ProviderRegistry
+    min_observations: int | None = None
 
 
 def _selector(as_of: dt.date | None, vintage: Vintage | str | None) -> Vintage:
@@ -645,13 +646,16 @@ def _try_provider(
         return shaped
     frame, identifier = shaped
     frame = trim(frame, ask.start, ask.end)
-    problem = (
+    short = _too_short(frame, ask)
+    problem = short or (
         "the answer holds no observation in the window"
         if not frame.index
         else _mismatch(concept, candidate, frame)
     )
     if problem is not None:
-        reason = "no_observations" if not frame.index else "definition_mismatch"
+        reason = (
+            "no_observations" if short or not frame.index else "definition_mismatch"
+        )
         return Skip(
             provider=candidate.provider, series=series, reason=reason, detail=problem
         )
@@ -679,6 +683,18 @@ def _operand(candidate: Derived, ask: _Ask, position: int) -> Resolved:
         max_observations=ask.max_observations,
         transport=ask.transport,
         registry=ask.registry,
+        min_observations=ask.min_observations,
+    )
+
+
+def _too_short(frame: Series | Table, ask: _Ask) -> str | None:
+    """Say why an answer with fewer observations than asked for is passed over."""
+    count = len(frame.index)
+    if ask.min_observations is None or not count or count >= ask.min_observations:
+        return None
+    return (
+        f"the answer holds {count} observations in the window, fewer than the "
+        f"{ask.min_observations} asked for"
     )
 
 
@@ -715,10 +731,10 @@ def _try_derived(
         combined = trim(_combine(candidate, parts), ask.start, ask.end)
     except DataError as error:
         return skip("transform_failed", _first_line(error))
-    if not combined.index:
-        return skip(
-            "no_observations", "the operands share no observation in the window"
-        )
+    short = _too_short(combined, ask)
+    if short is not None or not combined.index:
+        detail = short or "the operands share no observation in the window"
+        return skip("no_observations", detail)
     problem = _mismatch(concept, None, combined)
     if problem is not None:
         return skip("definition_mismatch", problem)
@@ -776,6 +792,7 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
     max_observations: int | None = None,
     transport: Transport | None = None,
     registry: ProviderRegistry | None = None,
+    min_observations: int | None = None,
 ) -> Resolved:
     """Resolve a concept to data, trying its candidates in fallback order.
 
@@ -803,6 +820,10 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
         The values of the concept's parameters, such as an SEP ``meeting``.
     max_observations
         At most this many (the most recent) observations per fetch.
+    min_observations
+        Pass over a candidate whose answer holds fewer observations than this
+        in the window (a binding that reads a run of them), so the next one,
+        with a longer history, answers.
     transport
         The transport providers send through (a test passes a replay).
     registry
@@ -841,6 +862,7 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
         parameters=_parameters(found, parameters),
         transport=transport,
         registry=registry or provider_registry.installed(),
+        min_observations=min_observations,
     )
     candidates = [
         c

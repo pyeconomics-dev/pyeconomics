@@ -109,12 +109,21 @@ DERIVED = [
 ]
 
 
+def leaves(concept_id: str) -> int:
+    """Count the series a concept reads: one, or its operands' when derived."""
+    first = catalog.get(concept_id).candidates[0]
+    if isinstance(first, data.catalog.Derived):
+        return sum(leaves(operand.concept) for operand in first.operands)
+    return 1
+
+
 @pytest.mark.parametrize("concept_id", DERIVED)
 def test_live_a_derived_concept_resolves_from_its_operands(concept_id: str) -> None:
     concept = catalog.get(concept_id)
     result = data.get(concept_id, mode=Mode.HOSTED, **window(concept))
     assert len(result.frame.index) > 0
-    assert len(result.sources) == 2
+    # One record per series read: a derived operand records its own operands.
+    assert len(result.sources) == leaves(concept_id)
     assert {s.concept for s in result.sources} == {concept_id}
 
 

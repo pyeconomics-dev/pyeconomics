@@ -8685,9 +8685,11 @@ the price. New conversation per phase-boundary hygiene.
 
     <requirement>
       macro.okun_law — a union on calculation: gap (the output
-      gap on the unemployment gap) and difference (output
-      growth on the change in unemployment, with the implied
-      growth that holds unemployment constant); same outputs
+      gap on the unemployment gap) and difference (Okun's
+      first-difference form: the change in unemployment on
+      output growth, annualized by compounding when asked, with
+      the implied growth that holds unemployment constant,
+      -a/b; the form Okun 1962 and Knotek 2007 estimate); same outputs
       and oracle as the Phillips curve. Invariant at least:
       exact_linear_data_recovers_coefficient. Golden sources:
       an identity and a published US estimate reproduced from
@@ -9547,6 +9549,24 @@ the price. New conversation per phase-boundary hygiene.
       HC1 and Newey-West errors; the portfolio package holds
       Phase 2's mean_variance and utility models and its
       _common.py; no asset_pricing package exists.
+    - Step 14 as built: pyeconomics.core.least_squares(response,
+      design, constant=, covariance="classical"|"hc1"|
+      "newey_west", lags=) returns LeastSquares (coefficients,
+      standard_errors, t_statistics or None for a fit exact to
+      rounding, r_squared, fitted, residuals, lags); at most
+      10,000 rows, 20 coefficients and 100 lags; the design is
+      equilibrated and refused (DomainError) past a scaled
+      condition number of 1e7; Newey-West has no small-sample
+      correction (statsmodels' HAC default). The sandwich is
+      built from the rows of R^-1 Q', not by multiplying
+      (X'X)^-1 into the middle, which lost five digits on
+      near-collinear designs. models/macro/_estimates.py shows
+      a model wrapping it (bounds, exact-fit and near-exact
+      warnings). Window bindings of one frequency end on one
+      date, so factor returns and a portfolio's returns bound
+      as windows pair by period, and a window passes over a
+      source too short for it (resolve(min_observations=)); a
+      growth rate bound through pct_change is a Return.
     - The catalog holds the Ken French factor sets
       (factors.ff3, ff5 and momentum, monthly and daily) and
       portfolio sets (the 25 size and book-to-market and the
@@ -12291,6 +12311,41 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 14 (launch catalog: macroeconomics, 2026-10-19): `models/macro/` adds
+  `macro.output_gap`, `macro.phillips_curve`, `macro.okun_law`,
+  `macro.solow_growth`, `macro.debt_dynamics` and `macro.recession_probability`,
+  and `core/regression.py` adds `least_squares` (Step 16 reuses it; its task
+  carries the facts). Contract changes made in-step under the Contract-change
+  rule, each the smallest that works: window bindings of one frequency end on one
+  date, the earliest last observation on or before the date (Step 12's bind read
+  each window to its own series' end, so real GDP and CBO's potential, or monthly
+  unemployment averaged to quarters and CBO's natural rate, came back a quarter
+  apart and a model pairing them by position paired the wrong quarters); a window
+  read through `convert` is sized in the target frequency (a monthly average of
+  the Treasury's daily curve asked 33 days back and never held a whole month);
+  the `us.fiscal.primary_balance_to_gdp` concept (Step 11's catalog had the
+  primary balance in dollars only); a window passes over a candidate with too
+  short a history (`resolve(min_observations=)`, propagated to derived operands,
+  and a second pass up to the windows' shared end for a source that runs years
+  ahead), because live, BLS answers a whole-history request with about three
+  years and CBO's current projection file starts in 2023, so every 60- or
+  120-quarter window failed on the originator while FRED held the history (in
+  hosted mode, where FRED is refused, such a window still has no source: issues
+  #141 for BLS and #142 for CBO's history, owned by later data-layer work); and
+  the live derived-concept test counts a nested derived operand's own operands. Spec rot fixed in this step's task:
+  Okun's difference form is the change in unemployment on growth, the form Okun
+  (1962) and Knotek (2007) estimate, not growth on the change. Facts for later
+  steps: a growth rate bound through `pct_change` is a `Return`, not a `Rate`; a
+  Penn World Table count (persons engaged, millions in float32 precision) never
+  scales to a whole number, so bind its growth, not its level, to avoid a `Count`
+  field; FRED's UNRATE and CPIAUCNS hold no October 2025 value (BLS collected no
+  data in the shutdown), so a quarter's average of them is missing and the
+  Phillips and Okun bindings read each quarter's last month; the catalog world's
+  stand-ins space an irregular source 45 days apart, so
+  a test that averages the Treasury curve gives them business days
+  (`tests/models/macro/test_launch_bindings.py`). Steps 11 and 12 read Complete,
+  so their tasks stand as history.
 
 - Step 13 (monetary-policy suite, 2026-10-18): `models/macro/` holds
   `macro.policy_rule` and `macro.neutral_rate` behind the `macro` entry point.

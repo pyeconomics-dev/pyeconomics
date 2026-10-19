@@ -216,6 +216,10 @@ From Phase 3 Step 12, which binds models to data (ADR-0011 decision 16):
   only that calculation's fields, so one profile serves the family. A value from
   periods back is bound with the `lag(periods=n)` transform; an `AsOf.PERIOD`
   binding reads up to the end of the period containing the date, no further.
+- Window bindings of one frequency end on one date (the earliest last
+  observation), so a model may pair array fields by position; a window read
+  through `convert` is sized in the target frequency. A growth rate bound with
+  `pct_change` is a `Return`; shared least squares is `core.least_squares`.
 
 ## Units
 

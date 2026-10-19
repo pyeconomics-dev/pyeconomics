@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import datetime as dt
 import difflib
+import math
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, Final
 
@@ -71,7 +72,11 @@ from pyeconomics.core.provenance import (
     DataSource,
 )
 from pyeconomics.core.spec import CALCULATION_FIELD
-from pyeconomics.core.transforms import canonical_transform, format_transform
+from pyeconomics.core.transforms import (
+    canonical_transform,
+    format_transform,
+    parse_transform,
+)
 from pyeconomics.data import cache, catalog
 from pyeconomics.data import registry as provider_registry
 from pyeconomics.data.catalog import transforms as tf
@@ -123,6 +128,13 @@ _LAST_DAY: Final = DATA_DATE_BOUNDS.upper
 #: Unit kinds that are one dimensionless decimal, interchangeable for a field.
 _DIMENSIONLESS: Final = frozenset({UnitKind.RATE, UnitKind.RATIO})
 _WHOLE: Final = frozenset({UnitKind.DAYS, UnitKind.COUNT})
+#: Months in one period of a month-based frequency.
+_MONTHS: Final = {
+    ObservationFrequency.MONTHLY: 1,
+    ObservationFrequency.QUARTERLY: 3,
+    ObservationFrequency.SEMIANNUAL: 6,
+    ObservationFrequency.ANNUAL: 12,
+}
 _MAX_DEPTH: Final = 4
 
 
@@ -297,13 +309,27 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     values: dict[str, object] = dict(given)
     records: list[DataSource] = []
     with cache.memo():
-        for binding in chosen:
-            if binding.field in given:
-                records.append(user_supplied(binding.field, concept=binding.concept))
-                continue
-            read = _read(binding, ask)
-            values[binding.field] = read.value
-            records.extend(read.records)
+        fetched = {
+            binding: _fetch(binding, ask)
+            for binding in chosen
+            if binding.field not in given
+        }
+        ends = _window_ends(fetched, ask.day)
+        # A source that runs years ahead (CBO's projections) can have enough
+        # observations in all and too few up to the date the windows share:
+        # ask again up to that date, so the resolver passes it over.
+        short = [b for b, end in ends.items() if _too_few(fetched[b], end)]
+        for binding in short:
+            fetched[binding] = _fetch(binding, ask, end=ends[binding])
+        if short:
+            ends = _window_ends(fetched, ask.day)
+    for binding in chosen:
+        if binding.field in given:
+            records.append(user_supplied(binding.field, concept=binding.concept))
+            continue
+        read = _pick(fetched[binding], ends.get(binding, ask.day))
+        values[binding.field] = read.value
+        records.extend(read.records)
     return Bound(
         model_id=model.id,
         profile=profile,
@@ -363,34 +389,112 @@ class _Read:
     records: tuple[DataSource, ...]
 
 
-def _read(binding: Binding, ask: _Ask) -> _Read:
-    """Resolve one binding to its value and its records."""
+@dataclass(frozen=True, slots=True)
+class _Fetched:
+    """One binding's series, resolved and transformed, before its as-of rule."""
+
+    binding: Binding
+    concept: Concept
+    shape: FieldShape
+    resolved: Resolved
+    series: Series
+    revised: bool
+
+    @property
+    def where(self) -> str:
+        return f"{self.concept.id} for the field {self.binding.field!r}"
+
+
+def _fetch(binding: Binding, ask: _Ask, *, end: dt.date | None = None) -> _Fetched:
+    """Resolve one binding's concept and apply its own transform.
+
+    ``end`` caps the observations the resolver counts, for a window the others
+    end before its own last observation.
+    """
     concept = _concept(binding, ask)
     shape = ask.shapes[binding.field][0]
     policy = ask.policy or binding.vintage
-    resolved, revised = _resolve(concept, binding, policy, ask)
+    resolved, revised = _resolve(concept, binding, policy, ask, cap=end)
     frame = resolved.frame
     if not isinstance(frame, Series):  # pragma: no cover - _concept refuses tables
         msg = f"{concept.id} is not a series"
         raise DataError(msg)
-    where = f"{concept.id} for the field {binding.field!r}"
+    fetched = _Fetched(binding, concept, shape, resolved, frame, revised)
     try:
         series = frame
         if binding.transform is not None:
             series = tf.apply(binding.transform, frame)
-        _check_unit(series, shape, where)
-        rule = _rule(binding, series, ask.day)
-        picked = tf.apply(rule, series)
+        _check_unit(series, shape, fetched.where)
     except DataError as error:
-        msg = f"{where}: {error}"
+        msg = f"{fetched.where}: {error}"
+        raise DataError(msg, provider=error.provider) from error
+    return replace(fetched, series=series)
+
+
+def _window_ends(
+    fetched: Mapping[Binding, _Fetched], day: dt.date | None
+) -> dict[Binding, dt.date]:
+    """End every window of one frequency on the same date.
+
+    Series published on different schedules (real GDP after its quarter,
+    potential GDP years ahead) would otherwise give windows a period apart, and
+    a model that pairs them by position would pair the wrong periods. Windows of
+    one frequency (and one fiscal year or week anchor) therefore end at the
+    earliest of their last observations on or before the date (or, with no
+    date, of their last observations); windows of different frequencies are left
+    alone.
+    """
+    groups: dict[tuple[object, ...], list[tuple[Binding, dt.date]]] = {}
+    for binding, one in fetched.items():
+        if binding.as_of is not AsOf.WINDOW:
+            continue
+        series = one.series
+        last = [
+            series.index[row]
+            for row in range(len(series.index))
+            if series.values[row] is not None
+            and (day is None or series.index[row] <= day)
+        ]
+        if last:
+            meta = series.meta
+            # A fiscal year or a week ending on another day is another calendar.
+            calendar = (meta.frequency, meta.year_ends_in, meta.week_ends_on)
+            groups.setdefault(calendar, []).append((binding, last[-1]))
+    ends: dict[Binding, dt.date] = {}
+    for members in groups.values():
+        if len(members) > 1:
+            common = min(end for _, end in members)
+            ends.update(dict.fromkeys((binding for binding, _ in members), common))
+    return ends
+
+
+def _too_few(fetched: _Fetched, end: dt.date) -> bool:
+    """Say whether a window has fewer observations up to ``end`` than it reads."""
+    series = fetched.series
+    held = sum(
+        1
+        for day, value in zip(series.index, series.values, strict=True)
+        if value is not None and day <= end
+    )
+    return held < (fetched.binding.window or 1)
+
+
+def _pick(fetched: _Fetched, day: dt.date | None) -> _Read:
+    """Apply one binding's as-of rule at the date and record what it read."""
+    binding = fetched.binding
+    try:
+        rule = _rule(binding, fetched.series, day)
+        picked = tf.apply(rule, fetched.series)
+    except DataError as error:
+        msg = f"{fetched.where}: {error}"
         raise DataError(msg, provider=error.provider) from error
     own = () if binding.transform is None else (canonical_transform(binding.transform),)
     tail = (*own, canonical_transform(rule))
     records = tuple(
-        _record(r, binding, concept.id, picked, tail, revised=revised)
-        for r in resolved.sources
+        _record(r, binding, fetched.concept.id, picked, tail, revised=fetched.revised)
+        for r in fetched.resolved.sources
     )
-    return _Read(_values(picked, shape), records)
+    return _Read(_values(picked, fetched.shape), records)
 
 
 def _concept(binding: Binding, ask: _Ask) -> Concept:
@@ -415,7 +519,12 @@ def _concept(binding: Binding, ask: _Ask) -> Concept:
 
 
 def _resolve(
-    concept: Concept, binding: Binding, policy: VintagePolicy, ask: _Ask
+    concept: Concept,
+    binding: Binding,
+    policy: VintagePolicy,
+    ask: _Ask,
+    *,
+    cap: dt.date | None = None,
 ) -> tuple[Resolved, bool]:
     """Resolve a concept as the policy asks; say whether the data is revised."""
     day = ask.day
@@ -425,7 +534,7 @@ def _resolve(
             msg = f"{concept.id} needs an as_of date: its sources answer for a window"
             raise f.fail(msg)
         count = binding.window if binding.as_of is AsOf.WINDOW else 1
-        back = lookback_days(concept.frequency, count or 1)
+        back = lookback_days(_read_frequency(concept, binding), count or 1)
         start = max(day - dt.timedelta(days=back), DATA_DATE_BOUNDS.lower)
     declared = {parameter.name for parameter in concept.parameters}
     # An observation is dated by its period's last day, so the period containing
@@ -438,6 +547,8 @@ def _resolve(
         if last is None:  # a week: it ends within its span of the date
             last = day + dt.timedelta(days=_SPAN_DAYS[concept.frequency] - 1)
         end = min(last, _LAST_DAY)
+    if cap is not None:
+        end = cap if end is None else min(end, cap)
     common: dict[str, Any] = {
         "start": start,
         "end": end,
@@ -445,6 +556,7 @@ def _resolve(
         "parameters": {k: v for k, v in ask.parameters.items() if k in declared},
         "transport": ask.transport,
         "registry": ask.registry,
+        "min_observations": _needed(concept, binding),
     }
     real_time = (
         policy is VintagePolicy.REAL_TIME
@@ -458,6 +570,49 @@ def _resolve(
     # to be revised against, so a real-time bind of today's data is not.
     revised = policy is VintagePolicy.LATEST or day is not None
     return resolve(concept, vintage="latest", **common), revised
+
+
+def _needed(concept: Concept, binding: Binding) -> int | None:
+    """Return how many of a concept's observations a window binding reads.
+
+    The resolver passes over a source with fewer (an originator whose API serves
+    a few recent years) for one with the history. A window of quarters read
+    through ``convert`` from months needs three months a quarter; a change over
+    ``periods`` needs that many more. A concept that answers for a window of
+    dates is sized by :func:`lookback_days` instead.
+    """
+    if binding.as_of is not AsOf.WINDOW or concept.needs_window:
+        return None
+    count = binding.window or 1
+    parsed = None if binding.transform is None else parse_transform(binding.transform)
+    months = _MONTHS.get(concept.frequency)
+    if parsed is None or months is None:
+        return count
+    if parsed.name == "convert":
+        target = _MONTHS.get(ObservationFrequency(str(parsed.arguments["to"])))
+        # Quarters from months need three a quarter; months from quarters (the
+        # period ends) a third as many.
+        return max(1, math.ceil(count * (target or months) / months))
+    extra = {
+        "pct_change": parsed.arguments.get("periods", 0),
+        "diff": parsed.arguments.get("periods", 0),
+        "lag": parsed.arguments.get("periods", 0),
+        "yoy": 12 // months,
+    }
+    return count + int(extra.get(parsed.name, 0))
+
+
+def _read_frequency(concept: Concept, binding: Binding) -> ObservationFrequency:
+    """Return the frequency the as-of rule reads: a ``convert`` target, if any.
+
+    A window of daily data is sized by the periods the binding finally reads, so
+    a monthly average of a daily series is asked for whole months.
+    """
+    if binding.transform is not None:
+        parsed = parse_transform(binding.transform)
+        if parsed.name == "convert":
+            return ObservationFrequency(str(parsed.arguments["to"]))
+    return concept.frequency
 
 
 def _serves_vintages(
