@@ -284,6 +284,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- `performance.brinson_attribution` no longer raises a math domain error when a
+  period's portfolio return is within rounding of -100% beside a higher benchmark
+  return: Carino's log ratio then comes from the two logarithms (#145). Inputs
+  that ran before give the same results.
 - Numeric unit markers reject Python and NumPy booleans; date fields reject
   numeric epoch timestamps, including array elements (#75).
 - Registry validation requires units and bounds on numeric Literal fields (#81).
