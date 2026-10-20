@@ -8810,9 +8810,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 15 — Launch Catalog: Fixed Income and Equity
+## Step 15 — Launch Catalog: Fixed Income and Equity ✅
 
-**Status:** Not started
+**Status:** Complete — PR #146 (2026-10-19)
 
 > **Goal:** Register the four live-data entries for curves and market
 > valuation. Add `fixed_income.curve_fitting` (Nelson-Siegel and Svensson
@@ -8852,6 +8852,10 @@ the price. New conversation per phase-boundary hygiene.
 > Model and effort unchanged (Balanced column); the single-column table
 > becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
 > XHigh.
+
+> Ran 2026-10-19: Balanced — Claude Opus 5.5 on Claude Code (effort as the
+> operator set it). The **Runs:** column; the Claude weekly pool's `tight` row
+> had passed its reset, so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -11980,7 +11984,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
 | 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #140 |
 | 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #144 |
-| 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #146 |
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
