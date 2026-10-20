@@ -1,0 +1,66 @@
+# tests/golden/equity/implied_risk_premium.toml
+model = "equity.implied_risk_premium"
+
+[[sources]]
+key = "damodaran_2026"
+kind = "paper"
+citation = "Damodaran, A. (2026). Equity Risk Premiums (ERP): Determinants, Estimation, and Implications - The 2026 Edition, updated 5 March 2026, SSRN working paper; the implied premium at the start of 2026, Figure 11, p. 103 (S&P 500 6845.50, growth 10.50% for five years, T-bond rate 4.18%, ERP 4.23%), and its companion spreadsheet ERPJan26.xlsx, sheet 'Impl premium calculator', accessed 2026-10-19. Aggregates shown with credit to Aswath Damodaran."
+doi = "10.2139/ssrn.6361419"
+
+[[sources]]
+key = "damodaran_january_sheets"
+kind = "paper"
+citation = "Damodaran, A. Implied equity risk premium spreadsheets for the start of each year (ERPJan18.xls, ERPJan19.xlsx, ERPJan20.xlsx), the companions of the annual editions of his equity risk premium paper, Damodaran Online, accessed 2026-10-19: the index level, the trailing dividends and buybacks, the top-down growth and the T-bond rate, and the premium his goal seek solves for. Aggregates shown with credit to Aswath Damodaran."
+url = "https://pages.stern.nyu.edu/~adamodar/pc/implprem/"
+
+[[sources]]
+key = "no_growth_years"
+kind = "identity"
+citation = "With no growth years, P = C0 (1 + gT) / (r - gT), so r = gT + C0 (1 + gT) / P: a cash yield near zero puts the implied return just above the terminal growth rate."
+
+[[cases]]
+id = "start_of_2018"
+source = "damodaran_january_sheets"
+locator = "ERPJan18.xls: S&P 500 2673.61, dividends plus buybacks 108.27625104837036, growth 0.07049356754097369, T-bond 0.0241; implied premium (cell C39) 0.050791854275975136"
+edge = false
+inputs = { index_level = 2673.61, cash_flow = 108.27625104837036, growth = 0.07049356754097369, risk_free = 0.0241 }
+expected = { equity_risk_premium = 0.050791854275975136 }
+tolerance = { equity_risk_premium = { abs = 1e-9 } }
+note = "The sheet's premium is a goal-seek constant: it leaves the present value within about 1e-6 of the index, so the premium agrees to about 1e-11 here and 1e-9 is the tolerance for every sheet."
+
+[[cases]]
+id = "start_of_2019"
+source = "damodaran_january_sheets"
+locator = "ERPJan19.xlsx: S&P 500 2506.85, dividends plus buybacks 136.64571051224752, growth 0.04124447781465368, T-bond 0.0268; implied premium (cell C39) 0.05959264484348947"
+edge = false
+inputs = { index_level = 2506.85, cash_flow = 136.64571051224752, growth = 0.04124447781465368, risk_free = 0.0268 }
+expected = { equity_risk_premium = 0.05959264484348947 }
+tolerance = { equity_risk_premium = { abs = 1e-9 } }
+
+[[cases]]
+id = "start_of_2020"
+source = "damodaran_january_sheets"
+locator = "ERPJan20.xlsx: S&P 500 3230.78, dividends plus buybacks 150.50435746954307, growth 0.039565196240958445, T-bond 0.0192; implied premium (cell C39) 0.05195084335222499"
+edge = false
+inputs = { index_level = 3230.78, cash_flow = 150.50435746954307, growth = 0.039565196240958445, risk_free = 0.0192 }
+expected = { equity_risk_premium = 0.05195084335222499 }
+tolerance = { equity_risk_premium = { abs = 1e-9 } }
+note = "The goal seek's residual is larger in this sheet: the premium agrees to 1.6e-10."
+
+[[cases]]
+id = "start_of_2026"
+source = "damodaran_2026"
+locator = "Figure 11, p. 103 (ERP 4.23%), and ERPJan26.xlsx: S&P 500 6845.5, growth 0.10500810203657918, T-bond 0.0418; base cash flow 198.98589863079704 x 271.52 / 255.5964189338491 = 211.38266107795963; implied premium (cell C45) 0.04231237210355735"
+edge = false
+inputs = { index_level = 6845.5, cash_flow = 211.38266107795963, growth = 0.10500810203657918, risk_free = 0.0418 }
+expected = { equity_risk_premium = 0.04231237210355735 }
+tolerance = { equity_risk_premium = { abs = 1e-9 } }
+note = "Since 2021 Damodaran grows estimated base-year earnings (271.52) at the trailing payout ratio (dividends and buybacks over reported earnings), which is the model's equation with that base cash flow."
+
+[[cases]]
+id = "terminal_growth_near_the_discount_rate"
+source = "no_growth_years"
+edge = true
+inputs = { index_level = 1000000.0, cash_flow = 1.0, growth = 0.0, years = 0, risk_free = 0.03 }
+expected = { implied_return = 0.03000103, equity_risk_premium = 1.03e-6 }
+note = "A cash yield of one in a million: the implied return is 1.03e-6 above the terminal growth rate."

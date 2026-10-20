@@ -124,8 +124,9 @@ def test_the_foundations_entry_point_registers_its_five_models() -> None:
     assert "foundations" in registry.domains()
 
 
-def test_the_fixed_income_entry_point_registers_its_six_models() -> None:
-    assert {m.id for m in registry.models("fixed_income")} == FIXED_INCOME
+def test_the_fixed_income_entry_point_registers_phase_2s_six_models() -> None:
+    # At least: Phase 3 Step 15 adds two (the table below lists them).
+    assert {m.id for m in registry.models("fixed_income")} >= FIXED_INCOME
     assert "fixed_income" in registry.domains()
 
 
@@ -150,7 +151,8 @@ def test_each_catalog_model_comes_from_this_distribution() -> None:
     [("equity", EQUITY), ("corporate", CORPORATE), ("accounting", ACCOUNTING)],
 )
 def test_step10_domains_are_installed(domain: str, expected: set[str]) -> None:
-    assert {m.id for m in registry.models(domain)} == expected
+    # At least: Phase 3 Step 15 adds two equity models (the table below lists them).
+    assert {m.id for m in registry.models(domain)} >= expected
 
 
 @pytest.mark.parametrize(

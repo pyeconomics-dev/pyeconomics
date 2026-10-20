@@ -15,6 +15,42 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- `fixed_income.curve_fitting`: Nelson-Siegel and Svensson yield curves, with an
+  `evaluate` calculation (continuously compounded zero yields, instantaneous
+  forwards, par yields at a stated coupon frequency and discount factors from given
+  parameters) and a `fit` calculation (bounded least squares to observed zero or par
+  yields from a fixed grid of starting decays, with an evaluation cap, returning
+  the parameters, fitted yields and RMSE). Golden cases reproduce the Board's
+  Gurkaynak-Sack-Wright file and the ECB's euro-area AAA curve, including its
+  negative 2020 curve; oracles are an independent evaluation and QuantLib's
+  Svensson curve. It binds the Board's GSW parameters and Treasury's par curve.
+- `fixed_income.interest_rate_tree`: Kalotay, Williams and Fabozzi's (1993)
+  lognormal binomial tree calibrated to a par curve, with the values of
+  option-free, callable and putable bonds and their options, the option-adjusted
+  spread and effective duration and convexity (the curve shifted and the tree
+  recalibrated). Golden cases reproduce the paper's tree and bond values; oracles
+  are KWF's own backward-induction calibration and QuantLib's curve. It calibrates
+  to Treasury's par curve.
+- `equity.implied_risk_premium`: the expected return at which an index level
+  equals the present value of its dividends and buybacks growing for a number of
+  years and then at the risk-free rate, and its premium over that rate. Golden
+  cases reproduce Damodaran's published implied premiums from the inputs his
+  spreadsheets state. It binds Damodaran's year-end S&P 500 inputs and Treasury's
+  10-year yield.
+- `equity.cape`: Shiller's cyclically adjusted price-to-earnings ratio (the real
+  price over the average real earnings of the window before it), its earnings
+  yield and the excess CAPE yield over a TIPS yield or the nominal yield less
+  trailing inflation. It binds Shiller's price, earnings and CPI (library-only,
+  fetched at run time) and Treasury's 10-year yields; a live test reproduces
+  Shiller's published CAPE from his file without storing any of it.
+- Curve bindings: `Binding(..., tenors=...)` reads a table concept whose columns
+  are tenors (`1m` to `30y`) at its last row on or before the date, filling an
+  array of values and an array of their tenors in years and leaving out a tenor
+  the row lacks. New series concepts: the Board's six GSW parameters
+  (`us.treasury.gsw_beta0` to `us.treasury.gsw_tau2`), Shiller's
+  `us.equity.sp_composite_price`, `us.equity.sp_composite_earnings` and
+  `us.prices.cpi_long_run`, and Damodaran's `us.equity.sp500_year_end`,
+  `us.equity.sp500_dividends_buybacks` and `us.equity.sp500_expected_growth`.
 - `macro.output_gap`: the output gap from a published potential output (CBO's,
   for the United States) or by the Hodrick-Prescott (lambda by Ravn and Uhlig's
   rule), Hamilton (h and p by frequency), Baxter-King and Christiano-Fitzgerald
@@ -266,6 +302,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- The `fed_board` provider labels the GSW betas as dimensionless decimals (they
+  are coefficients in decimal rate units, some of several hundred percentage
+  points), and the `damodaran` provider's implied premium file now also carries
+  the S&P 500's year-end level, its dividends plus buybacks and the analysts'
+  expected growth.
 - A bind of a model with several calculations needs `calculation=...` and reads
   only the bindings that calculation's fields take.
 - **Breaking for anything that parses manifests:** the manifest moves to schema 2.

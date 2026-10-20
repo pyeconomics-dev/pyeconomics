@@ -58,6 +58,57 @@ _REAL: Final = (
 )
 
 
+def _gsw(column: str, title: str, definition: str) -> Concept:
+    """One Svensson parameter of the Board's GSW fit, as a daily series."""
+    decay = column.startswith("TAU")
+    return Concept(
+        id=f"us.treasury.gsw_{column.lower()}",
+        title=f"Gürkaynak-Sack-Wright curve: {title}",
+        definition=(
+            f"{definition} Of the Federal Reserve Board staff's daily Svensson fit "
+            "of the Treasury yield curve (Gürkaynak, Sack and Wright), "
+            + ("in years." if decay else "as a decimal (the Board prints percent).")
+        ),
+        unit_kind=UnitKind.YEARS if decay else UnitKind.RATIO,
+        unit_text=(
+            "years"
+            if decay
+            else "a coefficient in decimal rate units (0.04 is 4 percentage points)"
+        ),
+        frequency=_DAILY,
+        seasonal_adjustment=SeasonalAdjustment.NOT_SEASONALLY_ADJUSTED,
+        candidates=(
+            Candidate(
+                provider="fed_board",
+                series="gsw",
+                column=column,
+                delivers=ObservationFrequency.IRREGULAR,
+                note=(
+                    "Staff estimates, revised with the file. Before 1980 the fit "
+                    "is Nelson-Siegel, and BETA3 and TAU2 are missing."
+                    if column in {"BETA3", "TAU2"}
+                    else "Staff estimates, revised with the file."
+                ),
+            ),
+        ),
+        section=_CURVES,
+    )
+
+
+_GSW_PARAMETERS: Final = (
+    _gsw("BETA0", "level (beta0)", "The level: the yield as maturity grows."),
+    _gsw(
+        "BETA1",
+        "slope (beta1)",
+        "The slope: beta0 + beta1 is the instantaneous short rate.",
+    ),
+    _gsw("BETA2", "first hump (beta2)", "The size of the curve's first hump."),
+    _gsw("BETA3", "second hump (beta3)", "The size of the curve's second hump."),
+    _gsw("TAU1", "first decay (tau1)", "Where the first hump's loading peaks."),
+    _gsw("TAU2", "second decay (tau2)", "Where the second hump's loading peaks."),
+)
+
+
 def _yield(
     concept_id: str,
     title: str,
@@ -343,4 +394,5 @@ CONCEPTS: Final = (
         notes=("Earlier editions are separate files (`hlw:2025Q1`), not vintages.",),
         section=_NEUTRAL,
     ),
+    *_GSW_PARAMETERS,
 )

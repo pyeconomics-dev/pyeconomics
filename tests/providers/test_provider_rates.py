@@ -16,6 +16,7 @@ from defusedxml.common import DefusedXmlException
 from provider_contract import load_cassette, replay
 from pydantic import ValidationError
 
+from pyeconomics.core import UnitKind
 from pyeconomics.data import (
     DataError,
     OfflineError,
@@ -144,6 +145,10 @@ def test_treasury_and_board_dates_and_decimal_units_are_pinned() -> None:
     assert units["TAU1"].text == "Years"
     assert units["SVENY01"].scale == 1
     assert units["BETA0"].text == "Svensson coefficient in decimal rate units"
+    # The betas are coefficients in decimal rate units, not rates: some reach
+    # hundreds of percentage points, so they are dimensionless decimals.
+    assert units["BETA0"].kind is UnitKind.RATIO
+    assert units["TAU1"].kind is UnitKind.YEARS
 
 
 def test_nyfed_zero_volumes_and_multiple_daily_operations_are_preserved() -> None:

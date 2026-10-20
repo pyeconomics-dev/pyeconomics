@@ -748,9 +748,17 @@ class _Checker:
                 continue
             profiles.add(binding.profile)
             where = f"binding {binding.field!r} (profile {binding.profile!r})"
-            if (binding.profile, binding.field) in bound:
-                self.report.add("bindings", f"{where} binds the field twice")
-            bound.add((binding.profile, binding.field))
+            filled = [binding.field]
+            if isinstance(binding.tenors, str):
+                filled.append(binding.tenors)
+            for name in filled:
+                if (binding.profile, name) in bound:
+                    self.report.add(
+                        "bindings",
+                        f"binding {name!r} (profile {binding.profile!r}) binds the "
+                        "field twice",
+                    )
+                bound.add((binding.profile, name))
             self.binding(binding, where, shapes)
         if DEFAULT_PROFILE not in profiles:
             self.report.add(
@@ -803,8 +811,28 @@ class _Checker:
                 f"{where}: window {window!r} is not a whole number from 1 to "
                 f"{MAX_TRANSFORM_PERIODS}",
             )
+        self.binding_curve(binding, where, rule_ok=rule_ok)
         if shapes is not None and _is_str(binding.field):
             self.binding_field(binding, where, shapes, window if window_ok else None)
+
+    def binding_curve(self, binding: Binding, where: str, *, rule_ok: bool) -> None:
+        """Hold a curve's binding (one with ``tenors``) to its rules."""
+        tenors = binding.tenors
+        if tenors is None:
+            return
+        add = self.report.add
+        if not _is_str(tenors) or not SNAKE_CASE.fullmatch(tenors):
+            add("bindings", f"{where}: the tenors field name is not snake_case")
+        elif tenors == binding.field:
+            add("bindings", f"{where}: the tenors go to another field than the values")
+        if rule_ok and binding.as_of is not AsOf.LAST_ON_OR_BEFORE:
+            add(
+                "bindings",
+                f"{where}: a curve is read at its last observation on or before the "
+                f"date (the '{AsOf.LAST_ON_OR_BEFORE.value}' rule)",
+            )
+        if binding.transform is not None:
+            add("bindings", f"{where}: a curve's binding takes no transform")
 
     def binding_transform(self, binding: Binding, where: str) -> None:
         if binding.transform is None:
@@ -853,11 +881,13 @@ class _Checker:
             self.report.add(
                 "bindings", f"{where}: only a numeric field can be bound to data"
             )
-        if shape.array and binding.as_of is not AsOf.WINDOW:
+        if binding.tenors is not None:
+            self.binding_tenors(binding, where, shapes, array=shape.array)
+        elif shape.array and binding.as_of is not AsOf.WINDOW:
             self.report.add(
                 "bindings",
                 f"{where}: an array field needs the '{AsOf.WINDOW.value}' rule and "
-                "a window",
+                "a window, or a curve's tenors",
             )
         elif not shape.array and binding.as_of is AsOf.WINDOW:
             self.report.add("bindings", f"{where}: a scalar field cannot take a window")
@@ -869,6 +899,36 @@ class _Checker:
                 "bindings",
                 f"{where}: the window of {window} exceeds the field's maximum "
                 f"length of {longest}",
+            )
+
+    def binding_tenors(
+        self,
+        binding: Binding,
+        where: str,
+        shapes: dict[str, tuple[FieldShape, ...]],
+        *,
+        array: bool,
+    ) -> None:
+        """Hold a curve to its two array fields: the values and their tenors."""
+        if not array:
+            self.report.add(
+                "bindings", f"{where}: a curve's values go to an array field"
+            )
+        tenors = binding.tenors
+        if not isinstance(tenors, str):
+            return
+        found = shapes.get(tenors)
+        if not found:
+            self.report.add(
+                "bindings",
+                f"{where}: the tenors field {binding.tenors!r} is not an input field",
+            )
+            return
+        if not all(s.array and s.kind is UnitKind.YEARS for s in found):
+            self.report.add(
+                "bindings",
+                f"{where}: the tenors field {binding.tenors!r} must be an array of "
+                "years",
             )
 
 

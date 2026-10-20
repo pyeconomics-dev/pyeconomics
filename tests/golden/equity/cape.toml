@@ -1,0 +1,53 @@
+# tests/golden/equity/cape.toml
+model = "equity.cape"
+
+[[sources]]
+key = "cs1998"
+kind = "paper"
+citation = "Campbell, J. Y. and Shiller, R. J. (1998). Valuation Ratios and the Long-Run Stock Market Outlook. Journal of Portfolio Management, 24(2), 11-26. Page 16: the price-smoothed-earnings ratio, the price over the average of real earnings over the previous ten years (annual data, the January price). The case recomputes that definition by exact rational arithmetic on stated inputs."
+doi = "10.3905/jpm.24.2.11"
+
+[[sources]]
+key = "constant_real_earnings"
+kind = "identity"
+citation = "When E_k I_t / I_k is the same E for every period of the window, the average real earnings are E and CAPE = P / E."
+
+[[sources]]
+key = "excess_yield"
+kind = "identity"
+citation = "Shiller's excess CAPE yield: 1 / CAPE less (the nominal 10-year yield less (I_t / I_{t-n}) ** (m / n) - 1). With prices rising 2% a year for ten years, a 5% yield and real earnings of 4 on a price of 100, it is 0.04 - (0.05 - 0.02) = 0.01."
+
+[[sources]]
+key = "one_period"
+kind = "identity"
+citation = "A window of one period: CAPE = P / (E I_t / I_{t-1}), the ratio of the price to the one period's real earnings."
+
+[[cases]]
+id = "campbell_shiller_definition"
+source = "cs1998"
+locator = "p. 16, the ten-year moving average of real earnings"
+edge = false
+inputs = { price = 1000.0, price_cpi = 120.0, earnings = [40.0, 42.0, 45.0, 43.0, 47.0, 50.0, 52.0, 55.0, 53.0, 58.0], cpi = [100.0, 102.0, 104.0, 105.0, 107.0, 110.0, 112.0, 114.0, 116.0, 118.0], real_yield = 0.02, periods_per_year = 1 }
+expected = { cape = 18.7563387057729, cape_yield = 0.05331530933018479, average_real_earnings = 53.31530933018479 }
+note = "Ten years of annual earnings deflated to the price's year: their average, 53.3153..., computed with fractions."
+
+[[cases]]
+id = "constant_real_earnings"
+source = "constant_real_earnings"
+edge = false
+inputs = { price = 2000.0, price_cpi = 250.0, earnings = [64.0, 67.2, 72.0, 76.8], cpi = [200.0, 210.0, 225.0, 240.0], real_yield = 0.015, periods_per_year = 4 }
+expected = { cape = 25.0, cape_yield = 0.04, excess_cape_yield = 0.025, average_real_earnings = 80.0 }
+
+[[cases]]
+id = "excess_cape_yield_over_nominal_less_inflation"
+source = "excess_yield"
+edge = false
+inputs = { price = 100.0, price_cpi = 121.89944199947573, earnings = [3.281393199500621, 3.347021063490633, 3.4139614847604456, 3.482240714455655, 3.551885528744768, 3.622923239319663, 3.695381704106057, 3.7692893381881776, 3.8446751249519413, 3.9215686274509807], cpi = [100.0, 102.0, 104.03999999999999, 106.12080000000002, 108.243216, 110.40808032, 112.61624192640001, 114.868566764928, 117.16593810022657, 119.50925686223111], nominal_yield = 0.05, periods_per_year = 1 }
+expected = { cape = 25.0, cape_yield = 0.04, real_rate = 0.03, excess_cape_yield = 0.01 }
+
+[[cases]]
+id = "window_at_its_minimum"
+source = "one_period"
+edge = true
+inputs = { price = 50.0, price_cpi = 110.0, earnings = [2.5], cpi = [100.0], real_yield = 0.02 }
+expected = { cape = 18.181818181818183, cape_yield = 0.055, excess_cape_yield = 0.035 }

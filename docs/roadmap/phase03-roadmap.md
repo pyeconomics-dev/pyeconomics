@@ -9101,7 +9101,13 @@ the price. New conversation per phase-boundary hygiene.
       real yields, Damodaran's implied ERP inputs and
       Shiller's price, earnings and CPI series;
       core/regression.py and core/numerics.py are the shared
-      fitting and root-finding tools.
+      fitting and root-finding tools. (Corrected in this
+      step: the GSW parameters and Shiller's series were
+      table columns only, Damodaran's file exposed no index
+      level, cash or growth, and a binding read only a
+      series; Step 15 added the series concepts, the
+      providers' columns and curve bindings, recorded in
+      the carry-over checklist.)
     - The GSW file publishes, for each day, BETA0 to BETA3,
       TAU1 and TAU2 and the zero yields, par yields and
       forwards they imply; the ECB publishes its euro-area
@@ -12315,6 +12321,41 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 15 (launch catalog: fixed income and equity, 2026-10-19):
+  `models/fixed_income/` adds `fixed_income.curve_fitting` and
+  `fixed_income.interest_rate_tree`, `models/equity/` adds
+  `equity.implied_risk_premium` and `equity.cape`. Contract changes made in-step
+  under the Contract-change rule, each the smallest that works: a curve binding,
+  `Binding(..., tenors=...)` (Step 12), which reads a table concept whose columns
+  are tenors (`1m` to `30y`) at its last row on or before the date and fills an
+  array of values and an array of their tenors in years, leaving out a tenor the
+  row lacks, because a fit or a tree calibration needs one date's curve and a
+  binding read only a series (ADR-0011 decision 16 stands: the curve's observation
+  is its row, read by the last-observation rule; `tenors` is an addition, as
+  Step 12's `parameters=` was); series concepts for the Board's six GSW parameters,
+  Shiller's price, earnings and CPI, and Damodaran's year-end S&P 500 level,
+  dividends plus buybacks and expected growth (Step 11's catalog had the first two
+  as table columns and the third not at all); the `damodaran` provider's implied
+  premium file now carries those three columns with their own units (Step 10); and
+  the `fed_board` provider labels the GSW betas `ratio`, not unlabelled (Step 7's
+  provider, built in Step 10). The catalog world's stand-in tables give each
+  column its own concept's unit kind (Step 11's test helper). Facts for later
+  steps: the GSW betas are coefficients in decimal rate units, not rates (the
+  Board's fits offset humps of several hundred percentage points on near-collinear
+  days, 3,407 as a decimal on 2011-08-03, and TAU2 reaches 181 years), and the
+  file's 2011-08-03 par yields disagree with its own zero yields; the ECB's par
+  yields have monthly coupons until 2023-05-18 and continuous coupons from
+  2023-05-19; Damodaran's histimpl.xls rounds its premiums to four decimals and
+  its year-end inputs reproduce them only for 2016-2019 (he normalized the base
+  cash flow in 2011-12, adjusted it for COVID in 2020 and grows estimated
+  earnings at the trailing payout since 2021), while his January spreadsheets
+  carry the full-precision premium; Shiller's CAPE for a month averages the real
+  earnings of the 120 months before it (not the month itself), and his excess
+  CAPE yield is 1/CAPE less GS10 less (CPI_t / CPI_t-120)^(1/10) - 1; Kalotay,
+  Williams and Fabozzi's printed callable value (101.432) is 0.0013 high against
+  their own tree. Steps 7, 10, 11 and 12 read Complete, or are Step 7's parked
+  branch, so their tasks stand as history and the changes are recorded here.
 
 - Step 14 (launch catalog: macroeconomics, 2026-10-19): `models/macro/` adds
   `macro.output_gap`, `macro.phillips_curve`, `macro.okun_law`,

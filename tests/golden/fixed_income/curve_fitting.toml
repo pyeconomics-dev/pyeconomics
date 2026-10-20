@@ -1,0 +1,71 @@
+# tests/golden/fixed_income/curve_fitting.toml
+model = "fixed_income.curve_fitting"
+
+[[sources]]
+key = "gsw_file"
+kind = "official"
+citation = "Board of Governors of the Federal Reserve System. The U.S. Treasury Yield Curve: 1961 to the Present (Gurkaynak, Sack and Wright), daily data file feds200628.csv (Last-Modified 13 October 2026, data through 2026-10-09), accessed 2026-10-19. Parameters BETA0-BETA3 and the yields are in percent (divided by 100 here), TAU1 and TAU2 in years; SVENY are continuously compounded zero yields, SVENF continuously compounded instantaneous forwards, SVENPY par yields with semiannual coupons (the paper's equation 7). Rows from 1987-12-01 to 2001-08-10 print 12 decimals; recent rows print 4."
+url = "https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv"
+
+[[sources]]
+key = "ecb_aaa"
+kind = "official"
+citation = "European Central Bank. Euro area yield curves, AAA-rated central government bonds (series YC.B.U2.EUR.4F.G_N_A.SV_C_YM.*): the Svensson parameters BETA0-BETA3 (percent) and TAU1-TAU2 (years), spot rates SR_ and instantaneous forwards IF_ (continuously compounded, percent) and par yields PY_, from the ECB Data Portal, accessed 2026-10-19. Until 2023-05-18 PY is the par yield with monthly coupons, (1 - d(T)) / (sum of d(j/12) / 12), and values carry full double precision; from 2023-05-19 PY uses continuous coupons and values print 10 decimals."
+url = "https://data-api.ecb.europa.eu/service/data/YC/B.U2.EUR.4F.G_N_A+G_N_C.SV_C_YM.?startPeriod=2020-03-12&endPeriod=2020-03-12&format=csvdata"
+
+[[cases]]
+id = "gsw_1998_06_30"
+source = "gsw_file"
+locator = "Line 9675 (1998-06-30, Svensson, full precision): BETA0 4.54243435239687, BETA1 0.607148865683804, BETA2 1.46025869092295, BETA3 3.62680862260655, TAU1 1.10004075932404, TAU2 15.4469529636509; SVENY05/10/30, SVENF05/10/30, SVENPY05/10/30"
+edge = false
+inputs = { calculation = "evaluate", beta0 = 0.0454243435239687, beta1 = 0.00607148865683804, beta2 = 0.0146025869092295, beta3 = 0.0362680862260655, tau1 = 1.10004075932404, tau2 = 15.4469529636509, maturities = [5.0, 10.0, 30.0], coupon_frequency = "semiannual" }
+expected = { zero_yields = [0.0545139327851, 0.05541302071325, 0.05697815639418], forward_rates = [0.05468678114784, 0.05772936136599, 0.05552492714094], par_yields = [0.05526858982968, 0.05603174458666, 0.05735361862392] }
+
+[[cases]]
+id = "gsw_2026_10_09"
+source = "gsw_file"
+locator = "Line 17053 (2026-10-09, the latest row): BETA0 2.22056170437177e-14, BETA1 3.92393143398782, BETA2 4.93949592518691, BETA3 17.0123153461406, TAU1 1.93134743096879, TAU2 15.7551507296816; SVENY05 4.9865, SVENY10 5.2514, SVENY30 5.6402; SVENF05 5.186, SVENF10 5.8903, SVENF30 4.8251; SVENPY05 5.0334, SVENPY10 5.2692, SVENPY30 5.6261"
+edge = false
+inputs = { calculation = "evaluate", beta0 = 2.22056170437177e-16, beta1 = 0.0392393143398782, beta2 = 0.0493949592518691, beta3 = 0.170123153461406, tau1 = 1.93134743096879, tau2 = 15.7551507296816, maturities = [5.0, 10.0, 30.0] }
+expected = { zero_yields = [0.049865, 0.052514, 0.056402], forward_rates = [0.05186, 0.058903, 0.048251], par_yields = [0.050334, 0.052692, 0.056261] }
+tolerance = { zero_yields = { abs = 5e-7 }, forward_rates = { abs = 5e-7 }, par_yields = { abs = 5e-7 } }
+note = "The file prints these yields to 4 decimals of a percent: half a unit is 5e-7 as a decimal. BETA0 is the file's floor near zero."
+
+[[cases]]
+id = "gsw_2021_05_24_low_rates"
+source = "gsw_file"
+locator = "Line 15649 (2021-05-24, the lowest SVENY01 in the file): BETA0 5.97088872833948, BETA1 -5.81556402364693, BETA2 -5.98252919502235, BETA3 -8.61444813346067, TAU1 2.39646911729581, TAU2 19.7390837313895; SVENY05 0.8375, SVENY10 1.7112, SVENY30 2.4847; SVENF05 2.0058, SVENF10 2.867, SVENF30 3.1066; SVENPY05 0.8315, SVENPY10 1.6703, SVENPY30 2.3691"
+edge = false
+inputs = { calculation = "evaluate", beta0 = 0.0597088872833948, beta1 = -0.0581556402364693, beta2 = -0.0598252919502235, beta3 = -0.0861444813346067, tau1 = 2.39646911729581, tau2 = 19.7390837313895, maturities = [5.0, 10.0, 30.0] }
+expected = { zero_yields = [0.008375, 0.017112, 0.024847], forward_rates = [0.020058, 0.02867, 0.031066], par_yields = [0.008315, 0.016703, 0.023691] }
+tolerance = { zero_yields = { abs = 5e-7 }, forward_rates = { abs = 5e-7 }, par_yields = { abs = 5e-7 } }
+note = "Printed to 4 decimals of a percent: half a unit is 5e-7. Every beta but beta0 is negative."
+
+[[cases]]
+id = "ecb_2020_03_12_negative_curve"
+source = "ecb_aaa"
+locator = "2020-03-12, AAA curve: BETA0 -0.3391115594422695, BETA1 -0.43451976627274214, BETA2 12.731271815573484, BETA3 -13.738853532345086, TAU1 3.6889884884100548, TAU2 3.472388045527722; SR_1Y/5Y/10Y/30Y, IF_1Y/5Y/10Y/30Y and PY_1Y/5Y/10Y/30Y"
+edge = true
+inputs = { calculation = "evaluate", beta0 = -0.003391115594422695, beta1 = -0.0043451976627274214, beta2 = 0.12731271815573484, beta3 = -0.13738853532345086, tau1 = 3.6889884884100548, tau2 = 3.472388045527722, maturities = [1.0, 5.0, 10.0, 30.0], coupon_frequency = "monthly" }
+expected = { zero_yields = [-0.009129830348967263, -0.009138847374252475, -0.006823884534583988, -0.0041872001881061904], forward_rates = [-0.010053009498913332, -0.006892498124938058, -0.0029481427088517576, -0.003298164191251366], par_yields = [-0.00912808541401709, -0.009126723446405804, -0.006773761005892786, -0.0041268219695616415] }
+note = "A negative short rate: the whole AAA curve is below zero, and tau2 is below tau1. The ECB's par yields of that date have monthly coupons."
+
+[[cases]]
+id = "ecb_2026_10_16"
+source = "ecb_aaa"
+locator = "2026-10-16, AAA curve: BETA0 1.7110052914, BETA1 0.6636806379, BETA2 2.0466642146, BETA3 6.4872208076, TAU1 1.0134751675, TAU2 14.0239321252; SR_1Y 2.8914120591, SR_5Y 3.1567644875, SR_10Y 3.4444646497, SR_30Y 3.7141697675; IF_1Y 3.1420317846, IF_5Y 3.4077627712, IF_10Y 3.9793813137, IF_30Y 3.3450624433"
+edge = false
+inputs = { calculation = "evaluate", beta0 = 0.017110052914, beta1 = 0.006636806379, beta2 = 0.020466642146, beta3 = 0.064872208076, tau1 = 1.0134751675, tau2 = 14.0239321252, maturities = [1.0, 5.0, 10.0, 30.0] }
+expected = { zero_yields = [0.028914120591, 0.031567644875, 0.034444646497, 0.037141697675], forward_rates = [0.031420317846, 0.034077627712, 0.039793813137, 0.033450624433] }
+tolerance = { zero_yields = { abs = 1e-12 }, forward_rates = { abs = 1e-12 } }
+note = "Since 2023-05-19 the parameters and the values print 10 decimals of a percent (half a unit is 5e-13 as a decimal), so the rounding of both parameters and values allows 1e-12. Par yields are left out: since that date the ECB's use continuous coupons."
+
+[[cases]]
+id = "fit_recovers_gsw_1998_06_30"
+source = "gsw_file"
+locator = "Line 9675 (1998-06-30): SVENY01 5.424475753042, SVENY02 5.473390415719, SVENY05 5.45139327851, SVENY10 5.541302071325, SVENY20 5.696263351145, SVENY30 5.697815639418"
+edge = false
+inputs = { calculation = "fit", maturities = [1.0, 2.0, 5.0, 10.0, 20.0, 30.0], yields = [0.05424475753042, 0.05473390415719, 0.0545139327851, 0.05541302071325, 0.05696263351145, 0.05697815639418], yield_type = "zero", form = "svensson" }
+expected = { fitted_yields = [0.05424475753042, 0.05473390415719, 0.0545139327851, 0.05541302071325, 0.05696263351145, 0.05697815639418], rmse = 0.0, beta0 = 0.0454243435239687, beta3 = 0.0362680862260655, tau1 = 1.10004075932404, tau2 = 15.4469529636509 }
+tolerance = { fitted_yields = { abs = 1e-12 }, rmse = { abs = 1e-12 }, beta0 = { abs = 1e-9 }, beta3 = { abs = 1e-9 }, tau1 = { abs = 1e-7 }, tau2 = { abs = 1e-7 } }
+note = "Six zero yields of the file's own Svensson curve: the fit recovers the yields, and here the Board's parameters too, to the precision a least-squares solve resolves them."

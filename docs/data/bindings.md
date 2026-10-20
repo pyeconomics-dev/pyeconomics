@@ -36,21 +36,48 @@ assert binding.profile == "default"
 | `window` | The number of observations of a window binding; set with, and only with, `AsOf.WINDOW`. |
 | `vintage` | `VintagePolicy.REAL_TIME` (the default) or `VintagePolicy.LATEST`, which is revised data and is labelled so. |
 | `profile` | The named set of bindings this one belongs to. |
+| `tenors` | For a curve: the array field that receives the tenor, in years, of each value the curve's row holds (below). |
 
 A **profile** is one complete set of bindings: realized data, a forecast source,
 another economy. A model that declares bindings declares a `default` profile, and
 can offer others; the same input field may be bound once in each. Pass the
 bindings to the decorator with `@model(..., bindings=(...))`.
 
+### Curves
+
+A yield curve is a table concept whose columns are tenors, `1m` to `30y`
+(`us.treasury.par_curve`). Its observation on a date is a row: one value per
+tenor. A binding with `tenors` reads the curve's last row on or before the date
+that holds anything, under `AsOf.LAST_ON_OR_BEFORE` and with no transform, and
+fills two array fields from it: the bound field with the row's values and the
+`tenors` field with each value's tenor in years, in increasing order. A tenor the
+row leaves empty (Treasury began the 4-month bill in 2022) is left out of both,
+so the two always pair by position. The manifest records the curve once for each
+field, with the row's date.
+
+```python
+from pyeconomics.core import Binding
+
+curve = Binding("yields", "us.treasury.par_curve", tenors="maturities")
+assert curve.tenors == "maturities"
+```
+
+A caller who supplies the curve supplies both fields; one without the other is
+refused. `fixed_income.curve_fitting` fits Treasury's par curve this way, and
+`fixed_income.interest_rate_tree` calibrates to it.
+
 `registry.validate()` holds every binding to its structural rules, each reported
 as `<model>: [bindings] <detail>`: the field exists and is numeric; it is bound
 once per profile; an array field has a window and a scalar field has none, within
-the field's `max_length`; the `default` profile exists; the concept id follows
-the catalog's grammar; the transform is one the vocabulary declares, with
-parameters its schema accepts, and reads one series. Core cannot read the
-catalog, so `pyeconomics.data.validate_bindings()` checks the rest against the
-installed concepts: that each exists, is a series, suits the field's unit kind and
-suits the as-of rule. Run both:
+the field's `max_length`, unless the binding reads a curve, whose values go to an
+array and whose `tenors` go to another array of years, at the last observation
+on or before the date and untransformed; the `default` profile exists; the
+concept id follows the catalog's grammar; the transform is one the vocabulary
+declares, with parameters its schema accepts, and reads one series. Core cannot
+read the catalog, so `pyeconomics.data.validate_bindings()` checks the rest
+against the installed concepts: that each exists, is a series (or, for a curve,
+a table whose every candidate names tenor columns), suits the field's unit kind
+and suits the as-of rule. Run both:
 
 ```text
 uv run python -c "from pyeconomics import registry; registry.validate()"
@@ -88,7 +115,7 @@ This model reads data through bindings: resolve a profile with `pyeconomics.bind
 
 `registry.describe` also carries the bindings as data, in a `bindings` key placed
 before `extra`: for each, the `field`, `concept`, `transform`, `as_of`, `window`,
-`vintage` and `profile`.
+`vintage`, `profile` and `tenors`.
 
 ## Binding and running
 

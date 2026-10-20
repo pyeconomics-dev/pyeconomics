@@ -1400,3 +1400,183 @@ def _debt_dynamics() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["macro.debt_dynamics"] = _debt_dynamics
+
+
+# --- fixed income and equity: curves, trees, windows (Phase 3 Step 15) ----------
+
+#: Mostly decays and betas of the sizes curves have, sometimes the declared
+#: extremes (betas to 1e4, decays from 0.001 to 200 years).
+_CURVE_DECAYS: Final = st.one_of(
+    st.floats(min_value=0.05, max_value=30.0),
+    st.floats(min_value=0.001, max_value=200.0),
+)
+_CURVE_BETAS: Final = st.one_of(
+    st.floats(min_value=-0.1, max_value=0.1),
+    st.floats(min_value=-0.99, max_value=0.99),
+    st.floats(min_value=-1e4, max_value=1e4),
+)
+
+
+@st.composite
+def _curve_evaluation(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Svensson or Nelson-Siegel parameters, mostly of a plausible size."""
+    drawn = draw(_fields(cls))
+    for name in ("beta0", "beta1", "beta2", "beta3"):
+        drawn[name] = draw(_CURVE_BETAS)
+    drawn["tau1"] = draw(_CURVE_DECAYS)
+    if draw(st.booleans()):
+        drawn["tau2"] = draw(_CURVE_DECAYS)
+    else:
+        drawn.pop("tau2", None)
+        drawn["beta3"] = 0.0
+    return drawn
+
+
+@st.composite
+def _curve_fit(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Observed yields at increasing maturities: a curve's own, or any at all."""
+    drawn = draw(_fields(cls))
+    form = draw(st.sampled_from(["nelson_siegel", "svensson"]))
+    size = draw(
+        st.integers(min_value=4 if form == "nelson_siegel" else 6, max_value=12)
+    )
+    maturities = draw(_increasing(0.05, 40.0, size))
+    if draw(st.booleans()):
+        level = draw(st.floats(min_value=0.0, max_value=0.1))
+        slope = draw(st.floats(min_value=-0.05, max_value=0.05))
+        yields = [level + slope * math.exp(-n / 2.0) for n in maturities]
+    else:
+        yields = draw(
+            st.lists(
+                st.floats(min_value=-0.1, max_value=1.0), min_size=size, max_size=size
+            )
+        )
+    drawn.update(form=form, maturities=maturities, yields=yields)
+    return drawn
+
+
+def _curve_fitting() -> SearchStrategy[dict[str, Any]]:
+    """``fixed_income.curve_fitting``: parameters, or yields to fit, that agree."""
+    module = importlib.import_module("pyeconomics.models.fixed_income.curve_fitting")
+    return st.one_of(
+        _curve_evaluation(module.EvaluateInputs).filter(
+            _accepts(module.EvaluateInputs)
+        ),
+        _curve_fit(module.FitInputs).filter(_accepts(module.FitInputs)),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.curve_fitting.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["fixed_income.curve_fitting"] = _curve_fitting
+
+_TREE_PERIODS: Final = {"annual": 1, "semiannual": 2, "quarterly": 4, "monthly": 12}
+
+
+@st.composite
+def _tree(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """A par curve, a span or bond of whole periods within it, and a schedule."""
+    drawn = draw(_fields(cls))
+    frequency = draw(st.sampled_from(list(_TREE_PERIODS)))
+    m = _TREE_PERIODS[frequency]
+    size = draw(st.integers(min_value=1, max_value=6))
+    tenors = draw(_increasing(0.25, 30.0, size))
+    drawn.update(
+        frequency=frequency,
+        curve_tenors=tenors,
+        par_yields=draw(
+            st.lists(
+                st.floats(min_value=0.0, max_value=0.2), min_size=size, max_size=size
+            )
+        ),
+    )
+    longest = max(1, min(int(tenors[-1] * m), 120))
+    periods = draw(st.integers(min_value=1, max_value=longest))
+    if "years" in cls.model_fields:
+        drawn["years"] = periods / m
+        return drawn
+    drawn["maturity_years"] = periods / m
+    option = draw(st.sampled_from(["none", "call", "put"]))
+    drawn["option"] = option
+    if option == "none" or periods < 2:
+        drawn.update(option="none", exercise_years=[], exercise_prices=[])
+        return drawn
+    dates = draw(
+        st.lists(
+            st.integers(min_value=1, max_value=periods - 1),
+            min_size=1,
+            max_size=6,
+            unique=True,
+        )
+    )
+    drawn["exercise_years"] = [k / m for k in sorted(dates)]
+    drawn["exercise_prices"] = draw(
+        st.lists(
+            st.floats(min_value=50.0, max_value=150.0),
+            min_size=len(dates),
+            max_size=len(dates),
+        )
+    )
+    return drawn
+
+
+def _interest_rate_tree() -> SearchStrategy[dict[str, Any]]:
+    """``fixed_income.interest_rate_tree``: curves, bonds and schedules that agree."""
+    module = importlib.import_module(
+        "pyeconomics.models.fixed_income.interest_rate_tree"
+    )
+    members = (
+        module.CalibrateInputs,
+        module.ValueInputs,
+        module.OasInputs,
+        module.EffectiveInputs,
+    )
+    return st.one_of(
+        *(_tree(member).filter(_accepts(member)) for member in members),
+        st.sampled_from(
+            [
+                dict(example.inputs)
+                for example in module.interest_rate_tree.spec.examples
+            ]
+        ),
+    )
+
+
+OVERRIDES["fixed_income.interest_rate_tree"] = _interest_rate_tree
+
+
+@st.composite
+def _cape_window(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """A window of earnings and price indexes of one length, and one real rate."""
+    drawn = draw(_fields(cls))
+    size = draw(st.integers(min_value=1, max_value=150))
+    drawn["earnings"] = draw(
+        st.lists(st.floats(min_value=-1e9, max_value=1e9), min_size=size, max_size=size)
+    )
+    drawn["cpi"] = draw(
+        st.lists(st.floats(min_value=0.01, max_value=1e9), min_size=size, max_size=size)
+    )
+    for name in ("real_yield", "nominal_yield", "inflation"):
+        drawn.pop(name, None)
+    if draw(st.booleans()):
+        drawn["real_yield"] = draw(_field(cls, "real_yield"))
+    else:
+        drawn["nominal_yield"] = draw(_field(cls, "nominal_yield"))
+        if draw(st.booleans()):
+            drawn["inflation"] = draw(_field(cls, "inflation"))
+    return drawn
+
+
+def _cape() -> SearchStrategy[dict[str, Any]]:
+    """``equity.cape``: earnings and price indexes of one length, one real rate."""
+    module = importlib.import_module("pyeconomics.models.equity.cape")
+    return st.one_of(
+        _cape_window(module.CapeInputs).filter(_accepts(module.CapeInputs)),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.cape.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["equity.cape"] = _cape

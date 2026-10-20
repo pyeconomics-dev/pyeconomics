@@ -1,0 +1,70 @@
+# tests/golden/fixed_income/interest_rate_tree.toml
+model = "fixed_income.interest_rate_tree"
+
+[[sources]]
+key = "kwf1993"
+kind = "paper"
+citation = "Kalotay, A. J., Williams, G. O. and Fabozzi, F. J. (1993). A Model for Valuing Bonds and Embedded Options. Financial Analysts Journal, 49(3), 35-46. The worked example: an annual-pay on-the-run par curve of 3.5%, 4.0% and 4.5% at one to three years (Table I, p. 37), volatility 10% (p. 40), one-year periods with rates e^(2 sigma) apart; values print to 3 decimals and rates to 3 decimals of a percent. Read in the authors' reprint (Kalotay Analytics, archived at web.archive.org), accessed 2026-10-19."
+doi = "10.2469/faj.v49.n3.35"
+
+[[sources]]
+key = "certain_call"
+kind = "identity"
+citation = "A bond certain to be called at the next coupon date (its call price is below its value in every state) is worth that price plus the coupon, discounted one period at the first rate: (K + C) / (1 + r0), with r0 the one-period par yield."
+
+[[cases]]
+id = "kwf_calibrated_tree"
+source = "kwf1993"
+locator = "Figures D and E, pp. 41-42, and the tree of Figures F-H: r0 3.500%, r1D 4.074%, r2DD 4.530% (and r1U 4.976%, r2UD 5.532%, r2UU 6.757%)"
+edge = false
+inputs = { calculation = "calibrate", curve_tenors = [1.0, 2.0, 3.0], par_yields = [0.035, 0.04, 0.045], volatility = 0.1, frequency = "annual", years = 3.0 }
+expected = { lowest_rates = [0.035, 0.04074, 0.0453], rate_ratio = 1.2214027581601699 }
+tolerance = { lowest_rates = { abs = 5e-6 } }
+note = "Rates print to 3 decimals of a percent: half a unit is 5e-6 as a decimal. The ratio is e^0.2 exactly."
+
+[[cases]]
+id = "kwf_option_free_bond"
+source = "kwf1993"
+locator = "Figure F, p. 43: the 5.25% three-year option-free bond, 102.075 (and p. 37, the same value from spot rates)"
+edge = false
+inputs = { calculation = "value", curve_tenors = [1.0, 2.0, 3.0], par_yields = [0.035, 0.04, 0.045], volatility = 0.1, frequency = "annual", maturity_years = 3.0, coupon_rate = 0.0525 }
+expected = { value = 102.075, option_free_value = 102.075, option_value = 0.0 }
+tolerance = { value = { abs = 5e-4 }, option_free_value = { abs = 5e-4 } }
+
+[[cases]]
+id = "kwf_callable_bond"
+source = "kwf1993"
+locator = "Figure G, p. 44, and text pp. 43-44: callable at 100 in years one and two, 101.432; call option 0.643"
+edge = false
+inputs = { calculation = "value", curve_tenors = [1.0, 2.0, 3.0], par_yields = [0.035, 0.04, 0.045], volatility = 0.1, frequency = "annual", maturity_years = 3.0, coupon_rate = 0.0525, option = "call", exercise_years = [1.0, 2.0], exercise_prices = [100.0, 100.0] }
+expected = { value = 101.432, option_free_value = 102.075, option_value = 0.643 }
+tolerance = { value = { abs = 1.5e-3 }, option_free_value = { abs = 5e-4 }, option_value = { abs = 1.5e-3 } }
+note = "The paper's callable value is 0.0013 high: its own printed node values give (104.711 + 105.25) / 2 / 1.035 = 101.4304, and the exact tree 101.43067, so the tolerance is 1.5e-3 rather than half a unit. The option value is a difference of rounded numbers."
+
+[[cases]]
+id = "kwf_putable_bond"
+source = "kwf1993"
+locator = "Figure H, p. 45, and text p. 44: putable at 100 in years one and two, 102.523 (the paper's put value, option-free less putable, is -0.448)"
+edge = false
+inputs = { calculation = "value", curve_tenors = [1.0, 2.0, 3.0], par_yields = [0.035, 0.04, 0.045], volatility = 0.1, frequency = "annual", maturity_years = 3.0, coupon_rate = 0.0525, option = "put", exercise_years = [1.0, 2.0], exercise_prices = [100.0, 100.0] }
+expected = { value = 102.523, option_free_value = 102.075, option_value = 0.448 }
+tolerance = { value = { abs = 5e-4 }, option_free_value = { abs = 5e-4 }, option_value = { abs = 1e-3 } }
+note = "The model reports the put's value to its holder, putable less option-free, so the paper's -0.448 is +0.448 here."
+
+[[cases]]
+id = "option_free_value_ignores_volatility"
+source = "kwf1993"
+locator = "p. 37: the option-free bond's value from the spot curve, 102.075; a calibrated tree reprices it whatever the volatility"
+edge = true
+inputs = { calculation = "value", curve_tenors = [1.0, 2.0, 3.0], par_yields = [0.035, 0.04, 0.045], volatility = 0.45, frequency = "annual", maturity_years = 3.0, coupon_rate = 0.0525 }
+expected = { value = 102.075 }
+tolerance = { value = { abs = 5e-4 } }
+note = "An extreme volatility of 45%: the calibration absorbs it, so an option-free bond's value does not move."
+
+[[cases]]
+id = "called_at_the_next_date"
+source = "certain_call"
+edge = true
+inputs = { calculation = "value", curve_tenors = [1.0, 2.0, 3.0], par_yields = [0.035, 0.04, 0.045], volatility = 0.1, frequency = "annual", maturity_years = 3.0, coupon_rate = 0.0525, option = "call", exercise_years = [1.0], exercise_prices = [50.0] }
+expected = { value = 53.3816425120773 }
+note = "Callable at the next date at 50, far below its value in either state: (50 + 5.25) / 1.035."
