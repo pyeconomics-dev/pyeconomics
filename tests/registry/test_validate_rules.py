@@ -33,12 +33,14 @@ from pyeconomics.core import (
     ModelOutputs,
     MoneyArray,
     Rate,
+    RateArray,
     Reference,
     Registry,
     RegistryError,
     ReturnArray,
     Unit,
     UnitKind,
+    YearsArray,
     model,
 )
 from pyeconomics.core.registry import RULES
@@ -148,6 +150,16 @@ class DatedField(tm.ZeroCouponInputs):
         le=dt.date(2200, 12, 31),
         description="A sound date",
     )
+
+
+class CurveField(tm.ZeroCouponInputs):
+    maturities: YearsArray = Field((), max_length=13, description="Curve tenors")
+    levels: RateArray = Field((), max_length=13, description="Curve yields")
+
+
+def _curve(*bindings: Binding) -> Callable[[], Registry]:
+    """A model with a curve's fields, which only the bindings rule objects to."""
+    return lambda: broken(ZC, inputs=CurveField, bindings=bindings)
 
 
 class NoDescriptionField(tm.ZeroCouponInputs):
@@ -502,6 +514,23 @@ CASES: dict[str, list[Case]] = {
         case(_bound(Binding("rate", CONCEPT, as_of="sometimes"))),  # type: ignore[arg-type]
         case(_bound(Binding("rate", CONCEPT, vintage="eventually"))),  # type: ignore[arg-type]
         case(_bound(Binding("rate", CONCEPT, profile="Not Snake"))),
+        # a curve: its values go to an array and its tenors to another array of
+        # years, read at the last observation on or before the date, untransformed
+        case(_curve(Binding("rate", CONCEPT, tenors="maturities"))),
+        case(_curve(Binding("levels", CONCEPT, tenors="no_such_field"))),
+        case(_curve(Binding("levels", CONCEPT, tenors="rate"))),
+        case(_curve(Binding("levels", CONCEPT, tenors="levels"))),
+        case(_curve(Binding("levels", CONCEPT, tenors="Not Snake"))),
+        case(_curve(Binding("levels", CONCEPT, tenors="maturities", transform="diff"))),
+        case(
+            _curve(Binding("levels", CONCEPT, tenors="maturities", as_of=AsOf.PERIOD))
+        ),
+        case(
+            _curve(
+                Binding("levels", CONCEPT, tenors="maturities"),
+                Binding("maturities", CONCEPT, as_of=AsOf.WINDOW, window=4),
+            )
+        ),
     ],
     "duplicate-id": [case(_duplicate_id)],
     "spec": [case(lambda: broken(ZC, references=(object(),)))],
@@ -668,3 +697,12 @@ def test_the_chart_of_a_calculation_must_name_a_known_one() -> None:
 def test_a_union_model_with_one_input_union_and_a_single_output_is_reported() -> None:
     found = broken(TV, outputs=tm.PresentValueOutputs).problems(released={})
     assert any("both be one model or both a union" in p.detail for p in found)
+
+
+def test_a_curve_binding_passes_the_bindings_rule() -> None:
+    sound = broken(
+        ZC,
+        inputs=CurveField,
+        bindings=(Binding("levels", "us.treasury.par_curve", tenors="maturities"),),
+    )
+    assert "bindings" not in rules_of(sound)

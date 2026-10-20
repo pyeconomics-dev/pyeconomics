@@ -47,6 +47,7 @@ from __future__ import annotations
 import datetime as dt
 import difflib
 import math
+import re
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, Final
 
@@ -89,6 +90,7 @@ from pyeconomics.data.types import (
     DECIMAL_KINDS,
     ObservationFrequency,
     Series,
+    Table,
 )
 
 if TYPE_CHECKING:
@@ -106,8 +108,12 @@ __all__ = [
     "bind_model",
     "candidate_notes",
     "lookback_days",
+    "tenor_years",
     "validate_bindings",
 ]
+
+#: A curve's column: a whole number of months or years (``3m``, ``10y``).
+_TENOR: Final = re.compile(r"([0-9]{1,3})([my])")
 
 #: Calendar days one observation spans, for sizing the window a source is asked.
 _SPAN_DAYS: Final = {
@@ -215,7 +221,8 @@ def bind(  # noqa: PLR0913 - the public contract's independent options
         If no model or alias has the id.
     InputError
         For a model with no such profile, an unknown input field, a concept of
-        another unit kind or frequency, a table concept, or a field the series'
+        another unit kind or frequency, a table concept (other than a curve's,
+        read through ``tenors``), a curve given in part, or a field the series'
         unit kind does not suit.
     ConceptNotFoundError, LicenceError, CredentialError, OfflineError, DataError
         As the catalog and the resolver raise them, and for a date the data
@@ -308,12 +315,39 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     )
     values: dict[str, object] = dict(given)
     records: list[DataSource] = []
+    _check_curves(model.id, chosen, given, shapes)
+    wanted = [binding for binding in chosen if binding.field not in given]
+    curves, fetched, ends = _fetch_all(wanted, ask)
+    for binding in chosen:
+        if binding.field in given:
+            names = [binding.field]
+            if binding.tenors is not None and binding.tenors in given:
+                names.append(binding.tenors)
+            records += [user_supplied(n, concept=binding.concept) for n in names]
+        elif binding.tenors is not None:
+            curve = _pick_curve(curves[binding], ask.day)
+            values.update(curve.values)
+            records.extend(curve.records)
+        else:
+            read = _pick(fetched[binding], ends.get(binding, ask.day))
+            values[binding.field] = read.value
+            records.extend(read.records)
+    return Bound(
+        model_id=model.id,
+        profile=profile,
+        values=values,
+        sources=tuple(records),
+        as_of=day,
+    )
+
+
+def _fetch_all(
+    wanted: list[Binding], ask: _Ask
+) -> tuple[dict[Binding, _Curve], dict[Binding, _Fetched], dict[Binding, dt.date]]:
+    """Fetch every binding to read, sharing one memo; end each window's group."""
     with cache.memo():
-        fetched = {
-            binding: _fetch(binding, ask)
-            for binding in chosen
-            if binding.field not in given
-        }
+        curves = {b: _fetch_curve(b, ask) for b in wanted if b.tenors is not None}
+        fetched = {b: _fetch(b, ask) for b in wanted if b.tenors is None}
         ends = _window_ends(fetched, ask.day)
         # A source that runs years ahead (CBO's projections) can have enough
         # observations in all and too few up to the date the windows share:
@@ -323,20 +357,7 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
             fetched[binding] = _fetch(binding, ask, end=ends[binding])
         if short:
             ends = _window_ends(fetched, ask.day)
-    for binding in chosen:
-        if binding.field in given:
-            records.append(user_supplied(binding.field, concept=binding.concept))
-            continue
-        read = _pick(fetched[binding], ends.get(binding, ask.day))
-        values[binding.field] = read.value
-        records.extend(read.records)
-    return Bound(
-        model_id=model.id,
-        profile=profile,
-        values=values,
-        sources=tuple(records),
-        as_of=day,
-    )
+    return curves, fetched, ends
 
 
 def _calculation(
@@ -502,7 +523,10 @@ def _concept(binding: Binding, ask: _Ask) -> Concept:
     declared = catalog.get(binding.concept)
     chosen = ask.concepts.get(binding.field)
     concept = declared if chosen is None else catalog.get(chosen)
-    if concept.shape is not Shape.SERIES:
+    if binding.tenors is not None and concept.shape is not Shape.TABLE:
+        msg = f"{concept.id} is a series; a curve's binding reads a table of tenors"
+        raise f.fail(msg)
+    if binding.tenors is None and concept.shape is not Shape.SERIES:
         msg = f"{concept.id} is a table; a binding reads a series"
         raise f.fail(msg)
     if chosen is not None and (
@@ -668,7 +692,12 @@ def _rule(binding: Binding, series: Series, day: dt.date | None) -> str:
 
 def _check_unit(series: Series, shape: FieldShape, where: str) -> None:
     """Refuse a series whose unit kind the field cannot take."""
-    wanted, found = shape.kind, series.meta.unit.kind
+    _check_kind(series.meta.unit.kind, shape, where)
+
+
+def _check_kind(found: UnitKind | None, shape: FieldShape, where: str) -> None:
+    """Refuse a unit kind the field cannot take."""
+    wanted = shape.kind
     if wanted is None or found == wanted:
         return
     if found in _DIMENSIONLESS and wanted in _DIMENSIONLESS:
@@ -707,9 +736,6 @@ def _record(  # noqa: PLR0913 - the record joins the binding, the pick and the t
     revised: bool,
 ) -> DataSource:
     """Complete a resolver's record: the field, the picked window, the rule."""
-    warnings = record.warnings
-    if revised and REVISED_DATA not in warnings:
-        warnings = (*warnings, REVISED_DATA)
     return replace(
         record,
         field=binding.field,
@@ -718,8 +744,153 @@ def _record(  # noqa: PLR0913 - the record joins the binding, the pick and the t
         observation_start=picked.index[0],
         observation_end=picked.index[-1],
         transforms=(*record.transforms, *tail),
-        warnings=warnings[:MAX_WARNINGS],
+        warnings=_warnings(record, revised=revised),
     )
+
+
+# --- reading a curve ----------------------------------------------------------------
+
+
+def tenor_years(label: str) -> float | None:
+    """Return the tenor a curve's column names, in years, or ``None``.
+
+    A tenor is a whole number of months or years: ``1m`` is 1/12, ``10y`` is 10.
+
+    Examples
+    --------
+    >>> tenor_years("6m"), tenor_years("30y"), tenor_years("BETA0")
+    (0.5, 30.0, None)
+    """
+    match = _TENOR.fullmatch(label)
+    if match is None:
+        return None
+    count = int(match.group(1))
+    if count == 0:
+        return None
+    return count / 12 if match.group(2) == "m" else float(count)
+
+
+@dataclass(frozen=True, slots=True)
+class _Curve:
+    """One curve binding's table, resolved, with each column's tenor."""
+
+    binding: Binding
+    concept: Concept
+    shape: FieldShape
+    resolved: Resolved
+    table: Table
+    years: tuple[float, ...]
+    revised: bool
+
+    @property
+    def where(self) -> str:
+        return f"{self.concept.id} for the field {self.binding.field!r}"
+
+
+@dataclass(frozen=True, slots=True)
+class _CurveRead:
+    """The values a curve binding read for its two fields, and their records."""
+
+    values: Mapping[str, tuple[float, ...]]
+    records: tuple[DataSource, ...]
+
+
+def _check_curves(
+    model_id: str,
+    chosen: list[Binding],
+    given: Mapping[str, object],
+    shapes: Mapping[str, tuple[FieldShape, ...]],
+) -> None:
+    """Refuse a curve whose values or tenors the caller gives without the other."""
+    for binding in chosen:
+        tenors = binding.tenors
+        if tenors is None:
+            continue
+        if tenors not in shapes:
+            msg = (
+                f"{model_id} binds the tenors field {tenors!r}, which it does not take"
+            )
+            raise f.fail(msg)
+        if (tenors in given) != (binding.field in given):
+            msg = (
+                f"{model_id} reads {binding.field!r} and {tenors!r} from one curve: "
+                "supply both, or neither"
+            )
+            raise f.fail(msg)
+
+
+def _fetch_curve(binding: Binding, ask: _Ask) -> _Curve:
+    """Resolve a curve's table and read each column's tenor."""
+    concept = _concept(binding, ask)
+    shape = ask.shapes[binding.field][0]
+    resolved, revised = _resolve(concept, binding, ask.policy or binding.vintage, ask)
+    table = resolved.frame
+    where = f"{concept.id} for the field {binding.field!r}"
+    if not isinstance(table, Table):  # pragma: no cover - _concept refuses series
+        msg = f"{where}: the curve is not a table"
+        raise DataError(msg)
+    years: list[float] = []
+    for column in table.columns:
+        tenor = tenor_years(column.name)
+        if tenor is None:
+            msg = f"{where}: the column {column.name!r} is not a tenor (1m, 10y)"
+            raise f.fail(msg)
+        _check_kind(column.unit.kind, shape, where)
+        years.append(tenor)
+    return _Curve(binding, concept, shape, resolved, table, tuple(years), revised)
+
+
+def _pick_curve(curve: _Curve, day: dt.date | None) -> _CurveRead:
+    """Read the curve's last row on or before the date, the tenors it holds."""
+    table = curve.table
+    binding = curve.binding
+    rows = [i for i, date in enumerate(table.index) if day is None or date <= day]
+    for row in reversed(rows):
+        cells = sorted(
+            (years, value * column.unit.scale)
+            for years, column, values in zip(
+                curve.years, table.columns, table.data, strict=True
+            )
+            if (value := values[row]) is not None
+        )
+        if cells:
+            break
+    else:
+        when = "" if day is None else f" on or before {day.isoformat()}"
+        msg = f"{curve.where}: holds no curve{when}"
+        raise DataError(msg)
+    rule = format_transform("asof", date=day or table.index[-1])
+    tail = (canonical_transform(rule),)
+    realtime = table.realtime[row] if table.realtime else None
+    tenors = binding.tenors or ""
+    records = tuple(
+        replace(
+            record,
+            field=name,
+            concept=curve.concept.id,
+            realtime=realtime,
+            observation_start=table.index[row],
+            observation_end=table.index[row],
+            transforms=(*record.transforms, *tail),
+            warnings=_warnings(record, revised=curve.revised),
+        )
+        for record in curve.resolved.sources
+        for name in (binding.field, tenors)
+    )
+    return _CurveRead(
+        values={
+            binding.field: tuple(value for _, value in cells),
+            tenors: tuple(years for years, _ in cells),
+        },
+        records=records,
+    )
+
+
+def _warnings(record: DataSource, *, revised: bool) -> tuple[str, ...]:
+    warnings = record.warnings
+    if revised and REVISED_DATA not in warnings:
+        warnings = (*warnings, REVISED_DATA)
+    return warnings[:MAX_WARNINGS]
 
 
 # --- describing and checking bindings ----------------------------------------------
@@ -765,8 +936,9 @@ def validate_bindings(registry: Registry | None = None) -> None:
     """Check every model's bindings against the installed catalog.
 
     ``registry.validate()`` holds a binding to its structural rules; whether the
-    concept exists, is a series, suits the field's unit kind and the as-of rule is
-    the catalog's to say, and core never imports it. Each problem is reported as
+    concept exists, is a series (or, for a curve's binding, a table whose every
+    candidate names tenor columns), suits the field's unit kind and the as-of rule
+    is the catalog's to say, and core never imports it. Each problem is reported as
     ``<model>: [bindings] <detail>``.
 
     Parameters
@@ -807,7 +979,9 @@ def _problems(
         return [f"{where}: the catalog has no concept {binding.concept!r}{hint}"]
     concept = catalog.get(binding.concept)
     problems: list[str] = []
-    if concept.shape is not Shape.SERIES:
+    if binding.tenors is not None:
+        problems += _curve_problems(concept, where)
+    elif concept.shape is not Shape.SERIES:
         problems.append(f"{where}: {concept.id} is a table; a binding reads a series")
     if (
         binding.as_of is AsOf.PERIOD
@@ -821,6 +995,26 @@ def _problems(
             problems.append(
                 f"{where}: {concept.id} is {concept.unit_kind}, but the field is {kind}"
             )
+    return problems
+
+
+def _curve_problems(concept: Concept, where: str) -> list[str]:
+    """Say why a concept cannot serve a curve: a table of tenor columns."""
+    if concept.shape is not Shape.TABLE:
+        return [f"{where}: {concept.id} is a series; a curve's binding reads a table"]
+    problems: list[str] = []
+    for candidate in concept.candidates:
+        if isinstance(candidate, Derived) or not candidate.columns:
+            name = getattr(candidate, "provider", "derived")
+            problems.append(
+                f"{where}: {concept.id}'s candidate {name} names no tenor columns"
+            )
+            continue
+        problems += [
+            f"{where}: {concept.id}'s column {wanted!r} is not a tenor (1m, 10y)"
+            for wanted, _ in candidate.columns
+            if tenor_years(wanted) is None
+        ]
     return problems
 
 

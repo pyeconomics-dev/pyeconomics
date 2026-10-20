@@ -162,6 +162,12 @@ class Binding:
     vintage: VintagePolicy = VintagePolicy.REAL_TIME
     profile: str = DEFAULT_PROFILE
     """The named set of bindings this one belongs to."""
+    tenors: str | None = None
+    """For a curve, a table concept whose columns are tenors (``1m`` to ``30y``):
+    the array field that receives the tenor in years of each column the curve's
+    observation holds. The curve's observation on the date is its row; the bound
+    field, an array, receives the row's values in tenor order, and a tenor the
+    row leaves empty is left out of both fields."""
 
     def to_dict(self) -> dict[str, object]:
         """Return the binding as JSON-ready values; every key is always present."""
@@ -173,6 +179,7 @@ class Binding:
             "window": self.window,
             "vintage": getattr(self.vintage, "value", self.vintage),
             "profile": self.profile,
+            "tenors": self.tenors,
         }
 
 

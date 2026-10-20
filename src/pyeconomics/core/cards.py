@@ -244,8 +244,13 @@ def _binding_row(binding: Binding) -> str:
     )
     vintage = _VINTAGE_WORDS.get(binding.vintage, str(binding.vintage))
     transform = f"`{binding.transform}`" if binding.transform else "none"
+    field = f"`{binding.field}`"
+    if binding.tenors is not None:
+        # A curve: its row on the date fills the values and their tenors.
+        field = f"`{binding.field}`, tenors in `{binding.tenors}`"
+        rule = "the curve on or before the date: its last row, a value per tenor"
     return (
-        f"| `{binding.field}` | `{binding.concept}` | {_cell(transform)} | "
+        f"| {_cell(field)} | `{binding.concept}` | {_cell(transform)} | "
         f"{_cell(rule)} | {_cell(vintage)} |"
     )
 

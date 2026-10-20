@@ -128,9 +128,13 @@ def _values(kind: UnitKind | None, count: int, *, steps: bool) -> list[float]:
     return [base + increment * i for i in range(count)]
 
 
-def _columns(users: list[tuple[Concept, Candidate]]) -> list[str]:
-    """Name the columns a source table needs for every candidate that reads it."""
-    names: list[str] = []
+def _columns(users: list[tuple[Concept, Candidate]]) -> dict[str, UnitKind | None]:
+    """Name the columns a source table needs for every candidate that reads it.
+
+    Each column takes the unit kind of the first concept that reads it, so one
+    source table can hold an index level beside a rate, as Damodaran's does.
+    """
+    names: dict[str, UnitKind | None] = {}
     for concept, candidate in users:
         if candidate.column is not None:
             examples = {p.name: p.example for p in concept.parameters}
@@ -142,7 +146,9 @@ def _columns(users: list[tuple[Concept, Candidate]]) -> list[str]:
             wanted = [f"x{stem}2026", f"x{stem}2027"]
         else:
             wanted = ["c1", "c2", "c3"]
-        names += [n for n in wanted if n not in names]
+        kind = _raw_shape(concept, candidate)[1]
+        for name in wanted:
+            names.setdefault(name, kind)
     return names
 
 
@@ -172,8 +178,8 @@ def _frame(
     if concept.shape is Shape.TABLE or any(c.column is not None for _, c in users):
         names = _columns(users)
         columns = tuple(
-            ColumnMeta(name=n, unit=_unit(kind), seasonal_adjustment=adjustment)
-            for n in names
+            ColumnMeta(name=n, unit=_unit(k), seasonal_adjustment=adjustment)
+            for n, k in names.items()
         )
         meta = TableMeta(
             provider=info_id,
@@ -184,9 +190,8 @@ def _frame(
             terms=terms,  # type: ignore[arg-type]
             year_ends_in=anchor,
         )
-        return Table(
-            tuple(index), columns, tuple(tuple(values) for _ in names), meta, realtime
-        )
+        data = tuple(tuple(_values(k, len(index), steps=steps)) for k in names.values())
+        return Table(tuple(index), columns, data, meta, realtime)
     meta_s = SeriesMeta(
         provider=info_id,
         series_id=series_key,

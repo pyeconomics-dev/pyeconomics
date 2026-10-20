@@ -286,7 +286,9 @@ class FedBoard(DataProvider):
         units = {
             n: _YEAR
             if n.startswith("TAU")
-            else UnitRecord(text="Svensson coefficient in decimal rate units")
+            else UnitRecord(
+                text="Svensson coefficient in decimal rate units", kind=UnitKind.RATIO
+            )
             if n.startswith("BETA")
             else _RATE
             for n in reader.fieldnames or ()

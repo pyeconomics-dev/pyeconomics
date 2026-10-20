@@ -250,8 +250,16 @@ def _rows(rows: tuple[tuple[float, ...], ...]) -> NDArray[np.float64]:
 
 
 def _log_ratio(portfolio: float, benchmark: float) -> float:
-    """Return ln((1 + R) / (1 + B)), accurate when R and B are close."""
-    return math.log1p((portfolio - benchmark) / (1.0 + benchmark))
+    """Return ln((1 + R) / (1 + B)), accurate when R and B are close.
+
+    When 1 + R is tiny beside 1 + B, the quotient (R - B) / (1 + B) can round to
+    -1 though R is above -1; the two logarithms are then far apart, and their
+    difference is exact enough (#145).
+    """
+    quotient = (portfolio - benchmark) / (1.0 + benchmark)
+    if quotient <= -1.0:
+        return math.log1p(portfolio) - math.log1p(benchmark)
+    return math.log1p(quotient)
 
 
 def _coefficient(portfolio: float, benchmark: float) -> float:

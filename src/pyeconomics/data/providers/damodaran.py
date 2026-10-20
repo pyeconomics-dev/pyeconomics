@@ -47,10 +47,20 @@ _FILES = {
     "industry_multiples": ("vebitda.xls", "Industry Averages", "Industry Name"),
 }
 _FIELDS = {
-    "implied_erp": (1, 2, 9, 10, 13, 15, 16, 17),
+    "implied_erp": (1, 2, 3, 6, 9, 10, 13, 14, 15, 16, 17),
     "country_risk": (3, 4, 5),
     "industry_betas": (2, 5, 7),
     "industry_multiples": (2, 3, 4, 5, 6, 7, 8, 9),
+}
+#: The implied-premium file's columns that are not decimal rates: the S&P 500's
+#: year-end level and the dividends and buybacks paid on it, both in index points.
+_LEVELS = {
+    3: UnitRecord(text="Index points", kind=UnitKind.INDEX_LEVEL),
+    6: UnitRecord(
+        text="Index points (US dollars per unit of the index)",
+        kind=UnitKind.MONEY,
+        currency="USD",
+    ),
 }
 
 
@@ -147,7 +157,10 @@ class Damodaran(DataProvider):
         )
         return f.table(
             rows,
-            dict.fromkeys(columns.values(), unit),
+            {
+                n: _LEVELS.get(i, unit) if name == "implied_erp" else unit
+                for i, n in columns.items()
+            },
             query,
             self.info,
             response,

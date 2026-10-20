@@ -225,3 +225,19 @@ def test_linking_near_a_total_loss_keeps_the_identity(
     assert math.isclose(effects, out.active_return, rel_tol=1e-12, abs_tol=1e-300)
     exact = (1 + held) ** periods - (1 + index) ** periods
     assert math.isclose(out.active_return, exact, rel_tol=1e-12, abs_tol=1e-300)
+
+
+def test_a_period_return_within_rounding_of_a_total_loss_still_links() -> None:
+    # Issue #145: with R = -0.9999999999999999 against B = 0.5, (R - B) / (1 + B)
+    # rounds to exactly -1 and log1p raised a math domain error; the log ratio
+    # now comes from the two logarithms when the quotient rounds that far.
+    out = run(
+        calculation="bhb",
+        portfolio_weights=[[1.0], [1.0]],
+        benchmark_weights=[[1.0], [1.0]],
+        portfolio_returns=[[0.0], [-0.9999999999999999]],
+        benchmark_returns=[[0.5], [0.5]],
+    )
+    effects = out.allocation + out.selection + out.interaction
+    assert math.isclose(effects, out.active_return, rel_tol=1e-12)
+    assert math.isclose(out.active_return, -0.9999999999999999 - 1.25, rel_tol=1e-12)
