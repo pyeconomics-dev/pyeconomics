@@ -185,8 +185,9 @@ _FINAL_METHODS: Final = (
 )
 _SECONDS: Final = {"second": 1, "minute": 60, "hour": 3_600, "day": 86_400}
 #: The statuses a recorder may stand in for (``Case.simulate``): the failures no
-#: well-behaved client provokes on purpose.
-SIMULATED_STATUSES: Final = frozenset({429, 500, 502, 503, 504})
+#: well-behaved client provokes on purpose. A 403 is a contact source's refusal
+#: of an undeclared client (SEC EDGAR may block the address that provoked it).
+SIMULATED_STATUSES: Final = frozenset({403, 429, 500, 502, 503, 504})
 # Whether the operation running in this context sends a key (see sends_key).
 _SENDS_KEY: ContextVar[bool | None] = ContextVar("sends_key", default=None)
 
@@ -603,8 +604,9 @@ class Case:
     the chain's key is withheld (:func:`~pyeconomics.data.credentials.withheld`)."""
     simulate: int | None = None
     """A failure status the recorder records in place of the source's answer, for
-    an error no well-behaved client provokes on purpose: a 429 or a 5xx. The
-    request is built but never sent, and the cassette is marked synthetic."""
+    an error no well-behaved client provokes on purpose: a 429, a 5xx, or a
+    contact source's 403. The request is built but never sent, and the cassette
+    is marked synthetic."""
 
     def __post_init__(self) -> None:
         """Check that the argument fits the operation."""
@@ -618,8 +620,8 @@ class Case:
             self.simulate not in SIMULATED_STATUSES or self.expect is None
         ):
             msg = (
-                "a simulated case stands in for a 429 or a 5xx and names the "
-                "error it expects"
+                "a simulated case stands in for a 403, a 429 or a 5xx and names "
+                "the error it expects"
             )
             raise f.fail(msg)
         operation = f.choice(Capability, self.operation, "operation")
@@ -1226,7 +1228,13 @@ class DataProvider:
         if 200 <= status < 300:  # noqa: PLR2004 - HTTP success statuses
             return
         if status in {401, 403}:
-            where = f"set {info.key_variable}" if info.key_variable else "check access"
+            where = (
+                f"set {info.key_variable}"
+                if info.key_variable
+                else "check the contact in PYECONOMICS_SEC_CONTACT"
+                if info.auth.kind is AuthKind.CONTACT
+                else "check access"
+            )
             msg = (
                 f"{info.id} refused the request (HTTP {status}); {where}; "
                 f"see {GUIDE_URL}"

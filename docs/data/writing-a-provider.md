@@ -226,8 +226,10 @@ the key: a query parameter, a body field or a header (with a `scheme` such as
 `Bearer`). The key comes from the key chain as a `Secret`; **provider code never
 sees it.** A `Request` refuses a parameter, body field or header named like a
 credential. `Authentication.contact()` is for a source that wants the user's name
-and email in the User-Agent (SEC EDGAR). The environment variable is
-`<PROVIDER>_API_KEY`.
+and email in the User-Agent (SEC EDGAR). Its requests then carry
+`pyeconomics/<version> <contact>`, without the project URL the other sources
+see, because EDGAR refuses a declared User-Agent that holds a URL. The
+environment variable is `<PROVIDER>_API_KEY`.
 
 A source whose API versions take the key differently declares the others as
 `alternates`, one `KeySlot` per placement, and a request names the one it needs
@@ -290,7 +292,10 @@ The recorder runs each case live through the real transport with the
 maintainer's keys, then scrubs every key, credential parameter, header and cookie.
 A rate limit or an outage is never provoked on purpose: a case with
 `simulate=429` (or a 5xx) builds its real requests, sends none, records that
-status with a `Retry-After` of 60 seconds, and is marked synthetic.
+status with a `Retry-After` of 60 seconds, and is marked synthetic. Nor is a
+contact source's refusal: SEC EDGAR answers an undeclared client with a 403 and
+may block its address, so its `CredentialError` case is `simulate=403`, which the
+contract suite allows only for a source with `Authentication.contact()`.
 A cassette holds at most 24 observations per series and 32 KiB. **A source that
 is not hosted-safe, or that forbids storage, is recorded through its
 `synthesize()` hook, which replaces every observed value, and the cassette says

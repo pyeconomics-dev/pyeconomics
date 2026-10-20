@@ -134,10 +134,11 @@ def test_the_headers_name_pyeconomics_and_ask_for_gzip() -> None:
     assert "Authorization" not in headers
 
 
-def test_the_user_agent_can_carry_a_contact() -> None:
+def test_the_user_agent_can_carry_a_contact_in_place_of_the_url() -> None:
     assert user_agent().endswith("pyeconomics)")
-    assert user_agent("Name name@example.org").endswith(
-        "pyeconomics) Name name@example.org"
+    # SEC EDGAR answers 403 to a declared User-Agent that also holds a URL.
+    assert user_agent("Name name@example.org") == (
+        f"pyeconomics/{pyeconomics.__version__} Name name@example.org"
     )
 
 

@@ -123,7 +123,7 @@ from pyeconomics.data.providers import (
     RateLimit,
     SearchHit,
 )
-from pyeconomics.data.records import FigiMapping, Records
+from pyeconomics.data.records import FigiMapping, Filing, Records
 from pyeconomics.data.resolver import Resolved, Skip, resolve
 from pyeconomics.data.terms import TERMS_MAX_AGE_MONTHS, CachePolicy, Terms
 from pyeconomics.data.transport.base import Request, Response, Transport
@@ -170,6 +170,7 @@ __all__ = [
     "DateConvention",
     "Fetched",
     "FigiMapping",
+    "Filing",
     "Hit",
     "KeyPlacement",
     "KeySlot",

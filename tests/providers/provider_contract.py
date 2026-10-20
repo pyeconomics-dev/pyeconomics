@@ -193,6 +193,12 @@ def check_cases(provider: type[DataProvider]) -> None:
     assert required <= expected, (
         f"error cases needed: {sorted(e.__name__ for e in required - expected)}"
     )
+    forged = [
+        c.name
+        for c in cases
+        if c.simulate == 403 and info.auth.kind is not AuthKind.CONTACT
+    ]
+    assert forged == [], f"only a contact source simulates its 403: {forged}"
     names = [case.name for case in cases]
     assert len(set(names)) == len(names), "case names are unique"
     missing = [c.name for c in cases if not cassette_path(info.id, c).is_file()]

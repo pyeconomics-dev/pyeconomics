@@ -35,7 +35,9 @@ def _json(provider: str, body: bytes, query: Query) -> bytes:
 
     data: Any = _fields.load_json(body)
     limit = min(query.max_observations, 24)
-    if provider == "nyfed":
+    if provider == "sec_edgar":
+        data = _edgar(data, query, limit)
+    elif provider == "nyfed":
         if "refRates" in data:
             data["refRates"] = data["refRates"][:limit]
         elif "soma" in data:
@@ -45,6 +47,38 @@ def _json(provider: str, body: bytes, query: Query) -> bytes:
                 if root in data:
                     data[root]["operations"] = data[root]["operations"][:limit]
     return json.dumps(data, separators=(",", ":")).encode("utf-8")
+
+
+def _edgar(data: Any, query: Query, limit: int) -> Any:  # noqa: ANN401 - JSON
+    """Keep the columns and facts the query reads, and no company details."""
+    parts = query.series[0].split(":")
+    if parts[0] == "submissions":
+        recent = data["filings"]["recent"]
+        kept = [i for i, day in enumerate(recent["filingDate"]) if _keep(day, query)][
+            :limit
+        ]
+        columns = ("accessionNumber", "form", "filingDate", "reportDate")
+        return {
+            "cik": data["cik"],
+            "filings": {"recent": {n: [recent[n][i] for i in kept] for n in columns}},
+        }
+    if parts[0] == "frame":
+        company = int(parts[5])
+        data["data"] = [row for row in data["data"] if row["cik"] == company]
+        return data
+    if parts[0] == "facts":
+        concept = data["facts"][parts[2]][parts[3]]
+        data["facts"] = {parts[2]: {parts[3]: concept}}
+    else:
+        concept = data
+    unit = parts[4]
+    framed = [
+        row
+        for row in concept["units"][unit]
+        if "frame" in row and _keep(row["end"], query)
+    ]
+    concept["units"] = {unit: framed[-limit:]}
+    return data
 
 
 def _h15(body: bytes, query: Query) -> bytes:

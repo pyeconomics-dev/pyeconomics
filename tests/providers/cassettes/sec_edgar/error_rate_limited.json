@@ -1,0 +1,1 @@
+{"provider":"sec_edgar","recorded_on":"2026-10-20T17:28:43+00:00","requests":[{"body":null,"method":"GET","parameters":[],"response":{"body":"","encoding":"utf-8","headers":{"retry-after":"60"},"status":429},"url":"https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/Assets.json"}],"synthetic":true}
