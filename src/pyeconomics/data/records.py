@@ -10,12 +10,13 @@ uses the same no-URL rule as frames; upstream URLs and document paths are omitte
 from __future__ import annotations
 
 import datetime as dt  # noqa: TC003 - pydantic resolves date annotations
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from pyeconomics.core import _fields as f
 from pyeconomics.core.canonical import canonical_json
+from pyeconomics.core.provenance import DATA_DATE_BOUNDS
 from pyeconomics.data.terms import Terms  # noqa: TC001 - pydantic resolves fields
 
 
@@ -48,6 +49,22 @@ class FigiMapping(Record):
     share_class_figi: str | None = None
 
 
+class Filing(Record):
+    """One EDGAR submission's identifiers and dates; no document name or path."""
+
+    kind: Literal["filing"] = "filing"
+    cik: str = Field(pattern=r"^\d{10}$")
+    accession: str = Field(pattern=r"^\d{10}-\d{2}-\d{6}$")
+    form: str
+    filed: dt.date
+    report_date: dt.date | None = None
+
+    @field_validator("filed", "report_date")
+    @classmethod
+    def _date(cls, value: dt.date | None) -> dt.date | None:
+        return None if value is None else f.day(value, "filing date", DATA_DATE_BOUNDS)
+
+
 class Records(Record):
     """Typed records with source terms and retrieval time, bounded to 100,000.
 
@@ -58,7 +75,9 @@ class Records(Record):
     provider: str = Field(pattern=r"^[a-z][a-z0-9_]*$")
     terms: Terms
     retrieved_at: dt.datetime
-    rows: tuple[FigiMapping, ...] = Field(max_length=100_000)
+    rows: tuple[Annotated[FigiMapping | Filing, Field(discriminator="kind")], ...] = (
+        Field(max_length=100_000)
+    )
 
     @field_validator("retrieved_at")
     @classmethod

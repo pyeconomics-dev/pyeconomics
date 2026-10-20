@@ -136,6 +136,12 @@ NOTICES: dict[str, Row] = {
         terms_url="https://www.openfigi.com/docs/terms-of-service",
         checked=dt.date(2026, 10, 16),
     ),
+    "sec_edgar": Row(
+        attribution="Source: U.S. Securities and Exchange Commission, EDGAR.",
+        notice=None,
+        terms_url="https://www.sec.gov/about/privacy-information",
+        checked=dt.date(2026, 10, 20),
+    ),
     "philadelphia_fed": Row(
         attribution=(
             "Source: Federal Reserve Bank of Philadelphia. Croushore and "

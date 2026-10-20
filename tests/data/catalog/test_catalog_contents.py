@@ -159,7 +159,6 @@ def test_every_candidate_names_a_registered_provider_that_can_fetch() -> None:
         if isinstance(c, Candidate)
     }
     assert named <= known
-    assert "sec_edgar" not in named  # no EDGAR-only candidate while it is absent
 
 
 def test_candidates_run_originator_then_aggregator_then_premium() -> None:

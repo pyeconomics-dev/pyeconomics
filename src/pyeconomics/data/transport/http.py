@@ -94,10 +94,11 @@ def user_agent(contact: str | None = None) -> str:
     """Return the User-Agent every request carries.
 
     ``pyeconomics/<version> (+https://github.com/pyeconomics-dev/pyeconomics)``,
-    followed by the user's contact for a source that requires one.
+    or, for a source that requires the user's contact, ``pyeconomics/<version>
+    <contact>``: SEC EDGAR refuses a declared User-Agent that also carries a URL.
     """
-    base = f"pyeconomics/{pyeconomics.__version__} (+{_REPOSITORY})"
-    return f"{base} {contact}" if contact else base
+    product = f"pyeconomics/{pyeconomics.__version__}"
+    return f"{product} {contact}" if contact else f"{product} (+{_REPOSITORY})"
 
 
 def _utc_now() -> dt.datetime:

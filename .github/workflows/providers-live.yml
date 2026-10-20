@@ -6,9 +6,11 @@
 # bindings and models.
 #
 # - Only on schedule and workflow_dispatch, never on a pull request, and only
-#   from main: the providers-live environment admits main alone, and its four
-#   secrets (FRED_API_KEY, BLS_API_KEY, BEA_API_KEY, CENSUS_API_KEY) are
-#   environment secrets, never repository secrets (Phase 1's V10.5).
+#   from main: the providers-live environment admits main alone, and its five
+#   secrets (FRED_API_KEY, BLS_API_KEY, BEA_API_KEY, CENSUS_API_KEY and
+#   SEC_CONTACT, the maintainer's contact for SEC EDGAR's User-Agent, passed
+#   as PYECONOMICS_SEC_CONTACT) are environment secrets, never repository
+#   secrets (Phase 1's V10.5).
 # - The secrets reach only the pytest step's environment. Egress is blocked
 #   except the providers' declared hosts and what checkout, uv, PyPI and the
 #   artifact upload need; tests/providers/test_live_workflows.py checks that
@@ -69,6 +71,7 @@ jobs:
             www.newyorkfed.org:443
             markets.newyorkfed.org:443
             api.openfigi.com:443
+            data.sec.gov:443
             www.philadelphiafed.org:443
             www.atlantafed.org:443
             www.clevelandfed.org:443
@@ -119,6 +122,7 @@ jobs:
           BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          PYECONOMICS_SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
           PROVIDERS_LIVE_SIMULATE_FAILURE: ${{ inputs.simulate_failure && '1' || '' }}
         run: >-
           uv run --locked pytest -m live --force-enable-socket -q

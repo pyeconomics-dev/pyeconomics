@@ -87,6 +87,7 @@ BUILT_IN = (
     "fed_board",
     "nyfed",
     "openfigi",
+    "sec_edgar",
     "atlanta_fed",
     "cbo",
     "cleveland_fed",

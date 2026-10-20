@@ -32,7 +32,7 @@ from provider_contract import (
 )
 from toys import ToyJson, ToyVintage
 
-from pyeconomics.data import DataProvider, TransportError, registry
+from pyeconomics.data import AuthKind, DataProvider, TransportError, config, registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -97,8 +97,14 @@ def test_an_error_cassette_maps_to_the_taxonomy(
 
 @pytest.mark.parametrize("provider", ALL, ids=_id)
 def test_the_transport_refuses_a_foreign_host_and_http(
-    provider: type[DataProvider],
+    provider: type[DataProvider], monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    if provider.info.auth.kind is AuthKind.CONTACT:
+        # The transport builds a contact source's request only with a contact.
+        from leakcheck import contact_canary  # noqa: PLC0415
+
+        monkeypatch.setenv("PYECONOMICS_SEC_CONTACT", contact_canary().value)
+        config.reset()
     check_foreign_hosts_refused(provider)
 
 

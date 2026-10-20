@@ -25,7 +25,13 @@ from pyeconomics.data import registry
 WORKFLOWS: Final = Path(__file__).resolve().parents[2] / ".github" / "workflows"
 LIVE: Final = WORKFLOWS / "providers-live.yml"
 HEARTBEAT: Final = WORKFLOWS / "providers-heartbeat.yml"
-KEYS: Final = ("FRED_API_KEY", "BLS_API_KEY", "BEA_API_KEY", "CENSUS_API_KEY")
+KEYS: Final = (
+    "FRED_API_KEY",
+    "BLS_API_KEY",
+    "BEA_API_KEY",
+    "CENSUS_API_KEY",
+    "SEC_CONTACT",
+)
 
 
 def top_level(text: str, key: str) -> list[str]:

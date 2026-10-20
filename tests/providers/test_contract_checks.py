@@ -76,6 +76,13 @@ def test_a_provider_missing_the_required_error_cases_is_caught() -> None:
     check_cases(ToyVintage)  # a keyless source needs no credential case
 
 
+def test_a_keyed_source_that_simulates_its_403_is_caught() -> None:
+    forged = replace(case(ToyJson, "error_unauthorized"), simulate=403)
+    cases = tuple(forged if c.name == forged.name else c for c in ToyJson.cases)
+    with pytest.raises(AssertionError, match="only a contact source simulates"):
+        check_cases(variant(ToyJson, cases=cases))
+
+
 def test_a_case_without_a_cassette_is_caught() -> None:
     extra = replace(case(ToyJson, "search_ok"), name="has_no_file")
     with pytest.raises(AssertionError, match="no cassette for"):

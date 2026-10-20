@@ -106,8 +106,34 @@ estimates carry a `revised_data` note. OpenFIGI mappings are bounded, typed
 `Records`, separate from numeric frames and unavailable for model bindings.
 Its optional `OPENFIGI_API_KEY` uses the existing credential chain.
 
-SEC EDGAR remains deferred in its own unfinished step. This batch registers no
-partial SEC provider and makes no claim about SEC recordings or live checks.
+## SEC EDGAR
+
+`sec_edgar` reads EDGAR's JSON APIs on data.sec.gov. It needs your SEC contact,
+a name and an email address, in `PYECONOMICS_SEC_CONTACT` or `sec_contact` in
+`pyeconomics.toml` ([Keys and settings](keys.md)); without it a request raises a
+`CredentialError` naming the setting before anything is sent. The contact goes in
+the User-Agent and nowhere else, and the transport holds every request to SEC's
+fair-access limit of ten a second.
+
+| Selection | Returns |
+|---|---|
+| `records(Query(series=("submissions:320193",)))` | the recent filings as `Filing` records: CIK, accession number, form, filing date and report date |
+| `concept:320193:us-gaap:Assets:USD:instant` | one company's XBRL fact (the company concept API) |
+| `facts:320193:us-gaap:Assets:USD:instant` | the same fact, read from the company facts API |
+| `frame:us-gaap:Assets:USD:CY2024Q1I:320193` | one company's value in a calendar frame |
+
+The last part of a concept or facts selection is the span: `instant`, `quarter`
+or `year`. A filing reports one tag over several spans (a 10-Q gives three months
+and the year to date, both ending on the same day), so a series keeps only the
+facts SEC's frames assign to the span, one per calendar period from the latest
+filing. Values are indexed by the filer's actual period end, not moved to a
+calendar quarter, and carry `revised_data`: a restated value replaces the one
+first filed. A CIK is up to ten digits and is zero-padded; taxonomies
+(`us-gaap`, `ifrs-full`, `dei`, `srt`), tags and units must be identifiers, so no
+selection can name a path; a ratio unit is `USD/shares` in a concept and
+`USD-per-shares` in a frame, as SEC writes them. Filings carry no document name or URL, and no binding
+reads them. The submissions file lists a company's latest 1,000 filings or its
+last year, whichever is more; older filings are not read.
 
 ## File safety and dependency licences
 

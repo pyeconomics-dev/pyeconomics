@@ -12476,13 +12476,12 @@ each upstream gap or deferred finding, the step whose `<task>` was
 patched, and the step or phase that owns it. Phase 4's roadmap carries
 forward whatever is still open here.
 
-- External access: Phase 3 Step 7 / draft PR #124 remains unfinished while
-  SEC rejects access. Step 10 delivers its four unblocked providers under
-  their original checks. If SEC is still deferred at release, Step 18 records
-  the exact 30-id release set and Step 20 hands the named SEC follow-up to
-  Phase 4 without blocking it. Maintainer owns the external response; the
-  rebased Step 7 PR owns real SEC recordings, full five-provider validation,
-  live proof and ledger/verifier updates. Sponsors issue #68 is a separate
+- External access: resolved 2026-10-20. SEC's 403 came from its User-Agent
+  filter (it refused the configured address and any User-Agent holding a URL),
+  not from an IP block. Step 10 delivered the four unblocked providers; the
+  rebased Step 7 PR (#124) delivers `sec_edgar` with real recordings, the
+  five-provider validation and the live proof. Step 18 therefore checks the
+  31-id release set, and Step 20 has no SEC deferral to hand over. Sponsors issue #68 is a separate
   maintainer-owned funding follow-up and does not gate either phase.
 
 - From Phase 2's carry-over list, Not-in-scope list and QA findings,

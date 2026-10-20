@@ -11,8 +11,8 @@
 - paging through ``next_page`` (FRED v2's cursor);
 - ``ProviderInfo.follow_redirects`` and ``classify_error`` for any status outside
   2xx (Census's key redirect);
-- a recorder that simulates a 429 or a 5xx (``Case.simulate``), which no
-  well-behaved client provokes.
+- a recorder that simulates a 429, a 5xx or a contact source's 403
+  (``Case.simulate``), which no well-behaved client provokes.
 """
 
 from __future__ import annotations

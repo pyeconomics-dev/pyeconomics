@@ -65,6 +65,7 @@ PURE_MODULES = (
     SRC / "data" / "providers" / "fed_board.py",
     SRC / "data" / "providers" / "nyfed.py",
     SRC / "data" / "providers" / "openfigi.py",
+    SRC / "data" / "providers" / "sec_edgar.py",
     SRC / "data" / "providers" / "_research.py",
     SRC / "data" / "providers" / "philadelphia_fed.py",
     SRC / "data" / "providers" / "atlanta_fed.py",
