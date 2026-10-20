@@ -4675,9 +4675,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 7 — Providers: Treasury, Fed Board, New York Fed, EDGAR, OpenFIGI
+## Step 7 — Providers: Treasury, Fed Board, New York Fed, EDGAR, OpenFIGI ✅
 
-**Status:** Not started
+**Status:** Complete — PR #124 (2026-10-20)
 
 > **Goal:** Register the five keyless rate, market and filing providers on
 > the pattern Step 6 set. Add `src/pyeconomics/data/providers/treasury.py`
@@ -4729,6 +4729,10 @@ merge proves them, and the `SEC_CONTACT` secret, live.
 > documented keyless sources on a proven SDK. The ladder's Balanced column
 > (the user-context's budget) is Opus 5.5 at Medium on Claude Code; the old
 > single-column pick was Codex.
+
+> Ran 2026-10-20: Balanced — Claude Opus 5.5 on Claude Code (effort as the
+> operator set it). The **Runs:** column; the Claude weekly pool's `tight` row
+> had passed its reset, so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge or agentic work SECONDARY; complexity is Medium and the step is not novel. The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at Medium, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -11976,7 +11980,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
 | 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
 | 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
-| 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
+| 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Complete — PR #124 |
 | 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
 | 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
 | 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
