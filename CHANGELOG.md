@@ -328,6 +328,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- `core.least_squares` no longer overflows when the response and the regressors
+  are both tiny (subnormal): coefficients and errors scale back through the ratio
+  of the scales, and a coefficient beyond the floating-point range raises
+  DomainError. Ordinary inputs give the same results.
 - `performance.brinson_attribution` no longer raises a math domain error when a
   period's portfolio return is within rounding of -100% beside a higher benchmark
   return: Carino's log ratio then comes from the two logarithms (#145). Inputs
@@ -374,6 +378,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - `foundations.time_value`, `corporate.capital_budgeting` and
   `performance.return_measurement` advance from model version 1 to 2 for the
   IRR endpoint correction. Permanent model ids remain unchanged.
+
+### Security
+
+- certifi, which the `sdmx` and `yfinance` extras install, moves to 2026.10.19
+  for PYSEC-2026-4320; its MPL-2.0 licence is unchanged.
 
 ## [1.0.0a1] - 2026-10-13
 
