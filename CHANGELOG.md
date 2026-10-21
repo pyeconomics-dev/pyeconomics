@@ -15,6 +15,41 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- `econometrics.garch`: GARCH, GJR-GARCH and EGARCH volatility models over
+  arch, with normal or Student's t errors and a zero or constant mean, fitted on
+  the returns in percent and reported back in decimals: each parameter with its
+  robust (Bollerslev-Wooldridge) or classic standard error, the log-likelihood,
+  AIC and BIC, persistence, the unconditional and last conditional volatility,
+  and variance forecasts by horizon, annualized with an explicit number of
+  periods a year (EGARCH beyond one period by seeded simulation). Fixed
+  parameters can be evaluated instead of estimated. Golden cases are the
+  forecast recursion at fixed parameters (the smallest sample, and persistence
+  0.999), recomputed with mpmath, and seeded GARCH and EGARCH simulations; the
+  oracles are a SciPy log-likelihood at the estimates and the forecast recursion
+  written out. It binds 1,000 trading days of the Ken French daily market factor.
+- `econometrics.time_series`: ARIMA and seasonal ARIMA fits and forecasts with
+  intervals, VARs with lag selection by AIC, BIC or Hannan-Quinn, orthogonalized
+  impulse responses (Cholesky, in the order of the inputs) and the forecast-error
+  variance decomposition, and the Engle-Granger (MacKinnon p-values and critical
+  values) and Johansen (trace and maximum-eigenvalue, with the ranks they select)
+  cointegration tests, over statsmodels. Golden cases are closed forms, seeded
+  simulations and MacKinnon's (2010) response surface; Lutkepohl's (2005) VAR(2)
+  is recomputed on the data statsmodels ships. The oracles are equation-by-equation
+  least squares, companion-matrix impulse responses, the Johansen eigenvalue
+  problem, a NumPy ADF regression and the exact AR(1) likelihood. It binds 240
+  months of US CPI inflation and the unemployment rate.
+- arch (8.0 or later, NCSA) joins the `econometrics` extra, `all` and the test
+  group behind the marker `python_full_version < '3.15'`: arch publishes no
+  CPython 3.15 wheel yet, so there `econometrics.garch` raises
+  `MissingOptionalDependencyError` saying so (#154).
+- `core.library_warnings`, a context manager that reports a library's warnings
+  (statsmodels and arch reset their own filters) as the model's own result
+  warnings; `MissingOptionalDependencyError` takes a `note` for the message.
+- Daily series concepts for each Ken French factor: `factors.ff3_market`,
+  `factors.ff3_smb`, `factors.ff3_hml`, `factors.risk_free`,
+  `factors.ff5_market`, `factors.ff5_smb`, `factors.ff5_rmw`, `factors.ff5_cma`
+  and `factors.mom`, each `.us.daily`.
+
 - The `asset_pricing` domain, registered through its own entry point in the
   `pyeconomics.models` group, with two models.
 - `asset_pricing.factor_regression`: an asset's excess returns regressed on the
@@ -328,6 +363,14 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- The Ken French daily files are dated by calendar day, not by business day:
+  they hold Saturday sessions before 1952, which a business-daily series refused,
+  so no daily factor set or series could be read in full. The daily concepts are
+  `daily` accordingly.
+- The registry reads an extra's requirements with their environment markers: a
+  package a marker leaves out of this Python is listed in `Provider.excluded`,
+  the extra counts as installed without it, and validation and the smoke script
+  accept the `MissingOptionalDependencyError` a model raises for it.
 - `core.least_squares` no longer overflows when the response and the regressors
   are both tiny (subnormal): coefficients and errors scale back through the ratio
   of the scales, and a coefficient beyond the floating-point range raises
@@ -354,6 +397,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- `scripts/smoke.py --extras` runs every model that names an extra, not only the
+  first of each domain; release-smoke installs an extra's requirements with their
+  environment markers.
 - The `fed_board` provider labels the GSW betas as dimensionless decimals (they
   are coefficients in decimal rate units, some of several hundred percentage
   points), and the `damodaran` provider's implied premium file now also carries

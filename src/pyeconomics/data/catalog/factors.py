@@ -8,8 +8,10 @@ The ids follow the dataset-family grammar ``<family>.<set>.<economy>.<frequency>
 Returns are decimals per period (0.01 is 1%); the library converts the source's
 percent. The source is library-only and fetched at run time, never bundled.
 
-Each factor is also one series, so a model can bind it to an input field:
-``factors.ff3_smb.us.monthly`` is the size factor of the three-factor file. The
+Each factor is also one series, monthly and daily, so a model can bind it to an
+input field: ``factors.ff3_smb.us.monthly`` is the size factor of the
+three-factor file, and ``factors.ff3_market.us.daily`` its daily market excess
+return. The
 series name their file, because the files differ: the five-factor file's SMB
 averages three sorts and differs from the three-factor file's in almost every
 month, and its market excess return differs by up to a few hundredths of a
@@ -30,7 +32,7 @@ __all__ = ["CONCEPTS", "FACTOR_SERIES", "FACTOR_SETS", "PORTFOLIO_SETS"]
 _SECTION: Final = "Factors and portfolios"
 _FREQUENCIES: Final = (
     ("monthly", ObservationFrequency.MONTHLY),
-    ("daily", ObservationFrequency.BUSINESS_DAILY),
+    ("daily", ObservationFrequency.DAILY),
 )
 #: The factor sets: (id part, source id part, title, what its columns are).
 FACTOR_SETS: Final = (
@@ -75,7 +77,8 @@ PORTFOLIO_SETS: Final = (
         "value-weighted returns of the 5 by 5 sort on size and book-to-market",
     ),
 )
-#: The factor series, monthly: (id part, source set, source column, title, what).
+#: The factor series, at each frequency: (id part, source set, source column,
+#: title, what).
 FACTOR_SERIES: Final = (
     (
         "ff3_market",
@@ -174,29 +177,34 @@ _NOTE: Final = (
 )
 
 
+#: What a return is per, at each frequency.
+_PERIOD: Final = {"monthly": "month", "daily": "trading day"}
+
+
 def _factor_series() -> tuple[Concept, ...]:
     return tuple(
         Concept(
-            id=f"factors.{part}.us.monthly",
-            title=f"{title}, monthly",
+            id=f"factors.{part}.us.{label}",
+            title=f"{title}, {label}",
             definition=(
-                f"{title} for the United States, monthly: {what}. Returns are "
-                "decimals per month."
+                f"{title} for the United States, {label}: {what}. Returns are "
+                f"decimals per {_PERIOD[label]}."
             ),
             unit_kind=UnitKind.RETURN,
-            unit_text="decimal return per month (0.01 is 1%)",
-            frequency=ObservationFrequency.MONTHLY,
+            unit_text=f"decimal return per {_PERIOD[label]} (0.01 is 1%)",
+            frequency=frequency,
             seasonal_adjustment=SeasonalAdjustment.NOT_APPLICABLE,
             candidates=(
                 Candidate(
                     provider="ken_french",
-                    series=f"{source}:monthly",
+                    series=f"{source}:{label}",
                     column=column,
                     note=_NOTE,
                 ),
             ),
             section=_SECTION,
         )
+        for label, frequency in _FREQUENCIES
         for part, source, column, title, what in FACTOR_SERIES
     )
 

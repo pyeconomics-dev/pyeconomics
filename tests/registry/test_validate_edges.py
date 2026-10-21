@@ -287,3 +287,45 @@ def test_a_failing_validate_names_every_extra_problem() -> None:
     registry = custom(tm.needs_extra, ZC.compute)
     with pytest.raises(RegistryError, match=r"\[examples\]"):
         registry.validate(released={})
+
+
+# --- a package an extra's marker leaves out of this Python (Phase 3 Step 17) -------
+
+
+def test_a_model_naming_a_package_its_extra_excludes_here_passes() -> None:
+    spec = dataclasses.replace(tm.needs_extra.spec, id="econometrics.toy_gap")
+    gap = Registry.from_models(
+        Model(spec, tm.needs_extra.compute),
+        distribution="toy-dist",
+        extras={"toy": ("pydantic",)},
+        excluded={"toy": ("toy_library",)},
+    )
+    assert gap.problems(released={}) == []
+
+
+def test_a_missing_package_its_extra_should_install_is_still_a_problem() -> None:
+    spec = dataclasses.replace(tm.needs_extra.spec, id="econometrics.toy_gap")
+    wrong = Registry.from_models(
+        Model(spec, tm.needs_extra.compute),
+        distribution="toy-dist",
+        extras={"toy": ("pydantic",)},
+        excluded={"toy": ("another_library",)},
+    )
+    [message] = details_of(wrong, "examples")
+    assert "needs a package that is not installed" in message
+
+
+def test_an_excluded_package_named_under_another_extra_is_a_problem() -> None:
+    def other(_inputs: Any) -> Any:  # noqa: ANN401
+        library = "toy_library"
+        raise MissingOptionalDependencyError(library, extra="other")
+
+    spec = dataclasses.replace(tm.needs_extra.spec, id="econometrics.toy_gap")
+    wrong = Registry.from_models(
+        Model(spec, other),
+        distribution="toy-dist",
+        extras={"toy": ("pydantic",)},
+        excluded={"toy": ("toy_library",)},
+    )
+    [message] = details_of(wrong, "examples")
+    assert "needs a package that is not installed" in message

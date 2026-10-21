@@ -9759,9 +9759,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 17 — Launch Catalog: Econometrics
+## Step 17 — Launch Catalog: Econometrics ✅
 
-**Status:** Not started
+**Status:** Complete — PR #160 (2026-10-21)
 
 > **Goal:** Complete the 50-entry launch catalog with the two econometrics
 > entries behind the `[econometrics]` extra. Add `econometrics.garch`
@@ -9772,7 +9772,8 @@ the price. New conversation per phase-boundary hygiene.
 > the Engle-Granger and Johansen cointegration tests, over statsmodels) to
 > `src/pyeconomics/models/econometrics/`; add arch to the extra under the
 > Wheel rule — on 2026-10-14 arch 8.0.0 had no CPython 3.15 wheel; bind
-> both to any catalog series, with the Ken French daily market factor as
+> both to catalog series (any of the bound field's unit kind and frequency,
+> through `concepts=`), with the Ken French daily market factor as
 > the demonstration input; golden files built from identities, seeded
 > simulations with known parameters and published tables recomputed on
 > data a dependency already ships; property tests for every invariant; and
@@ -9798,6 +9799,10 @@ the price. New conversation per phase-boundary hygiene.
 > Model and effort unchanged (Balanced column); the single-column table
 > becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
 > XHigh.
+
+> Ran 2026-10-21: Balanced — Claude Opus 5.5 on Claude Code (Effort High). The
+> **Runs:** column; the Claude weekly pool's `tight` row had passed its reset,
+> so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -10145,8 +10150,10 @@ the price. New conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
-      Bindings: any catalog series through the concepts=
-      override, with a default demonstration profile on the
+      Bindings: any catalog series of the bound field's unit
+      kind and frequency through the concepts= override (the
+      Step 12 contract refuses a rebind to another kind or
+      frequency), with a default demonstration profile on the
       Ken French daily market factor (GARCH) and US inflation
       and unemployment (the VAR), documented on each card.
     </requirement>
@@ -11050,7 +11057,10 @@ pyeconomics` keeps resolving 0.2.6.
       project's interpreter: a fresh venv with
       `pip install --pre pyeconomics==1.0.0a2` runs
       `scripts/smoke.py --all --min-domains 13`; a second with
-      `[econometrics,plot]` runs `--extras` and `pip check`;
+      `[econometrics,plot]` runs `--extras` and `pip check`
+      (on CPython 3.15 the extras pass reports
+      econometrics.garch's named arch gap, issue #154, and
+      passes);
       with an isolated configuration and no FRED key, a BLS
       series is fetched (keyless through API v1, or through v2
       when the tester's BLS_API_KEY is set; record which);
@@ -11994,7 +12004,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #144 |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #146 |
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #153 |
-| 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #160 |
 | 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Not started |
 | 20      | QA + verify-phase03.sh           | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
@@ -12333,6 +12343,38 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 17 (launch catalog: econometrics, 2026-10-21): `models/econometrics/`
+  adds `econometrics.garch` (over arch) and `econometrics.time_series` (over
+  statsmodels); the registry holds all 50 launch-catalog ids. arch 8.0.0 still
+  had no CPython 3.15 wheel at kickoff, so it joins `[econometrics]`, `[all]`
+  and the test group behind `python_full_version < '3.15'` (maintainer-approved
+  in PR, issue #154 to drop it). Contract changes made in-step under the
+  Contract-change rule, the smallest that work: `Provider.from_distribution`
+  evaluates an extra's environment markers (with `packaging`, taken to apply
+  when it is absent) and lists a left-out package in `Provider.excluded`
+  (`Provider.excludes`, `Registry.from_models(excluded=)`); validation's
+  example rule and `scripts/smoke.py` accept the
+  `MissingOptionalDependencyError` a model raises for such a package;
+  `MissingOptionalDependencyError` takes a `note`; `core.library_warnings`
+  reports a wrapped library's warnings as result warnings (the model-import
+  allowlist admits no `warnings` module); `smoke.py --extras` runs every model
+  that names an extra; release-smoke keeps a requirement's environment marker
+  for pip. The golden harness and the contract suite assert the gap through
+  `tests/extra_gaps.py`. Blocking upstream gap fixed in-step: the Ken French
+  daily files hold Saturday sessions before 1952, so the provider dates them
+  `daily`, not `business_daily` (Step 10), and the daily concepts follow; nine
+  daily factor series concepts (`factors.*.us.daily`) were added for the GARCH
+  profile. Spec rot fixed: the bindings requirement asked for "any catalog
+  series", which Step 12's rebind rule (same unit kind and frequency) does not
+  allow. Facts for later steps: arch's forecasts start their recursion from a
+  backcast of the residuals at the estimated mean, its fit from the demeaned
+  returns (the paths differ only while the start has not decayed); BLS
+  published no October 2025 CPI or unemployment rate, so a window spanning it
+  cannot be bound; statsmodels' MacKinnon (2010) coefficient for N = 2 at 1%
+  differs from the paper (issue #155) and `coint_johansen` with no lagged
+  difference regresses on the current level (issue #156; the model requires
+  one).
 
 - Step 16 (launch catalog: asset pricing and portfolio, 2026-10-20):
   `models/asset_pricing/` (a new domain with its own entry point) adds

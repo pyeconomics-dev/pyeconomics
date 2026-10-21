@@ -115,6 +115,7 @@ server = []
 mcp = []
 ai = []
 econometrics = [
+    "arch>=8.0 ; python_full_version < '3.15'",
     "statsmodels>=0.15.0",
 ]
 plot = [
@@ -130,6 +131,7 @@ all = [
     "keyring>=25.7",
     "plotly>=7.1.0",
     "statsmodels>=0.15.0",
+    "arch>=8.0 ; python_full_version < '3.15'",
 ]
 sdmx = [
     "sdmx1>=2.27",
@@ -161,6 +163,7 @@ test = [
     "syrupy>=6.1.1",
     "vollib>=1.0.11",
     "quantecon>=0.13.0",
+    "arch>=8.0 ; python_full_version < '3.15'",
 ]
 dev = [
     { include-group = "test" },

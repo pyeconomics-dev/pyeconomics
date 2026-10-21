@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 import contract
 import pytest
+from extra_gaps import excluded_gap
 
 from pyeconomics.core.registry import installed
 
@@ -30,4 +31,7 @@ MODELS = installed().models()
 
 @pytest.mark.parametrize("model", [pytest.param(m, id=m.id) for m in MODELS])
 def test_the_model_keeps_the_contract(model: Model[Any, Any]) -> None:
-    contract.check_model(model)
+    # A model whose extra leaves its library out of this Python names the gap
+    # (the Wheel rule); excluded_gap asserts that, and there is nothing to fuzz.
+    if excluded_gap(model) is None:
+        contract.check_model(model)

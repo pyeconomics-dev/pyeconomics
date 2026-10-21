@@ -70,7 +70,7 @@ from pyeconomics.core.compounding import (
     effective_annual_rate,
     implied_rate,
 )
-from pyeconomics.core.context import collect_warnings, warn
+from pyeconomics.core.context import collect_warnings, library_warnings, warn
 from pyeconomics.core.curves import (
     curve_discount_factors,
     forward_rate,
@@ -409,6 +409,7 @@ __all__ = [
     "is_business_day",
     "is_end_of_month",
     "least_squares",
+    "library_warnings",
     "log_return",
     "max_drawdown",
     "model",
