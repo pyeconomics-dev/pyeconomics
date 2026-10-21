@@ -41,7 +41,9 @@ _FILES = {
     "industry49": "49_Industry_Portfolios",
     "size_bm25": "25_Portfolios_5x5",
 }
-_FREQUENCIES = {"monthly": F.MONTHLY, "annual": F.ANNUAL, "daily": F.BUSINESS_DAILY}
+#: Daily files are trading days: weekdays, and Saturdays before the NYSE closed
+#: on them in 1952, so their periods are calendar days with gaps.
+_FREQUENCIES = {"monthly": F.MONTHLY, "annual": F.ANNUAL, "daily": F.DAILY}
 
 
 class KenFrench(DataProvider):

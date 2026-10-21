@@ -497,14 +497,19 @@ def test_inconsistent_inputs_are_refused(inputs: dict[str, Any]) -> None:
 
 @pytest.fixture
 def without_statsmodels(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make statsmodels unimportable and its distribution look uninstalled."""
-    for name in [m for m in sys.modules if m.split(".")[0] == "statsmodels"]:
+    """Make the extra's packages unimportable and their distributions uninstalled.
+
+    arch, the extra's other package, imports statsmodels: both go.
+    """
+    extra = {"statsmodels", "arch"}
+    for name in [m for m in sys.modules if m.split(".")[0] in extra]:
         monkeypatch.setitem(sys.modules, name, None)
-    monkeypatch.setitem(sys.modules, "statsmodels", None)
+    for package in extra:
+        monkeypatch.setitem(sys.modules, package, None)
     installed = core_registry._is_installed  # noqa: SLF001
 
     def missing(distribution: str) -> bool:
-        return distribution != "statsmodels" and installed(distribution)
+        return distribution not in extra and installed(distribution)
 
     monkeypatch.setattr(core_registry, "_is_installed", missing)
 

@@ -41,7 +41,7 @@ from pyeconomics.data.providers.shiller import Shiller
 from pyeconomics.data.providers.yfinance import YFinance
 from pyeconomics.data.transport import files, yahoo
 from pyeconomics.data.transport.base import Request, Response
-from pyeconomics.data.types import Table
+from pyeconomics.data.types import ObservationFrequency, Table
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -93,6 +93,16 @@ def test_french_sections_missing_values_and_decimal_boundary() -> None:
     )
     assert daily.index == (dt.date(2024, 2, 29),)
     assert daily.data == ((0.04,),)
+
+
+def test_french_daily_files_keep_the_saturday_sessions_before_1952() -> None:
+    # The NYSE traded on Saturdays until 1952: the daily files are trading days,
+    # dated by calendar day, not business days (Phase 3 Step 17).
+    response = french([["", "Mkt-RF"], [19260709, 1.0], [19260710, 0.5]])
+    daily = KenFrench().parse([response], query("ff3:daily"))
+    assert daily.index == (dt.date(1926, 7, 9), dt.date(1926, 7, 10))
+    assert dt.date(1926, 7, 10).weekday() == 5  # a Saturday
+    assert daily.meta.frequency is ObservationFrequency.DAILY
 
 
 def test_global_q_long_format_pivots_portfolios_without_converting_ranks() -> None:

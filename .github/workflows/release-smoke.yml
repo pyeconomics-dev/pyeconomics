@@ -10,7 +10,8 @@
 # (--min-domains 11 fails a release that registers fewer domains). It then
 # installs the econometrics extra's requirements from PyPI, read from the
 # installed metadata, and runs the smoke again with --extras, so the extra's
-# model runs to outputs.
+# models run to outputs. A requirement whose marker also tests the environment
+# (arch's python_full_version < '3.15') keeps that test, and pip applies it.
 # release.yml calls it after each publish; run it by hand to re-check a past
 # release. A release from before the model smoke (1.0.0.dev1) predates the
 # script's options and cannot be re-checked this way.
@@ -135,7 +136,8 @@ jobs:
             "$GITHUB_WORKSPACE/release-source/scripts/smoke.py" --min-domains 11
 
       # The econometrics extra from PyPI only: its requirements, read from the
-      # installed metadata (the lines whose marker is that extra alone).
+      # installed metadata (the lines whose marker names that extra, joined to
+      # any environment test by "and", which stays for pip to evaluate).
       - name: Install the econometrics extra's requirements
         run: |
           set -euo pipefail
@@ -144,10 +146,13 @@ jobs:
           import importlib.metadata
           import re
 
+          extra = r"""extra\s*==\s*['"]econometrics['"]"""
+          joined = re.compile(rf"\s*(?:and\s+)?{extra}(?:\s+and)?\s*")
           for requirement in importlib.metadata.requires("pyeconomics") or []:
               name, _, marker = requirement.partition(";")
-              if re.fullmatch(r"""\s*extra\s*==\s*['"]econometrics['"]\s*""", marker):
-                  print(name.strip())
+              if re.search(extra, marker):
+                  rest = joined.sub(" ", marker).strip()
+                  print(f"{name.strip()} ; {rest}" if rest else name.strip())
           EOF
           cat "$RUNNER_TEMP/extras.txt"
           test -s "$RUNNER_TEMP/extras.txt"

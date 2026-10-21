@@ -479,6 +479,11 @@ def test_the_econometrics_extra_installs_statsmodels() -> None:
     assert "statsmodels" in extras_from_pyproject()["econometrics"]
 
 
+def test_the_econometrics_extra_installs_arch() -> None:
+    # Behind a marker (no CPython 3.15 wheel yet, issue #154), but declared.
+    assert "arch" in extras_from_pyproject()["econometrics"]
+
+
 def test_the_extras_come_from_pyproject() -> None:
     extras = extras_from_pyproject()
     assert "econometrics" in extras

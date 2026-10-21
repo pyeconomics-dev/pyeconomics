@@ -36,9 +36,9 @@ from typing import TYPE_CHECKING, Final
 from pyeconomics.core.warnings import ModelWarning
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Mapping
 
-__all__ = ["collect_warnings", "warn"]
+__all__ = ["collect_warnings", "library_warnings", "warn"]
 
 _COLLECTOR: Final[ContextVar[list[ModelWarning] | None]] = ContextVar(
     "pyeconomics_warning_collector", default=None
@@ -101,3 +101,59 @@ def warn(code: str, message: str, *, stacklevel: int = 1) -> None:
         collector.append(warning)
         return
     warnings.warn(warning, stacklevel=stacklevel + 1)
+
+
+@contextmanager
+def library_warnings(
+    library: str, *, codes: Mapping[str, str] | None = None
+) -> Generator[list[warnings.WarningMessage], None, None]:
+    """Report a library's warnings inside the ``with`` block as the model's own.
+
+    statsmodels and arch reset their own warning filters, so a caller's filters
+    (pytest's warnings-as-errors among them) may never see what they warn.
+    Inside the block every warning is caught. On a normal exit each one is
+    reported with :func:`warn`, once per distinct message: a
+    :class:`~pyeconomics.core.warnings.ModelWarning` as it was, any other under
+    the code ``codes`` gives its category's name, or ``<library>_warning``. The
+    caller may first remove an entry it has shown to be harmless; when the
+    block raises, nothing is reported.
+
+    Parameters
+    ----------
+    library
+        The library's import name, which prefixes each message.
+    codes
+        Warning codes by category name, such as
+        ``{"ConvergenceWarning": "optimizer_not_converged"}``.
+
+    Yields
+    ------
+    list of warnings.WarningMessage
+        The warnings caught so far.
+
+    Examples
+    --------
+    >>> import warnings
+    >>> with collect_warnings() as recorded:
+    ...     with library_warnings("toylib"):
+    ...         warnings.warn("rank deficient", RuntimeWarning, stacklevel=1)
+    >>> [(w.code, w.text) for w in recorded]
+    [('toylib_warning', 'toylib: RuntimeWarning: rank deficient')]
+
+    """
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        yield caught
+    seen: set[str] = set()
+    for item in caught:
+        found = item.message
+        if isinstance(found, ModelWarning):
+            warn(found.code, found.text)
+            continue
+        kind = type(found).__name__
+        text = " ".join(str(found).split())
+        if text in seen:
+            continue
+        seen.add(text)
+        code = (codes or {}).get(kind, f"{library}_warning")
+        warn(code, f"{library}: {kind}: {text}")

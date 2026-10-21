@@ -443,3 +443,65 @@ def test_extra_names_match_after_normalization() -> None:
     provider = Provider.from_distribution(cast("Any", dist))
     assert dict(provider.extras) == {"my-extra": ("toy-lib",), "stats": ("other",)}
     assert not provider.installed("my_extra")  # toy-lib is not installed
+
+
+# --- environment markers on an extra's requirements (Phase 3 Step 17) -------------
+
+
+def test_a_requirement_whose_marker_leaves_out_this_python_is_excluded() -> None:
+    dist = FakeDist(
+        "toy-dist",
+        requires=[
+            'toy-lib>=1 ; python_full_version < "2.0" and extra == "my_extra"',
+            'pytest ; extra == "my_extra"',
+        ],
+        provides_extra=("my-extra",),
+    )
+    provider = Provider.from_distribution(cast("Any", dist))
+    assert dict(provider.extras) == {"my-extra": ("pytest",)}
+    assert dict(provider.excluded) == {"my-extra": ("toy-lib",)}
+    assert provider.installed("my_extra")  # pytest is; toy-lib is not wanted here
+    assert provider.excludes("my_extra", "toy-lib")
+    assert provider.excludes("My.Extra", "Toy_Lib")
+    assert not provider.excludes("my_extra", "pytest")
+    assert not provider.excludes("other", "toy-lib")
+
+
+def test_a_requirement_whose_marker_applies_here_is_kept() -> None:
+    dist = FakeDist(
+        "toy-dist",
+        requires=['toy-lib>=1 ; python_full_version >= "3.0" and extra == "stats"'],
+        provides_extra=("stats",),
+    )
+    provider = Provider.from_distribution(cast("Any", dist))
+    assert dict(provider.extras) == {"stats": ("toy-lib",)}
+    assert dict(provider.excluded) == {}
+    assert not provider.installed("stats")
+
+
+def test_without_packaging_an_environment_marker_is_taken_to_apply(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(sys.modules, "packaging", None)
+    monkeypatch.setitem(sys.modules, "packaging.markers", None)
+    dist = FakeDist(
+        "toy-dist",
+        requires=['toy-lib ; python_full_version < "2.0" and extra == "stats"'],
+        provides_extra=("stats",),
+    )
+    provider = Provider.from_distribution(cast("Any", dist))
+    # Never reported installed on a guess: the package stays wanted.
+    assert dict(provider.extras) == {"stats": ("toy-lib",)}
+    assert not provider.installed("stats")
+
+
+def test_an_isolated_registry_takes_excluded_packages() -> None:
+    built = Registry.from_models(
+        tm.zero_coupon,
+        distribution="toy-dist",
+        extras={"toy": ("pydantic",)},
+        excluded={"toy": ("toy-lib",)},
+    )
+    provider = built.registrations[0].provider
+    assert provider.installed("toy")
+    assert provider.excludes("toy", "toy-lib")

@@ -268,15 +268,20 @@ def test_argv_defaults_to_the_process_arguments(
 
 @pytest.fixture
 def without_statsmodels(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make statsmodels unimportable and its distribution look uninstalled."""
-    for name in [m for m in sys.modules if m.split(".")[0] == "statsmodels"]:
+    """Make the extra's packages unimportable and look uninstalled.
+
+    arch, the extra's other package (Phase 3 Step 17), imports statsmodels.
+    """
+    extra = {"statsmodels", "arch"}
+    for name in [m for m in sys.modules if m.split(".")[0] in extra]:
         monkeypatch.setitem(sys.modules, name, None)
-    monkeypatch.setitem(sys.modules, "statsmodels", None)
+    for package in extra:
+        monkeypatch.setitem(sys.modules, package, None)
     installed = core_registry._is_installed  # noqa: SLF001
     monkeypatch.setattr(
         core_registry,
         "_is_installed",
-        lambda name: name != "statsmodels" and installed(name),
+        lambda name: name not in extra and installed(name),
     )
 
 
@@ -291,13 +296,70 @@ def test_without_the_extra_the_smoke_covers_econometrics_by_its_error(
         == f"registry valid; {len(pyeconomics.registry.domains())} domain(s) covered"
     )
     out = capsys.readouterr().out
-    assert "econometrics.ols: raises, naming pyeconomics[econometrics]" in out
+    # One model per domain without --extras: the domain's first, garch.
+    assert "econometrics.garch: raises, naming pyeconomics[econometrics]" in out
     with pytest.raises(AssertionError, match="needs the 'econometrics' extra"):
         smoke.check_models(pyeconomics, extras=True)
 
 
-def test_with_the_extra_the_smoke_runs_ols_to_outputs(
+def test_with_the_extra_the_smoke_runs_every_econometrics_model(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     smoke.check_models(pyeconomics, min_domains=11, extras=True)
-    assert "econometrics.ols: 1 example(s) reproduce" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "econometrics.ols: 1 example(s) reproduce" in out
+    assert "econometrics.time_series: 1 example(s) reproduce" in out
+    if sys.version_info >= (3, 15):  # no arch wheel yet (issue #154)
+        assert "econometrics.garch: raises, naming arch, which" in out
+    else:
+        assert "econometrics.garch: 1 example(s) reproduce" in out
+
+
+def test_extras_runs_every_model_that_names_an_extra(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    first = tm.variant(tm.zero_coupon, id="econometrics.toy_first", extra="toy")
+    second = tm.variant(tm.zero_coupon, id="econometrics.toy_second", extra="toy")
+    registry = Registry.from_models(
+        first, second, distribution="toy-dist", extras={"toy": ("pytest",)}
+    )
+    monkeypatch.setattr(core_registry._CACHE, "registry", registry)  # noqa: SLF001
+    monkeypatch.setattr(core_registry, "RELEASED", {})
+    smoke.check_models(pyeconomics)
+    assert "toy_second" not in capsys.readouterr().out
+    smoke.check_models(pyeconomics, extras=True)
+    assert "econometrics.toy_second: 1 example(s) reproduce" in capsys.readouterr().out
+
+
+def test_a_package_the_extra_leaves_out_here_is_reported_as_the_gap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    spec = tm.variant(tm.needs_extra, id="econometrics.toy_gap").spec
+    registry = Registry.from_models(
+        Model(spec, tm.needs_extra.compute),
+        distribution="toy-dist",
+        extras={"toy": ("pytest",)},
+        excluded={"toy": ("toy_library",)},
+    )
+    monkeypatch.setattr(core_registry._CACHE, "registry", registry)  # noqa: SLF001
+    monkeypatch.setattr(core_registry, "RELEASED", {})
+    line = smoke.exercise(pyeconomics, only_registration(), run_all=False, extras=True)
+    assert line == (
+        "econometrics.toy_gap: raises, naming toy_library, which "
+        "pyeconomics[toy] leaves out of this Python"
+    )
+
+
+def test_a_package_the_extra_should_install_still_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    spec = tm.variant(tm.needs_extra, id="econometrics.toy_gap").spec
+    registry = Registry.from_models(
+        Model(spec, tm.needs_extra.compute),
+        distribution="toy-dist",
+        extras={"toy": ("pytest",)},
+    )
+    monkeypatch.setattr(core_registry._CACHE, "registry", registry)  # noqa: SLF001
+    monkeypatch.setattr(core_registry, "RELEASED", {})
+    with pytest.raises(MissingOptionalDependencyError):
+        smoke.exercise(pyeconomics, only_registration(), run_all=False, extras=True)

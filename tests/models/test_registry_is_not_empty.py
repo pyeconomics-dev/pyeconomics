@@ -172,9 +172,18 @@ def test_step11_and_step12_domains_are_installed(
     domain: str, expected: set[str]
 ) -> None:
     found = {m.id for m in registry.models(domain)}
-    # At least: Phase 3 Step 16 adds two portfolio models (the table below lists
-    # them).
-    assert found >= expected if domain == "portfolio" else found == expected
+    # At least: Phase 3 Step 16 adds two portfolio models and Step 17 two
+    # econometrics models (the table below lists them).
+    grows = {"portfolio", "econometrics"}
+    assert found >= expected if domain in grows else found == expected
+
+
+def test_the_econometrics_domain_holds_its_three_models() -> None:
+    assert {m.id for m in registry.models("econometrics")} == {
+        "econometrics.garch",
+        "econometrics.ols",
+        "econometrics.time_series",
+    }
 
 
 def test_the_asset_pricing_entry_point_registers_its_two_models() -> None:

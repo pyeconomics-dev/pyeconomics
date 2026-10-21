@@ -172,6 +172,9 @@ class MissingOptionalDependencyError(PyeconomicsError, ImportError):
         The import name of the missing package.
     extra
         The pyeconomics extra that installs it, if any.
+    note
+        A sentence appended to the message: where the extra cannot install the
+        package (a Python version it publishes no wheel for), say so.
 
     Examples
     --------
@@ -179,14 +182,17 @@ class MissingOptionalDependencyError(PyeconomicsError, ImportError):
     this feature needs statsmodels; install it with: pip install 'pyeconomics[econometrics]'
     >>> print(MissingOptionalDependencyError("polars"))
     this feature needs polars; install it with: pip install polars
+    >>> print(MissingOptionalDependencyError("x", note="No wheel for 3.15 yet."))
+    this feature needs x; install it with: pip install x. No wheel for 3.15 yet.
 
     """  # noqa: E501 - doctest output lines cannot wrap
 
-    def __init__(self, package: str, *, extra: str | None = None) -> None:
+    def __init__(
+        self, package: str, *, extra: str | None = None, note: str | None = None
+    ) -> None:
         target = f"'pyeconomics[{extra}]'" if extra else package
-        super().__init__(
-            f"this feature needs {package}; install it with: pip install {target}",
-            name=package,
-        )
+        message = f"this feature needs {package}; install it with: pip install {target}"
+        super().__init__(f"{message}. {note}" if note else message, name=package)
         self.package = package
         self.extra = extra
+        self.note = note

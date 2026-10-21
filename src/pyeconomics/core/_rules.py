@@ -1052,18 +1052,39 @@ def _first_error(error: InputError) -> str:
 
 
 def _missing_extra_problem(
-    error: MissingOptionalDependencyError, extra: str | None, *, extra_missing: bool
+    error: MissingOptionalDependencyError,
+    extra: str | None,
+    provider: Provider | None,
+    *,
+    extra_missing: bool,
 ) -> str | None:
-    """Judge a ``MissingOptionalDependencyError`` an example raised."""
-    if not extra_missing:
-        return f"needs a package that is not installed: {error}"
-    if error.extra != extra:
-        return f"raised an error naming extra {error.extra!r}, not {extra!r}"
-    return None
+    """Judge a ``MissingOptionalDependencyError`` an example raised.
+
+    With the extra installed, it is a problem unless it names a package the
+    extra's environment markers leave out of this interpreter: the gap a model
+    names where a library has no wheel yet.
+    """
+    if extra_missing:
+        if error.extra != extra:
+            return f"raised an error naming extra {error.extra!r}, not {extra!r}"
+        return None
+    excluded_here = (
+        extra is not None
+        and error.extra == extra
+        and provider is not None
+        and provider.excludes(extra, error.package)
+    )
+    if excluded_here:
+        return None
+    return f"needs a package that is not installed: {error}"
 
 
 def _run_example(
-    model: Model[Any, Any], inputs: object, *, extra_missing: bool
+    model: Model[Any, Any],
+    inputs: object,
+    provider: Provider | None,
+    *,
+    extra_missing: bool,
 ) -> str | None:
     """Run one validated example; return what is wrong, or ``None``."""
     extra = model.spec.extra
@@ -1071,7 +1092,9 @@ def _run_example(
         with collect_warnings():
             outputs = model.validate_outputs(model.compute(inputs))
     except MissingOptionalDependencyError as error:
-        return _missing_extra_problem(error, extra, extra_missing=extra_missing)
+        return _missing_extra_problem(
+            error, extra, provider, extra_missing=extra_missing
+        )
     except Exception as error:  # noqa: BLE001 - any failure of compute is a finding
         return f"failed to run: {type(error).__name__}: {error}"
     if extra_missing:
@@ -1087,7 +1110,12 @@ def _run_example(
 
 
 def _check_example(
-    model: Model[Any, Any], example: Example, report: _Report, *, extra_missing: bool
+    model: Model[Any, Any],
+    example: Example,
+    report: _Report,
+    provider: Provider | None,
+    *,
+    extra_missing: bool,
 ) -> None:
     """Hold one example to its rules: a name, valid inputs, a clean run."""
     label = f"example {example.name!r}"
@@ -1098,7 +1126,7 @@ def _check_example(
     except InputError as error:
         report.add("examples", f"{label} does not validate: {_first_error(error)}")
         return
-    problem = _run_example(model, inputs, extra_missing=extra_missing)
+    problem = _run_example(model, inputs, provider, extra_missing=extra_missing)
     if problem is not None:
         report.add("examples", f"{label} {problem}")
 
@@ -1128,7 +1156,7 @@ def _check_examples(
         and not provider.installed(spec.extra)
     )
     for example in spec.examples:
-        _check_example(model, example, report, extra_missing=extra_missing)
+        _check_example(model, example, report, provider, extra_missing=extra_missing)
     if len(spec.input_models) > 1:
         known = _member_calculations(spec.input_models, "inputs", _Report(spec.id))
         covered = {

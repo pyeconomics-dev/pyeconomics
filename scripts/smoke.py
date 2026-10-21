@@ -27,9 +27,11 @@ release-smoke.yml runs it against every published release. It:
 A model whose spec names an extra that is not installed is exercised by
 asserting that running it raises ``MissingOptionalDependencyError`` naming the
 extra, which covers its domain in an environment with no extras installed
-(ADR-0002): ``econometrics.ols`` covers the econometrics domain that way
-without the ``econometrics`` extra, and with ``--extras`` it must run to
-outputs instead.
+(ADR-0002): the econometrics models cover their domain that way without the
+``econometrics`` extra, and with ``--extras`` each must run to outputs instead.
+A model that needs a package its extra's environment marker leaves out of this
+interpreter (arch, which has no CPython 3.15 wheel yet) must raise naming the
+extra and that package: the gap is reported, not hidden.
 
 It prints one line per check and exits 0 when every check passes, 1 when one
 fails and 2 when it refuses to run. Usage, from outside the checkout:
@@ -38,8 +40,9 @@ fails and 2 when it refuses to run. Usage, from outside the checkout:
 
 --all            run every example of every model, not one model per domain
 --min-domains N  fail when fewer than N domains were covered
---extras         fail unless every model that names an extra ran and returned
-                 outputs, so the extras must be installed
+--extras         run every model that names an extra, and fail unless each ran
+                 and returned outputs (or named a package its extra leaves out
+                 here), so the extras must be installed
 """
 
 from __future__ import annotations
@@ -201,7 +204,8 @@ def exercise(
         msg = f"{model.id} declares no example"
         raise AssertionError(msg)
     extra = model.spec.extra
-    if extra and not registration.provider.installed(extra):
+    provider = registration.provider
+    if extra and not provider.installed(extra):
         if extras:
             msg = f"{model.id} needs the {extra!r} extra, which is not installed"
             raise AssertionError(msg)
@@ -214,7 +218,17 @@ def exercise(
             return f"{model.id}: raises, naming pyeconomics[{extra}]"
         msg = f"{model.id} ran although its {extra!r} extra is not installed"
         raise AssertionError(msg)
-    hashes = [run_twice(package, model, example) for example in examples]
+    try:
+        hashes = [run_twice(package, model, example) for example in examples]
+    except package.core.MissingOptionalDependencyError as error:
+        if not (
+            extra and error.extra == extra and provider.excludes(extra, error.package)
+        ):
+            raise
+        return (
+            f"{model.id}: raises, naming {error.package}, which pyeconomics[{extra}] "
+            "leaves out of this Python"
+        )
     return f"{model.id}: {len(hashes)} example(s) reproduce (result {hashes[0]})"
 
 
@@ -236,8 +250,13 @@ def check_models(
     registrations = {r.model.id: r for r in core_registry.installed().registrations}
     domains = package.registry.domains()
     for domain in domains:
-        chosen = package.registry.models(domain)
-        for model in chosen if run_all else chosen[:1]:
+        listed = package.registry.models(domain)
+        chosen = [
+            model
+            for index, model in enumerate(listed)
+            if run_all or index == 0 or (extras and model.spec.extra)
+        ]
+        for model in chosen:
             line = exercise(
                 package, registrations[model.id], run_all=run_all, extras=extras
             )

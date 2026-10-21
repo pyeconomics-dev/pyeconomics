@@ -14,7 +14,13 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from pyeconomics import core
-from pyeconomics.core import ModelWarning, collect_warnings, find_root, warn
+from pyeconomics.core import (
+    ModelWarning,
+    collect_warnings,
+    find_root,
+    library_warnings,
+    warn,
+)
 
 
 def test_there_is_exactly_one_warn() -> None:
@@ -145,3 +151,48 @@ def test_find_root_warns_into_the_collector() -> None:
 def test_find_root_warns_through_warnings_outside_a_run() -> None:
     with pytest.warns(ModelWarning, match="several_roots"):
         find_root(lambda x: (x - 1.0) * (x - 2.0) * (x - 3.0), 0.5, 3.6)
+
+
+# --- a library's warnings (Phase 3 Step 17) -----------------------------------------
+
+
+def test_library_warnings_become_the_models_own_once_each() -> None:
+    codes = {"UserWarning": "toy_code"}
+    with collect_warnings() as recorded, library_warnings("toylib", codes=codes):
+        warnings.warn("rank deficient", RuntimeWarning, stacklevel=1)
+        warnings.warn("rank   deficient", RuntimeWarning, stacklevel=1)
+        warnings.warn("did not converge", UserWarning, stacklevel=1)
+    assert [(w.code, w.text) for w in recorded] == [
+        ("toylib_warning", "toylib: RuntimeWarning: rank deficient"),
+        ("toy_code", "toylib: UserWarning: did not converge"),
+    ]
+
+
+def test_library_warnings_pass_a_model_warning_through() -> None:
+    with warnings.catch_warnings(record=True) as outside:
+        warnings.simplefilter("always")
+        # Outside a run, warn() issues through the warnings module: the block
+        # catches it and must hand it on, not swallow it.
+        with library_warnings("toylib"):
+            warn("own_code", "the model's own warning")
+    assert [w.message.code for w in outside] == ["own_code"]  # type: ignore[union-attr]
+
+
+def test_library_warnings_record_nothing_when_the_block_raises() -> None:
+    def failing() -> None:
+        with library_warnings("toylib"):
+            warnings.warn("ignored", RuntimeWarning, stacklevel=1)
+            msg = "boom"
+            raise ValueError(msg)
+
+    with collect_warnings() as recorded, pytest.raises(ValueError, match="boom"):
+        failing()
+    assert recorded == []
+
+
+def test_a_caller_may_drop_a_warning_it_has_shown_harmless() -> None:
+    with collect_warnings() as recorded, library_warnings("toylib") as caught:
+        warnings.warn("casting complex", RuntimeWarning, stacklevel=1)
+        warnings.warn("kept", UserWarning, stacklevel=1)
+        caught[:] = [w for w in caught if "complex" not in str(w.message)]
+    assert [w.text for w in recorded] == ["toylib: UserWarning: kept"]

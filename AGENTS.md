@@ -69,6 +69,17 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
   (`tests/registry/test_model_imports.py`) and the `model-purity` semgrep rule
   bans I/O, the clock, the environment, the network and global randomness.
   Import an extra's library only inside `compute`.
+- A model that wraps a library (statsmodels, arch) reports the library's
+  warnings with `core.library_warnings`, because those libraries reset their
+  own warning filters, and reads the library's lazily computed statistics
+  (standard errors, covariances) inside that block.
+- An extra may gate a library with an environment marker only under the Wheel
+  rule (no wheel for a CI cell yet, the maintainer's approval, a tracking
+  issue). The registry then lists it in `Provider.excluded`; the model raises
+  `MissingOptionalDependencyError(..., note=...)` naming the gap; and its tests
+  assert that gap on those cells, never a skip (`needs_arch` in
+  `tests/models/econometrics/test_garch.py`; `tests/extra_gaps.py` does it for
+  the golden harness and the contract suite).
 - `pyeconomics.core` exports the decorator as `model`, which hides the module
   of that name. Import by path (`from pyeconomics.core.model import Model`);
   `import pyeconomics.core.model as m` binds the decorator. Likewise

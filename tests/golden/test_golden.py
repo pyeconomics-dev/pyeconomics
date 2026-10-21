@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import pytest
 from _loader import Case, GoldenFile, audit, run_case
+from extra_gaps import excluded_gap
 
 import pyeconomics
 from pyeconomics.core.registry import installed
@@ -38,5 +39,11 @@ def test_every_golden_file_and_registered_model_follows_the_rules() -> None:
 @pytest.mark.parametrize(("golden", "case"), CASES)
 def test_golden_case(golden: GoldenFile, case: Case) -> None:
     model = REGISTRY.get(golden.model)
+    # Where the model's extra leaves its library out of this Python (the Wheel
+    # rule), the case asserts the gap the model names instead.
+    gap = excluded_gap(model)
+    if gap is not None:
+        assert gap.extra == model.spec.extra
+        return
     mismatches = run_case(model, case, lambda m, inputs: pyeconomics.run(m.id, inputs))
     assert not mismatches, "\n".join(mismatches)

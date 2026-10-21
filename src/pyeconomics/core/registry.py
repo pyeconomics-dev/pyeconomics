@@ -70,6 +70,7 @@ ENTRY_POINT_GROUP: Final = "pyeconomics.models"
 _MODULE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*")
 _REQUIREMENT_NAME = re.compile(r"\s*([A-Za-z0-9][A-Za-z0-9._-]*)")
 _REQUIREMENT_EXTRA = re.compile(r"""extra\s*==\s*['"]([^'"]+)['"]""")
+_ONLY_EXTRA = re.compile(r"""\s*\(?\s*extra\s*==\s*['"][^'"]+['"]\s*\)?\s*""")
 _UNKNOWN: Final = "<unknown>"
 
 
@@ -86,13 +87,35 @@ def _is_installed(distribution: str) -> bool:
     return True
 
 
+def _applies_here(requirement: str, extra: str) -> bool:
+    """Return whether a requirement of ``extra`` applies to this interpreter.
+
+    A requirement whose marker tests only the extra always applies. One whose
+    marker also tests the environment (``python_full_version < '3.15'``) is
+    evaluated with ``packaging``, which every package an extra installs today
+    depends on; without it the requirement is taken to apply, so an extra is
+    never reported installed on a guess.
+    """
+    _, _, marker = requirement.partition(";")
+    if _ONLY_EXTRA.fullmatch(marker):
+        return True
+    try:
+        from packaging.markers import Marker  # noqa: PLC0415 - optional, on use
+    except ImportError:
+        return True
+    return Marker(marker).evaluate({"extra": extra})
+
+
 @dataclass(frozen=True, slots=True)
 class Provider:
     """The distribution that registered a model, and the extras it declares.
 
     A model may name an extra in its spec (``extra="econometrics"``). The
     registry checks that the model's own distribution declares it, and whether
-    its packages are installed.
+    its packages are installed. A package whose environment marker leaves it
+    out of this interpreter (a library with no wheel for it yet) is listed in
+    :attr:`excluded`, not :attr:`extras`: the extra is installed without it,
+    and a model that needs it names the gap.
     """
 
     name: str
@@ -100,20 +123,32 @@ class Provider:
     extras: Mapping[str, tuple[str, ...]] = field(
         default_factory=lambda: MappingProxyType({})
     )
-    """Each declared extra with the distributions it installs."""
+    """Each declared extra with the distributions it installs here."""
+    excluded: Mapping[str, tuple[str, ...]] = field(
+        default_factory=lambda: MappingProxyType({})
+    )
+    """Each declared extra with the distributions its markers leave out here."""
 
     def declares(self, extra: str) -> bool:
         """Return whether the distribution declares ``extra`` (Provides-Extra)."""
         return _normalize(extra) in {_normalize(name) for name in self.extras}
 
     def installed(self, extra: str) -> bool:
-        """Return whether every package ``extra`` installs is present."""
+        """Return whether every package ``extra`` installs here is present."""
         wanted = _normalize(extra)
         return all(
             _is_installed(package)
             for name, packages in self.extras.items()
             if _normalize(name) == wanted
             for package in packages
+        )
+
+    def excludes(self, extra: str, package: str) -> bool:
+        """Return whether ``extra`` leaves ``package`` out of this interpreter."""
+        wanted = _normalize(extra)
+        return any(
+            _normalize(name) == wanted and _normalize(package) in map(_normalize, left)
+            for name, left in self.excluded.items()
         )
 
     @classmethod
@@ -124,6 +159,7 @@ class Provider:
         extras: dict[str, list[str]] = {
             name: [] for name in distribution.metadata.get_all("Provides-Extra") or []
         }
+        excluded: dict[str, list[str]] = {}
         by_normal_name = {_normalize(name): name for name in extras}
         for requirement in distribution.requires or []:
             package = _REQUIREMENT_NAME.match(requirement)
@@ -132,10 +168,14 @@ class Provider:
                 by_normal_name.get(_normalize(marker.group(1))) if marker else None
             )
             if package and declared is not None:
-                extras[declared].append(package.group(1))
+                if _applies_here(requirement, declared):
+                    extras[declared].append(package.group(1))
+                else:
+                    excluded.setdefault(declared, []).append(package.group(1))
         return cls(
             name=distribution.name or _UNKNOWN,
             extras=MappingProxyType({k: tuple(v) for k, v in extras.items()}),
+            excluded=MappingProxyType({k: tuple(v) for k, v in excluded.items()}),
         )
 
 
@@ -209,6 +249,7 @@ class Registry:
         *models: Model[Any, Any],
         distribution: str = "local",
         extras: Mapping[str, Iterable[str]] | None = None,
+        excluded: Mapping[str, Iterable[str]] | None = None,
     ) -> Registry:
         """Build an isolated registry from model objects.
 
@@ -221,11 +262,16 @@ class Registry:
         extras
             The extras that distribution declares, each with the distribution
             names it installs.
+        excluded
+            Distribution names an extra's environment markers leave out here.
         """
         provider = Provider(
             name=distribution,
             extras=MappingProxyType(
                 {name: tuple(packages) for name, packages in (extras or {}).items()}
+            ),
+            excluded=MappingProxyType(
+                {name: tuple(packages) for name, packages in (excluded or {}).items()}
             ),
         )
         return cls(Registration(model, provider) for model in models)

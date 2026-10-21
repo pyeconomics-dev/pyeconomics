@@ -41,6 +41,7 @@ from typing import (
 )
 
 import annotated_types as at
+import numpy as np
 from hypothesis import strategies as st
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
@@ -1817,3 +1818,200 @@ def _black_litterman() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["portfolio.black_litterman"] = _black_litterman
+
+
+# --- econometrics: volatility and time-series models ---------------------------------
+
+
+def _path(kind: str, size: int, seed: int, level: float) -> list[float]:
+    """Simulate a path of one kind at a scale: the families a fit meets."""
+    rng = np.random.default_rng(seed)
+    noise = rng.standard_normal(size)
+    if kind == "garch":
+        variance, path = 1.0, []
+        for z in noise:
+            shock = math.sqrt(variance) * float(z)
+            path.append(shock)
+            variance = 0.05 + 0.1 * shock * shock + 0.85 * variance
+        values = np.asarray(path)
+    elif kind == "walk":
+        values = np.cumsum(noise)
+    elif kind == "ar":
+        values = np.zeros(size)
+        for t in range(1, size):
+            values[t] = 0.7 * values[t - 1] + noise[t]
+    elif kind == "spike":
+        values = noise * 1e-3
+        values[size // 2] = 5.0
+    elif kind == "flat":
+        values = np.zeros(size)
+    elif kind == "steps":
+        steps = rng.integers(-3, 4, size // 10 + 1)
+        values = np.repeat(steps, 10)[:size].astype(float)
+    else:
+        values = noise
+    return [float(v) for v in values * level]
+
+
+_PATHS: Final = st.sampled_from(
+    ["garch", "noise", "walk", "ar", "spike", "flat", "steps"]
+)
+#: A path's scale: decimal returns, tiny ones, and levels up to a billion.
+_LEVELS: Final = st.sampled_from([1e-9, 1e-4, 0.01, 0.2, 1.0, 50.0, 1e6, 1e9])
+
+
+@st.composite
+def _fixed_volatility(draw: st.DrawFn, drawn: dict[str, Any]) -> list[float]:
+    """Draw fixed parameters the inputs accept: stationary, non-negative."""
+    calculation, p, q = drawn["calculation"], drawn["p"], drawn["q"]
+    o = drawn.get("asymmetric_lags", 0)
+    values: list[float] = []
+    if drawn["mean"] == "constant":
+        values.append(draw(st.floats(-0.01, 0.01)))
+    if calculation == "egarch":
+        values.append(draw(st.floats(-1.0, 0.0)))
+        values += draw(st.lists(st.floats(-0.3, 0.3), min_size=p + o, max_size=p + o))
+        values += draw(st.lists(st.floats(-0.45, 0.45), min_size=q, max_size=q))
+    else:
+        values.append(draw(st.floats(1e-8, 1e-3)))
+        # Up to a persistence of one: alpha + gamma / 2 + beta <= 1.
+        share = draw(st.floats(0.0, 1.0)) / (p + o + q)
+        values += [share] * (p + o + q)
+    if drawn["distribution"] == "student_t":
+        values.append(draw(st.floats(2.5, 50.0)))
+    return values
+
+
+@st.composite
+def _garch_inputs(draw: st.DrawFn) -> dict[str, Any]:
+    """Draw a volatility model and returns within its bounds: fitted or fixed."""
+    calculation = draw(st.sampled_from(["garch", "gjr", "egarch"]))
+    size = draw(st.one_of(st.integers(100, 160), st.integers(161, 400)))
+    level = draw(st.sampled_from([1e-9, 1e-4, 0.01, 0.05, 1.0]))
+    path = _path(draw(_PATHS), size, draw(st.integers(0, 2**32 - 1)), level)
+    drawn: dict[str, Any] = {
+        "calculation": calculation,
+        "returns": [max(-10.0, min(10.0, v)) for v in path],
+        "periods_per_year": draw(st.integers(1, 366)),
+        "mean": draw(st.sampled_from(["constant", "zero"])),
+        "distribution": draw(st.sampled_from(["normal", "student_t"])),
+        "p": draw(st.integers(1, 2)),
+        "q": draw(st.integers(0, 2)),
+        "horizon": draw(st.one_of(st.integers(1, 30), st.just(500))),
+        "covariance": draw(st.sampled_from(["robust", "classic"])),
+    }
+    if calculation != "garch":
+        drawn["asymmetric_lags"] = draw(st.integers(int(calculation == "gjr"), 2))
+    if calculation == "egarch":
+        drawn["simulations"] = draw(st.integers(100, 300))
+        drawn["seed"] = draw(st.integers(0, 2**32 - 1))
+    if draw(st.integers(0, 3)) == 0:
+        drawn["fixed_parameters"] = draw(_fixed_volatility(drawn))
+    return drawn
+
+
+def _garch() -> SearchStrategy[dict[str, Any]]:
+    """``econometrics.garch``: orders, returns and fixed parameters that agree."""
+    module = importlib.import_module("pyeconomics.models.econometrics.garch")
+    members = {
+        "garch": module.GarchInputs,
+        "gjr": module.GjrInputs,
+        "egarch": module.EgarchInputs,
+    }
+
+    def accepted(drawn: dict[str, Any]) -> bool:
+        return _accepts(members[drawn["calculation"]])(drawn)
+
+    return st.one_of(
+        _garch_inputs().filter(accepted),
+        st.sampled_from([dict(e.inputs) for e in module.garch.spec.examples]),
+    )
+
+
+OVERRIDES["econometrics.garch"] = _garch
+
+
+def _series_options(draw: st.DrawFn, calculation: str) -> dict[str, Any]:
+    """Draw the options of one time-series calculation."""
+    if calculation == "arima":
+        season = draw(st.sampled_from([0, 2, 3, 4, 12]))
+        return {
+            "ar": draw(st.integers(0, 3)),
+            "differences": draw(st.integers(0, 1)),
+            "ma": draw(st.integers(0, 2)),
+            "season": season,
+            "seasonal_ar": draw(st.integers(0, 1)) if season else 0,
+            "seasonal_differences": draw(st.integers(0, 1)) if season else 0,
+            "seasonal_ma": draw(st.integers(0, 1)) if season else 0,
+            "trend": draw(st.sampled_from([None, "n", "c", "t", "ct"])),
+            "horizon": draw(st.integers(1, 24)),
+            "alpha": draw(st.floats(0.01, 0.2)),
+        }
+    if calculation == "var":
+        return {
+            "lags": draw(st.one_of(st.none(), st.integers(1, 3))),
+            "max_lags": draw(st.integers(1, 4)),
+            "criterion": draw(st.sampled_from(["aic", "bic", "hqic"])),
+            "trend": draw(st.sampled_from(["n", "c", "ct"])),
+            "horizon": draw(st.integers(1, 12)),
+        }
+    if calculation == "engle_granger":
+        return {
+            "trend": draw(st.sampled_from(["c", "ct", "ctt"])),
+            "max_lags": draw(st.one_of(st.none(), st.integers(0, 4))),
+            "lag_criterion": draw(st.sampled_from([None, "aic", "bic"])),
+        }
+    return {
+        "deterministic": draw(st.sampled_from(["none", "constant", "trend"])),
+        "lagged_differences": draw(st.integers(1, 3)),
+        "significance": draw(st.sampled_from([0.1, 0.05, 0.01])),
+    }
+
+
+@st.composite
+def _series_inputs(draw: st.DrawFn) -> dict[str, Any]:
+    """Draw a time-series calculation and variables of one length."""
+    calculation = draw(st.sampled_from(["arima", "var", "engle_granger", "johansen"]))
+    long = calculation == "engle_granger" and draw(st.integers(0, 9)) == 0
+    size = draw(st.integers(1601, 2000)) if long else draw(st.integers(7, 150))
+    level = draw(_LEVELS)
+    count = 1 if calculation == "arima" else draw(st.integers(2, 4))
+    columns = [
+        _path(draw(_PATHS), size, draw(st.integers(0, 2**32 - 1)), level)
+        for _ in range(count)
+    ]
+    if count > 1 and draw(st.integers(0, 4)) == 0:
+        columns[-1] = [2.0 * v for v in columns[0]]  # collinear
+    if count > 1 and draw(st.integers(0, 4)) == 0:
+        columns[1] = [
+            0.5 * a + b * 1e-3 for a, b in zip(columns[0], columns[1], strict=True)
+        ]
+    fields = ("series", "second", "third", "fourth")
+    drawn: dict[str, Any] = {"calculation": calculation}
+    drawn.update(zip(fields, columns, strict=False))
+    drawn.update(_series_options(draw, calculation))
+    if count > 1 and draw(st.integers(0, 4)) == 0:
+        drawn["names"] = [f"{'v' * 30}{i}" for i in range(count)]  # long names
+    return drawn
+
+
+def _time_series() -> SearchStrategy[dict[str, Any]]:
+    """``econometrics.time_series``: variables of one length, orders that fit."""
+    module = importlib.import_module("pyeconomics.models.econometrics.time_series")
+    members = {
+        "arima": module.ArimaInputs,
+        "var": module.VarInputs,
+        "engle_granger": module.EngleGrangerInputs,
+        "johansen": module.JohansenInputs,
+    }
+
+    def accepted(drawn: dict[str, Any]) -> bool:
+        return _accepts(members[drawn["calculation"]])(drawn)
+
+    return st.one_of(
+        _series_inputs().filter(accepted),
+        st.sampled_from([dict(e.inputs) for e in module.time_series.spec.examples]),
+    )
+
+
+OVERRIDES["econometrics.time_series"] = _time_series
