@@ -1580,3 +1580,240 @@ def _cape() -> SearchStrategy[dict[str, Any]]:
 
 
 OVERRIDES["equity.cape"] = _cape
+
+
+# --- asset pricing: one sample of returns and factors --------------------------
+
+_FACTOR_VALUES: Final = st.one_of(
+    st.floats(min_value=-0.2, max_value=0.2), st.floats(min_value=-10.0, max_value=10.0)
+)
+
+
+@st.composite
+def _factor_sample(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a regression's returns, factors and risk-free return of one length."""
+    names = ("returns", *getattr(cls, "FACTOR_NAMES"))  # noqa: B009 - a class constant
+    least = len(names) + 1
+    drawn = draw(_fields(cls))
+    size = draw(st.one_of(st.integers(least, least + MAX_ITEMS), st.integers(60, 240)))
+    series = st.lists(_FACTOR_VALUES, min_size=size, max_size=size)
+    for name in names:
+        drawn[name] = draw(series)
+    if draw(st.integers(0, 9)) == 0 and len(names) > 2:
+        # Collinear factors: the regression must refuse them.
+        drawn[names[2]] = list(drawn[names[1]])
+    drawn["risk_free"] = draw(
+        st.one_of(
+            st.none(),
+            st.lists(
+                st.floats(min_value=0.0, max_value=0.01), min_size=size, max_size=size
+            ),
+        )
+    )
+    drawn["lags"] = draw(st.one_of(st.none(), st.integers(0, min(size - 1, 100))))
+    return drawn
+
+
+def _factor_regression() -> SearchStrategy[dict[str, Any]]:
+    """``asset_pricing.factor_regression``: series of one length, more than k."""
+    module = importlib.import_module(
+        "pyeconomics.models.asset_pricing.factor_regression"
+    )
+    members = (
+        module.CapmInputs,
+        module.Ff3Inputs,
+        module.CarhartInputs,
+        module.Ff5Inputs,
+        module.Ff6Inputs,
+    )
+    return st.one_of(
+        *(_factor_sample(member).filter(_accepts(member)) for member in members),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.factor_regression.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["asset_pricing.factor_regression"] = _factor_regression
+
+
+@st.composite
+def _panel(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw test assets' and factors' returns over one set of periods."""
+    drawn = draw(_fields(cls))
+    factors = draw(st.integers(1, 3))
+    assets = draw(st.integers(factors + 2, factors + 6))
+    least = assets + factors + 1
+    periods = draw(
+        st.one_of(st.integers(least, least + MAX_ITEMS), st.integers(60, 150))
+    )
+    drawn["returns"] = draw(
+        st.lists(
+            st.lists(_FACTOR_VALUES, min_size=assets, max_size=assets),
+            min_size=periods,
+            max_size=periods,
+        )
+    )
+    drawn["factors"] = draw(
+        st.lists(
+            st.lists(_FACTOR_VALUES, min_size=factors, max_size=factors),
+            min_size=periods,
+            max_size=periods,
+        )
+    )
+    if draw(st.integers(0, 9)) == 0:
+        # An asset that is a factor: no residual variance.
+        for row, factor_row in zip(drawn["returns"], drawn["factors"], strict=True):
+            row[0] = factor_row[0]
+    drawn["risk_free"] = draw(
+        st.one_of(
+            st.none(),
+            st.lists(
+                st.floats(min_value=0.0, max_value=0.01),
+                min_size=periods,
+                max_size=periods,
+            ),
+        )
+    )
+    return drawn
+
+
+def _factor_model_tests() -> SearchStrategy[dict[str, Any]]:
+    """``asset_pricing.factor_model_tests``: a panel with enough periods and assets."""
+    module = importlib.import_module(
+        "pyeconomics.models.asset_pricing.factor_model_tests"
+    )
+    members = (module.GrsInputs, module.FamaMacBethInputs)
+    return st.one_of(
+        *(_panel(member).filter(_accepts(member)) for member in members),
+        st.sampled_from(
+            [
+                dict(example.inputs)
+                for example in module.factor_model_tests.spec.examples
+            ]
+        ),
+    )
+
+
+OVERRIDES["asset_pricing.factor_model_tests"] = _factor_model_tests
+
+
+# --- portfolio: risk-based allocation and Black-Litterman ----------------------
+
+
+@st.composite
+def _risk_matrix(draw: st.DrawFn, drawn: dict[str, Any], size: int) -> dict[str, Any]:
+    """Give ``drawn`` one source of risk: a matrix, volatilities or returns."""
+    for name in ("covariance", "volatilities", "correlations", "returns"):
+        drawn.pop(name, None)
+    vols = draw(
+        st.lists(
+            st.one_of(st.floats(0.01, 1.0), st.floats(1e-6, 10.0)),
+            min_size=size,
+            max_size=size,
+        )
+    )
+    correlations = draw(_correlations(size))
+    if size > 1 and draw(st.integers(0, 9)) == 0:
+        # Two perfectly correlated assets: a singular matrix.
+        correlations[0] = list(correlations[1])
+        for row in correlations:
+            row[0] = row[1]
+        correlations[0][0] = 1.0
+    source = draw(st.integers(0, 2))
+    if source == 0:
+        drawn["volatilities"], drawn["correlations"] = vols, correlations
+    elif source == 1:
+        drawn["covariance"] = [
+            [correlations[i][j] * vols[i] * vols[j] for j in range(size)]
+            for i in range(size)
+        ]
+    else:
+        periods = draw(st.integers(2, 40))
+        drawn["returns"] = draw(
+            st.lists(
+                st.lists(st.floats(-0.5, 2.0), min_size=size, max_size=size),
+                min_size=periods,
+                max_size=periods,
+            )
+        )
+    return drawn
+
+
+@st.composite
+def _allocation(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw a risk-based allocation's single source of risk."""
+    size = draw(st.integers(min_value=1, max_value=8))
+    return draw(_risk_matrix(draw(_fields(cls)), size))
+
+
+def _risk_based_allocation() -> SearchStrategy[dict[str, Any]]:
+    """``portfolio.risk_based_allocation``: one square risk matrix or window."""
+    module = importlib.import_module(
+        "pyeconomics.models.portfolio.risk_based_allocation"
+    )
+    members = (
+        module.InverseVolatilityInputs,
+        module.EqualRiskContributionInputs,
+        module.HierarchicalRiskParityInputs,
+    )
+    return st.one_of(
+        *(_allocation(member).filter(_accepts(member)) for member in members),
+        st.sampled_from(
+            [
+                dict(example.inputs)
+                for example in module.risk_based_allocation.spec.examples
+            ]
+        ),
+    )
+
+
+OVERRIDES["portfolio.risk_based_allocation"] = _risk_based_allocation
+
+
+@st.composite
+def _views(draw: st.DrawFn, cls: type[BaseModel]) -> dict[str, Any]:
+    """Draw the prior and views of one size, with matching confidences."""
+    size = draw(st.integers(min_value=1, max_value=6))
+    drawn = draw(_risk_matrix(draw(_fields(cls)), size))
+    drawn["market_weights"] = draw(
+        st.lists(st.floats(0.0, 1.0), min_size=size, max_size=size)
+    )
+    for name in ("picks", "view_returns", "confidences"):
+        drawn.pop(name, None)
+    views = draw(st.integers(0, size + 1))
+    if views:
+        drawn["picks"] = draw(
+            st.lists(
+                st.lists(st.floats(-10.0, 10.0), min_size=size, max_size=size),
+                min_size=views,
+                max_size=views,
+            )
+        )
+        drawn["view_returns"] = draw(
+            st.lists(st.floats(-0.5, 0.5), min_size=views, max_size=views)
+        )
+        if drawn.get("confidence") == "idzorek":
+            drawn["confidences"] = draw(
+                st.lists(
+                    st.one_of(st.floats(1e-6, 1.0), st.just(1.0)),
+                    min_size=views,
+                    max_size=views,
+                )
+            )
+    return drawn
+
+
+def _black_litterman() -> SearchStrategy[dict[str, Any]]:
+    """``portfolio.black_litterman``: a prior and views that fit its assets."""
+    module = importlib.import_module("pyeconomics.models.portfolio.black_litterman")
+    cls = module.BlackLittermanInputs
+    return st.one_of(
+        _views(cls).filter(_accepts(cls)),
+        st.sampled_from(
+            [dict(example.inputs) for example in module.black_litterman.spec.examples]
+        ),
+    )
+
+
+OVERRIDES["portfolio.black_litterman"] = _black_litterman

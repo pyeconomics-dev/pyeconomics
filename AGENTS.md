@@ -189,8 +189,9 @@ From Phase 3 Step 12, which binds models to data (ADR-0011 decision 16):
   model with bindings declares a `default` profile, binds a numeric field once
   per profile, gives an array field `AsOf.WINDOW` with a `window` within its
   `max_length` (or, for a curve's row of tenors, `tenors=` naming the array of
-  years that pairs with it), and names a catalog concept (permanent ids,
-  decision 15).
+  years that pairs with it; a matrix field, a tuple of rows, reads a table
+  concept's window of rows, with `columns=` to keep some columns in order), and
+  names a catalog concept (permanent ids, decision 15).
   `registry.validate()` reports the structural problems under the `bindings`
   rule; `uv run python -c "from pyeconomics import data;
   data.validate_bindings()"` checks the concepts against the catalog.

@@ -15,6 +15,45 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- The `asset_pricing` domain, registered through its own entry point in the
+  `pyeconomics.models` group, with two models.
+- `asset_pricing.factor_regression`: an asset's excess returns regressed on the
+  market (CAPM, with the security market line's expected return at a stated
+  premium), the Fama-French three and five factors, Carhart's four or the
+  six-factor model, through `core.least_squares`: alpha per period and annualized,
+  each beta with Newey-West (default), HC1 or classical errors, R-squared and the
+  residual volatility. Golden cases reproduce NIST's certified Norris, Longley and
+  Wampler1 regressions; the oracle is statsmodels' OLS. It binds 60 months of the
+  Ken French factors (the three-factor file by default, the five-factor file with
+  profile `ff5`); the asset's returns are the user's own.
+- `asset_pricing.factor_model_tests`: the Gibbons-Ross-Shanken F test that every
+  alpha is zero (both covariances at divisor T, the p-value through the
+  incomplete beta function) and Fama-MacBeth two-pass regressions with
+  Fama-MacBeth and Shanken-corrected standard errors. The oracles are SciPy's F
+  distribution and a period-by-period statsmodels recomputation. It binds ten
+  years of the 25 size and book-to-market portfolios and the three or five
+  factors.
+- `portfolio.black_litterman`: equilibrium returns from market weights, views
+  blended in with He and Litterman's or Idzorek's view uncertainty, the posterior
+  returns and covariance, and the optimal weights against the covariance (the
+  market's with no views) and against the posterior covariance (He and
+  Litterman's). Golden cases reproduce He and Litterman's Tables 4, 6 and 7 and
+  Idzorek's Tables 6 and 7; the oracle is Theil's mixed estimation by matrix
+  inverses. It binds ten years of the 12 industry portfolios for the covariance.
+- `portfolio.risk_based_allocation`: inverse-volatility, equal-risk-contribution
+  (Newton's method on the convex log-barrier problem, to a relative tolerance of
+  1e-12 in at most 200 steps) and hierarchical-risk-parity weights, with each
+  asset's risk contribution and the volatility. Golden cases reproduce Maillard,
+  Roncalli and Teiletche's example and López de Prado's Exhibit 7; the oracles
+  are SciPy's L-BFGS-B on the same objective and a transcription of the paper's
+  code. It binds ten years of the 12 industry portfolios.
+- Matrix bindings: a field that is a tuple of rows, bound to a table concept with
+  `AsOf.WINDOW`, reads one row per period with one value per column, and
+  `Binding(..., columns=(...))` keeps only the named columns, in order. New series
+  concepts for each Ken French factor, monthly: `factors.ff3_market`,
+  `factors.ff3_smb`, `factors.ff3_hml`, `factors.risk_free`, `factors.ff5_market`,
+  `factors.ff5_smb`, `factors.ff5_rmw`, `factors.ff5_cma` and `factors.mom`, each
+  `.us.monthly`.
 - SEC EDGAR (`sec_edgar`): recent filings as typed `Filing` records, and XBRL
   company concepts, company facts and frames as series, one value per calendar
   period of the chosen span (instant, quarter or year) at the filer's own period
@@ -289,6 +328,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- `core.least_squares` no longer overflows when the response and the regressors
+  are both tiny (subnormal): coefficients and errors scale back through the ratio
+  of the scales, and a coefficient beyond the floating-point range raises
+  DomainError. Ordinary inputs give the same results.
 - `performance.brinson_attribution` no longer raises a math domain error when a
   period's portfolio return is within rounding of -100% beside a higher benchmark
   return: Carino's log ratio then comes from the two logarithms (#145). Inputs
@@ -335,6 +378,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - `foundations.time_value`, `corporate.capital_budgeting` and
   `performance.return_measurement` advance from model version 1 to 2 for the
   IRR endpoint correction. Permanent model ids remain unchanged.
+
+### Security
+
+- certifi, which the `sdmx` and `yfinance` extras install, moves to 2026.10.19
+  for PYSEC-2026-4320; its MPL-2.0 licence is unchanged.
 
 ## [1.0.0a1] - 2026-10-13
 

@@ -484,14 +484,14 @@ the `licences` hook and the wheel listing at step time are the authority:
 | certifi | 2026.7.22 | `MPL-2.0` | Fails: reviewed exception, reached only through `[sdmx]` and `[yfinance]` | pure Python | transitive |
 | yfinance | 1.7.0 | `Apache-2.0`; closure: curl_cffi (with cffi, `MIT-0`, on every OS), peewee (no licence metadata), protobuf, websockets, lxml, beautifulsoup4, multitasking, pytz | Fails until peewee and certifi carry reviewed exceptions (cffi's comes from Step 3) | pure Python; compiled parts abi3 | `[yfinance]` extra (Step 10) |
 | arch | 8.0.0 (2025-10-21) | `NCSA` | Passes | none (cp310–cp314 only) | `[econometrics]` (Step 17, under the Wheel rule) |
-| linearmodels | 7.0 | `NCSA` | outside the allowlist's scope (test only) | none | test-oracle candidate (Step 16) |
+| linearmodels | 7.1 (2026-10-16) | `NCSA` | outside the allowlist's scope (test only) | yes, every OS (from 7.1) | not used: statsmodels and SciPy are Step 16's oracles |
 | quantecon | 0.13.0 | no licence metadata (BSD-3-Clause in its repository) | outside the allowlist's scope (test only) | pure Python; numba has cp315 | test oracle for the Hamilton filter (Step 14) |
 | statsmodels | 0.15.0 | `BSD-3-Clause` | Passes (already in `[econometrics]`) | yes | adapter and oracle (Steps 14–17) |
 | httpx | 0.28.1 (2024-12-06) | `BSD-3-Clause`; requires certifi | — | pure Python | not used (ADR-0011 decision 10) |
 | duckdb | 1.5.6 | classifier `MIT License` | — | none | not used (ADR-0011 decision 14) |
 | wbgapi | 1.0.14 | `MIT`; requires PyYAML (no cp315 wheel) and requests | — | — | not used: in-house client (Step 8) |
 | edgartools | 5.62.0 | `MIT`; requires pyarrow and 19 more packages | — | — | not used: ADR-0008 decision 8 (Step 7) |
-| PyPortfolioOpt | 1.6.0 | `MIT`; requires cvxpy (no cp315 wheel) | — | — | not used as an oracle (Step 16) |
+| PyPortfolioOpt | 1.6.0 | `MIT`; requires cvxpy (no cp315 wheel) and scikit-base < 0.14, which needs Python < 3.15 | — | — | not used: it cannot install on CPython 3.15 (Step 16) |
 | openassetpricing | 0.0.2 | `GPLv2` | Excluded by licence | — | not used: in-house client (Step 10) |
 
 **Wheel rule.** CI runs every cell of Python 3.12–3.15 on Ubuntu, Windows
@@ -9281,9 +9281,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 16 — Launch Catalog: Asset Pricing and Portfolio
+## Step 16 — Launch Catalog: Asset Pricing and Portfolio ✅
 
-**Status:** Not started
+**Status:** Complete — PR #153 (2026-10-20)
 
 > **Goal:** Open the `asset_pricing` domain and finish the portfolio
 > entries. Add `src/pyeconomics/models/asset_pricing/` with
@@ -9322,6 +9322,10 @@ the price. New conversation per phase-boundary hygiene.
 > Model and effort unchanged (Balanced column); the single-column table
 > becomes the full ladder, and the backup is now GPT-6.1 Sol at Intelligence
 > XHigh.
+
+> Ran 2026-10-20: Balanced — Claude Opus 5.5 on Claude Code (effort as the
+> operator set it). The **Runs:** column; the Claude weekly pool's `tight` row
+> had passed its reset, so it read as headroom.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY; complexity is High and the step is not novel (the methods are published and oracles check them). The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -11989,7 +11993,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #140 |
 | 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #144 |
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #146 |
-| 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #153 |
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
 | 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Not started |
@@ -12329,6 +12333,36 @@ Additionally not in scope for this phase:
   it to Phase 7's fixed-income batch.
 
 Carried over during execution — the Triage rule's carry-over checklist:
+
+- Step 16 (launch catalog: asset pricing and portfolio, 2026-10-20):
+  `models/asset_pricing/` (a new domain with its own entry point) adds
+  `asset_pricing.factor_regression` and `asset_pricing.factor_model_tests`, and
+  `models/portfolio/` adds `portfolio.black_litterman` and
+  `portfolio.risk_based_allocation`. Contract change made in-step under the
+  Contract-change rule, the smallest that works: a matrix binding (Step 12). A
+  field that is a tuple of rows, bound to a table concept with `AsOf.WINDOW`,
+  reads one row per period of the window and one value per column, and
+  `Binding(..., columns=...)` keeps only the named columns, in order; its window
+  ends with the other windows of its frequency. `FieldShape` gains `matrix` and
+  `width`, `Binding.to_dict()` and `describe()` gain `columns`, and the card names
+  them. A test of N assets on L factors needs a panel, and a binding read only a
+  series or a curve's row (ADR-0011 decision 16 stands: a window of N
+  observations, which for a table are its rows; `columns` is an addition, as
+  `tenors` was). New series concepts for the nine monthly Ken French factors
+  (Step 11's catalog had them only as table columns). Facts for later steps: the
+  five-factor file's SMB differs from the three-factor file's in 743 of 758 months
+  (by 0.38 percentage points on average) and its Mkt-RF by up to 0.08 in 167,
+  while HML and RF are identical; the 25 size and book-to-market portfolios reach
+  148% in a month; He and Litterman's numeric tables are in the 2002 SSRN version
+  (334304), which optimizes against Sigma + M, not the 1999 Goldman Sachs paper,
+  which prints only inputs and charts and optimizes against Sigma; Idzorek's
+  printed results use lambda = 0.03 / (w' Sigma w) = 3.0658, not the 3.07 he
+  quotes, and his numerical confidence calibration has the exact solution
+  omega = (1 - c) / c p tau Sigma p'; Lopez de Prado's Exhibit 7 reproduces only
+  with Python 2's `random.randint`; the GRS factor covariance takes divisor T
+  (Cochrane 2005, eq. 12.6; Kamstra and Shi 2021); Fama and MacBeth (1973) state
+  no divisor for their standard deviation. Step 12 reads Complete, so its task
+  stands as history and the change is recorded here.
 
 - Step 15 (launch catalog: fixed income and equity, 2026-10-19):
   `models/fixed_income/` adds `fixed_income.curve_fitting` and

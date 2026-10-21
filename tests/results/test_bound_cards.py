@@ -127,6 +127,7 @@ def test_describe_carries_the_bindings_in_a_fixed_position() -> None:
         "vintage": "real_time",
         "profile": "default",
         "tenors": None,
+        "columns": [],
     }
     assert [b["profile"] for b in description["bindings"]] == [
         "default",

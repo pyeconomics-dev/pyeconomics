@@ -76,6 +76,10 @@ CATALOG = (
 )
 
 MACRO = {"macro.neutral_rate", "macro.policy_rule"}
+ASSET_PRICING = {
+    "asset_pricing.factor_model_tests",
+    "asset_pricing.factor_regression",
+}
 
 ROADMAPS = Path(__file__).resolve().parents[2] / "docs" / "roadmap"
 ROADMAP = ROADMAPS / "phase02-roadmap.md"
@@ -167,7 +171,15 @@ def test_step10_domains_are_installed(domain: str, expected: set[str]) -> None:
 def test_step11_and_step12_domains_are_installed(
     domain: str, expected: set[str]
 ) -> None:
-    assert {m.id for m in registry.models(domain)} == expected
+    found = {m.id for m in registry.models(domain)}
+    # At least: Phase 3 Step 16 adds two portfolio models (the table below lists
+    # them).
+    assert found >= expected if domain == "portfolio" else found == expected
+
+
+def test_the_asset_pricing_entry_point_registers_its_two_models() -> None:
+    assert {m.id for m in registry.models("asset_pricing")} == ASSET_PRICING
+    assert "asset_pricing" in registry.domains()
 
 
 def test_the_macro_entry_point_registers_the_policy_suite() -> None:

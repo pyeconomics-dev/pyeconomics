@@ -226,6 +226,37 @@ def _r_squared(y: _Matrix, residuals: _Matrix, *, constant: bool) -> float | Non
     return min(1.0, max(0.0, 1.0 - float(residuals @ residuals) / total))
 
 
+def _unscaled(
+    beta: _Matrix, roots: _Matrix, scales: _Matrix, unit: float
+) -> tuple[_Matrix, _Matrix]:
+    """Return the coefficients and errors in the data's units.
+
+    Dividing by a subnormal column scale first overflows when the response and
+    the regressors are both tiny; then the ratio ``unit / scales``, which is
+    moderate, carries them back instead.
+
+    Raises
+    ------
+    DomainError
+        If a coefficient is still past the floating-point range: a regressor
+        tiny next to the response.
+    """
+    with np.errstate(over="ignore", invalid="ignore"):
+        coefficients = beta / scales * unit
+        errors = roots / scales * unit
+        if not (np.all(np.isfinite(coefficients)) and np.all(np.isfinite(errors))):
+            ratio = unit / scales
+            coefficients = beta * ratio
+            errors = roots * ratio
+    if not (np.all(np.isfinite(coefficients)) and np.all(np.isfinite(errors))):
+        msg = (
+            "a regressor is so small next to the response that its coefficient "
+            "is beyond the floating-point range"
+        )
+        raise DomainError(msg)
+    return coefficients, errors
+
+
 def least_squares(
     response: ArrayLike,
     design: ArrayLike,
@@ -262,7 +293,8 @@ def least_squares(
         degrees of freedom, a lag out of range or more than the bounds allow.
     DomainError
         When a regressor is zero throughout or the design is collinear to
-        working precision: the coefficients are not identified.
+        working precision: the coefficients are not identified; or when a
+        coefficient is beyond the floating-point range.
 
     Examples
     --------
@@ -317,8 +349,8 @@ def least_squares(
         cov = _sandwich(projection, residuals, kind, used)
         if kind is Covariance.HC1:
             cov *= rows / dof
-    errors = np.sqrt(np.clip(np.diag(cov), 0.0, None)) / scales * unit
-    coefficients = beta / scales * unit
+    roots = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    coefficients, errors = _unscaled(beta, roots, scales, unit)
     exact = _exact(ys, residuals, constant=constant)
     t_statistics = None
     if not exact and np.all(errors > 0):

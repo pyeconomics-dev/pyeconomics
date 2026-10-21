@@ -37,6 +37,7 @@ assert binding.profile == "default"
 | `vintage` | `VintagePolicy.REAL_TIME` (the default) or `VintagePolicy.LATEST`, which is revised data and is labelled so. |
 | `profile` | The named set of bindings this one belongs to. |
 | `tenors` | For a curve: the array field that receives the tenor, in years, of each value the curve's row holds (below). |
+| `columns` | For a matrix field read from a table: the columns each row keeps, in order; empty keeps them all (below). |
 
 A **profile** is one complete set of bindings: realized data, a forecast source,
 another economy. A model that declares bindings declares a `default` profile, and
@@ -66,17 +67,51 @@ A caller who supplies the curve supplies both fields; one without the other is
 refused. `fixed_income.curve_fitting` fits Treasury's par curve this way, and
 `fixed_income.interest_rate_tree` calibrates to it.
 
+### Matrices
+
+A panel of returns is a table concept read over a window: the Ken French
+portfolio sets (`portfolios.size_bm25.us.monthly`) and factor sets
+(`factors.ff3.us.monthly`). A field that is a tuple of rows, each a tuple of
+values, bound with `AsOf.WINDOW`, receives one row per period of the window and,
+in each, one value per column of the table, or of the columns `columns` names,
+in that order. Its window ends with the other windows of its frequency (a row
+ends a window only when every column it keeps holds a value), so its rows pair by
+position with a series bound beside it; a gap inside the window raises, as it
+does for a series. A matrix binding takes no transform and names no more columns
+than a row of the field holds. The manifest records the table once, for the
+field.
+
+```python
+from pyeconomics.core import AsOf, Binding
+
+factors = Binding(
+    "factors",
+    "factors.ff3.us.monthly",
+    as_of=AsOf.WINDOW,
+    window=120,
+    columns=("Mkt-RF", "SMB", "HML"),
+)
+assert factors.columns == ("Mkt-RF", "SMB", "HML")
+```
+
+`asset_pricing.factor_model_tests` binds ten years of the 25 size and
+book-to-market portfolios and those three factors this way, and
+`portfolio.risk_based_allocation` ten years of the 12 industry portfolios.
+
 `registry.validate()` holds every binding to its structural rules, each reported
 as `<model>: [bindings] <detail>`: the field exists and is numeric; it is bound
 once per profile; an array field has a window and a scalar field has none, within
 the field's `max_length`, unless the binding reads a curve, whose values go to an
 array and whose `tenors` go to another array of years, at the last observation
-on or before the date and untransformed; the `default` profile exists; the
+on or before the date and untransformed; a matrix field's binding has no
+transform, and `columns` only on a matrix, each named once and no more than a row
+holds; the `default` profile exists; the
 concept id follows the catalog's grammar; the transform is one the vocabulary
 declares, with parameters its schema accepts, and reads one series. Core cannot
 read the catalog, so `pyeconomics.data.validate_bindings()` checks the rest
 against the installed concepts: that each exists, is a series (or, for a curve,
-a table whose every candidate names tenor columns), suits the field's unit kind
+a table whose every candidate names tenor columns; for a matrix, a table with the
+columns named, where its candidates declare theirs), suits the field's unit kind
 and suits the as-of rule. Run both:
 
 ```text
@@ -115,7 +150,7 @@ This model reads data through bindings: resolve a profile with `pyeconomics.bind
 
 `registry.describe` also carries the bindings as data, in a `bindings` key placed
 before `extra`: for each, the `field`, `concept`, `transform`, `as_of`, `window`,
-`vintage`, `profile` and `tenors`.
+`vintage`, `profile`, `tenors` and `columns`.
 
 ## Binding and running
 

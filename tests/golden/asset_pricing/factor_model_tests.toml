@@ -1,0 +1,228 @@
+# tests/golden/asset_pricing/factor_model_tests.toml
+model = "asset_pricing.factor_model_tests"
+
+[[sources]]
+key = "nist_strd"
+kind = "certified"
+citation = "NIST Statistical Reference Datasets, linear least squares regression: Norris, certified intercept B0 and its standard deviation. For one asset on one factor the GRS statistic is the square of the intercept's classical t statistic, (T - 2) a^2 / (s_e^2 (1 + f^2 / s_f^2)) with divisor T for both variances (Gibbons, Ross and Shanken 1989, eq. 5)."
+url = "https://www.itl.nist.gov/div898/strd/lls/lls.shtml"
+
+[[sources]]
+key = "grs1989"
+kind = "paper"
+citation = "Gibbons, M. R., Ross, S. A. and Shanken, J. (1989). A Test of the Efficiency of a Given Portfolio. Econometrica, 57(5), 1121-1152. The statistic for L portfolios applied to synthetic returns, both covariances at divisor T (as Cochrane 2005, eq. 12.6), recomputed with exact rational arithmetic."
+doi = "10.2307/1913625"
+
+[[sources]]
+key = "fm1973"
+kind = "paper"
+citation = "Fama, E. F. and MacBeth, J. D. (1973). Risk, Return, and Equilibrium: Empirical Tests. Journal of Political Economy, 81(3), 607-636; with Shanken (1992)'s correction in his eq. (11) form. Applied to synthetic returns: time-series betas, a cross-section a period, the average and its error with divisor T (Cochrane 2005, p. 246; Goyal 2012, eq. 32), recomputed with exact rational arithmetic and 50-digit square roots."
+doi = "10.1086/260061"
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "Closed forms: with zero estimated alphas the GRS statistic is zero and its p-value one; F(1, 1) is the square of a Student t with one degree of freedom, so P(F > w) = 1 - (2 / pi) arctan(sqrt w); when each return is exactly g0 + b_i f_t, the residuals vanish, every cross-section returns (g0, f_t), the premium is the factor's mean and its error the factor's standard deviation (divisor T) over sqrt(T)."
+
+[[cases]]
+id = "grs_norris_one_asset"
+source = "nist_strd"
+locator = "Norris.dat, certified regression statistics (B0 and its standard deviation)"
+edge = false
+expected = { statistic = 1.2695184084189832, alphas = [-0.000262323073774029], numerator_degrees_of_freedom = 1, denominator_degrees_of_freedom = 34, observations = 36 }
+tolerance = { statistic = { rel = 1e-9 }, alphas = { rel = 1e-10 } }
+note = "Norris y on x, each divided by 1,000: the statistic is (B0 / sd(B0))^2."
+
+[cases.inputs]
+calculation = "grs"
+returns = [
+    [0.0001],
+    [0.3388],
+    [0.1181],
+    [0.888],
+    [0.0092],
+    [0.2281],
+    [0.6685],
+    [0.9985],
+    [0.4491],
+    [0.7789],
+    [0.5592],
+    [0.0003],
+    [0.0001],
+    [0.7781],
+    [0.6688],
+    [0.3393],
+    [0.4489],
+    [0.0108],
+    [0.5577],
+    [0.2283],
+    [0.998],
+    [0.8888],
+    [0.1196],
+    [0.0003],
+    [0.0006],
+    [0.5576],
+    [0.3393],
+    [0.888],
+    [0.9985],
+    [0.7789],
+    [0.0102],
+    [0.1176],
+    [0.2289],
+    [0.6684],
+    [0.4492],
+    [0.0002],
+]
+factors = [
+    [0.0002],
+    [0.3374],
+    [0.1182],
+    [0.8846],
+    [0.0101],
+    [0.2265],
+    [0.6663],
+    [0.9963],
+    [0.4486],
+    [0.777],
+    [0.5582],
+    [0.0004],
+    [0.0006],
+    [0.7755],
+    [0.6669],
+    [0.338],
+    [0.4475],
+    [0.0116],
+    [0.556],
+    [0.2281],
+    [0.9958],
+    [0.8876],
+    [0.1202],
+    [0.0003],
+    [0.0003],
+    [0.5568],
+    [0.3391],
+    [0.8872],
+    [0.999],
+    [0.779],
+    [0.0111],
+    [0.1183],
+    [0.2292],
+    [0.6691],
+    [0.4489],
+    [0.0005],
+]
+
+[[cases]]
+id = "grs_two_assets_six_periods"
+source = "grs1989"
+locator = "p. 1146, the statistic for L portfolios and its F(N, T - N - L) distribution"
+edge = false
+expected = { statistic = 6.788825746263624, alphas = [0.004457943925233645, 0.0025], mean_absolute_alpha = 0.0034789719626168226, factor_sharpe_ratio = 0.3866945956182654, numerator_degrees_of_freedom = 2, denominator_degrees_of_freedom = 3, observations = 6 }
+note = "Exact statistic 70470591/10380380."
+
+[cases.inputs]
+calculation = "grs"
+returns = [
+    [0.025, 0.01],
+    [-0.004, 0.002],
+    [0.031, 0.022],
+    [0.012, -0.003],
+    [-0.018, -0.011],
+    [0.02, 0.019],
+]
+factors = [
+    [0.02],
+    [-0.01],
+    [0.03],
+    [0.005],
+    [-0.02],
+    [0.015],
+]
+
+[[cases]]
+id = "grs_zero_alphas"
+source = "identity"
+edge = false
+expected = { statistic = 0.0, p_value = 1.0, alphas = [0.0, 0.0], mean_absolute_alpha = 0.0, factor_sharpe_ratio = 0.0 }
+tolerance = { statistic = { abs = 1e-12 }, p_value = { abs = 1e-12 }, alphas = { abs = 1e-15 }, mean_absolute_alpha = { abs = 1e-15 }, factor_sharpe_ratio = { abs = 1e-12 } }
+note = "Returns 1.2 f + e1 and 0.8 f + e2 with e1 = (1, -2, 0, 2, -1) / 1000 and e2 = (1, -4, 6, -4, 1) / 1000, both summing to zero and orthogonal to f, so both alphas are exactly zero; f has mean zero."
+
+[cases.inputs]
+calculation = "grs"
+returns = [
+    [-0.023, -0.015],
+    [-0.014, -0.012],
+    [0.0, 0.006],
+    [0.014, 0.004],
+    [0.023, 0.017],
+]
+factors = [
+    [-0.02],
+    [-0.01],
+    [0.0],
+    [0.01],
+    [0.02],
+]
+
+[[cases]]
+id = "grs_three_periods"
+source = "identity"
+edge = true
+expected = { statistic = 2.0, p_value = 0.39182655203060723, alphas = [0.01], numerator_degrees_of_freedom = 1, denominator_degrees_of_freedom = 1, factor_sharpe_ratio = 0.0 }
+tolerance = { statistic = { rel = 1e-12 }, alphas = { rel = 1e-12 }, factor_sharpe_ratio = { abs = 1e-12 } }
+note = "The smallest sample the test allows, T = N + L + 1: the intercept's t statistic is sqrt(2), so W = 2 on F(1, 1)."
+
+[cases.inputs]
+calculation = "grs"
+returns = [[0.0], [0.02], [0.01]]
+factors = [[-0.01], [0.0], [0.01]]
+
+[[cases]]
+id = "fama_macbeth_exact_data"
+source = "identity"
+edge = false
+expected = { premia = [0.005], premium_standard_errors = [0.009013878188659973], premium_t_statistics = [0.5547001962252291], shanken_standard_errors = [0.009013878188659973], intercept = 0.002, intercept_standard_error = 0.0, shanken_intercept_standard_error = 0.0, betas = [[0.5], [1.0], [1.5]] }
+expected_none = ["intercept_t_statistic"]
+tolerance = { premia = { rel = 1e-12 }, premium_standard_errors = { rel = 1e-10 }, premium_t_statistics = { rel = 1e-10 }, shanken_standard_errors = { rel = 1e-10 }, intercept = { rel = 1e-12 }, intercept_standard_error = { abs = 1e-15 }, shanken_intercept_standard_error = { abs = 1e-15 }, betas = { rel = 1e-12 } }
+note = "Returns 0.002 + b_i f_t for betas 0.5, 1 and 1.5 and f = (0.01, -0.02, 0.03, 0): no residuals, so Shanken's correction adds nothing and the constant has no error."
+
+[cases.inputs]
+calculation = "fama_macbeth"
+returns = [
+    [0.007, 0.012, 0.017],
+    [-0.008, -0.018, -0.028],
+    [0.017, 0.032, 0.047],
+    [0.002, 0.002, 0.002],
+]
+factors = [
+    [0.01],
+    [-0.02],
+    [0.03],
+    [0.0],
+]
+
+[[cases]]
+id = "fama_macbeth_four_assets"
+source = "fm1973"
+locator = "Eq. (10), p. 616, the cross-sections; p. 619, the t statistic of their average"
+edge = false
+expected = { premia = [0.0038461689010666406], premium_standard_errors = [0.008376300386984373], premium_t_statistics = [0.4591727520950732], shanken_standard_errors = [0.008381914584709335], shanken_t_statistics = [0.4588651986603388], intercept = 0.003408807123984734, intercept_standard_error = 0.0012935198813036398, intercept_t_statistic = 2.6352955012560444, shanken_intercept_standard_error = 0.0013213600746595357, betas = [[0.538235294117647], [1.2970588235294118], [0.8205882352941176], [1.7029411764705882]], observations = 5 }
+tolerance = { premia = { rel = 1e-11 }, premium_standard_errors = { rel = 1e-10 }, premium_t_statistics = { rel = 1e-10 }, shanken_standard_errors = { rel = 1e-10 }, shanken_t_statistics = { rel = 1e-10 }, intercept = { rel = 1e-10 }, intercept_standard_error = { rel = 1e-10 }, intercept_t_statistic = { rel = 1e-10 }, shanken_intercept_standard_error = { rel = 1e-10 }, betas = { rel = 1e-12 } }
+note = "Four assets, one factor, five periods, with a constant; c = 0.043508868281. The intercept's Shanken error is sqrt(1 + c) times its Fama-MacBeth error (the bordered factor covariance is zero there)."
+
+[cases.inputs]
+calculation = "fama_macbeth"
+returns = [
+    [0.012, 0.03, 0.021, 0.04],
+    [-0.004, -0.012, -0.002, -0.018],
+    [0.018, 0.041, 0.026, 0.05],
+    [0.006, 0.002, 0.011, 0.009],
+    [-0.009, -0.022, -0.016, -0.031],
+]
+factors = [
+    [0.02],
+    [-0.01],
+    [0.03],
+    [0.005],
+    [-0.02],
+]

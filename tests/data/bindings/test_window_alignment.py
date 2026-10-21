@@ -402,10 +402,7 @@ def test_windows_on_different_calendars_are_not_aligned() -> None:
             calendar: SimpleNamespace(series=annual(12)),
         },
     )
-    ends = _window_ends(
-        fetched,
-        None,
-    )
+    ends = _window_ends(fetched, {}, None)
     assert ends == {}
 
 

@@ -1,0 +1,182 @@
+# tests/golden/portfolio/black_litterman.toml
+model = "portfolio.black_litterman"
+
+[[sources]]
+key = "hl2002"
+kind = "paper"
+citation = "He, G. and Litterman, R. (2002). The Intuition Behind Black-Litterman Model Portfolios. SSRN working paper 334304 (Goldman Sachs Investment Management Research, 1999). Seven equity markets, delta = 2.5, tau = 0.05, omega = tau p Sigma p' (the 1999 version's footnote 6); posterior returns from eq. (8), weights (delta (Sigma + M))^-1 mu from eq. (13), printed in percent to one decimal."
+doi = "10.2139/ssrn.334304"
+
+[[sources]]
+key = "idzorek2005"
+kind = "paper"
+citation = "Idzorek, T. M. (2005). A Step-by-Step Guide to the Black-Litterman Model: Incorporating User-Specified Confidence Levels. Ibbotson Associates working paper (26 April 2005), in Forecasting Expected Returns in the Financial Markets (2007), ch. 2. Eight asset classes, tau = 0.025, lambda = 0.03 / (w' Sigma w), weights (lambda Sigma)^-1 E[R] (formula 2), printed in percent to two decimals."
+doi = "10.1016/B978-075068321-0.50003-0"
+
+[[sources]]
+key = "identity"
+kind = "identity"
+citation = "With no views the posterior returns are Pi = delta Sigma w, the posterior covariance is (1 + tau) Sigma, the weights (delta Sigma)^-1 Pi are w, and He and Litterman's are w / (1 + tau)."
+
+[[cases]]
+id = "he_litterman_table4_one_view"
+source = "hl2002"
+locator = "Table 2 (equilibrium returns) and Table 4, pp. 19 and 21"
+edge = false
+expected = { equilibrium_returns = [0.039, 0.069, 0.084, 0.09, 0.043, 0.068, 0.076], posterior_returns = [0.043, 0.076, 0.093, 0.11, 0.045, 0.07, 0.081], posterior_weights = [0.015, 0.021, -0.04, 0.354, 0.11, -0.095, 0.586] }
+tolerance = { equilibrium_returns = { abs = 0.0005 }, posterior_returns = { abs = 0.0005 }, posterior_weights = { abs = 0.0005 } }
+note = "The rest-of-Europe leg uses the unrounded cap weights -5.2/17.6 and -12.4/17.6 (printed -29.5 and -70.5); tolerance is half the printed 0.1 percentage point."
+
+[cases.inputs]
+volatilities = [0.16, 0.203, 0.248, 0.271, 0.21, 0.2, 0.187]
+correlations = [
+    [1.0, 0.488, 0.478, 0.515, 0.439, 0.512, 0.491],
+    [0.488, 1.0, 0.664, 0.655, 0.31, 0.608, 0.779],
+    [0.478, 0.664, 1.0, 0.861, 0.355, 0.783, 0.668],
+    [0.515, 0.655, 0.861, 1.0, 0.354, 0.777, 0.653],
+    [0.439, 0.31, 0.355, 0.354, 1.0, 0.405, 0.306],
+    [0.512, 0.608, 0.783, 0.777, 0.405, 1.0, 0.652],
+    [0.491, 0.779, 0.668, 0.653, 0.306, 0.652, 1.0],
+]
+market_weights = [0.016, 0.022, 0.052, 0.055, 0.116, 0.124, 0.615]
+risk_aversion = 2.5
+tau = 0.05
+picks = [
+    [0.0, 0.0, -0.2954545454545454, 1.0, 0.0, -0.7045454545454545, 0.0],
+]
+view_returns = [0.05]
+
+[[cases]]
+id = "he_litterman_table6_two_views"
+source = "hl2002"
+locator = "Table 6, p. 23"
+edge = false
+expected = { posterior_returns = [0.044, 0.091, 0.095, 0.113, 0.046, 0.07, 0.073], posterior_weights = [0.015, 0.533, -0.033, 0.331, 0.11, -0.078, 0.073] }
+tolerance = { posterior_returns = { abs = 0.0005 }, posterior_weights = { abs = 0.0005 } }
+note = "The rest-of-Europe leg uses the unrounded cap weights -5.2/17.6 and -12.4/17.6 (printed -29.5 and -70.5); tolerance is half the printed 0.1 percentage point."
+
+[cases.inputs]
+volatilities = [0.16, 0.203, 0.248, 0.271, 0.21, 0.2, 0.187]
+correlations = [
+    [1.0, 0.488, 0.478, 0.515, 0.439, 0.512, 0.491],
+    [0.488, 1.0, 0.664, 0.655, 0.31, 0.608, 0.779],
+    [0.478, 0.664, 1.0, 0.861, 0.355, 0.783, 0.668],
+    [0.515, 0.655, 0.861, 1.0, 0.354, 0.777, 0.653],
+    [0.439, 0.31, 0.355, 0.354, 1.0, 0.405, 0.306],
+    [0.512, 0.608, 0.783, 0.777, 0.405, 1.0, 0.652],
+    [0.491, 0.779, 0.668, 0.653, 0.306, 0.652, 1.0],
+]
+market_weights = [0.016, 0.022, 0.052, 0.055, 0.116, 0.124, 0.615]
+risk_aversion = 2.5
+tau = 0.05
+picks = [
+    [0.0, 0.0, -0.2954545454545454, 1.0, 0.0, -0.7045454545454545, 0.0],
+    [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+]
+view_returns = [0.05, 0.04]
+
+[[cases]]
+id = "he_litterman_table7_idzorek_confidences"
+source = "hl2002"
+locator = "Table 7, p. 24"
+edge = false
+expected = { posterior_returns = [0.043, 0.089, 0.093, 0.106, 0.046, 0.069, 0.072], posterior_weights = [0.015, 0.539, -0.005, 0.236, 0.11, -0.011, 0.068] }
+tolerance = { posterior_returns = { abs = 0.0005 }, posterior_weights = { abs = 0.0005 } }
+note = "Table 7 doubles the first view's omega / tau. Idzorek's (1 - c) / c with c = 1/3 is 2, and with c = 1/2 is 1 (He and Litterman's omega), so the confidence convention reproduces it."
+
+[cases.inputs]
+volatilities = [0.16, 0.203, 0.248, 0.271, 0.21, 0.2, 0.187]
+correlations = [
+    [1.0, 0.488, 0.478, 0.515, 0.439, 0.512, 0.491],
+    [0.488, 1.0, 0.664, 0.655, 0.31, 0.608, 0.779],
+    [0.478, 0.664, 1.0, 0.861, 0.355, 0.783, 0.668],
+    [0.515, 0.655, 0.861, 1.0, 0.354, 0.777, 0.653],
+    [0.439, 0.31, 0.355, 0.354, 1.0, 0.405, 0.306],
+    [0.512, 0.608, 0.783, 0.777, 0.405, 1.0, 0.652],
+    [0.491, 0.779, 0.668, 0.653, 0.306, 0.652, 1.0],
+]
+market_weights = [0.016, 0.022, 0.052, 0.055, 0.116, 0.124, 0.615]
+risk_aversion = 2.5
+tau = 0.05
+picks = [
+    [0.0, 0.0, -0.2954545454545454, 1.0, 0.0, -0.7045454545454545, 0.0],
+    [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+]
+view_returns = [0.05, 0.04]
+confidence = "idzorek"
+confidences = [0.3333333333333333, 0.5]
+
+[[cases]]
+id = "idzorek_table6"
+source = "idzorek2005"
+locator = "Table 1 (Pi), eq. (8) (Omega) and Table 6, pp. 4, 15 and 17"
+edge = false
+expected = { equilibrium_returns = [0.0008, 0.0067, 0.0641, 0.0408, 0.0743, 0.037, 0.048, 0.066], posterior_returns = [0.0007, 0.005, 0.065, 0.0432, 0.0759, 0.0394, 0.0493, 0.0684], weights = [0.2988, 0.1559, 0.0935, 0.1482, 0.0104, 0.0165, 0.2781, 0.0349], view_variances = [0.000709, 0.000141, 0.000866] }
+tolerance = { equilibrium_returns = { abs = 0.00015 }, posterior_returns = { abs = 0.00015 }, weights = { abs = 0.00015 }, view_variances = { abs = 0.00015 } }
+note = "lambda = 0.03 / (w' Sigma w) = 3.0657737652268473 from the printed weights and covariance (the paper rounds it to 3.07). The weights are printed to two decimals of a percent, so the recomputation differs from the printed results by up to 0.012 percentage points: tolerance 0.015."
+
+[cases.inputs]
+covariance = [
+    [0.001005, 0.001328, -0.000579, -0.000675, 0.000121, 0.000128, -0.000445, -0.000437],
+    [0.001328, 0.007277, -0.001307, -0.00061, -0.002237, -0.000989, 0.001442, -0.001535],
+    [-0.000579, -0.001307, 0.059852, 0.027588, 0.063497, 0.023036, 0.032967, 0.048039],
+    [-0.000675, -0.00061, 0.027588, 0.029609, 0.026572, 0.021465, 0.020697, 0.029854],
+    [0.000121, -0.002237, 0.063497, 0.026572, 0.102488, 0.042744, 0.039943, 0.065994],
+    [0.000128, -0.000989, 0.023036, 0.021465, 0.042744, 0.032056, 0.019881, 0.032235],
+    [-0.000445, 0.001442, 0.032967, 0.020697, 0.039943, 0.019881, 0.028355, 0.035064],
+    [-0.000437, -0.001535, 0.048039, 0.029854, 0.065994, 0.032235, 0.035064, 0.079958],
+]
+market_weights = [0.1934, 0.2613, 0.1209, 0.1209, 0.0134, 0.0134, 0.2418, 0.0349]
+risk_aversion = 3.0657737652268473
+tau = 0.025
+picks = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    [-1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.9, -0.9, 0.1, -0.1, 0.0, 0.0],
+]
+view_returns = [0.0525, 0.0025, 0.02]
+
+[[cases]]
+id = "idzorek_table7_full_confidence"
+source = "idzorek2005"
+locator = "Table 7, p. 23: the weights with every view at 100% confidence"
+edge = false
+expected = { weights = [0.4382, 0.0165, 0.0381, 0.2037, 0.0042, 0.0226, 0.3521, 0.0349], view_variances = [0.0, 0.0, 0.0] }
+tolerance = { weights = { abs = 0.00015 }, view_variances = { abs = 0.00015 } }
+note = "lambda = 0.03 / (w' Sigma w) = 3.0657737652268473 from the printed weights and covariance (the paper rounds it to 3.07). The weights are printed to two decimals of a percent, so the recomputation differs from the printed results by up to 0.012 percentage points: tolerance 0.015."
+
+[cases.inputs]
+covariance = [
+    [0.001005, 0.001328, -0.000579, -0.000675, 0.000121, 0.000128, -0.000445, -0.000437],
+    [0.001328, 0.007277, -0.001307, -0.00061, -0.002237, -0.000989, 0.001442, -0.001535],
+    [-0.000579, -0.001307, 0.059852, 0.027588, 0.063497, 0.023036, 0.032967, 0.048039],
+    [-0.000675, -0.00061, 0.027588, 0.029609, 0.026572, 0.021465, 0.020697, 0.029854],
+    [0.000121, -0.002237, 0.063497, 0.026572, 0.102488, 0.042744, 0.039943, 0.065994],
+    [0.000128, -0.000989, 0.023036, 0.021465, 0.042744, 0.032056, 0.019881, 0.032235],
+    [-0.000445, 0.001442, 0.032967, 0.020697, 0.039943, 0.019881, 0.028355, 0.035064],
+    [-0.000437, -0.001535, 0.048039, 0.029854, 0.065994, 0.032235, 0.035064, 0.079958],
+]
+market_weights = [0.1934, 0.2613, 0.1209, 0.1209, 0.0134, 0.0134, 0.2418, 0.0349]
+risk_aversion = 3.0657737652268473
+tau = 0.025
+picks = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    [-1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.9, -0.9, 0.1, -0.1, 0.0, 0.0],
+]
+view_returns = [0.0525, 0.0025, 0.02]
+confidence = "idzorek"
+confidences = [1.0, 1.0, 1.0]
+
+[[cases]]
+id = "no_views_near_singular"
+source = "identity"
+edge = true
+expected = { equilibrium_returns = [0.09999999600000002, 0.09999999400000002], posterior_returns = [0.09999999600000002, 0.09999999400000002], weights = [0.6, 0.4], posterior_weights = [0.5714285714285714, 0.38095238095238093], posterior_covariance = [[0.04200000000000001, 0.04199999580000001], [0.04199999580000001, 0.04200000000000001]], view_variances = [] }
+tolerance = { posterior_weights = { rel = 1e-7 } }
+note = "Two assets correlated 0.9999999: the covariance's condition number is 2e7. The weights need no inverse of Sigma and are exactly the market's; He and Litterman's solve against (1 + tau) Sigma loses about seven digits."
+
+[cases.inputs]
+volatilities = [0.2, 0.2]
+correlations = [[1.0, 0.9999999], [0.9999999, 1.0]]
+market_weights = [0.6, 0.4]

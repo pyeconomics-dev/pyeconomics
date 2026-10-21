@@ -298,3 +298,23 @@ def test_the_covariance_is_recorded() -> None:
     assert fit.covariance is Covariance.HC1
     assert fit.lags == 0
     assert fit.observations == 4
+
+
+def test_subnormal_data_fits_without_overflow() -> None:
+    # Response and regressor both near 1e-310: unit / scales is moderate, so
+    # scaling back must not divide a coefficient by a subnormal scale first.
+    rng = np.random.default_rng(12)
+    x = rng.normal(0.0, 0.05, size=40)
+    y = 0.002 + 1.3 * x + rng.normal(0.0, 0.01, size=40)
+    plain = least_squares(y, x, covariance="newey_west")
+    tiny = least_squares(y * 1e-310, x * 1e-310, covariance="newey_west")
+    assert tiny.coefficients[1] == pytest.approx(plain.coefficients[1], rel=1e-6)
+    assert tiny.standard_errors[1] == pytest.approx(plain.standard_errors[1], rel=1e-6)
+
+
+def test_a_coefficient_past_the_floating_point_range_is_refused() -> None:
+    # A slope of about 1e316: past the largest float.
+    x = [1e-318, -2e-318, 3e-318, -1e-318, 2e-318]
+    y = [0.01, -0.02, 0.03, -0.01, 0.025]
+    with pytest.raises(DomainError, match="beyond the floating-point range"):
+        least_squares(y, x)

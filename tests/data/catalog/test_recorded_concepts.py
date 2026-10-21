@@ -121,6 +121,31 @@ SERIES_CASES: list[tuple[str, tuple[str, str], dict[str, Any], str]] = [
         {"max_observations": 3},
         "philadelphia_fed",
     ),
+    # A factor of a Ken French file, one column of the table (Phase 3 Step 16).
+    (
+        "factors.ff3_smb.us.monthly",
+        ("ken_french", "fetch_0"),
+        {"max_observations": 3},
+        "ken_french",
+    ),
+    (
+        "factors.risk_free.us.monthly",
+        ("ken_french", "fetch_0"),
+        {"max_observations": 3},
+        "ken_french",
+    ),
+    (
+        "factors.ff5_rmw.us.monthly",
+        ("ken_french", "fetch_3"),
+        {"max_observations": 3},
+        "ken_french",
+    ),
+    (
+        "factors.mom.us.monthly",
+        ("ken_french", "fetch_5"),
+        {"max_observations": 3},
+        "ken_french",
+    ),
 ]
 
 TABLE_CASES: list[tuple[str, tuple[str, str], dict[str, Any], str, int]] = [
