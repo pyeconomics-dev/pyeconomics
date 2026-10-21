@@ -629,6 +629,8 @@ def test_egarch_simulated_forecasts_repeat_with_their_seed() -> None:
         "periods_per_year": 252,
         "horizon": 5,
         "simulations": 200,
+        # Fixed, so no optimizer (whose path differs by platform) is involved.
+        "fixed_parameters": [0.0, -0.3, 0.1, -0.05, 0.97],
     }
     first, again = run(**inputs, seed=1), run(**inputs, seed=1)
     other = run(**inputs, seed=2)
@@ -639,7 +641,12 @@ def test_egarch_simulated_forecasts_repeat_with_their_seed() -> None:
 
 @needs_arch
 def test_egarch_reports_no_unconditional_volatility() -> None:
-    found = result(calculation="egarch", returns=simulate(300, 6), periods_per_year=12)
+    found = result(
+        calculation="egarch",
+        returns=simulate(300, 6),
+        periods_per_year=12,
+        fixed_parameters=[0.0, -0.3, 0.1, -0.05, 0.97],
+    )
     assert found.outputs.unconditional_volatility is None
     assert "no_unconditional_variance" in {w.code for w in found.warnings}
 
