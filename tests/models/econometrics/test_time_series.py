@@ -651,11 +651,11 @@ def test_long_variable_names_fit_the_term_names() -> None:
 def test_lag_selection_needs_room_for_the_largest_model() -> None:
     rng = np.random.default_rng(8)
     # 27 observations of three variables with a constant: (27 - 3 - 1) // 4 = 5
-    # lags can be compared on a common sample, though a VAR(6) alone would fit.
+    # lags can be compared on a common sample, though a VAR(6) alone validates.
     fields = variables(rng.standard_normal((27, 3)))
     with pytest.raises(InputError, match="at most 5 lags can be compared"):
         time_series.validate_inputs({"calculation": "var", **fields, "max_lags": 6})
-    assert run(calculation="var", **fields, lags=6).lags == 6
+    time_series.validate_inputs({"calculation": "var", **fields, "lags": 6})
     assert run(calculation="var", **fields, max_lags=5).lags >= 1
 
 

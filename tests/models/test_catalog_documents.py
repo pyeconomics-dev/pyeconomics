@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from extra_gaps import excluded_gap
 from jsonschema import Draft202012Validator
 
 from pyeconomics.core import ModelCard, input_schema, output_schema
@@ -31,7 +32,10 @@ def test_the_card_renders_with_its_worked_example(model: Model[Any, Any]) -> Non
     assert model.id in text
     for reference in model.spec.references:
         assert reference.citation in text
-    assert "Outputs are not available here" not in text
+    # Where the model's extra leaves its library out of this Python (the Wheel
+    # rule), the card says the example cannot run here; elsewhere it shows it.
+    unavailable = "Outputs are not available here" in text
+    assert unavailable is (excluded_gap(model) is not None)
 
 
 @pytest.mark.parametrize("model", MODELS)
