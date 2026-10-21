@@ -249,6 +249,10 @@ def _binding_row(binding: Binding) -> str:
         # A curve: its row on the date fills the values and their tenors.
         field = f"`{binding.field}`, tenors in `{binding.tenors}`"
         rule = "the curve on or before the date: its last row, a value per tenor"
+    elif binding.columns:
+        # A matrix: each row is a period, one value per named column.
+        named = ", ".join(f"`{name}`" for name in binding.columns)
+        field = f"`{binding.field}`, columns {named}"
     return (
         f"| {_cell(field)} | `{binding.concept}` | {_cell(transform)} | "
         f"{_cell(rule)} | {_cell(vintage)} |"

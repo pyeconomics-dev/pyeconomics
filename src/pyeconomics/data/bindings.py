@@ -22,6 +22,11 @@ that ``Bound`` and puts the records in the result's manifest.
   (``asof``, ``period``, ``window``) at the evaluation date, or, with no date, at
   the series' last observation; the record lists it. A binding never fills a gap
   or reads a stale value silently: a date with nothing to read raises.
+- **A matrix reads a table's rows.** A field that is a tuple of rows, bound to a
+  table concept with a window, receives the window's periods as rows and the
+  table's columns (or the ones the binding names) as each row's values. Its
+  window ends with the other windows of its frequency, so its rows pair with
+  theirs by position.
 - **An override replaces a bound value** and is recorded as user-supplied; the
   value itself is an input, fingerprinted with the rest.
 - **One fetch per series.** The fetches share an in-process memo
@@ -222,8 +227,9 @@ def bind(  # noqa: PLR0913 - the public contract's independent options
     InputError
         For a model with no such profile, an unknown input field, a concept of
         another unit kind or frequency, a table concept (other than a curve's,
-        read through ``tenors``), a curve given in part, or a field the series'
-        unit kind does not suit.
+        read through ``tenors``, or a matrix field's window of rows), a table
+        without a column the binding names, a curve given in part, or a field
+        the series' unit kind does not suit.
     ConceptNotFoundError, LicenceError, CredentialError, OfflineError, DataError
         As the catalog and the resolver raise them, and for a date the data
         cannot answer (nothing on or before it, a missing period, a short
@@ -317,7 +323,7 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     records: list[DataSource] = []
     _check_curves(model.id, chosen, given, shapes)
     wanted = [binding for binding in chosen if binding.field not in given]
-    curves, fetched, ends = _fetch_all(wanted, ask)
+    found = _fetch_all(wanted, ask)
     for binding in chosen:
         if binding.field in given:
             names = [binding.field]
@@ -325,11 +331,15 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
                 names.append(binding.tenors)
             records += [user_supplied(n, concept=binding.concept) for n in names]
         elif binding.tenors is not None:
-            curve = _pick_curve(curves[binding], ask.day)
+            curve = _pick_curve(found.curves[binding], ask.day)
             values.update(curve.values)
             records.extend(curve.records)
+        elif binding in found.rows:
+            read = _pick_rows(found.rows[binding], found.ends.get(binding, ask.day))
+            values[binding.field] = read.value
+            records.extend(read.records)
         else:
-            read = _pick(fetched[binding], ends.get(binding, ask.day))
+            read = _pick(found.series[binding], found.ends.get(binding, ask.day))
             values[binding.field] = read.value
             records.extend(read.records)
     return Bound(
@@ -341,23 +351,44 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     )
 
 
-def _fetch_all(
-    wanted: list[Binding], ask: _Ask
-) -> tuple[dict[Binding, _Curve], dict[Binding, _Fetched], dict[Binding, dt.date]]:
+@dataclass(frozen=True, slots=True)
+class _Found:
+    """Every binding's data, fetched, and the date each window ends on."""
+
+    curves: dict[Binding, _Curve]
+    series: dict[Binding, _Fetched]
+    rows: dict[Binding, _Rows]
+    ends: dict[Binding, dt.date]
+
+
+def _fetch_all(wanted: list[Binding], ask: _Ask) -> _Found:
     """Fetch every binding to read, sharing one memo; end each window's group."""
     with cache.memo():
         curves = {b: _fetch_curve(b, ask) for b in wanted if b.tenors is not None}
-        fetched = {b: _fetch(b, ask) for b in wanted if b.tenors is None}
-        ends = _window_ends(fetched, ask.day)
+        tables = [
+            b for b in wanted if b.tenors is None and ask.shapes[b.field][0].matrix
+        ]
+        rows = {b: _fetch_rows(b, ask) for b in tables}
+        fetched = {
+            b: _fetch(b, ask) for b in wanted if b.tenors is None and b not in rows
+        }
+        ends = _window_ends(fetched, rows, ask.day)
         # A source that runs years ahead (CBO's projections) can have enough
         # observations in all and too few up to the date the windows share:
         # ask again up to that date, so the resolver passes it over.
-        short = [b for b, end in ends.items() if _too_few(fetched[b], end)]
+        short = [
+            b
+            for b, end in ends.items()
+            if (_too_few_rows(rows[b], end) if b in rows else _too_few(fetched[b], end))
+        ]
         for binding in short:
-            fetched[binding] = _fetch(binding, ask, end=ends[binding])
+            if binding in rows:
+                rows[binding] = _fetch_rows(binding, ask, end=ends[binding])
+            else:
+                fetched[binding] = _fetch(binding, ask, end=ends[binding])
         if short:
-            ends = _window_ends(fetched, ask.day)
-    return curves, fetched, ends
+            ends = _window_ends(fetched, rows, ask.day)
+    return _Found(curves=curves, series=fetched, rows=rows, ends=ends)
 
 
 def _calculation(
@@ -406,7 +437,7 @@ def _profile(model: Model[Any, Any], profile: str) -> list[Binding]:
 class _Read:
     """The value one binding read and the records behind it."""
 
-    value: float | int | tuple[float | int, ...]
+    value: float | int | tuple[float | int, ...] | tuple[tuple[float, ...], ...]
     records: tuple[DataSource, ...]
 
 
@@ -453,7 +484,9 @@ def _fetch(binding: Binding, ask: _Ask, *, end: dt.date | None = None) -> _Fetch
 
 
 def _window_ends(
-    fetched: Mapping[Binding, _Fetched], day: dt.date | None
+    fetched: Mapping[Binding, _Fetched],
+    rows: Mapping[Binding, _Rows],
+    day: dt.date | None,
 ) -> dict[Binding, dt.date]:
     """End every window of one frequency on the same date.
 
@@ -463,30 +496,55 @@ def _window_ends(
     one frequency (and one fiscal year or week anchor) therefore end at the
     earliest of their last observations on or before the date (or, with no
     date, of their last observations); windows of different frequencies are left
-    alone.
+    alone. A matrix's window is a table's rows: its last observation is the last
+    row whose every column it keeps holds a value.
     """
     groups: dict[tuple[object, ...], list[tuple[Binding, dt.date]]] = {}
-    for binding, one in fetched.items():
-        if binding.as_of is not AsOf.WINDOW:
+    found: list[tuple[Binding, Series | Table, list[dt.date]]] = [
+        (binding, one.series, _observed(one.series, day))
+        for binding, one in fetched.items()
+    ]
+    found += [
+        (binding, one.table, _observed_rows(one.table, day))
+        for binding, one in rows.items()
+    ]
+    for binding, frame, last in found:
+        if binding.as_of is not AsOf.WINDOW or not last:
             continue
-        series = one.series
-        last = [
-            series.index[row]
-            for row in range(len(series.index))
-            if series.values[row] is not None
-            and (day is None or series.index[row] <= day)
-        ]
-        if last:
-            meta = series.meta
-            # A fiscal year or a week ending on another day is another calendar.
-            calendar = (meta.frequency, meta.year_ends_in, meta.week_ends_on)
-            groups.setdefault(calendar, []).append((binding, last[-1]))
+        meta = frame.meta
+        # A fiscal year or a week ending on another day is another calendar.
+        calendar = (meta.frequency, meta.year_ends_in, meta.week_ends_on)
+        groups.setdefault(calendar, []).append((binding, last[-1]))
     ends: dict[Binding, dt.date] = {}
     for members in groups.values():
         if len(members) > 1:
             common = min(end for _, end in members)
             ends.update(dict.fromkeys((binding for binding, _ in members), common))
     return ends
+
+
+def _observed(series: Series, day: dt.date | None) -> list[dt.date]:
+    """Return the dates of a series' observations on or before the date."""
+    return [
+        when
+        for when, value in zip(series.index, series.values, strict=True)
+        if value is not None and (day is None or when <= day)
+    ]
+
+
+def _observed_rows(table: Table, day: dt.date | None) -> list[dt.date]:
+    """Return the dates of a table's whole rows on or before the date."""
+    return [
+        when
+        for row, when in enumerate(table.index)
+        if all(values[row] is not None for values in table.data)
+        and (day is None or when <= day)
+    ]
+
+
+def _too_few_rows(rows: _Rows, end: dt.date) -> bool:
+    """Say whether a matrix's table has fewer whole rows up to ``end`` than it reads."""
+    return len(_observed_rows(rows.table, end)) < (rows.binding.window or 1)
 
 
 def _too_few(fetched: _Fetched, end: dt.date) -> bool:
@@ -523,10 +581,14 @@ def _concept(binding: Binding, ask: _Ask) -> Concept:
     declared = catalog.get(binding.concept)
     chosen = ask.concepts.get(binding.field)
     concept = declared if chosen is None else catalog.get(chosen)
+    matrix = ask.shapes[binding.field][0].matrix
     if binding.tenors is not None and concept.shape is not Shape.TABLE:
         msg = f"{concept.id} is a series; a curve's binding reads a table of tenors"
         raise f.fail(msg)
-    if binding.tenors is None and concept.shape is not Shape.SERIES:
+    if binding.tenors is None and matrix and concept.shape is not Shape.TABLE:
+        msg = f"{concept.id} is a series; a matrix field reads a table's rows"
+        raise f.fail(msg)
+    if binding.tenors is None and not matrix and concept.shape is not Shape.SERIES:
         msg = f"{concept.id} is a table; a binding reads a series"
         raise f.fail(msg)
     if chosen is not None and (
@@ -886,6 +948,93 @@ def _pick_curve(curve: _Curve, day: dt.date | None) -> _CurveRead:
     )
 
 
+# --- reading a matrix ---------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class _Rows:
+    """One matrix binding's table, resolved, keeping only the columns it reads."""
+
+    binding: Binding
+    concept: Concept
+    shape: FieldShape
+    resolved: Resolved
+    table: Table
+    revised: bool
+
+    @property
+    def where(self) -> str:
+        return f"{self.concept.id} for the field {self.binding.field!r}"
+
+
+def _fetch_rows(binding: Binding, ask: _Ask, *, end: dt.date | None = None) -> _Rows:
+    """Resolve a matrix binding's table and keep the columns it names."""
+    concept = _concept(binding, ask)
+    shape = ask.shapes[binding.field][0]
+    policy = ask.policy or binding.vintage
+    resolved, revised = _resolve(concept, binding, policy, ask, cap=end)
+    table = resolved.frame
+    where = f"{concept.id} for the field {binding.field!r}"
+    if not isinstance(table, Table):  # pragma: no cover - _concept refuses series
+        msg = f"{where}: the matrix's source is not a table"
+        raise DataError(msg)
+    names = binding.columns or table.column_names
+    if not names:
+        msg = f"{where}: the table has no columns"
+        raise DataError(msg)
+    missing = [name for name in names if name not in table.column_names]
+    if missing:
+        held = ", ".join(table.column_names)
+        msg = f"{where}: the table has no column {missing[0]!r}; its columns: {held}"
+        raise f.fail(msg)
+    if shape.width is not None and len(names) > shape.width:
+        msg = (
+            f"{where}: the table's {len(names)} columns exceed the {shape.width} a "
+            "row of the field takes; choose some with columns="
+        )
+        raise f.fail(msg)
+    positions = [table.column_names.index(name) for name in names]
+    kept = replace(
+        table,
+        columns=tuple(table.columns[i] for i in positions),
+        data=tuple(table.data[i] for i in positions),
+    )
+    for column in kept.columns:
+        _check_kind(column.unit.kind, shape, f"{where}, column {column.name!r}")
+    return _Rows(binding, concept, shape, resolved, kept, revised)
+
+
+def _pick_rows(rows: _Rows, day: dt.date | None) -> _Read:
+    """Read a matrix's window: one row per period, one value per column."""
+    binding, table = rows.binding, rows.table
+    if day is None:
+        whole = _observed_rows(table, None)
+        if not whole:
+            msg = f"{rows.where}: holds no row with every column"
+            raise DataError(msg)
+        day = whole[-1]
+    rule = format_transform("window", count=binding.window or 1, date=day)
+    try:
+        windows = [tf.apply(rule, table.column(name)) for name in table.column_names]
+    except DataError as error:
+        msg = f"{rows.where}: {error}"
+        raise DataError(msg, provider=error.provider) from error
+    columns = [
+        tuple(
+            _number(value, column.meta.unit.scale, rows.shape)
+            for value in column.values
+        )
+        for column in windows
+    ]
+    value = tuple(tuple(float(v) for v in row) for row in zip(*columns, strict=True))
+    tail = (canonical_transform(rule),)
+    records = tuple(
+        _record(r, binding, rows.concept.id, windows[0], tail, revised=rows.revised)
+        for r in rows.resolved.sources
+    )
+    return _Read(value, records)
+
+
 def _warnings(record: DataSource, *, revised: bool) -> tuple[str, ...]:
     warnings = record.warnings
     if revised and REVISED_DATA not in warnings:
@@ -979,8 +1128,11 @@ def _problems(
         return [f"{where}: the catalog has no concept {binding.concept!r}{hint}"]
     concept = catalog.get(binding.concept)
     problems: list[str] = []
+    found = shapes.get(binding.field)
     if binding.tenors is not None:
         problems += _curve_problems(concept, where)
+    elif found and found[0].matrix:
+        problems += _matrix_problems(concept, binding, where)
     elif concept.shape is not Shape.SERIES:
         problems.append(f"{where}: {concept.id} is a table; a binding reads a series")
     if (
@@ -988,7 +1140,6 @@ def _problems(
         and concept.frequency is ObservationFrequency.IRREGULAR
     ):
         problems.append(f"{where}: {concept.id} is irregular and has no periods")
-    found = shapes.get(binding.field)
     if found and binding.transform is None:
         kind = found[0].kind
         if not _kinds_fit(concept.unit_kind, kind):
@@ -1014,6 +1165,24 @@ def _curve_problems(concept: Concept, where: str) -> list[str]:
             f"{where}: {concept.id}'s column {wanted!r} is not a tenor (1m, 10y)"
             for wanted, _ in candidate.columns
             if tenor_years(wanted) is None
+        ]
+    return problems
+
+
+def _matrix_problems(concept: Concept, binding: Binding, where: str) -> list[str]:
+    """Say why a concept cannot fill a matrix: it must be a table with the columns."""
+    if concept.shape is not Shape.TABLE:
+        return [f"{where}: {concept.id} is a series; a matrix field reads a table"]
+    problems: list[str] = []
+    for candidate in concept.candidates:
+        if not isinstance(candidate, Candidate) or not candidate.columns:
+            continue  # the provider names the columns: checked when bound
+        offered = {wanted for wanted, _ in candidate.columns}
+        problems += [
+            f"{where}: {concept.id}'s candidate {candidate.provider} has no column "
+            f"{name!r}"
+            for name in binding.columns
+            if name not in offered
         ]
     return problems
 

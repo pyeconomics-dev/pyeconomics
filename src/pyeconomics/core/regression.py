@@ -262,7 +262,8 @@ def least_squares(
         degrees of freedom, a lag out of range or more than the bounds allow.
     DomainError
         When a regressor is zero throughout or the design is collinear to
-        working precision: the coefficients are not identified.
+        working precision: the coefficients are not identified; or when a
+        coefficient is beyond the floating-point range.
 
     Examples
     --------
@@ -317,8 +318,19 @@ def least_squares(
         cov = _sandwich(projection, residuals, kind, used)
         if kind is Covariance.HC1:
             cov *= rows / dof
-    errors = np.sqrt(np.clip(np.diag(cov), 0.0, None)) / scales * unit
-    coefficients = beta / scales * unit
+    # Back to the data's units through unit / scales, which is moderate when the
+    # response and the regressors are both tiny; a coefficient past the
+    # floating-point range (a regressor tiny next to the response) has no value.
+    with np.errstate(over="ignore", invalid="ignore"):
+        ratio = unit / scales
+        errors = np.sqrt(np.clip(np.diag(cov), 0.0, None)) * ratio
+        coefficients = beta * ratio
+    if not (np.all(np.isfinite(coefficients)) and np.all(np.isfinite(errors))):
+        msg = (
+            "a regressor is so small next to the response that its coefficient "
+            "is beyond the floating-point range"
+        )
+        raise DomainError(msg)
     exact = _exact(ys, residuals, constant=constant)
     t_statistics = None
     if not exact and np.all(errors > 0):

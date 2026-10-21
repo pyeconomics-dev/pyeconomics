@@ -168,6 +168,11 @@ class Binding:
     observation holds. The curve's observation on the date is its row; the bound
     field, an array, receives the row's values in tenor order, and a tenor the
     row leaves empty is left out of both fields."""
+    columns: tuple[str, ...] = ()
+    """For a matrix field (a tuple of rows) bound to a table concept with an
+    :attr:`AsOf.WINDOW` rule: the table's columns to keep, in this order. Each
+    row of the field is one period of the window and holds one value per column;
+    empty keeps every column in the table's order."""
 
     def to_dict(self) -> dict[str, object]:
         """Return the binding as JSON-ready values; every key is always present."""
@@ -180,6 +185,7 @@ class Binding:
             "vintage": getattr(self.vintage, "value", self.vintage),
             "profile": self.profile,
             "tenors": self.tenors,
+            "columns": list(self.columns),
         }
 
 
@@ -314,7 +320,12 @@ class FieldShape:
     array: bool
     """Whether the field is a tuple (it takes a window)."""
     max_length: int | None = None
-    """An array field's declared maximum length."""
+    """An array field's declared maximum length; for a matrix, its rows."""
+    matrix: bool = False
+    """Whether the field is a tuple of rows, each a tuple of values, which a
+    window of a table's rows fills."""
+    width: int | None = None
+    """A matrix field's declared maximum row length, the most columns it takes."""
 
 
 def _shape(tp: object, metadata: list[object]) -> FieldShape:
@@ -337,7 +348,13 @@ def _shape(tp: object, metadata: list[object]) -> FieldShape:
     if tp is tuple or origin is tuple:
         args = get_args(tp)
         inner = _shape(args[0], []) if args else FieldShape(kind=None, array=False)
-        return FieldShape(kind=inner.kind, array=True, max_length=max_length(metadata))
+        return FieldShape(
+            kind=inner.kind,
+            array=True,
+            max_length=max_length(metadata),
+            matrix=inner.array,
+            width=inner.max_length if inner.array else None,
+        )
     units = [item for item in metadata if isinstance(item, Unit)]
     return FieldShape(kind=units[-1].kind if units else None, array=False)
 

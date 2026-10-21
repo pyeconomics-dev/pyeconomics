@@ -260,6 +260,29 @@ def test_the_models_package_exists() -> None:
     assert (MODELS / "__init__.py").is_file()
 
 
+#: The domain packages under models/, each of whose modules the test scans.
+DOMAINS = {
+    "accounting",
+    "asset_pricing",
+    "corporate",
+    "derivatives",
+    "econometrics",
+    "equity",
+    "fixed_income",
+    "foundations",
+    "international",
+    "macro",
+    "performance",
+    "portfolio",
+    "risk",
+}
+
+
+def test_every_domain_package_is_scanned() -> None:
+    scanned = {domain_of(module_parts(path)) for path in FILES} - {None}
+    assert scanned == DOMAINS
+
+
 @pytest.mark.parametrize("path", FILES, ids=[str(p.relative_to(MODELS)) for p in FILES])
 def test_a_model_module_imports_only_what_is_allowed(path: Path) -> None:
     source = path.read_text(encoding="utf-8")

@@ -56,6 +56,7 @@ Roadmap = "https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap
 # Model objects in __all__.
 [project.entry-points."pyeconomics.models"]
 accounting = "pyeconomics.models.accounting"
+asset_pricing = "pyeconomics.models.asset_pricing"
 corporate = "pyeconomics.models.corporate"
 derivatives = "pyeconomics.models.derivatives"
 econometrics = "pyeconomics.models.econometrics"

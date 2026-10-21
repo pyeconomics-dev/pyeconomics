@@ -812,8 +812,25 @@ class _Checker:
                 f"{MAX_TRANSFORM_PERIODS}",
             )
         self.binding_curve(binding, where, rule_ok=rule_ok)
+        self.binding_columns(binding, where)
         if shapes is not None and _is_str(binding.field):
             self.binding_field(binding, where, shapes, window if window_ok else None)
+
+    def binding_columns(self, binding: Binding, where: str) -> None:
+        """Hold a matrix binding's chosen table columns to their rules."""
+        columns: object = binding.columns
+        if columns == ():
+            return
+        add = self.report.add
+        if not isinstance(columns, tuple) or not all(
+            isinstance(name, str) and name.strip() for name in columns
+        ):
+            add("bindings", f"{where}: columns is a tuple of column names")
+            return
+        if len(set(columns)) != len(columns):
+            add("bindings", f"{where}: columns names a column twice")
+        if binding.tenors is not None:
+            add("bindings", f"{where}: a curve's binding takes no columns")
 
     def binding_curve(self, binding: Binding, where: str, *, rule_ok: bool) -> None:
         """Hold a curve's binding (one with ``tenors``) to its rules."""
@@ -876,7 +893,15 @@ class _Checker:
                 "in another",
             )
             return
+        if {shape.matrix for shape in found} == {True, False}:
+            self.report.add(
+                "bindings",
+                f"{where}: the field is a matrix in one calculation and a list of "
+                "values in another",
+            )
+            return
         shape = found[0]
+        self.binding_matrix(binding, where, found)
         if shape.kind is None or shape.kind is UnitKind.DATE:
             self.report.add(
                 "bindings", f"{where}: only a numeric field can be bound to data"
@@ -901,6 +926,29 @@ class _Checker:
                 f"length of {longest}",
             )
 
+    def binding_matrix(
+        self, binding: Binding, where: str, found: tuple[FieldShape, ...]
+    ) -> None:
+        """Hold a matrix field's binding: a window of rows, columns that fit."""
+        columns: object = binding.columns
+        chosen = len(columns) if isinstance(columns, tuple) else 0
+        if not found[0].matrix:
+            if chosen:
+                self.report.add(
+                    "bindings",
+                    f"{where}: columns go with a matrix field (a tuple of rows)",
+                )
+            return
+        if binding.transform is not None:
+            self.report.add("bindings", f"{where}: a matrix binding takes no transform")
+        widest = min((s.width for s in found if s.width is not None), default=None)
+        if widest is not None and chosen > widest:
+            self.report.add(
+                "bindings",
+                f"{where}: {chosen} columns exceed the {widest} a row of the field "
+                "takes",
+            )
+
     def binding_tenors(
         self,
         binding: Binding,
@@ -910,7 +958,7 @@ class _Checker:
         array: bool,
     ) -> None:
         """Hold a curve to its two array fields: the values and their tenors."""
-        if not array:
+        if not array or shapes[binding.field][0].matrix:
             self.report.add(
                 "bindings", f"{where}: a curve's values go to an array field"
             )
