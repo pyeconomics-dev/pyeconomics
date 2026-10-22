@@ -11984,7 +11984,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | ----- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | V19.1 | Static checks 69–73 PASS (`v1.0.0a2` on `main`, the dated CHANGELOG section, the model ledger with every id of this roadmap's table, the provider ledger with the exact 30- or 31-id release set, the release notes and any SEC deferral). | `phase-verify.yml --fast`. |
 | V19.2 | PyPI's `1.0.0a2` lists a wheel and an sdist, each with a provenance, and the GitHub release `v1.0.0a2` is a published pre-release. | `--live` (PyPI JSON and integrity APIs; `gh release view`). |
-| V19.3 | A clean `pip install --pre pyeconomics==1.0.0a2` runs `scripts/smoke.py --all --min-domains 13`, and with its extras `--extras`; with no FRED key it fetches a BLS series (keyless through API v1, or through v2 with the tester's BLS key, as recorded); with the tester's own FRED key it runs the Taylor rule for a past date on ALFRED vintages; plain `pip install pyeconomics` installs 0.2.6. | `--post`. |
+| V19.3 | A clean `pip install --pre pyeconomics==1.0.0a2` runs `scripts/smoke.py --all --min-domains 13`, and with its extras `--extras`; with no FRED key it fetches a BLS series (keyless through API v1, or through v2 with the tester's BLS key, as recorded); with the tester's own FRED key it runs the Taylor rule for a past date on ALFRED vintages; plain `pip install pyeconomics` on Python 3.12 (within 0.2.6's supported >=3.11,<3.13 range) installs 0.2.6. | `--post`. |
 
 ### V20 — CI integration + security
 

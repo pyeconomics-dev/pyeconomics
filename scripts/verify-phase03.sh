@@ -780,7 +780,9 @@ env.update(PYECONOMICS_CONFIG_DIR=str(Path(temp) / "recipe-config"), PYECONOMICS
 subprocess.run([py, "-I", script], cwd=temp, env=env, check=True)
 PY
   [ $? -eq 0 ] || return 1
-  uv venv --no-config --seed --python "$interpreter" "$TMP/stable" || return 1
+  # 0.2.6 declares Python >=3.11,<3.13. Keep this historical check on
+  # 3.12 even when the alpha's project interpreter is newer.
+  uv venv --no-config --seed --python 3.12 "$TMP/stable" || return 1
   py=$(venv_python "$TMP/stable")
   "$py" -m pip --isolated install --timeout 30 --retries 2 --index-url https://pypi.org/simple/ pyeconomics || return 1
   (cd "$TMP" && "$py" -c 'from importlib.metadata import version; assert version("pyeconomics") == "0.2.6"' && "$py" -m pip check)
@@ -818,15 +820,12 @@ for name in ("providers-live", "providers-heartbeat"):
 PY
 }
 earlier_phases() {
-  # Phase 2 also nests Phase 1. Run both explicit commands: neither result is
-  # inferred from the other's historical report.
-  HYPOTHESIS_PROFILE=ci bash scripts/verify-phase01.sh --post > "$TMP/phase01.log" 2>&1
-  local first=$?
+  # Phase 2 executes Phase 1 --post as V15.6. Require its fresh nested
+  # verdict, so both commands run once rather than repeating Phase 1.
   HYPOTHESIS_PROFILE=ci bash scripts/verify-phase02.sh --post > "$TMP/phase02.log" 2>&1
   local second=$?
-  log_detail "$TMP/phase01.log"
   log_detail "$TMP/phase02.log"
-  [ "$first" -eq 0 ] && [ "$second" -eq 0 ]
+  [ "$second" -eq 0 ] && grep -qE '^PASS  V15\.6[[:space:]]' "$TMP/phase02.log"
 }
 pr_checks() {
   local branch

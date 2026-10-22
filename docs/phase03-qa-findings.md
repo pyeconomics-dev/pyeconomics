@@ -203,6 +203,8 @@ review, detailed tradeoffs and validation evidence.
 | Not-in-scope text still referred to unavailable linearmodels wheels and open PR #61 | spec-rot | Phase roadmap updated from Step 16's recorded decision and closed PR state | Reviewed oracle admission policy; ordinary dependency maintenance |
 | V8.2 and V16.2 must include every component named by their matrix rows | bug | Verifier combines suite/licence and suite/installed-smoke results before reporting PASS | A failed component fails its own V verdict and the overall run |
 | Regex-only import checks miss comma-separated imports | bug | Standard-library tokenization in static check 19 | Import mutation proof; no package import or Python 3.12 parser needed |
+| The legacy stable probe inherited Python 3.13 and pip correctly chose 0.1.0 | bug | Stable-only venv uses Python 3.12, matching 0.2.6's Requires-Python >=3.11,<3.13 | V19.3 checks ordinary pip on the historical release's supported interpreter |
+| Phase 2 --post already executes Phase 1 --post | process | Run Phase 2 and require its fresh V15.6 PASS, executing both older commands once | V20.6 fails on either the Phase 2 exit or a missing/failed nested Phase 1 verdict |
 
 ## Synthetic alarms
 
@@ -225,6 +227,18 @@ with contradictory pre-job/complete-job states beyond its ten-minute timeout;
 it was cancelled normally. Fresh default heartbeat
 [39838021877](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39838021877)
 succeeded. Default live verification remains pending.
+
+Default live run 39836102739 failed on three BLS HTTP 503 responses and opened
+the real availability alarm #171, superseding #169. The same provider/catalog
+requests passed through the unchanged published package's credential chain
+locally, while a separate control query returned 503. This demonstrates
+intermittent availability, not a justification to skip a source. Further
+bounded default run 39840161120 is in progress; a successful restored default
+run remains required.
+
+Both synthetic issues are closed and now have comments pointing to this QA
+record (comments 6349977166 and 6349977642). The real BLS availability alarm
+remains tracked separately.
 
 Notification confirmation is pending the maintainer's actual receipt.
 No notification receipt is inferred from a workflow conclusion.
@@ -260,6 +274,7 @@ tracked destinations; they are not waived verification criteria.
 | #154 | Wheel rule: arch is marked python_full_version < 3.15; remove only after cp315 wheels and matrix verification |
 | #155/#156/#157/#158/#159 | MacKinnon/Johansen discrepancies, warning concurrency, BLS-gap profile, other pre-1952 daily sources |
 | #162/#163/#164 | Provider disable switch, maintenance-page errors and local Yahoo harness |
+| #171 | Current BLS availability alarm; maintainer owns recovery and a fresh full live run |
 | Phase 4 | Generated CLI/REST/MCP, parity, bundles and AI narrative; preserve licensing, credential and deterministic binding contracts |
 | Phase 5 | Production website/docs, migration guide, monitoring and stable RTD cutover |
 | Phase 6 | Premium/BYOK providers and Bloomberg adapter; existing spike is contract evidence only |
@@ -291,3 +306,11 @@ Both Phase 3 CI jobs passed at c37f3d2; Ubuntu's static step took 4 seconds.
 Main now requires both 03 contexts, preserving all 20 previous app-bound
 contexts: 22 strict checks in total. A before/after comparison confirms every
 other protection field is unchanged.
+
+All 38 CI checks passed at 6a47cb7. The first corrected-head --post attempt
+passed its Python, security and all ten read-only live checks, then failed
+the stable-install assertion on Python 3.13 and the unconfirmed notification
+criterion. Its alpha core/extras smokes and historical live recipe passed.
+That attempt was stopped before changing the verifier; it is not counted as
+a passing --post or as completed earlier-phase evidence. The stable-only
+interpreter fix below leaves the alpha tests on the project's interpreter.
