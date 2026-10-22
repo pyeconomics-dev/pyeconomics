@@ -16,7 +16,7 @@ Examples
 --------
 >>> from pyeconomics.core._released import RELEASED
 >>> len(RELEASED)
-32
+50
 """
 
 from __future__ import annotations
@@ -51,6 +51,12 @@ RELEASED: Final[Mapping[str, Released]] = MappingProxyType(
             "accounting.financial_ratios", "1.0.0a1"
         ),
         "accounting.scoring_models": Released("accounting.scoring_models", "1.0.0a1"),
+        "asset_pricing.factor_model_tests": Released(
+            "asset_pricing.factor_model_tests", "1.0.0a2"
+        ),
+        "asset_pricing.factor_regression": Released(
+            "asset_pricing.factor_regression", "1.0.0a2"
+        ),
         "corporate.capital_budgeting": Released(
             "corporate.capital_budgeting", "1.0.0a1"
         ),
@@ -67,16 +73,26 @@ RELEASED: Final[Mapping[str, Released]] = MappingProxyType(
         "derivatives.interest_rate_swap": Released(
             "derivatives.interest_rate_swap", "1.0.0a1"
         ),
+        "econometrics.garch": Released("econometrics.garch", "1.0.0a2"),
         "econometrics.ols": Released("econometrics.ols", "1.0.0a1"),
+        "econometrics.time_series": Released("econometrics.time_series", "1.0.0a2"),
+        "equity.cape": Released("equity.cape", "1.0.0a2"),
         "equity.dividend_discount": Released("equity.dividend_discount", "1.0.0a1"),
         "equity.free_cash_flow": Released("equity.free_cash_flow", "1.0.0a1"),
+        "equity.implied_risk_premium": Released(
+            "equity.implied_risk_premium", "1.0.0a2"
+        ),
         "fixed_income.bond_pricing": Released("fixed_income.bond_pricing", "1.0.0a1"),
         "fixed_income.convexity": Released("fixed_income.convexity", "1.0.0a1"),
         "fixed_income.credit_spread": Released("fixed_income.credit_spread", "1.0.0a1"),
         "fixed_income.curve_bootstrap": Released(
             "fixed_income.curve_bootstrap", "1.0.0a1"
         ),
+        "fixed_income.curve_fitting": Released("fixed_income.curve_fitting", "1.0.0a2"),
         "fixed_income.duration": Released("fixed_income.duration", "1.0.0a1"),
+        "fixed_income.interest_rate_tree": Released(
+            "fixed_income.interest_rate_tree", "1.0.0a2"
+        ),
         "fixed_income.money_market": Released("fixed_income.money_market", "1.0.0a1"),
         "foundations.hypothesis_tests": Released(
             "foundations.hypothesis_tests", "1.0.0a1"
@@ -90,6 +106,16 @@ RELEASED: Final[Mapping[str, Released]] = MappingProxyType(
         "international.parity_conditions": Released(
             "international.parity_conditions", "1.0.0a1"
         ),
+        "macro.debt_dynamics": Released("macro.debt_dynamics", "1.0.0a2"),
+        "macro.neutral_rate": Released("macro.neutral_rate", "1.0.0a2"),
+        "macro.okun_law": Released("macro.okun_law", "1.0.0a2"),
+        "macro.output_gap": Released("macro.output_gap", "1.0.0a2"),
+        "macro.phillips_curve": Released("macro.phillips_curve", "1.0.0a2"),
+        "macro.policy_rule": Released("macro.policy_rule", "1.0.0a2"),
+        "macro.recession_probability": Released(
+            "macro.recession_probability", "1.0.0a2"
+        ),
+        "macro.solow_growth": Released("macro.solow_growth", "1.0.0a2"),
         "performance.brinson_attribution": Released(
             "performance.brinson_attribution", "1.0.0a1"
         ),
@@ -97,7 +123,11 @@ RELEASED: Final[Mapping[str, Released]] = MappingProxyType(
             "performance.return_measurement", "1.0.0a1"
         ),
         "performance.risk_adjusted": Released("performance.risk_adjusted", "1.0.0a1"),
+        "portfolio.black_litterman": Released("portfolio.black_litterman", "1.0.0a2"),
         "portfolio.mean_variance": Released("portfolio.mean_variance", "1.0.0a1"),
+        "portfolio.risk_based_allocation": Released(
+            "portfolio.risk_based_allocation", "1.0.0a2"
+        ),
         "portfolio.utility": Released("portfolio.utility", "1.0.0a1"),
         "risk.value_at_risk": Released("risk.value_at_risk", "1.0.0a1"),
         "risk.var_backtest": Released("risk.var_backtest", "1.0.0a1"),

@@ -11,7 +11,7 @@ Pre-releases of 1.0.0 carry no stability promise. Deprecations are listed under
 The 0.2.x history (0.1.0 to 0.2.6) is in the
 [0.2.x changelog on `legacy/0.2.x`](https://github.com/pyeconomics-dev/pyeconomics/blob/legacy/0.2.x/markdown/CHANGELOG.md).
 
-## [Unreleased]
+## [1.0.0a2] - 2026-10-22
 
 ### Added
 
@@ -748,5 +748,6 @@ The 1.0 skeleton and its publishing pipeline, released to TestPyPI only.
 
 - The 0.2.x code from `main`; it continues on `legacy/0.2.x`.
 
+[1.0.0a2]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0a1...v1.0.0a2
 [1.0.0a1]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0.dev1...v1.0.0a1
 [1.0.0.dev1]: https://github.com/pyeconomics-dev/pyeconomics/tree/v1.0.0.dev1

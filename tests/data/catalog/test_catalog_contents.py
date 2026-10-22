@@ -292,10 +292,10 @@ def test_candidate_series_keys_hold_only_declared_placeholders() -> None:
 # --- the released-concept ledger ----------------------------------------------
 
 
-def test_the_shipped_ledger_is_empty_until_the_first_release_and_validate_passes() -> (
-    None
-):
-    assert len(RELEASED_CONCEPTS) == 0
+def test_the_shipped_ledger_guards_the_released_catalog_and_validate_passes() -> None:
+    assert set(RELEASED_CONCEPTS) == set(catalog.ids())
+    assert len(RELEASED_CONCEPTS) == 171
+    assert all(entry.first_version == "1.0.0a2" for entry in RELEASED_CONCEPTS.values())
     registry.validate()
     assert "released-concept" in RULES
 

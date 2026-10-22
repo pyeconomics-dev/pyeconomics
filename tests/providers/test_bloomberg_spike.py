@@ -313,7 +313,7 @@ def _windows(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_a_session_source_validates_with_no_change_to_the_contract() -> None:
-    ProviderRegistry.from_providers(BloombergSpike).validate()
+    ProviderRegistry.from_providers(BloombergSpike).validate(released={})
     assert BloombergSpike.info.hosts == ()
     assert BloombergSpike.info.access is Access.SESSION
 

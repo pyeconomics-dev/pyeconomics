@@ -10666,9 +10666,9 @@ environment; the readiness document lands on merge; nothing reaches PyPI.
 
 ---
 
-## Step 19 — 1.0.0a2 Release
+## Step 19 — 1.0.0a2 Release ✅
 
-**Status:** Not started
+**Status:** Complete — PR #166 (2026-10-22)
 
 > **Goal:** Release what the gate approved. On the step branch, set the
 > version to `1.0.0a2` and make exactly the changes the readiness document
@@ -10716,6 +10716,8 @@ pyeconomics` keeps resolving 0.2.6.
 > Medium. Agentic PRIMARY, coding SECONDARY, Medium: the ladder's Balanced
 > column keeps GPT-6.1 Sol on Codex but at Intelligence High, with Opus 5.5 at
 > Medium as backup.
+
+> Ran 2026-10-22: Balanced — gpt-6.1-sol · high. Runs selected Balanced; the Codex pool has headroom.
 
 **Model rationale:** Agentic work is PRIMARY and coding SECONDARY; complexity is Medium. The ladder's Balanced column runs: GPT-6.1 Sol on Codex at High, backup Claude Opus 5.5. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -12021,7 +12023,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #153 |
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #160 |
 | 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #165 |
-| 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Not started |
+| 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Complete — PR #166 |
 | 20      | QA + verify-phase03.sh           | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
 | V1      | Core hardening                   | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V2      | ADR-0011 + data model            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |

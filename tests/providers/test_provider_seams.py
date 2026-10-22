@@ -81,7 +81,7 @@ def problems(info: Any) -> list[str]:
     provider = type("Probe", (Stub,), {"info": info})
     return [
         f"[{p.rule}] {p.detail}"
-        for p in ProviderRegistry.from_providers(provider).problems()
+        for p in ProviderRegistry.from_providers(provider).problems(released={})
     ]
 
 

@@ -94,11 +94,12 @@ VIOLATIONS: dict[str, Callable[[], type[DataProvider]]] = {
 
 def problems(*providers: type[DataProvider], **kwargs: Any) -> list[str]:
     registry = ProviderRegistry.from_providers(*providers, extras={"real": ()})
+    kwargs.setdefault("released", {})  # toys have no release history
     return [str(p) for p in registry.problems(**kwargs)]
 
 
 def test_both_toy_providers_pass() -> None:
-    ProviderRegistry.from_providers(ToyJson, ToyVintage).validate()
+    ProviderRegistry.from_providers(ToyJson, ToyVintage).validate(released={})
 
 
 def test_every_rule_slug_has_a_toy_violation() -> None:
@@ -126,21 +127,25 @@ def test_a_problem_names_the_provider_and_the_rule() -> None:
 def test_validate_raises_one_error_listing_every_problem() -> None:
     broken = variant(Stub, rate_limits=(), platforms=())
     with pytest.raises(RegistryError) as caught:
-        ProviderRegistry.from_providers(broken).validate()
+        ProviderRegistry.from_providers(broken).validate(released={})
     assert "has 2 problems" in str(caught.value)
     assert len(caught.value.problems) == 2
     with pytest.raises(RegistryError, match="has 1 problem:"):
-        ProviderRegistry.from_providers(variant(Stub, platforms=())).validate()
+        ProviderRegistry.from_providers(variant(Stub, platforms=())).validate(
+            released={}
+        )
 
 
 def test_the_extra_must_be_declared_by_the_registering_distribution() -> None:
     declared = variant(Stub, extra="real")
     assert problems(declared) == []
     registry = ProviderRegistry.from_providers(declared)  # no extras declared
-    assert [p.rule for p in registry.problems()] == ["extra"]
+    assert [p.rule for p in registry.problems(released={})] == ["extra"]
     assert [
         p.rule
-        for p in ProviderRegistry.from_providers(variant(Stub, extra=" ")).problems()
+        for p in ProviderRegistry.from_providers(variant(Stub, extra=" ")).problems(
+            released={}
+        )
     ] == ["extra"]
 
 
@@ -176,7 +181,7 @@ def test_a_duplicate_id_is_reported_with_both_distributions() -> None:
             *ProviderRegistry.from_providers(Stub, distribution="two").registrations,
         ]
     )
-    (line,) = (str(p) for p in twice.problems())
+    (line,) = (str(p) for p in twice.problems(released={}))
     assert "[duplicate-id]" in line
     assert "'one'" in line
     assert "'two'" in line
