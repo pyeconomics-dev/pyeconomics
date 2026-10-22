@@ -1,6 +1,6 @@
-# Phase 3 Roadmap — Data Platform & Free Sources
+# Phase 3 Roadmap — Data Platform & Free Sources ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-22
 
 ## Overview
 
@@ -11134,9 +11134,9 @@ pyeconomics` keeps resolving 0.2.6.
 
 ---
 
-## Step 20 — QA and Verification Script
+## Step 20 — QA and Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #170 (2026-10-22)
 
 > **Goal:** Package the phase's verification matrix into
 > `scripts/verify-phase03.sh` — the same `--fast`, `--python`,
@@ -11172,6 +11172,8 @@ the required-check update and the synthetic alarms are part of the step.
 | Conversation | **New**                                  | **New**                                 | **New**                                 |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-22: Balanced Backup — gpt-6.1-sol / High on Codex. The operator opened the permitted backup on its own platform.
 
 > Settings updated 2026-10-18 (refresh): was GPT-6.1 Sol · Intelligence
 > Medium. Coding PRIMARY, agentic SECONDARY, Medium: the ladder's Balanced
@@ -12026,7 +12028,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #160 |
 | 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #165 |
 | 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Complete — PR #166 |
-| 20      | QA + verify-phase03.sh           | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
+| 20 | QA + verify-phase03.sh | GPT-6.1 Sol | Codex | Intelligence High | -- | New | Complete — PR #170 |
 | V1      | Core hardening                   | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V2      | ADR-0011 + data model            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V3      | Credentials + redaction          | CI: phase-verify.yml, ci.yml, security.yml | -- | --     | --       | --   | --          |
