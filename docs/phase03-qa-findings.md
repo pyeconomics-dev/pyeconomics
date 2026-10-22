@@ -226,19 +226,29 @@ dispatched: live 39836102739 and heartbeat 39836107089. The latter stalled
 with contradictory pre-job/complete-job states beyond its ten-minute timeout;
 it was cancelled normally. Fresh default heartbeat
 [39838021877](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39838021877)
-succeeded. Default live verification remains pending.
+succeeded. Default live verification subsequently recovered as recorded below.
 
 Default live run 39836102739 failed on three BLS HTTP 503 responses and opened
 the real availability alarm #171, superseding #169. The same provider/catalog
 requests passed through the unchanged published package's credential chain
 locally, while a separate control query returned 503. This demonstrates
 intermittent availability, not a justification to skip a source. Further
-bounded default run 39840161120 is in progress; a successful restored default
-run remains required.
+bounded default run 39840161120 stopped its live step at 19:39 UTC while its
+run API remained in progress. Normal cancellation returned HTTP 502;
+force-cancellation was accepted. It produced no completed provider verdict
+and is not counted as green.
+
+Fresh default providers-live
+[39847835112](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39847835112)
+succeeded: 329 passed, 36 expected skips, zero failures (365 JUnit cases).
+ALFRED, historical Taylor and both Shiller CAPE model/binding cases each
+passed. Both newest default workflows are now green. The real availability
+alarm #171 was closed on this observed recovery, with evidence in comment
+6350878000. No provider check, credential, permission or trigger changed.
 
 Both synthetic issues are closed and now have comments pointing to this QA
 record (comments 6349977166 and 6349977642). The real BLS availability alarm
-remains tracked separately.
+has its own recovery evidence above.
 
 Notification confirmation is pending the maintainer's actual receipt.
 No notification receipt is inferred from a workflow conclusion.
@@ -247,14 +257,14 @@ No notification receipt is inferred from a workflow conclusion.
 
 | Project criterion | Verification | Evidence |
 |---|---|---|
-| Every source in plan; metadata, licence, units, bounds and errors | V2-V10; static 30/72 | Exact 31 shipped ids including SEC; final offline/live runs pending |
+| Every source in plan; metadata, licence, units, bounds and errors | V2-V10; static 30/72 | Exact 31 shipped ids including SEC; offline and restored default live runs pass |
 | Catalog originator priority, hosted refusals and live resolution | V11 | Concept/transform/resolver suites; exact-HEAD RTD check |
 | Declared bindings, overrides, vintages and manifest provenance | V12-V13 | Schema-2, canary, real-time/revised labels and published recipe |
 | Eighteen new families with cards, cited goldens, invariants and contracts | V13-V17 | All 50 model ids; strict docs and clean core/extras smokes |
-| Branch coverage floors and strict types | V1.2/V2.2; TYPES | Core/data 95%, models 90%; final run pending |
+| Branch coverage floors and strict types | V1.2/V2.2; TYPES | Core 99.76%, data 96.13%, models 98.41%; strict types pass |
 | No FRED disk storage or automated Yahoo; credentials stay local | V3-V5/V10/V20.4 | Gate, no-storage, layering, cassette and canary tests |
 | Alpha publication with stable 0.2.6 unchanged | V18/V19 | Both index provenances, GitHub prerelease and fresh installs |
-| Operations alarms and heartbeat, prior ledgers and required checks | V6.3/V20 | Actual synthetic/default runs and maintainer notification confirmation pending |
+| Operations alarms and heartbeat, prior ledgers and required checks | V6.3/V20 | Synthetic failures, restored defaults, both earlier --post audits and strict 22 checks pass; human notification receipt remains pending |
 
 ## Pre-ship items and owners
 
@@ -274,7 +284,6 @@ tracked destinations; they are not waived verification criteria.
 | #154 | Wheel rule: arch is marked python_full_version < 3.15; remove only after cp315 wheels and matrix verification |
 | #155/#156/#157/#158/#159 | MacKinnon/Johansen discrepancies, warning concurrency, BLS-gap profile, other pre-1952 daily sources |
 | #162/#163/#164 | Provider disable switch, maintenance-page errors and local Yahoo harness |
-| #171 | Current BLS availability alarm; maintainer owns recovery and a fresh full live run |
 | Phase 4 | Generated CLI/REST/MCP, parity, bundles and AI narrative; preserve licensing, credential and deterministic binding contracts |
 | Phase 5 | Production website/docs, migration guide, monitoring and stable RTD cutover |
 | Phase 6 | Premium/BYOK providers and Bloomberg adapter; existing spike is contract evidence only |
@@ -295,9 +304,8 @@ the tutorial and verifies every model, provider and concept HTML page. Wheel
 and sdist pass strict Twine and content allowlisting; separate core/extras
 wheel installs smoke all families across 13 domains.
 
-Pending the final canonical --post run, all final-head CI checks, protection
-update, alarm notification confirmation, merge and exact-main checks. Only
-completed checks will be recorded as PASS here.
+The latest complete audit and remaining closure criteria are recorded below.
+Only completed checks are recorded as PASS.
 
 The first full --security run passed in 710 seconds: 100 fast and 3 security
 verdicts, zero failures. Semgrep rule tests, 291 import/layering tests, the
@@ -313,4 +321,24 @@ the stable-install assertion on Python 3.13 and the unconfirmed notification
 criterion. Its alpha core/extras smokes and historical live recipe passed.
 That attempt was stopped before changing the verifier; it is not counted as
 a passing --post or as completed earlier-phase evidence. The stable-only
-interpreter fix below leaves the alpha tests on the project's interpreter.
+interpreter fix leaves the alpha tests on the project's interpreter.
+
+The complete corrected `--post` at 143f299 finished in 5455 seconds with
+137 PASS and one FAIL: fast 100/0, Python 21/0, security 3/0, live 10/0,
+post 3/1. The sole failure is V20.5, because the maintainer has not confirmed
+receipt of the synthetic notifications. No receipt is inferred or invented.
+Fresh published alpha core/extras, BLS/ALFRED recipe, ordinary stable 0.2.6
+on Python 3.12, and current PR checks passed. All 38 CI checks passed at
+143f299, including the twelve OS/Python cells and both Phase 3 jobs.
+
+Phase 2's complete `--post` passed in 3264 seconds: 83 fast, 16 Python,
+3 security, 6 live and 4 post verdicts, zero failures. Its fresh V15.6 proves
+the actual nested Phase 1 `--post` also passed. Neither earlier command was
+skipped or replaced by a saved result.
+
+Both default workflows are restored as recorded above. The complete audit
+started before that restoration finished; after actual notification receipt
+is recorded, a final canonical `--post` must pass with the newest default
+runs already green. The PR remains draft. Final evidence-head CI, a passing
+canonical audit, notification confirmation, merge and exact-main validation
+remain closure work; Phase 3 is not yet declared complete.

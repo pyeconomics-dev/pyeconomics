@@ -11470,14 +11470,12 @@ the required-check update and the synthetic alarms are part of the step.
     only; providers-heartbeat.yml likewise; permissions: {}
     at the top of both and issues: write only in the report
     job and the heartbeat job; the ALFRED test's citations.
-    Step 7 (30–32): the four recovered keyless providers;
-    EDGAR only when verified and released; otherwise the
-    named SEC deferral recorded in readiness and QA, with
-    no SEC entry point or catalog candidate. No "Build Your
-    Package" URL; openpyxl and defusedxml. These checks
-    must fail for any missing required provider or partial
-    EDGAR registration; report the SEC deferral explicitly
-    rather than reporting its provider tests as passed.
+    Step 7 (30–32): the four recovered keyless providers
+    and SEC EDGAR, verified and released in PR #124. No
+    "Build Your Package" URL; openpyxl and defusedxml.
+    These checks must fail for any missing required provider
+    or partial EDGAR registration. All 31 providers are
+    required; no SEC deferral remains active.
     Step 8 (33–35): the [sdmx] extra; the seven providers;
     certifi's reviewed exception.
     Step 9 (36–38): the five research providers; no TBD class
@@ -11510,7 +11508,7 @@ the required-check update and the synthetic alarms are part of the step.
     section; the model ledger holding every id of this
     roadmap's table; the provider ledger holding the exact
     release provider set recorded by readiness; the release
-    notes disclose SEC when deferred.
+    notes agree with the complete 31-provider set.
     Step 20 self-checks (74–78): verify-phase03.sh exists
     and is executable; docs/phase03-qa-findings.md exists;
     docs/roadmap/phase03-roadmap.md exists; phase-verify.yml's
@@ -11670,9 +11668,8 @@ the required-check update and the synthetic alarms are part of the step.
       `**Status:**` line reads `Complete — <YYYY-MM-DD>`, the
       title and every required step heading end in ✅, and
       their Summary Table Status cells read `Complete — PR #<n>`.
-      If SEC remains deferred, preserve Step 7's unfinished
-      heading, Status line and Summary Table cell; carry its
-      named blocker and follow-up into QA and Phase 4.
+      Preserve Step 7's Complete status from PR #124; no SEC
+      blocker or follow-up remains to carry into Phase 4.
     </requirement>
 
     <requirement>
@@ -11728,9 +11725,8 @@ the required-check update and the synthetic alarms are part of the step.
   or a named phase that owns it), the "Not in scope" section below is
   current, and no un-tracked item remains. Every required step of this roadmap,
   this one included, reads `**Status:** Complete — PR #…` on `main` under a ✅
-  heading. If SEC is deferred, Step 7 alone keeps its unfinished status,
-  heading and Summary Table cell, with its named carry-over recorded. All
-  other Summary Table Status cells and this roadmap's
+  heading. Step 7 remains Complete from PR #124; no SEC carry-over remains.
+  All Summary Table Status cells and this roadmap's
   phase-level Status line say `Complete` under a ✅ title, and the parent
   project roadmap's Phase 3 entry (under a ✅ heading), its summary-table
   row, and its header status line say `Complete` — all landed in this
@@ -12695,15 +12691,13 @@ forward whatever is still open here.
 _This roadmap is the execution plan for Phase 3. Each step's
 `**Status:**` line is flipped by that step's own PR (Status rule), so this
 file on `main` is the phase's ledger — `grep -n '^\*\*Status:\*\*'`
-reports progress. After the required steps and verification pass (with
-only the named SEC exception permitted), and every finding
-has a destination, Phase 3 is complete — declared with the line "Phase 3 is
+reports progress. After the required steps and verification pass, and every
+finding has a destination, Phase 3 is complete — declared with the line "Phase 3 is
 complete. You can now move on to Phase 4." and nothing after it — and Phase
 4 (Programmatic Surfaces: CLI, REST API, MCP & Exports) inherits
 `pyeconomics 1.0.0a2` on PyPI: 50 verified models whose bindings resolve
-live data on real-time vintages; 30 verified providers while SEC is deferred,
-or 31 once Step 7 completes, with enforced licence
-classes, attribution and `llm_use` flags behind a Python data API (`get`,
+live data on real-time vintages; 31 verified providers including SEC, with
+enforced licence classes, attribution and `llm_use` flags behind a Python data API (`get`,
 `search`, `describe`, `vintages`, `sources`) that its `data` commands,
 `series` routes and MCP tools wrap; a credential chain and redaction its
 `keys` commands build on; a licence-aware cache its `cache` commands wrap;
