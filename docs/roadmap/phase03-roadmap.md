@@ -10200,9 +10200,9 @@ the price. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 18 — 1.0.0a2 Readiness Gate
+## Step 18 — 1.0.0a2 Readiness Gate ✅
 
-**Status:** Not started
+**Status:** Complete — PR #165 (2026-10-22)
 
 > **Goal:** Decide, with evidence, that publishing `1.0.0a2` to PyPI is
 > safe — an upload that can never be reused, only yanked, and the first
@@ -10247,6 +10247,10 @@ environment; the readiness document lands on merge; nothing reaches PyPI.
 > Medium. Knowledge PRIMARY, agentic SECONDARY, Medium: the ladder's Balanced
 > column is Opus 5.5 at High on Claude Code, with GPT-6.1 Sol at Intelligence
 > XHigh as backup; the old pick was Codex.
+
+> Ran 2026-10-21 to 2026-10-22: Balanced — Claude Opus 5.5 on Claude Code
+> (Effort High). The **Runs:** column; the Claude weekly pool's `tight` row had
+> passed its reset, so it read as headroom.
 
 **Model rationale:** Knowledge is PRIMARY and agentic work SECONDARY; complexity is Medium. The ladder's Balanced column runs: Claude Opus 5.5 on Claude Code at High, backup GPT-6.1 Sol. The Cost and Quality columns, and the Backup under a tight or exhausted pool, are read off the table on the day. New conversation per phase-boundary hygiene.
 
@@ -10968,6 +10972,17 @@ pyeconomics` keeps resolving 0.2.6.
     - Phase 2's Step 14 is the pattern for every action
       below, including its review of the built artifacts
       against the rehearsal's.
+    - Step 18 (PR #165, GO 2026-10-22) recorded the exact
+      release provider set as all 31 source-plan ids
+      (sec_edgar included, no deferral) and rehearsed
+      1.0.0a2.dev1 at 610da6f. Its §7 lists the only
+      release-commit changes allowed. The maintainer froze
+      Dependabot PRs #98-#103 and #161 until 1.0.0a2
+      publishes: merging any of them before the release
+      changes the candidate. After the Deployed & verified
+      check passes, rebase them and let them merge. The FRED
+      key was rotated on 2026-10-22, in the keyring and in
+      providers-live.
 
     Files to read (every file before drafting):
     - docs/releases/1.0.0a2-readiness.md, the draft
@@ -12005,7 +12020,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #146 |
 | 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #153 |
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #160 |
-| 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Not started |
+| 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #165 |
 | 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Not started |
 | 20      | QA + verify-phase03.sh           | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
 | V1      | Core hardening                   | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
