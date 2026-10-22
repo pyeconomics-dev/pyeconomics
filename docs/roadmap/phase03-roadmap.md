@@ -11156,8 +11156,8 @@ pyeconomics` keeps resolving 0.2.6.
 
 **Branch:** `feature/phase03-step20-verify`
 
-**Prerequisites:** Step 19 Complete. Apply the named SEC exception to the
-checks below; keep Step 7's own status unfinished and preserve its draft PR.
+**Prerequisites:** Step 19 Complete. Step 7 delivered SEC EDGAR in PR #124;
+all 31 source-plan providers are required. No SEC deferral remains active.
 
 **Deploys:** nothing beyond merge — the CI matrix entry is live on merge;
 the required-check update and the synthetic alarms are part of the step.
@@ -11420,9 +11420,9 @@ the required-check update and the synthetic alarms are part of the step.
     pyeconomics. Phase 3. Step 20: QA and verification
     script.
 
-    Steps 1 through 19 except the explicitly deferred SEC
-    work have been implemented: 1.0.0a2 is on PyPI; the
-    release provider set (30 or 31 ids), catalog, bindings and 18 new
+    Steps 1 through 19 have been implemented, including SEC
+    EDGAR in PR #124: 1.0.0a2 is on PyPI; the exact
+    31-id release provider set, catalog, bindings and 18 new
     models are on main; providers-live.yml and
     providers-heartbeat.yml run on schedule.
 
@@ -11576,7 +11576,9 @@ the required-check update and the synthetic alarms are part of the step.
         on stable.
       - --all: --fast, --python and --security.
       - --post: --all and --live, plus the published
-        installs (V19.3) with the live recipe, the alarm
+        installs (V19.3) with scripts/verify_phase03_live.py
+        (isolated configuration/cache, ambient keys removed,
+        credential-chain reads, fixed verdict output), the alarm
         evidence (V20.5), verify-phase01.sh --post and
         verify-phase02.sh --post (V20.6), and `gh pr checks`
         for the current branch.
@@ -11692,11 +11694,11 @@ the required-check update and the synthetic alarms are part of the step.
 
 ### Step 20 acceptance criteria
 
-- The verifier compares the exact required source-plan set (minus only
-  the approved SEC deferral) with the readiness record, installed providers
-  and released-id ledger. Any other omission or partial EDGAR registration
-  fails. QA findings and Phase 4 carry-over name the SEC blocker, owner and
-  Step 7 follow-up. Phase completion must not change Step 7's own status.
+- The verifier compares the exact 31-id source-plan set, including SEC
+  EDGAR delivered in PR #124, with the readiness record, installed providers
+  and released-id ledger. Any omission or partial EDGAR registration fails.
+  QA records SEC access as resolved; there is no SEC blocker or follow-up
+  to carry into Phase 4. Phase completion preserves Step 7's Complete status.
 - `scripts/verify-phase03.sh` exists, is executable, and passes on a clean
   tree post-implementation, with its static checks, Step 20 self-checks and
   the V1–V20 matrix in all six modes.
@@ -12347,15 +12349,18 @@ Additionally not in scope for this phase:
 - The yearly terms review as a scheduled process and the reclassification
   runbook. ADR-0005's Confirmation assigns them to Phase 5; this phase
   adds the 13-month freshness test that makes a stale review fail.
-- linearmodels, PyPortfolioOpt, skfolio and Riskfolio-Lib as test oracles
-  while they lack CPython 3.15 wheels (Wheel rule); statsmodels, SciPy and
-  independent recomputations stand in.
+- linearmodels, PyPortfolioOpt, skfolio and Riskfolio-Lib as additional
+  test oracles. Step 16 verified linearmodels 7.1's CPython 3.15 wheels but
+  did not need it; other candidates had incompatible dependency closures.
+  Statsmodels, SciPy and independent recomputations cover this release.
+  Adding an oracle requires a fresh licence and supported-wheel review.
 - Fuzzing the provider parsers. It remains with issue #62's Scorecard
   dispositions and its owner; the parsers are the natural target if that
   issue takes it up.
 - Issues #52 (the 0.2.6 CVE id), #62 (Scorecard dispositions) and #68
-  (GitHub Sponsors, ROADMAP 8.1), and Dependabot PR #61. Each keeps its
-  owner outside this phase.
+  (GitHub Sponsors, ROADMAP 8.1). Each keeps its owner outside this phase.
+  Dependabot PR #61 is closed; ordinary dependency maintenance continues
+  independently after Step 19 lifted the release freeze.
 - A SIFMA US bond-market calendar. `docs/phase02-qa-findings.md` assigns
   it to Phase 7's fixed-income batch.
 
