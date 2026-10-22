@@ -168,7 +168,8 @@ def _registry(provider: type[DataProvider]) -> ProviderRegistry:
 def check_registered(provider: type[DataProvider]) -> None:
     """The provider passes every validate() rule and can be fetched by id."""
     registry = _registry(provider)
-    registry.validate()
+    # The contract checks each provider in its own isolated registry.
+    registry.validate(released={})
     assert registry.get(provider.info.id).info == provider.info
 
 

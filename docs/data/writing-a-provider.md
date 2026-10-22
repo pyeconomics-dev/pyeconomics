@@ -132,12 +132,13 @@ print(series.values, series.meta.retrieved_at.date())
 
 A year-end date, `0.045` for `4.5`, `None` for the missing year, and the time the
 transport got the answer: the provider did none of that bookkeeping. Check the
-provider against every rule with the registry:
+provider against every rule with an isolated registry (the demo has no
+release history):
 
 ```python
 from pyeconomics.data.registry import ProviderRegistry
 
-ProviderRegistry.from_providers(Demo).validate()
+ProviderRegistry.from_providers(Demo).validate(released={})
 ```
 
 ## What a provider owes the contract
