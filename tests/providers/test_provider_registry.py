@@ -166,7 +166,7 @@ def test_discovery_collects_the_listed_classes_and_the_extras(
     )
     found = discover([FakeEntryPoint("a", name, dist=dist)])
     assert found.ids() == ("needs_extra",)
-    found.validate()  # the distribution declares the extra
+    found.validate(released={})  # isolated registry; distribution declares the extra
 
 
 def test_discovery_ignores_other_groups_and_sorts_entry_points(
@@ -282,9 +282,10 @@ def test_refresh_makes_the_next_use_discover_again(
     assert registry.ids() == ("toy_json",)
 
 
-def test_the_providers_ledger_is_empty_until_step_19() -> None:
+def test_the_providers_ledger_guards_the_released_set() -> None:
     from pyeconomics.data._released import PROVIDERS  # noqa: PLC0415
 
-    assert len(PROVIDERS) == 0
+    assert set(PROVIDERS) == set(BUILT_IN)
+    assert all(entry.first_version == "1.0.0a2" for entry in PROVIDERS.values())
     with pytest.raises(TypeError):
         PROVIDERS["x"] = None  # type: ignore[index]

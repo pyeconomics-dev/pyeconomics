@@ -6,11 +6,13 @@ For the current stable release, use the [0.2.6 documentation](https://pyeconomic
 ```
 
 pyeconomics is an open library of economics and finance models with typed
-inputs, cited formulas and reproducible results. The preview includes 32
-model families across 11 domains: foundations, fixed income, derivatives,
-international, equity, corporate, accounting, portfolio, performance, risk
-and econometrics. OLS requires the `econometrics` extra; result charts use
-the `plot` extra.
+inputs, cited formulas and reproducible results. The preview includes 50
+model families across 13 domains: foundations, fixed income, derivatives,
+international, equity, corporate, accounting, portfolio, performance, risk,
+econometrics, macroeconomics and asset pricing. The data platform provides 31
+sources, 171 catalog concepts and live bindings with real-time vintages.
+OLS, GARCH and time-series models require the `econometrics` extra; result
+charts use the `plot` extra.
 Each has a generated card with units, bounds, assumptions, limitations and a
 worked example. The Python API is available in this checkout;
 the command line, REST API, MCP server and web app follow in later phases.
