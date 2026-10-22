@@ -135,11 +135,13 @@ static_check() {
   "$PY" - "$1" << 'PY'
 import ast
 import hashlib
+import io
 import json
 import re
 import subprocess
 import sys
 import tomllib
+import tokenize
 from pathlib import Path
 
 n = int(sys.argv[1])
@@ -255,7 +257,16 @@ elif n == 18: files("scripts/record_cassettes.py", "tests/providers/provider_con
 elif n == 19:
     files("tests/providers/test_bloomberg_spike.py")
     for p in Path("src").rglob("*.py"):
-        assert not re.search(r"^\s*(?:from\s+blpapi(?:\.|\s)|import\s+blpapi(?:\.|\s|$))", text(p), re.M), str(p)
+        # Tokenization handles Python 3.12 generics on the system's 3.11,
+        # comma-separated imports and continuations, without reading strings.
+        importing = False
+        for token in tokenize.generate_tokens(io.StringIO(text(p)).readline):
+            if token.type == tokenize.NAME and token.string in {"import", "from"}:
+                importing = True
+            if importing and token.type == tokenize.NAME:
+                assert token.string != "blpapi", str(p)
+            if token.type == tokenize.NEWLINE or token.string == ";":
+                importing = False
 elif n == 20: files("docs/data/writing-a-provider.md", "docs/data/index.md", "docs/_ext/provider_pages.py")
 elif n == 21: files("tests/providers/test_notices.py")
 elif n == 22: files(*(data + "cache/" + x for x in ("__init__.py", "policy.py", "store.py")))
@@ -562,12 +573,21 @@ run_python() {
   vcheck TYPES "Locked extras/docs; format, lint and strict types" lint_types
   local suite_status=PASS id
   suite > "$TMP/suite.log" 2>&1 || suite_status=FAIL
-  for id in V1.2 V2.2 V3.2 V4.2 V5.2 V6.2 V7.2 V8.2 V9.2 V10.2 V11.2 V12.2 V13.2 V14.2 V15.2 V16.2 V17.2; do
+  for id in V1.2 V2.2 V3.2 V4.2 V5.2 V6.2 V7.2 V9.2 V10.2 V11.2 V12.2 V13.2 V14.2 V15.2 V17.2; do
     record "$suite_status" "$id" "Full socket-isolated suite, registries, bindings and three coverage floors" "$(log_detail "$TMP/suite.log")"
   done
+  local licence_status=PASS combined=PASS
+  uv run --locked prek run licences --all-files > "$TMP/licences.log" 2>&1 || licence_status=FAIL
+  [ "$suite_status" = PASS ] && [ "$licence_status" = PASS ] || combined=FAIL
+  record "$combined" V8.2 "International provider contracts and all-extras licence closure" "$(log_detail "$TMP/licences.log")"
   vcheck DOCS "Sphinx -W; executed tutorial and every model/provider/concept page" docs_build
   vcheck BUILD "Wheel/sdist, strict Twine and artifact allowlist" artifact_build
-  vcheck V17.3 "Separate core/extras wheel smokes across thirteen domains" wheel_smoke
+  local smoke_status=PASS
+  wheel_smoke > "$TMP/smoke.log" 2>&1 || smoke_status=FAIL
+  record "$smoke_status" V17.3 "Separate core/extras wheel smokes across thirteen domains" "$(log_detail "$TMP/smoke.log")"
+  combined=PASS
+  [ "$suite_status" = PASS ] && [ "$smoke_status" = PASS ] || combined=FAIL
+  record "$combined" V16.2 "Asset-pricing/portfolio contracts and thirteen-domain installed smoke" "$(log_detail "$TMP/smoke.log")"
 }
 log_detail() { tail -n 4 "$1" | tr '\n' ' ' | cut -c1-400; }
 

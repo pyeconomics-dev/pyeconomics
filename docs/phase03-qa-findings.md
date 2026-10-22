@@ -201,6 +201,8 @@ review, detailed tradeoffs and validation evidence.
 | FRED can serve latest EFFR beside genuine historical ALFRED inputs | process | Published recipe requires historical PCEPILFE/NROU/UNRATE and explicit revised labels | V19.3 checks vintages and real-time periods without hiding revised data |
 | Known randomized properties are unsuitable as a canonical profile | process | Earlier --post invocations inherit the repository's required CI profile | All tests still collected; known dev-profile issues retain their owners |
 | Not-in-scope text still referred to unavailable linearmodels wheels and open PR #61 | spec-rot | Phase roadmap updated from Step 16's recorded decision and closed PR state | Reviewed oracle admission policy; ordinary dependency maintenance |
+| V8.2 and V16.2 must include every component named by their matrix rows | bug | Verifier combines suite/licence and suite/installed-smoke results before reporting PASS | A failed component fails its own V verdict and the overall run |
+| Regex-only import checks miss comma-separated imports | bug | Standard-library tokenization in static check 19 | Import mutation proof; no package import or Python 3.12 parser needed |
 
 ## Synthetic alarms
 
@@ -218,7 +220,11 @@ the older heartbeat issue as superseded. The live JUnit contains the intended
 real BLS HTTP 503 after the harness's retry. This is recorded as an upstream
 availability observation, not silently counted as a passing BLS test. A
 default-input green run remains required. Default restoration runs were
-dispatched: live 39836102739 and heartbeat 39836107089.
+dispatched: live 39836102739 and heartbeat 39836107089. The latter stalled
+with contradictory pre-job/complete-job states beyond its ten-minute timeout;
+it was cancelled normally. Fresh default heartbeat
+[39838021877](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39838021877)
+succeeded. Default live verification remains pending.
 
 Notification confirmation is pending the maintainer's actual receipt.
 No notification receipt is inferred from a workflow conclusion.
@@ -277,3 +283,11 @@ wheel installs smoke all families across 13 domains.
 Pending the final canonical --post run, all final-head CI checks, protection
 update, alarm notification confirmation, merge and exact-main checks. Only
 completed checks will be recorded as PASS here.
+
+The first full --security run passed in 710 seconds: 100 fast and 3 security
+verdicts, zero failures. Semgrep rule tests, 291 import/layering tests, the
+whole-tree gate, 221 cassette scans and the orphan-clone secret scan passed.
+Both Phase 3 CI jobs passed at c37f3d2; Ubuntu's static step took 4 seconds.
+Main now requires both 03 contexts, preserving all 20 previous app-bound
+contexts: 22 strict checks in total. A before/after comparison confirms every
+other protection field is unchanged.
