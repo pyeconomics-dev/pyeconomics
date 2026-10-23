@@ -3705,6 +3705,13 @@ phase-boundary hygiene.
     - core/schema.py builds each model's input and output
       JSON Schemas (2020-12); data.api.get resolves a series
       target; data.api.sources lists providers.
+    - Step 1 audited the process-wide state concurrent runs
+      share (its pull request holds the table) and closed
+      #157: core.library_warnings' blocks take turns under a
+      re-entrant lock and record only their own thread's
+      warnings. data.configure's overrides are process-wide
+      by design, so the app factory sets hosted mode and
+      offline once, at start, and never per request.
 
     Files to read (every file before drafting):
     - docs/adr/0012-programmatic-surfaces.md (decisions 3,
@@ -4666,6 +4673,14 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
       python-multipart, mcp-types, opentelemetry-api and, on
       Windows, pywin32; each has CPython 3.15 wheels or is
       pure Python. The MCP Inspector is 2.12.0 on npm.
+    - Since Step 1 (#157), two tools may run models on
+      threads of one process: core.library_warnings' blocks
+      take turns under a re-entrant lock and record only
+      their own thread's warnings, and while one runs,
+      another thread's warnings pass the "always" filter
+      (#174).
+      data.configure is process-wide: the MCP server sets
+      its mode once, at start, never per tool call.
 
     Files to read (every file before drafting):
     - docs/adr/0012-programmatic-surfaces.md (decisions 13

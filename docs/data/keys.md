@@ -157,7 +157,8 @@ The cache directory defaults to `~/.cache/pyeconomics` on Linux,
 `~/Library/Caches/pyeconomics` on macOS and
 `%LOCALAPPDATA%\pyeconomics\Cache` on Windows. The files and variables are
 read once per process. `configure` overrides settings from Python for the
-rest of the process:
+rest of the process, in every thread, so a server configures once at start
+and never per request:
 
 ```python
 >>> from pyeconomics.data import configure, settings

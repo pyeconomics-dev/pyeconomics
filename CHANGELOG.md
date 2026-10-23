@@ -11,6 +11,26 @@ Pre-releases of 1.0.0 carry no stability promise. Deprecations are listed under
 The 0.2.x history (0.1.0 to 0.2.6) is in the
 [0.2.x changelog on `legacy/0.2.x`](https://github.com/pyeconomics-dev/pyeconomics/blob/legacy/0.2.x/markdown/CHANGELOG.md).
 
+## [Unreleased]
+
+### Fixed
+
+- Models that wrap a library (`econometrics.garch`, `econometrics.time_series`)
+  keep their own warnings when they run concurrently in one process's threads
+  (#157). `core.library_warnings` changed the process-wide warning filters
+  while it recorded, so two concurrent fits could swap or lose their library
+  warnings and restore the filters in the wrong order. Its blocks now take
+  turns under a re-entrant lock, so a wrapped fit waits only for another
+  wrapped fit, and each block records only its own thread's warnings: a
+  warning another thread issues meanwhile stays with that thread. The filters
+  are left as they were found. No model's outputs change.
+
+### Changed
+
+- The version is `1.0.0b1.dev1`, on the way to the first beta.
+- `data.configure` documents that its overrides are process-wide: a server
+  configures once, at start, never per request.
+
 ## [1.0.0a2] - 2026-10-22
 
 ### Added
@@ -748,6 +768,7 @@ The 1.0 skeleton and its publishing pipeline, released to TestPyPI only.
 
 - The 0.2.x code from `main`; it continues on `legacy/0.2.x`.
 
+[Unreleased]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0a2...HEAD
 [1.0.0a2]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0a1...v1.0.0a2
 [1.0.0a1]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0.dev1...v1.0.0a1
 [1.0.0.dev1]: https://github.com/pyeconomics-dev/pyeconomics/tree/v1.0.0.dev1
