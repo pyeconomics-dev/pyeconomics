@@ -60,24 +60,30 @@ say explicitly which optional ones you omitted and why.
 
 For **each phase's** Phase roadmap settings table — the model and
 dials for the session that will write that phase's roadmap with
-`/roadmap-phase N` — run the model selector in
+`/roadmap-phase N` — pick quality first as the template's style rule
+says: the session runs the Quality column, the strongest `planning`
+model the operator's access methods reach, at the deepest reasoning
+rung it exposes on its platform (`Max` in Claude Code), thinking on
+where the model has a Thinking toggle (a model that always thinks, such
+as Opus 5.5, has none), never `Ultracode` — unless the user-context states a rule for
+roadmap-writing sessions. Where `roadmodel` is installed, the table is
+the ladder `roadmodel ladder --category planning --complexity high
+--phase` prints (MCP tool: `roadmap_settings` with `phase`), pasted as
+printed with its **Runs:** line: Cost, Balanced and Quality, each with
+a backup from another maker, so a pool that tightens on the day moves
+the session to another column instead of the table being refreshed. It
+ranks on measured benchmarks, so a stale catalog letter cannot steer
+it, and a model the user-context names for these sessions still wins.
+Where `roadmodel` cannot be reached, run the model selector in
 `@planning/model-selector.txt` (prices from
 `@planning/model-tier-cost-scale.md`, display rules from
-`@planning/settings-display.md`) against `@planning/user-context.md`,
-quality first as the template's style rule says: the strongest
-`planning` model the operator's access methods reach, at the deepest
-reasoning rung it exposes on its platform (`Max` in Claude Code),
-thinking on, never `Ultracode` — unless the user-context states a rule
-for roadmap-writing sessions. Where `roadmodel` is installed, take the
-model and the backup, not their effort, from the PRIMARY and BACKUP
-lines of `roadmodel score --category planning --complexity high
---budget best`: it ranks on measured benchmarks, so a stale catalog
-letter cannot steer them, and a model the user-context names for these
-sessions still wins. Use the selector the same way wherever
-else the roadmap names a model or platform. You are the engine — do
-not call any external API. Honor every availability exclusion in the
-selector, and write each phase's backup model into its table's Backup
-row, with the backup's own platform and dial.
+`@planning/settings-display.md`) against `@planning/user-context.md`
+and write a single-column table: you are the engine — do not call any
+external API — honor every availability exclusion in the selector, and
+write each phase's backup model into its table's Backup row, with the
+backup's own platform and dial. Use the selector the same way wherever
+else the roadmap names a model or platform, and never name an older
+version of a series (GPT-6 Sol where GPT-6.1 Sol runs).
 
 Honor the template's style rules: 80-column prose, no `<PLACEHOLDER>`
 tokens left, every `<!-- ... -->` guidance block stripped, numbers

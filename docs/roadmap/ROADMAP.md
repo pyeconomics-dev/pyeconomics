@@ -1,6 +1,6 @@
 # pyeconomics 1.0 — Rebuild as an Open Economics & Finance Model Platform
 
-> **Status:** Phases 1, 2 and 3 Complete — Phase 3 shipped 2026-10-22 (`v1.0.0a2` on PyPI); Phase 4 next
+> **Status:** Phases 1, 2 and 3 Complete — Phase 3 shipped 2026-10-22 (`v1.0.0a2` on PyPI); Phase 4 In progress
 > **Owner:** Nathan Ramos, CFA — founder and sole maintainer
 > **Audience:** The maintainer and the AI coding agents that execute phase
 > steps; public with the repository
@@ -846,7 +846,7 @@ Both classifications were checked on 2026-10-17 in Phase 3 Step 9.
 
 ### Phase 4 — Programmatic Surfaces: CLI, REST API, MCP & Exports
 
-**Status:** Not started
+**Status:** In progress — phase04-roadmap.md
 
 **Goal:** Generate the CLI, a versioned REST API and an MCP server from the
 registry, plus every export format, so any model or series can flow into
@@ -2609,7 +2609,7 @@ The following are deliberately deferred to a future version, or excluded:
 | 1     | Reset & Foundation                                     | Medium     | Complete    |
 | 2     | Model Engine & Core Catalog                            | High       | Complete    |
 | 3     | Data Platform & Free Sources                           | High       | Complete |
-| 4     | Programmatic Surfaces: CLI, REST API, MCP & Exports    | High       | Not started |
+| 4     | Programmatic Surfaces: CLI, REST API, MCP & Exports    | High       | In progress |
 | 5     | Web App, Docs & Public Launch (1.0.0)                  | High       | Not started |
 | 6     | Premium Data: Bloomberg & BYOK Providers               | Medium     | Not started |
 | 7     | Catalog Completion: CFA Program & Beyond               | High       | Not started |

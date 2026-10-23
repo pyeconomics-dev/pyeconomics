@@ -52,7 +52,7 @@ Step 0c — this roadmap is written with the settings the project
 roadmap names for it. Read the `### Phase {{N}}` section of
 `{{PROJECT_ROADMAP}}` and its **Phase roadmap settings** table, and
 print one line: `Phase {{N}} roadmap settings: Model <M> · Platform
-<P> · <its dials, e.g. Effort Max · Thinking On>. This session: <your
+<P> · <its dials, e.g. Effort Max, plus Thinking On where the model has the toggle>. This session: <your
 own model> on <this surface>.`
 
 - Name your exact model, never only its family. On Codex your
@@ -68,9 +68,19 @@ own model> on <this surface>.`
   take a rollout from another directory. Where no source names
   the model, print `unverified`, ask me which I picked, and go on with my
   answer.
+- A ladder table (Cost / Balanced / Quality columns): its **Runs:**
+  line names the column this session runs (Quality, for a phase
+  roadmap). Apply that line's rule to the Usage-pool status table in
+  `planning/user-context.md`: a pool that reads `tight` moves the run
+  to the column's Backup when the Backup's pool has headroom, else to
+  the Cost column; `exhausted` moves it to the column's Backup. That
+  column's Model, Platform and dials are the ones checked below; print
+  which column it is.
 - You are its Model on its Platform, or a newer version in the same
   line (Opus 5 → Opus 5.5, Fable 5 → Fable 5.1, GPT-6 Sol → GPT-6.1
-  Sol): continue, and say so on the line.
+  Sol): continue, and say so on the line. In a ladder table, any
+  column's model on that column's platform continues too; when it is
+  not the column the rule selects, say which one is.
 - You are its Backup on the backup's platform: continue — I have
   switched to it — and say so on the line.
 - Anything else — a different line, an older version, another
@@ -96,27 +106,31 @@ Carry forward anything `{{PRIOR}}` hands to this phase (its closing
 "inherits" line, its Not-in-scope items owned by this phase, and any
 carry-over checklist).
 
-For **each step's** Settings table and Model rationale, run the model
-selector in `@planning/model-selector.txt` (prices from
-`@planning/model-tier-cost-scale.md`, display rules from
-`@planning/settings-display.md`) against `@planning/user-context.md`.
-You are the engine — do not call any external API. Honor every
-availability exclusion in the selector, and write each step's backup
-model into its Settings table's Backup row, with the backup's own
-platform and dial. Where `roadmodel` is installed, the Backup row is
-the cell `roadmodel backup --category <c> --complexity <x> [--novel]
---model <the step's model> --effort <the step's effort>` prints for the
-step's own classification: the rule /recommend backs a pick up by, in
-code, which takes the cheaper of two substitutes the benchmarks cannot
-tell apart. The selector's BACKUP stands only where it is not
-installed. When the command also prints a `MODEL` line, that cell
-replaces the step's model: a newer version of the same model (GPT-6 Sol
-→ GPT-6.1 Sol), on the same platform, no dearer, that scores level or
-better at the step's effort. The selector's letters are measured at each
-model's top effort, and a step that runs lower can reverse them. Write
-the `MODEL` cell into the Model row, the Model rationale and the step's
-selection block, citing the newer model's figures at the step's effort,
-and keep the Backup cell printed with it.
+For **each step's** Settings table, classify the step first: its
+PRIMARY and SECONDARY category, its complexity, and whether it is novel
+problem-solving (the model selector's Steps 1 and 2 in
+`@planning/model-selector.txt`, against `@planning/user-context.md`).
+Where `roadmodel` is installed, the Settings table is the ladder
+`roadmodel ladder --category <c> --complexity <x> [--novel]` prints for
+that classification (MCP tool: `roadmap_settings`), pasted as printed
+with its **Runs:** line. It carries the full recommendation /recommend
+shows: Cost, Balanced and Quality, each with its own effort and a
+backup from another maker. The step's runner picks the column from the
+usage pools on the day, so the roadmap needs no refresh when a pool
+tightens. Its models are always the latest version of their series.
+The Model rationale explains the classification and what sets the
+columns apart for the step; the Summary Table row and the step's
+selection block restate the column the **Runs:** line names.
+
+Where `roadmodel` cannot be reached, run the model selector as the
+engine instead (prices from `@planning/model-tier-cost-scale.md`,
+display rules from `@planning/settings-display.md`) and write the
+single-column variant that matches the step's platform. You are the
+engine — do not call any external API. Honor every availability
+exclusion in the selector, write each step's backup model into its
+Settings table's Backup row with the backup's own platform and dial,
+and never name an older version of a series (GPT-6 Sol where GPT-6.1
+Sol runs, Opus 5 where Opus 5.5 does).
 
 Honor the template's style rules: 80-column prose, zero `{{...}}`
 tokens left, `**Status:** Not started` directly under the title and

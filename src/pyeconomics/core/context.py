@@ -14,7 +14,9 @@ depends on where the model runs:
   stack level pointing at the caller.
 
 The collector lives in a :mod:`contextvars` variable, so concurrent threads and
-``asyncio`` tasks each see their own.
+``asyncio`` tasks each see their own. :func:`library_warnings` changes the
+:mod:`warnings` module's process-wide state, so its blocks take turns under one
+lock (issue #157).
 
 Examples
 --------
@@ -28,6 +30,7 @@ Examples
 
 from __future__ import annotations
 
+import threading
 import warnings
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -37,12 +40,17 @@ from pyeconomics.core.warnings import ModelWarning
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
+    from typing import TextIO
 
 __all__ = ["collect_warnings", "library_warnings", "warn"]
 
 _COLLECTOR: Final[ContextVar[list[ModelWarning] | None]] = ContextVar(
     "pyeconomics_warning_collector", default=None
 )
+# Held by each library_warnings block: the warning filters and showwarning are
+# process-wide, so two blocks must not change them at once (issue #157).
+# Re-entrant, so a block nested in another on the same thread cannot deadlock.
+_LIBRARY_LOCK: Final = threading.RLock()
 
 
 @contextmanager
@@ -118,6 +126,18 @@ def library_warnings(
     caller may first remove an entry it has shown to be harmless; when the
     block raises, nothing is reported.
 
+    The warning filters and :func:`warnings.showwarning` belong to the whole
+    process, so the blocks of concurrent threads take turns under one
+    re-entrant lock: a wrapped fit waits for another wrapped fit, never for an
+    unwrapped model, and a block nested in another on the same thread runs at
+    once. The block records only its own thread's warnings; a warning another
+    thread issues meanwhile goes to whatever would have shown it before the
+    block, so it is neither attributed to this result nor lost. While a block
+    runs, another thread's warnings pass the ``"always"`` filter, so an
+    ``"error"`` filter that thread relies on does not raise them (issue #174).
+    Keep the block to the library's computation: no I/O, and no waiting on
+    another thread.
+
     Parameters
     ----------
     library
@@ -141,8 +161,29 @@ def library_warnings(
     [('toylib_warning', 'toylib: RuntimeWarning: rank deficient')]
 
     """
-    with warnings.catch_warnings(record=True) as caught:
+    caught: list[warnings.WarningMessage] = []
+    owner = threading.get_ident()
+    with _LIBRARY_LOCK, warnings.catch_warnings():
         warnings.simplefilter("always")
+        shown = warnings.showwarning
+
+        def record(  # noqa: PLR0913, PLR0917 - warnings.showwarning's signature
+            message: Warning | str,
+            category: type[Warning],
+            filename: str,
+            lineno: int,
+            file: TextIO | None = None,
+            line: str | None = None,
+        ) -> None:
+            if threading.get_ident() != owner:
+                shown(message, category, filename, lineno, file, line)
+                return
+            caught.append(
+                warnings.WarningMessage(message, category, filename, lineno, file, line)
+            )
+
+        # ty reads the module attribute as one fixed function, not a callable type.
+        warnings.showwarning = record  # ty: ignore[invalid-assignment]
         yield caught
     seen: set[str] = set()
     for item in caught:

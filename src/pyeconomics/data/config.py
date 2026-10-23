@@ -438,6 +438,12 @@ def configure(
 ) -> Settings:
     """Override settings for the rest of the process, and return the result.
 
+    The overrides are process-wide by design: every thread and task sees them
+    from the next read on. A surface that serves many requests (the REST API,
+    the MCP server) configures once, at start (hosted mode, offline), and
+    never per request, since one request's override would reach every other
+    request in flight.
+
     Parameters
     ----------
     mode

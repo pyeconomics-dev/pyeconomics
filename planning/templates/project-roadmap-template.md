@@ -38,25 +38,31 @@ STYLE RULES (the AI MUST follow)
     own tables in the phase roadmap. Pick it with the model
     selector, quality first. A phase roadmap fixes every step's
     scope, task prompt, acceptance criteria and Settings, so it
-    is the phase's highest-leverage session, and it runs once.
-    Take the strongest `planning` model the operator's access
-    methods reach, at the deepest reasoning rung that model
-    exposes on its platform (`Max` in Claude Code, which
-    `/roadmap-phase` sets by itself), with thinking on. Where
-    `roadmodel` is installed, take the two models, not their
-    effort, from the PRIMARY and BACKUP lines of `roadmodel
-    score --category planning --complexity high --budget best`:
-    it ranks on measured benchmarks, so a stale catalog letter
-    cannot steer them, and a model the user-context names for
-    these sessions still wins. Never `Ultracode`: it reasons at
-    `Extra high` and adds parallel agents, which one planning
-    document does not need. A rule
-    for roadmap-writing sessions in the user-context overrides
-    this default. The table takes its platform's shape (the
-    phase roadmap template's Settings variants) with a Backup
-    row, and its Conversation is always **New**. Once the phase
-    roadmap exists, the table is history: only a phase not yet
-    written is ever re-picked.
+    is the phase's highest-leverage session, and it runs once:
+    it runs the Quality column, the strongest `planning` model
+    the operator's access methods reach, at the deepest
+    reasoning rung that model exposes on its platform (`Max`
+    in Claude Code, which `/roadmap-phase` sets by itself),
+    with thinking on where the model has a Thinking toggle
+    (Opus 5.5 and the other models that always think have
+    none: their cell is `—`). Where `roadmodel` is installed, the table
+    is the ladder `roadmodel ladder --category planning
+    --complexity high --phase` prints, pasted as printed with
+    its **Runs:** line: Cost, Balanced and Quality, each with a
+    backup from another maker, so a pool that reads `tight` or
+    `exhausted` on the day moves the session to another column
+    instead of the table being refreshed. It ranks on measured
+    benchmarks, so a stale catalog letter cannot steer it, and
+    a model the user-context names for these sessions still
+    wins. Never `Ultracode`: it reasons at `Extra high` and
+    adds parallel agents, which one planning document does not
+    need. A rule for roadmap-writing sessions in the
+    user-context overrides this default. Without roadmodel, the
+    table takes its platform's single-column shape (the phase
+    roadmap template's Settings variants) with a Backup row.
+    Its Conversation is always **New**. Once the phase roadmap
+    exists, the table is history: only a phase not yet written
+    is ever re-picked.
   - Every phase carries a `**Status:**` line directly under its
     `### Phase` heading, before its **Goal:** — `Not started`
     when this roadmap is written. The phase's FIRST step flips it
@@ -242,19 +248,24 @@ dependency graph in §5 is honoured.
 **Phase roadmap settings** — the session that writes
 `phase01-roadmap.md` (`/roadmap-phase 1`):
 
-| Setting      | Value                                                |
-|--------------|------------------------------------------------------|
-| Model        | <Model name>                                         |
-| Backup       | <Backup model — its platform · its dial, or None>    |
-| Platform     | <Claude Code, or the access method that pays>        |
-| Effort       | <Deepest reasoning rung there — Max in Claude Code>  |
-| Thinking     | On                                                   |
-| Conversation | **New**                                              |
+| Setting      | Cost                   | Balanced               | Quality                                  |
+|--------------|------------------------|------------------------|------------------------------------------|
+| Model        | <Model>                | <Model>                | <The strongest planning model>           |
+| Backup       | <Backup — its platform · its dial> | <Backup — its platform · its dial> | <Backup — its platform · its dial> |
+| Platform     | <Access method>        | <Access method>        | <Claude Code, or the access method that pays> |
+| Effort       | <Its dial and level>   | <Its dial and level>   | <Deepest rung there — Effort Max in Claude Code> |
+| AA Index     | <AA Index at that effort> | <AA Index at that effort> | <AA Index at that effort>        |
+| Thinking     | <On, or — with no toggle> | <On, or — with no toggle> | <On, or — with no toggle>          |
+| Conversation | **New**                | **New**                | **New**                                  |
 
-<!-- The Claude Code shape. Another platform takes its own
-shape from the phase roadmap template's Settings variants:
-Codex carries Intelligence and no Thinking row; Cursor
-carries Max Mode alone. -->
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+<!-- The ladder `roadmodel ladder --category planning
+--complexity high --phase` prints, pasted as printed. Without
+roadmodel, a single-column table in its platform's shape from
+the phase roadmap template's Settings variants: Codex carries
+Intelligence and no Thinking row; Cursor carries Max Mode
+alone. -->
 
 <One or two sentences: what this phase's roadmap must get
 right, why this model at this rung, and which subscription or
@@ -298,14 +309,17 @@ key pays for the platform.>
 **Phase roadmap settings** — the session that writes
 `phase02-roadmap.md` (`/roadmap-phase 2`):
 
-| Setting      | Value   |
-|--------------|---------|
-| Model        | …       |
-| Backup       | …       |
-| Platform     | …       |
-| Effort       | …       |
-| Thinking     | On      |
-| Conversation | **New** |
+| Setting      | Cost    | Balanced | Quality |
+|--------------|---------|----------|---------|
+| Model        | …       | …        | …       |
+| Backup       | …       | …        | …       |
+| Platform     | …       | …        | …       |
+| Effort       | …       | …        | …       |
+| AA Index     | …       | …        | …       |
+| Thinking     | …       | …        | …       |
+| Conversation | **New** | **New**  | **New** |
+
+**Runs:** Quality — <the line `roadmodel ladder` prints>
 
 <Why, in one or two sentences.>
 
@@ -333,14 +347,17 @@ key pays for the platform.>
 **Phase roadmap settings** — the session that writes
 `phaseNN-roadmap.md` (`/roadmap-phase N`):
 
-| Setting      | Value   |
-|--------------|---------|
-| Model        | …       |
-| Backup       | …       |
-| Platform     | …       |
-| Effort       | …       |
-| Thinking     | On      |
-| Conversation | **New** |
+| Setting      | Cost    | Balanced | Quality |
+|--------------|---------|----------|---------|
+| Model        | …       | …        | …       |
+| Backup       | …       | …        | …       |
+| Platform     | …       | …        | …       |
+| Effort       | …       | …        | …       |
+| AA Index     | …       | …        | …       |
+| Thinking     | …       | …        | …       |
+| Conversation | **New** | **New**  | **New** |
+
+**Runs:** Quality — <the line `roadmodel ladder` prints>
 
 <Why, in one or two sentences.>
 
