@@ -1,6 +1,6 @@
 # Phase 4 Roadmap — Programmatic Surfaces: CLI, REST API, MCP & Exports
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1072,9 +1072,9 @@ and Step 16 follows Step 15.
 
 ---
 
-## Step 1 — Surfaces Baseline and Concurrency Hardening
+## Step 1 — Surfaces Baseline and Concurrency Hardening ✅
 
-**Status:** Not started
+**Status:** Complete — PR #175 (2026-10-23)
 
 > **Goal:** Make the core safe for surfaces that run models concurrently in
 > one process, and set the baseline the phase builds towards. Land this
@@ -1109,6 +1109,8 @@ TestPyPI; Step 15 publishes the PyPI release.
 | AA Index     | 42.1                                     | 52.6                                 | 53.6                                       |
 | Thinking     | —                                        | On                                   | —                                          |
 | Conversation | **New**                                  | **New**                              | **New**                                    |
+
+> Ran 2026-10-23: Quality column, also the Balanced column's Backup — Opus 5.5 · Effort High. The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -8731,7 +8733,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #175 |
 | 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Not started |
 | 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
