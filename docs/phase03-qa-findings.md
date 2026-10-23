@@ -206,6 +206,7 @@ review, detailed tradeoffs and validation evidence.
 | The legacy stable probe inherited Python 3.13 and pip correctly chose 0.1.0 | bug | Stable-only venv uses Python 3.12, matching 0.2.6's Requires-Python >=3.11,<3.13 | V19.3 checks ordinary pip on the historical release's supported interpreter |
 | Phase 2 --post already executes Phase 1 --post | process | Run Phase 2 and require its fresh V15.6 PASS, executing both older commands once | V20.6 fails on either the Phase 2 exit or a missing/failed nested Phase 1 verdict |
 | Native workflow alerts require personal Actions delivery settings; inbox title searches are unsupported | process | Maintainer enabled Actions notifications; use repo and reason:ci-activity filters | Fresh failure notifications verified through the read-only GitHub API; actual receipt still requires maintainer confirmation |
+| Phase 1 static check 13 can SIGPIPE its producer after an early valid match | bug | Consume complete producer output in verify-phase01.sh; Phase 1 roadmap addendum | Large changelog/release positives pass; missing dates, release heading or in-section GHSA still fail |
 
 ## Synthetic alarms
 
@@ -376,3 +377,11 @@ restoration finished, so a final canonical `--post` must pass against the
 confirmed record with both newest default runs already green. The PR remains
 draft pending that audit, final-head CI, merge and exact-main validation;
 Phase 3 is not yet declared complete.
+
+The next canonical attempt at d499e2d was stopped before changing any file
+when CI exposed a false SIGPIPE failure in Phase 1 static check 13. It is
+not counted as a completed audit. The fix consumes each producer's complete
+output while preserving both evidence requirements; the original check
+fails large-output positive fixtures, while the corrected check passes them
+and rejects all three missing-evidence fixtures. A fresh canonical audit
+must pass with this verifier correction before closure.

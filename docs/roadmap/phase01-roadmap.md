@@ -7458,3 +7458,12 @@ invariant it protected, never deletes it, and adds one line here.
   wheel/dependency install and version-import proof. The global uv default
   otherwise selected Python 3.15 after a Python 3.13 local suite; all supported
   minors remain covered by CI. No check or supported version is removed.
+
+## Post-merge addendum (2026-10-22) — Phase 3 changes to verify-phase01.sh
+
+- Static check 13 (Phase 3 Step 20): consumes the complete changelog and
+  release-record producer output before deciding whether evidence matches.
+  Early-exit grep could otherwise cause a false SIGPIPE failure under Bash
+  pipefail. The dated 0.2.6 changelog and GHSA inside the Release record
+  remain required; large-output positives and missing-evidence negatives
+  verify the unchanged acceptance invariant.
