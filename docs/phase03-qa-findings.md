@@ -233,8 +233,14 @@ and providers-live attempt 2 thread 26575508968 at 01:07:26 UTC. The
 separate success/cancellation notifications are not counted as failure
 delivery. No notification was marked read or altered by the audit.
 
-Default heartbeat 39879177317 succeeded. Default providers-live
-39882191814 is running.
+Default heartbeat
+[39879177317](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39879177317)
+succeeded. Default providers-live
+[39882191814](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39882191814)
+succeeded: 329 passed, 36 expected skips, zero failures. ALFRED, historical
+Taylor and both Shiller CAPE cases passed individually. Both newest default
+runs are green. Both synthetic issues are closed with QA-link comments:
+#172 comment 6354985913 and #173 comment 6354986356.
 
 Notification received: confirmed by the maintainer on 2026-10-22 for both fresh failure alerts. The maintainer replied, "Yes, I received both."
 
@@ -353,8 +359,8 @@ interpreter fix leaves the alpha tests on the project's interpreter.
 
 The complete corrected `--post` at 143f299 finished in 5455 seconds with
 137 PASS and one FAIL: fast 100/0, Python 21/0, security 3/0, live 10/0,
-post 3/1. The sole failure is V20.5, because the maintainer has not confirmed
-receipt of the synthetic notifications. No receipt is inferred or invented.
+post 3/1. At that checkpoint the sole failure was V20.5, because the
+maintainer had not confirmed receipt. No receipt was inferred or invented.
 Fresh published alpha core/extras, BLS/ALFRED recipe, ordinary stable 0.2.6
 on Python 3.12, and current PR checks passed. All 38 CI checks passed at
 143f299, including the twelve OS/Python cells and both Phase 3 jobs.
@@ -364,9 +370,9 @@ Phase 2's complete `--post` passed in 3264 seconds: 83 fast, 16 Python,
 the actual nested Phase 1 `--post` also passed. Neither earlier command was
 skipped or replaced by a saved result.
 
-Both default workflows are restored as recorded above. The complete audit
-started before that restoration finished; after actual notification receipt
-is recorded, a final canonical `--post` must pass with the newest default
-runs already green. The PR remains draft. Final evidence-head CI, a passing
-canonical audit, notification confirmation, merge and exact-main validation
-remain closure work; Phase 3 is not yet declared complete.
+Both newest default workflows are restored and actual notification receipt
+is now confirmed as recorded above. The earlier audit started before its
+restoration finished, so a final canonical `--post` must pass against the
+confirmed record with both newest default runs already green. The PR remains
+draft pending that audit, final-head CI, merge and exact-main validation;
+Phase 3 is not yet declared complete.
