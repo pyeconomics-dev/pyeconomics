@@ -205,16 +205,45 @@ review, detailed tradeoffs and validation evidence.
 | Regex-only import checks miss comma-separated imports | bug | Standard-library tokenization in static check 19 | Import mutation proof; no package import or Python 3.12 parser needed |
 | The legacy stable probe inherited Python 3.13 and pip correctly chose 0.1.0 | bug | Stable-only venv uses Python 3.12, matching 0.2.6's Requires-Python >=3.11,<3.13 | V19.3 checks ordinary pip on the historical release's supported interpreter |
 | Phase 2 --post already executes Phase 1 --post | process | Run Phase 2 and require its fresh V15.6 PASS, executing both older commands once | V20.6 fails on either the Phase 2 exit or a missing/failed nested Phase 1 verdict |
+| Native workflow alerts require personal Actions delivery settings; inbox title searches are unsupported | process | Maintainer enabled Actions notifications; use repo and reason:ci-activity filters | Fresh failure notifications verified through the read-only GitHub API; actual receipt still requires maintainer confirmation |
 
 ## Synthetic alarms
 
-Synthetic providers-live alarm run: https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39831272424
+Synthetic providers-live alarm run: https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39879057448
 
-Synthetic providers-heartbeat alarm run: https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39831277068
+Synthetic providers-heartbeat alarm run: https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39879059980
 
-Synthetic providers-live issue: https://github.com/pyeconomics-dev/pyeconomics/issues/169
+Synthetic providers-live issue: https://github.com/pyeconomics-dev/pyeconomics/issues/173
 
-Synthetic providers-heartbeat issue: https://github.com/pyeconomics-dev/pyeconomics/issues/168
+Synthetic providers-heartbeat issue: https://github.com/pyeconomics-dev/pyeconomics/issues/172
+
+These fresh proofs followed the maintainer enabling personal Actions
+notifications. Heartbeat failed with the documented zero-day maximum age
+and opened #172. The provider suite had exactly the intended alarm-test
+failure: 328 passed, 36 expected skips, one intended failure (365 cases).
+Its first report job hit a GitHub GraphQL connection refusal; after a stale
+run state cleared through cancellation, attempt 2 reran only the report
+job successfully. It opened #173 and closed #172 as superseded. A queued
+replacement, 39881751605, was cancelled once report-only retry became
+available; it is not counted as another completed provider proof.
+
+The read-only GitHub API now verifies both failure notifications in the
+maintainer's inbox: heartbeat thread 26575049211 at 2026-10-23 00:36:30 UTC,
+and providers-live attempt 2 thread 26575508968 at 01:07:26 UTC. The
+separate success/cancellation notifications are not counted as failure
+delivery. No notification was marked read or altered by the audit.
+
+Default heartbeat 39879177317 succeeded. Default providers-live
+39882191814 is running.
+
+Notification received: confirmed by the maintainer on 2026-10-22 for both fresh failure alerts. The maintainer replied, "Yes, I received both."
+
+### Earlier attempts and recovery
+
+The initial synthetic runs were providers-live 39831272424 and heartbeat
+39831277068, with issues #169 and #168 respectively. The notification
+settings gap was discovered while auditing receipt, so the fresh proof
+above supersedes these initial runs for the final acceptance record.
 
 Both failed and opened their issues; the live report job succeeded and closed
 the older heartbeat issue as superseded. The live JUnit contains the intended
@@ -242,7 +271,7 @@ Fresh default providers-live
 [39847835112](https://github.com/pyeconomics-dev/pyeconomics/actions/runs/39847835112)
 succeeded: 329 passed, 36 expected skips, zero failures (365 JUnit cases).
 ALFRED, historical Taylor and both Shiller CAPE model/binding cases each
-passed. Both newest default workflows are now green. The real availability
+passed. Both default workflows were green at that checkpoint. The real availability
 alarm #171 was closed on this observed recovery, with evidence in comment
 6350878000. No provider check, credential, permission or trigger changed.
 
@@ -250,8 +279,7 @@ Both synthetic issues are closed and now have comments pointing to this QA
 record (comments 6349977166 and 6349977642). The real BLS availability alarm
 has its own recovery evidence above.
 
-Notification confirmation is pending the maintainer's actual receipt.
-No notification receipt is inferred from a workflow conclusion.
+No notification receipt is inferred from these earlier workflow conclusions.
 
 ## Phase 3 acceptance audit (ROADMAP section 4)
 
@@ -264,7 +292,7 @@ No notification receipt is inferred from a workflow conclusion.
 | Branch coverage floors and strict types | V1.2/V2.2; TYPES | Core 99.76%, data 96.13%, models 98.41%; strict types pass |
 | No FRED disk storage or automated Yahoo; credentials stay local | V3-V5/V10/V20.4 | Gate, no-storage, layering, cassette and canary tests |
 | Alpha publication with stable 0.2.6 unchanged | V18/V19 | Both index provenances, GitHub prerelease and fresh installs |
-| Operations alarms and heartbeat, prior ledgers and required checks | V6.3/V20 | Synthetic failures, restored defaults, both earlier --post audits and strict 22 checks pass; human notification receipt remains pending |
+| Operations alarms and heartbeat, prior ledgers and required checks | V6.3/V20 | Fresh synthetic failures and maintainer-confirmed receipt; default restoration recorded above; both earlier --post audits and strict 22 checks pass |
 
 ## Pre-ship items and owners
 
