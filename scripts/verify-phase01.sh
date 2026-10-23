@@ -286,9 +286,11 @@ c12() {
   git show v0.2.6:__version__.py | grep -qE "^__version__ = ['\"]0\.2\.6['\"]" || fail "__version__ at v0.2.6 is not 0.2.6"
 }
 c13() {
-  legacy_show markdown/CHANGELOG.md | grep -qE '^## \[0\.2\.6\] - [0-9]{4}-[0-9]{2}-[0-9]{2}' || fail "no dated [0.2.6] entry"
+  # Consume each producer's full output: grep -q can cause a false SIGPIPE
+  # failure under pipefail when a valid match occurs before the pipe drains.
+  legacy_show markdown/CHANGELOG.md | grep -E '^## \[0\.2\.6\] - [0-9]{4}-[0-9]{2}-[0-9]{2}' > /dev/null || fail "no dated [0.2.6] entry"
   sed -n '/^## Release record/,$p' docs/releases/0.2.6-readiness.md \
-    | grep -qE 'GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}' || fail "no Release record with a GHSA id"
+    | grep -E 'GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}' > /dev/null || fail "no Release record with a GHSA id"
 }
 
 # Step 5 — characterize and archive

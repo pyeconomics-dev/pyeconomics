@@ -1,6 +1,6 @@
-# Phase 3 Roadmap — Data Platform & Free Sources
+# Phase 3 Roadmap — Data Platform & Free Sources ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-22
 
 ## Overview
 
@@ -11134,9 +11134,9 @@ pyeconomics` keeps resolving 0.2.6.
 
 ---
 
-## Step 20 — QA and Verification Script
+## Step 20 — QA and Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #170 (2026-10-22)
 
 > **Goal:** Package the phase's verification matrix into
 > `scripts/verify-phase03.sh` — the same `--fast`, `--python`,
@@ -11156,8 +11156,8 @@ pyeconomics` keeps resolving 0.2.6.
 
 **Branch:** `feature/phase03-step20-verify`
 
-**Prerequisites:** Step 19 Complete. Apply the named SEC exception to the
-checks below; keep Step 7's own status unfinished and preserve its draft PR.
+**Prerequisites:** Step 19 Complete. Step 7 delivered SEC EDGAR in PR #124;
+all 31 source-plan providers are required. No SEC deferral remains active.
 
 **Deploys:** nothing beyond merge — the CI matrix entry is live on merge;
 the required-check update and the synthetic alarms are part of the step.
@@ -11172,6 +11172,8 @@ the required-check update and the synthetic alarms are part of the step.
 | Conversation | **New**                                  | **New**                                 | **New**                                 |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-22: Balanced Backup — gpt-6.1-sol / High on Codex. The operator opened the permitted backup on its own platform.
 
 > Settings updated 2026-10-18 (refresh): was GPT-6.1 Sol · Intelligence
 > Medium. Coding PRIMARY, agentic SECONDARY, Medium: the ladder's Balanced
@@ -11420,9 +11422,9 @@ the required-check update and the synthetic alarms are part of the step.
     pyeconomics. Phase 3. Step 20: QA and verification
     script.
 
-    Steps 1 through 19 except the explicitly deferred SEC
-    work have been implemented: 1.0.0a2 is on PyPI; the
-    release provider set (30 or 31 ids), catalog, bindings and 18 new
+    Steps 1 through 19 have been implemented, including SEC
+    EDGAR in PR #124: 1.0.0a2 is on PyPI; the exact
+    31-id release provider set, catalog, bindings and 18 new
     models are on main; providers-live.yml and
     providers-heartbeat.yml run on schedule.
 
@@ -11468,14 +11470,12 @@ the required-check update and the synthetic alarms are part of the step.
     only; providers-heartbeat.yml likewise; permissions: {}
     at the top of both and issues: write only in the report
     job and the heartbeat job; the ALFRED test's citations.
-    Step 7 (30–32): the four recovered keyless providers;
-    EDGAR only when verified and released; otherwise the
-    named SEC deferral recorded in readiness and QA, with
-    no SEC entry point or catalog candidate. No "Build Your
-    Package" URL; openpyxl and defusedxml. These checks
-    must fail for any missing required provider or partial
-    EDGAR registration; report the SEC deferral explicitly
-    rather than reporting its provider tests as passed.
+    Step 7 (30–32): the four recovered keyless providers
+    and SEC EDGAR, verified and released in PR #124. No
+    "Build Your Package" URL; openpyxl and defusedxml.
+    These checks must fail for any missing required provider
+    or partial EDGAR registration. All 31 providers are
+    required; no SEC deferral remains active.
     Step 8 (33–35): the [sdmx] extra; the seven providers;
     certifi's reviewed exception.
     Step 9 (36–38): the five research providers; no TBD class
@@ -11508,7 +11508,7 @@ the required-check update and the synthetic alarms are part of the step.
     section; the model ledger holding every id of this
     roadmap's table; the provider ledger holding the exact
     release provider set recorded by readiness; the release
-    notes disclose SEC when deferred.
+    notes agree with the complete 31-provider set.
     Step 20 self-checks (74–78): verify-phase03.sh exists
     and is executable; docs/phase03-qa-findings.md exists;
     docs/roadmap/phase03-roadmap.md exists; phase-verify.yml's
@@ -11576,7 +11576,9 @@ the required-check update and the synthetic alarms are part of the step.
         on stable.
       - --all: --fast, --python and --security.
       - --post: --all and --live, plus the published
-        installs (V19.3) with the live recipe, the alarm
+        installs (V19.3) with scripts/verify_phase03_live.py
+        (isolated configuration/cache, ambient keys removed,
+        credential-chain reads, fixed verdict output), the alarm
         evidence (V20.5), verify-phase01.sh --post and
         verify-phase02.sh --post (V20.6), and `gh pr checks`
         for the current branch.
@@ -11666,9 +11668,8 @@ the required-check update and the synthetic alarms are part of the step.
       `**Status:**` line reads `Complete — <YYYY-MM-DD>`, the
       title and every required step heading end in ✅, and
       their Summary Table Status cells read `Complete — PR #<n>`.
-      If SEC remains deferred, preserve Step 7's unfinished
-      heading, Status line and Summary Table cell; carry its
-      named blocker and follow-up into QA and Phase 4.
+      Preserve Step 7's Complete status from PR #124; no SEC
+      blocker or follow-up remains to carry into Phase 4.
     </requirement>
 
     <requirement>
@@ -11692,11 +11693,11 @@ the required-check update and the synthetic alarms are part of the step.
 
 ### Step 20 acceptance criteria
 
-- The verifier compares the exact required source-plan set (minus only
-  the approved SEC deferral) with the readiness record, installed providers
-  and released-id ledger. Any other omission or partial EDGAR registration
-  fails. QA findings and Phase 4 carry-over name the SEC blocker, owner and
-  Step 7 follow-up. Phase completion must not change Step 7's own status.
+- The verifier compares the exact 31-id source-plan set, including SEC
+  EDGAR delivered in PR #124, with the readiness record, installed providers
+  and released-id ledger. Any omission or partial EDGAR registration fails.
+  QA records SEC access as resolved; there is no SEC blocker or follow-up
+  to carry into Phase 4. Phase completion preserves Step 7's Complete status.
 - `scripts/verify-phase03.sh` exists, is executable, and passes on a clean
   tree post-implementation, with its static checks, Step 20 self-checks and
   the V1–V20 matrix in all six modes.
@@ -11724,9 +11725,8 @@ the required-check update and the synthetic alarms are part of the step.
   or a named phase that owns it), the "Not in scope" section below is
   current, and no un-tracked item remains. Every required step of this roadmap,
   this one included, reads `**Status:** Complete — PR #…` on `main` under a ✅
-  heading. If SEC is deferred, Step 7 alone keeps its unfinished status,
-  heading and Summary Table cell, with its named carry-over recorded. All
-  other Summary Table Status cells and this roadmap's
+  heading. Step 7 remains Complete from PR #124; no SEC carry-over remains.
+  All Summary Table Status cells and this roadmap's
   phase-level Status line say `Complete` under a ✅ title, and the parent
   project roadmap's Phase 3 entry (under a ✅ heading), its summary-table
   row, and its header status line say `Complete` — all landed in this
@@ -11980,7 +11980,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | ----- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | V19.1 | Static checks 69–73 PASS (`v1.0.0a2` on `main`, the dated CHANGELOG section, the model ledger with every id of this roadmap's table, the provider ledger with the exact 30- or 31-id release set, the release notes and any SEC deferral). | `phase-verify.yml --fast`. |
 | V19.2 | PyPI's `1.0.0a2` lists a wheel and an sdist, each with a provenance, and the GitHub release `v1.0.0a2` is a published pre-release. | `--live` (PyPI JSON and integrity APIs; `gh release view`). |
-| V19.3 | A clean `pip install --pre pyeconomics==1.0.0a2` runs `scripts/smoke.py --all --min-domains 13`, and with its extras `--extras`; with no FRED key it fetches a BLS series (keyless through API v1, or through v2 with the tester's BLS key, as recorded); with the tester's own FRED key it runs the Taylor rule for a past date on ALFRED vintages; plain `pip install pyeconomics` installs 0.2.6. | `--post`. |
+| V19.3 | A clean `pip install --pre pyeconomics==1.0.0a2` runs `scripts/smoke.py --all --min-domains 13`, and with its extras `--extras`; with no FRED key it fetches a BLS series (keyless through API v1, or through v2 with the tester's BLS key, as recorded); with the tester's own FRED key it runs the Taylor rule for a past date on ALFRED vintages; plain `pip install pyeconomics` on Python 3.12 (within 0.2.6's supported >=3.11,<3.13 range) installs 0.2.6. | `--post`. |
 
 ### V20 — CI integration + security
 
@@ -12024,7 +12024,7 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 | 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #160 |
 | 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #165 |
 | 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Complete — PR #166 |
-| 20      | QA + verify-phase03.sh           | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Not started |
+| 20 | QA + verify-phase03.sh | GPT-6.1 Sol | Codex | Intelligence High | -- | New | Complete — PR #170 |
 | V1      | Core hardening                   | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V2      | ADR-0011 + data model            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V3      | Credentials + redaction          | CI: phase-verify.yml, ci.yml, security.yml | -- | --     | --       | --   | --          |
@@ -12347,15 +12347,18 @@ Additionally not in scope for this phase:
 - The yearly terms review as a scheduled process and the reclassification
   runbook. ADR-0005's Confirmation assigns them to Phase 5; this phase
   adds the 13-month freshness test that makes a stale review fail.
-- linearmodels, PyPortfolioOpt, skfolio and Riskfolio-Lib as test oracles
-  while they lack CPython 3.15 wheels (Wheel rule); statsmodels, SciPy and
-  independent recomputations stand in.
+- linearmodels, PyPortfolioOpt, skfolio and Riskfolio-Lib as additional
+  test oracles. Step 16 verified linearmodels 7.1's CPython 3.15 wheels but
+  did not need it; other candidates had incompatible dependency closures.
+  Statsmodels, SciPy and independent recomputations cover this release.
+  Adding an oracle requires a fresh licence and supported-wheel review.
 - Fuzzing the provider parsers. It remains with issue #62's Scorecard
   dispositions and its owner; the parsers are the natural target if that
   issue takes it up.
 - Issues #52 (the 0.2.6 CVE id), #62 (Scorecard dispositions) and #68
-  (GitHub Sponsors, ROADMAP 8.1), and Dependabot PR #61. Each keeps its
-  owner outside this phase.
+  (GitHub Sponsors, ROADMAP 8.1). Each keeps its owner outside this phase.
+  Dependabot PR #61 is closed; ordinary dependency maintenance continues
+  independently after Step 19 lifted the release freeze.
 - A SIFMA US bond-market calendar. `docs/phase02-qa-findings.md` assigns
   it to Phase 7's fixed-income batch.
 
@@ -12688,15 +12691,13 @@ forward whatever is still open here.
 _This roadmap is the execution plan for Phase 3. Each step's
 `**Status:**` line is flipped by that step's own PR (Status rule), so this
 file on `main` is the phase's ledger — `grep -n '^\*\*Status:\*\*'`
-reports progress. After the required steps and verification pass (with
-only the named SEC exception permitted), and every finding
-has a destination, Phase 3 is complete — declared with the line "Phase 3 is
+reports progress. After the required steps and verification pass, and every
+finding has a destination, Phase 3 is complete — declared with the line "Phase 3 is
 complete. You can now move on to Phase 4." and nothing after it — and Phase
 4 (Programmatic Surfaces: CLI, REST API, MCP & Exports) inherits
 `pyeconomics 1.0.0a2` on PyPI: 50 verified models whose bindings resolve
-live data on real-time vintages; 30 verified providers while SEC is deferred,
-or 31 once Step 7 completes, with enforced licence
-classes, attribution and `llm_use` flags behind a Python data API (`get`,
+live data on real-time vintages; 31 verified providers including SEC, with
+enforced licence classes, attribution and `llm_use` flags behind a Python data API (`get`,
 `search`, `describe`, `vintages`, `sources`) that its `data` commands,
 `series` routes and MCP tools wrap; a credential chain and redaction its
 `keys` commands build on; a licence-aware cache its `cache` commands wrap;
