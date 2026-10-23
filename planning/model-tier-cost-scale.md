@@ -53,6 +53,7 @@ table and surface material cost / availability / capability constraints.
 | Claude 4 Sonnet             | $3.00  | $3.75       | $0.30      | $15.00  | High      | Hidden by default; Thinking variant counts as 2 requests in legacy pricing |
 | Claude 4 Sonnet 1M          | $6.00  | $7.50       | $0.60      | $22.50  | High      | Hidden by default; Thinking variant counts as 2 requests in legacy pricing; This model can be very expensive due to the large context window; The cost is 2x when the input exceeds 200k tokens |
 | Claude 4.5 Haiku            | $1.00  | $1.25       | $0.10      | $5.00   | Low       | Hidden by default; Bedrock/Vertex: regional endpoints +10% surcharge; Cache: writes 1.25x, reads 0.1x |
+| Claude Haiku 5.5            | $0.10  | $0.125      | $0.01      | $0.50   | Low       | Requires Max Mode on legacy request-based plans; Requests above 100k input tokens bill at 5x the standard rates ($0.50/M input, $0.625/M cache write, $0.05/M cache read, $2.50/M output); 90% cheaper than Claude 4.5 Haiku on input and output for requests up to 100k input tokens |
 | Claude 4.5 Opus             | $5.00  | $6.25       | $0.50      | $25.00  | Very High | Hidden by default; Requires Max Mode on legacy request-based plans |
 | Claude 4.5 Sonnet           | $3.00  | $3.75       | $0.30      | $15.00  | High      | Hidden by default; Requires Max Mode on legacy request-based plans; Up to 1M tokens with extended context at the same per-token rates (no long-context surcharge) |
 | Claude 4.6 Opus             | $5.00  | $6.25       | $0.50      | $25.00  | Very High | Hidden by default; Requires Max Mode on legacy request-based plans; Up to 1M tokens with extended context at the same per-token rates (no long-context surcharge) |
@@ -92,6 +93,7 @@ table and surface material cost / availability / capability constraints.
 | Gemini 3.6 Flash           | $1.50 | –           | $0.15      | $7.50  | Low    | Hidden by default |
 | Gemini 3.7 Flash           | $0.75 | –           | $0.075     | $3.50  | Low    | Hidden by default |
 | Gemini 3.8 Flash           | $0.75 | –           | $0.075     | $3.50  | Low    | -                 |
+| Gemini 4 Argon             | $2.00 | –           | $0.10      | $10.00 | Medium | -                 |
 
 
 ### API Pool — Meta
@@ -100,6 +102,7 @@ table and surface material cost / availability / capability constraints.
 | Model          | Input | Cache Write | Cache Read | Output | Tier | Notes |
 | -------------- | ----- | ----------- | ---------- | ------ | ---- | ----- |
 | Muse Spark 1.3 | $1.25 | –           | $0.15      | $4.25  | Low  | Requires Max Mode on legacy request-based plans; Up to 1M tokens in Max Mode at the same per-token rates (no long-context surcharge); Cached input is billed at $0.15 per million tokens with no separate cache-write charge |
+| Muse Wonder    | $4.00 | –           | $0.20      | $20.00 | High | Up to 1M tokens in Max Mode at the same per-token rates (no long-context surcharge); Cached input is billed at $0.20 per million tokens with no separate cache-write charge |
 
 
 ### API Pool — OpenAI (GPT)
@@ -257,6 +260,7 @@ appear here.
 | gpt-5.2-codex    | $14.00  | Medium       | Medium       | ✓      |
 | kimi-k3          | $15.00  | High         | High         | ✓      |
 | gemini-3.1-pro   | $12.00  | Medium       | Medium       | ✓      |
+| gemini-4-argon   | $10.00  | Medium       | Medium       | ✓      |
 | gemini-3-pro     | $12.00  | Medium       | Medium       | ✓      |
 | gpt-5            | $10.00  | Medium       | Medium       | ✓      |
 | gpt-5.1-codex    | $10.00  | Medium       | Medium       | ✓      |
@@ -274,7 +278,9 @@ appear here.
 | gpt-5.6-luna     | $1.20   | Low          | Low          | ✓      |
 | gpt-6-luna       | $0.50   | Low          | Low          | ✓      |
 | claude-4.5-haiku | $5.00   | Low          | Low          | ✓      |
+| claude-haiku-5-5 | $0.50   | Low          | Low          | ✓      |
 | muse-spark-1.3   | $4.25   | Low          | Low          | ✓      |
+| muse-wonder      | $20.00  | High         | High         | ✓      |
 | gpt-5.4-mini     | $4.50   | Low          | Low          | ✓      |
 | glm-5.2          | $4.40   | Low          | Low          | ✓      |
 | glm-5.3          | $4.40   | Low          | Low          | ✓      |
@@ -316,6 +322,9 @@ recommendable engines.
 
 | Model id           | Output | Tier | Change                                                                                                                     |
 | ------------------ | ------ | ---- | -------------------------------------------------------------------------------------------------------------------------- |
+| Claude Haiku 5.5   | $0.50  | Low  | New 2026-10-19 (released 2026-10-07). Anthropic's Haiku 4.5 successor at $0.10/$0.50 for prompts up to 100k tokens, 5x above that; on Anthropic's own pricing page and Cursor's. Provider-direct (Federation rule: prices owned by `catalog-anthropic.json`). |
+| Gemini 4 Argon     | $10.00 | Medium | New 2026-10-19 (released 2026-10-13). Google's flagship reasoning model at $2/$10 (Google raises it to $4/$20 on 2026-12-01); on Google's own pricing page and Cursor's. Provider-direct (Federation rule: prices owned by `catalog-google.json`). |
+| Muse Wonder        | $20.00 | High | New 2026-10-19 on Cursor's pricing page (released 2026-10-12). Meta's Muse Wonder at $4/$20, up to 1M tokens in Max Mode at the same rates. |
 | Gemini 3.5 Flash-Lite | $2.50 | Low | New 2026-10-07 via the provider-discovery lane. Google's own Gemini API pricing page now prices gemini-3.5-flash-lite at $0.30/$2.50 (previously listed there without a price), and it is not on Cursor's pricing page. Provider-direct (Federation rule: prices owned by the Google provider snapshot). The selector pass adds it to `<model-options>` in the Low bucket |
 | Gemini 3.1 Flash-Lite | $1.50 | Low | New 2026-10-07 via the provider-discovery lane. Google's own Gemini API pricing page now prices gemini-3.1-flash-lite at $0.25/$1.50 (previously listed there without a price), and it is not on Cursor's pricing page. Provider-direct (Federation rule: prices owned by the Google provider snapshot). The selector pass adds it to `<model-options>` in the Low bucket |
 | GPT-6.1 Sol        | $10.00 | Medium | New 2026-10-01 via the provider-discovery lane. OpenAI's own pricing page lists gpt-6.1-sol at $2/$10, and it is not on Cursor's pricing page. Provider-direct (Federation rule: prices owned by `catalog-openai.json`). The selector pass adds it to `<model-options>` in the Medium bucket |

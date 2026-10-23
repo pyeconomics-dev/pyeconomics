@@ -82,12 +82,16 @@ STYLE RULES (the AI MUST follow)
     operator can literally set in that panel:
       • Claude Code: Model / Platform / Effort / Thinking
         (On/Off) / Conversation. Effort values are Low /
-        Medium / High / Extra High / Max / Ultracode
-        (Ultracode is the TOP of the effort ladder, not a
-        separate orchestration row). Thinking is a
+        Medium / High / Extra High / Max; Ultracode is its
+        own switch beside the effort slider (Claude Code
+        2.1.284+), written in the Effort cell as
+        `<level> + Ultracode` (e.g. `Extra High + Ultracode`),
+        never as a separate orchestration row. Thinking is a
         two-position toggle — On or Off — and NEVER
-        carries an effort word. NO Max Mode row: Claude
-        Code has no such dial.
+        carries an effort word; a model that always thinks
+        (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models) has no
+        Thinking toggle, so its Thinking cell is `—`. NO
+        Max Mode row: Claude Code has no such dial.
       • Codex (single Platform covering both the CLI binary
         and the Cursor IDE extension — operator picks the
         surface): Model / Platform / Intelligence /
@@ -737,6 +741,34 @@ that owns it.}}
      "Sonnet 4.6 via Claude Code" reads very differently
      from "Sonnet 4.6 via Anthropic API" on the cost line.
 
+     THE LADDER — the default wherever roadmodel is
+     installed. A step's Settings table carries the full
+     recommendation /recommend shows: Cost, Balanced and
+     Quality, each with its own model, platform and effort
+     and a backup from another maker. The roadmap then
+     outlives a usage pool's state: when a pool reads
+     `tight` or `exhausted`, the step's runner picks
+     another column (the **Runs:** line's rule) instead of
+     the roadmap being refreshed. Paste the table and its
+     **Runs:** line exactly as `roadmodel ladder --category
+     <c> --complexity <x> [--novel]` prints them for the
+     step's classification (MCP tool: `roadmap_settings`).
+     Rows: Model / Backup / Platform / Effort / AA Index /
+     Thinking / Conversation. The Effort cell names each
+     column's own dial (`Intelligence Medium` on Codex,
+     `Effort High` on Claude Code); a column whose surface
+     has no such control reads `—` there. The AA Index cell
+     is that column's model's Artificial Analysis
+     Intelligence Index at that column's effort, the figure
+     the pick was read from; it reads `not measured` where
+     AA has no row for the model at that effort. Every model is the latest
+     version of its series, never an older one (GPT-6 Sol
+     where GPT-6.1 Sol runs, Opus 5 where Opus 5.5 does).
+     Set Conversation to **Continue** in every column only
+     when the step continues the previous one's session.
+     The single-column shapes below are the fallback where
+     roadmodel cannot be reached.
+
      SETTINGS TABLE SHAPE IS PLATFORM-SPECIFIC. Each
      surface exposes a different tuning UI, and the table
      MUST mirror what the operator will actually see in
@@ -773,8 +805,9 @@ that owns it.}}
      `xhigh` with ultracode's dynamic workflows on, reached
      by launching `claude --effort ultracode` or by running
      `/effort xhigh` then `/effort ultracode` (since Claude
-     Code 2.1.284 the `/effort` toggle keeps the current
-     level), so no other surface has that rung. Map from
+     Code 2.1.284 Ultracode is its own switch that keeps
+     the current level), so no other surface has it. The
+     Effort cell reads `Extra High + Ultracode`. Map from
      overall complexity per
      `<thinking-context>`: Low → Low, Medium → Medium,
      High → High, High with novel problem-solving or
@@ -789,7 +822,10 @@ that owns it.}}
      effort word or a number — the level lives in Effort.
      Default On for any step where extended reasoning is
      desirable; Off only when the step is purely
-     mechanical and latency matters.
+     mechanical and latency matters. A model that always
+     thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models) has
+     no toggle on any surface: its Thinking cell is `—`,
+     and a mechanical step lowers Effort instead.
 
      INTELLIGENCE variant (use for Codex and the OpenAI
      API). Codex is a single Platform covering both the CLI
@@ -824,6 +860,25 @@ that owns it.}}
      cannot apply.
      -->
 
+Settings table — ladder ({{the default wherever roadmodel is
+installed: the table and **Runs:** line `roadmodel ladder
+--category <c> --complexity <x> [--novel]` prints for the
+step's classification, pasted as printed. The three shapes
+after it are the fallback where roadmodel cannot be
+reached}}):
+
+| Setting      | Cost                        | Balanced                    | Quality                     |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
+| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
+| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
+| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
+| AA Index     | {{AA Index at that effort}} | {{AA Index at that effort}} | {{AA Index at that effort}} |
+| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
+| Conversation | **{{New or Continue}}**     | **{{New or Continue}}**     | **{{New or Continue}}**     |
+
+**Runs:** {{Cost / Balanced / Quality}} — the user-context's Budget priority is `{{cheap / balanced / best}}`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
 Settings table — Effort + Thinking variant ({{use this
 shape when PLATFORM is "Claude Code" or any other
 reasoning-dial surface that is not Codex — ChatGPT app,
@@ -838,8 +893,8 @@ when Platform is Claude Code}}):
 | Model        | {{Model name}}                 |
 | Backup       | {{Backup model — its platform · its dial, or None}} |
 | Platform     | {{Claude Code or other reasoning-dial access method}} |
-| Effort       | {{Low/Medium/High/Extra High/Max — or Ultracode, Claude Code only}} |
-| Thinking     | {{On or Off}}                  |
+| Effort       | {{Low/Medium/High/Extra High/Max — or Extra High + Ultracode, Claude Code only}} |
+| Thinking     | {{On or Off — or — for a model that always thinks}} |
 | Conversation | **{{New or Continue}}**        |
 
 Settings table — Codex variant ({{use this shape when
@@ -1228,29 +1283,29 @@ hygiene").}}
 
 **Deploys:** {{surface → environment, or "nothing beyond merge"}}
 
-{{Settings table — pick the variant that matches PLATFORM
-per the Step 1 guidance, and carry ONLY the rows that
-platform's panel exposes. Claude Code and the other
-reasoning-dial surfaces use Model / Platform / Effort /
-Thinking (On/Off) / Conversation. Codex uses Model /
-Platform / Intelligence / Conversation (no Max Mode, no
-Thinking row). Cursor uses Model / Platform / Max Mode /
-Conversation (no Effort row, no Thinking row). The shape
-below is the Effort + Thinking variant — swap it wholesale if
-PLATFORM is something else; never keep a row for a dial
-the surface does not have.}}
+{{Settings table — the ladder `roadmodel ladder` prints for
+this step's classification (the Step 1 guidance), pasted as
+printed with its **Runs:** line. Where roadmodel cannot be
+reached, the single-column variant that matches PLATFORM,
+carrying ONLY the rows that platform's panel exposes.}}
 
-| Setting      | Value                          |
-| ------------ | ------------------------------ |
-| Model        | {{Model name}}                 |
-| Backup       | {{Backup model — its platform · its dial, or None}} |
-| Platform     | {{Access method name}}         |
-| Effort       | {{Low/Medium/High/Extra High/Max/Ultracode}} |
-| Thinking     | {{On or Off}}                  |
-| Conversation | **{{New or Continue}}**        |
+| Setting      | Cost                        | Balanced                    | Quality                     |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
+| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
+| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
+| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
+| AA Index     | {{AA Index at that effort}} | {{AA Index at that effort}} | {{AA Index at that effort}} |
+| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
+| Conversation | **{{New or Continue}}**     | **{{New or Continue}}**     | **{{New or Continue}}**     |
 
-**Model rationale:** 3-5 sentences. Name the PLATFORM and
-the subscription or API key that pays for it. For Claude
+**Runs:** {{the line `roadmodel ladder` prints}}
+
+**Model rationale:** 3-5 sentences. With the ladder: the
+classification it was printed for (PRIMARY and SECONDARY
+category, complexity, novel or not) and why, then what sets
+the three columns apart for this step. Otherwise: name the
+PLATFORM and the subscription or API key that pays for it. For Claude
 Code and the other reasoning-dial surfaces, state why
 EFFORT is at the stated level and why THINKING is on or
 off. For Codex, state why INTELLIGENCE is at the stated
@@ -1366,23 +1421,22 @@ mechanically rather than left to memory.
 **Deploys:** nothing beyond merge — the CI matrix entry is live
 on merge.
 
-{{Settings table — pick the variant that matches PLATFORM
-per the Step 1 guidance, carrying ONLY the rows that
-platform exposes. There are exactly three shapes: the
-Effort + Thinking variant (Claude Code and every other
-reasoning-dial surface), the Codex variant (Intelligence
-alone — no Max Mode, no Thinking row), and the Cursor
-variant (Max Mode alone — no Effort row, no Thinking row).
-The shape below is the Effort + Thinking variant.}}
+{{Settings table — the ladder `roadmodel ladder` prints for
+this step's classification, pasted as printed with its
+**Runs:** line; where roadmodel cannot be reached, the
+single-column variant that matches PLATFORM.}}
 
-| Setting      | Value                          |
-| ------------ | ------------------------------ |
-| Model        | {{Model}}                      |
-| Backup       | {{Backup model — its platform · its dial, or None}} |
-| Platform     | {{Access method name}}         |
-| Effort       | {{Low/Medium/High/Extra High/Max/Ultracode}} |
-| Thinking     | {{On or Off}}                  |
-| Conversation | **New**                        |
+| Setting      | Cost                        | Balanced                    | Quality                     |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
+| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
+| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
+| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
+| AA Index     | {{AA Index at that effort}} | {{AA Index at that effort}} | {{AA Index at that effort}} |
+| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
+| Conversation | **New**                     | **New**                     | **New**                     |
+
+**Runs:** {{the line `roadmodel ladder` prints}}
 
 **Model rationale:** Why this model fits the mechanical
 translation of the prior verify-script template into this
@@ -1868,7 +1922,12 @@ corresponding row below.
 
 ## Summary Table
 
-<!-- Summary Table column "Reasoning dial" carries
+<!-- With ladder Settings tables, each step's row shows the
+     column its **Runs:** line names (the Model, Platform
+     and dial of that column); the other two columns live
+     in the step's own table.
+
+     Summary Table column "Reasoning dial" carries
      whichever dial the step's PLATFORM exposes, written
      in the surface's native vocabulary so reviewers can
      audit each row 1:1 against the panel. The per-step
@@ -1878,9 +1937,10 @@ corresponding row below.
      one row) even though the Settings table above omits
      the row entirely. "--" means "this surface has no
      such control" — it is never a setting to apply:
-       • Claude Code → "Effort {{Low/Med/High/XHigh/Max/
-         Ultracode}}" (and the Thinking column carries
-         "On" or "Off").
+       • Claude Code → "Effort {{Low/Med/High/XHigh/Max}}"
+         (plus " + Ultracode" when the switch is on), and
+         the Thinking column carries "On" or "Off" — or
+         "--" for a model that always thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models).
        • Codex → "Intelligence {{Low/Med/High/XHigh}}"
          (the Thinking column is "--" because the surface
          exposes no Thinking field; Codex covers both the
@@ -1889,7 +1949,8 @@ corresponding row below.
        • Other reasoning-dial surfaces (ChatGPT app,
          claude.ai web, Anthropic / OpenAI / Google APIs,
          Gemini CLI, DeepSeek API) → "Effort {{level}}"
-         (and the Thinking column carries "On" or "Off").
+         (and the Thinking column carries "On" or "Off",
+         or "--" for a model that always thinks).
          Never "Max ON/OFF" — none of these has Max Mode.
        • Cursor → "Max ON" or "Max OFF" (and the Thinking
          column is "--"; Cursor exposes no reasoning
@@ -1928,6 +1989,8 @@ output format for ease of audit by a roadmodel script.
 
 Include this section if your project has a roadmodel
 audit tool that consumes the text format. Skip it if not.
+With ladder Settings tables, each block restates the column
+the step's **Runs:** line names.
 -->
 
 <!-- These blocks follow OUTPUT CONTRACT VERSION 2 of
@@ -1944,7 +2007,8 @@ audit tool that consumes the text format. Skip it if not.
          Gemini CLI, DeepSeek API). EFFORT carries the
          LEVEL (Low/Medium/High/XHigh/Max/Ultracode);
          THINKING is a two-position toggle, On or Off,
-         and NEVER carries an effort word. In a roadmap
+         and NEVER carries an effort word; a model that
+         always thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models) gets NO THINKING line. In a roadmap
          table Codex's dial is labelled "Intelligence"
          after its own UI, but the block line is EFFORT.
        • MAX MODE → CURSOR ONLY (On/Off). Cursor exposes
@@ -1967,7 +2031,7 @@ BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Claude Code and every other reasoning-dial surface:}}
 EFFORT: {{Low/Medium/High/XHigh/Max/Ultracode}}
-THINKING: {{On or Off}}
+THINKING: {{On or Off — omit the line for a model that always thinks}}
 {{Claude Code only, additionally:}}
 ORCHESTRATION: {{None or PerPrompt}}
 {{Cursor only — and INSTEAD OF the two lines above, not alongside them:}}
@@ -1988,7 +2052,8 @@ MODEL: {{model}}
 BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Setting lines the PLATFORM exposes: reasoning-dial surface →
-EFFORT + THINKING(On/Off) (+ ORCHESTRATION on Claude Code);
+EFFORT + THINKING(On/Off, absent for a model that always thinks)
+(+ ORCHESTRATION on Claude Code);
 Cursor → MAX MODE only.}}
 CONVERSATION: {{New or Continue}}
 RATIONALE: {{Same TASK / PICK / EFFORT shape as Step 1.}}
@@ -1998,7 +2063,8 @@ MODEL: {{model}}
 BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Setting lines the PLATFORM exposes: reasoning-dial surface →
-EFFORT + THINKING(On/Off) (+ ORCHESTRATION on Claude Code);
+EFFORT + THINKING(On/Off, absent for a model that always thinks)
+(+ ORCHESTRATION on Claude Code);
 Cursor → MAX MODE only.}}
 CONVERSATION: {{New or Continue}}
 RATIONALE: {{...}}
@@ -2008,7 +2074,8 @@ MODEL: {{model}}
 BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Setting lines the PLATFORM exposes: reasoning-dial surface →
-EFFORT + THINKING(On/Off) (+ ORCHESTRATION on Claude Code);
+EFFORT + THINKING(On/Off, absent for a model that always thinks)
+(+ ORCHESTRATION on Claude Code);
 Cursor → MAX MODE only.}}
 CONVERSATION: {{New or Continue}}
 RATIONALE: {{TASK: mechanical translation of the prior
