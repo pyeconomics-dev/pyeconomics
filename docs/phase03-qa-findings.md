@@ -331,57 +331,54 @@ contact appears in this record.
 
 ## Final verification evidence
 
-Initial frozen --python passed in 1346 seconds: 100 fast and 21 Python verdicts,
-zero failures. The full suite passed 7755 tests with 3 Windows platform skips;
-365 live tests were deselected. Coverage: core 99.76%, models 98.41%, data
-96.13%. Ruff, strict mypy and ty pass. A fresh strict Sphinx build executes
-the tutorial and verifies every model, provider and concept HTML page. Wheel
-and sdist pass strict Twine and content allowlisting; separate core/extras
-wheel installs smoke all families across 13 domains.
+The final canonical `--post` passed at d5e63aa in 7234 seconds, exit 0:
+**138 PASS, zero FAIL**. It ran on a clean, frozen checkout after actual
+maintainer receipt was confirmed and both newest default workflows were
+green.
 
-The latest complete audit and remaining closure criteria are recorded below.
-Only completed checks are recorded as PASS.
+| Mode section | PASS | FAIL |
+|---|---:|---:|
+| fast | 100 | 0 |
+| python | 21 | 0 |
+| security | 3 | 0 |
+| live | 10 | 0 |
+| post | 4 | 0 |
 
-The first full --security run passed in 710 seconds: 100 fast and 3 security
-verdicts, zero failures. Semgrep rule tests, 291 import/layering tests, the
-whole-tree gate, 221 cassette scans and the orphan-clone secret scan passed.
-Both Phase 3 CI jobs passed at c37f3d2; Ubuntu's static step took 4 seconds.
-Main now requires both 03 contexts, preserving all 20 previous app-bound
-contexts: 22 strict checks in total. A before/after comparison confirms every
-other protection field is unchanged.
+The offline suite passed 7755 tests with 3 Windows platform skips and 365
+live tests deselected. Branch coverage: core 99.76%, models 98.41%, data
+96.13%. Format, lint, strict mypy and ty passed. Strict Sphinx executed the
+tutorial and verified every model, provider and concept page. Wheel/sdist,
+strict Twine, content allowlisting and separate clean core/extras installed
+smokes across all 13 domains passed.
 
-All 38 CI checks passed at 6a47cb7. The first corrected-head --post attempt
-passed its Python, security and all ten read-only live checks, then failed
-the stable-install assertion on Python 3.13 and the unconfirmed notification
-criterion. Its alpha core/extras smokes and historical live recipe passed.
-That attempt was stopped before changing the verifier; it is not counted as
-a passing --post or as completed earlier-phase evidence. The stable-only
-interpreter fix leaves the alpha tests on the project's interpreter.
+Security passed Semgrep rule tests, 291 import/layering tests, all nineteen
+whole-tree hooks, 221 cassette checks and the orphan-clone secret scan.
+Negative proofs caught missing SEC registration, comma-separated blpapi
+imports and independently failing licence/smoke components. The Phase 1
+static-check-13 regression proof passes both large valid inputs and rejects
+all three missing-evidence cases, preserving its release requirements.
 
-The complete corrected `--post` at 143f299 finished in 5455 seconds with
-137 PASS and one FAIL: fast 100/0, Python 21/0, security 3/0, live 10/0,
-post 3/1. At that checkpoint the sole failure was V20.5, because the
-maintainer had not confirmed receipt. No receipt was inferred or invented.
-Fresh published alpha core/extras, BLS/ALFRED recipe, ordinary stable 0.2.6
-on Python 3.12, and current PR checks passed. All 38 CI checks passed at
-143f299, including the twelve OS/Python cells and both Phase 3 jobs.
+All ten read-only live checks passed, including exact-main CI/Pyodide and
+RTD, individual non-skipped Taylor/CAPE cases, both publication provenances,
+pre-release status, live-environment policy and required checks. Fresh PyPI
+1.0.0a2 core/extras, live BLS with FRED withheld, historical ALFRED binding,
+and ordinary stable 0.2.6 on supported Python 3.12 passed. Both fresh
+synthetic runs, closed issues, QA-link comments and actual notification
+confirmation passed V20.5.
 
-Phase 2's complete `--post` passed in 3264 seconds: 83 fast, 16 Python,
-3 security, 6 live and 4 post verdicts, zero failures. Its fresh V15.6 proves
-the actual nested Phase 1 `--post` also passed. Neither earlier command was
-skipped or replaced by a saved result.
+Phase 2's full `--post` passed in 4441 seconds: 112 PASS, zero FAIL. Its
+fresh V15.6 verifies that the actual nested Phase 1 full `--post` passed;
+neither earlier command was skipped or replaced by a saved result.
 
-Both newest default workflows are restored and actual notification receipt
-is now confirmed as recorded above. The earlier audit started before its
-restoration finished, so a final canonical `--post` must pass against the
-confirmed record with both newest default runs already green. The PR remains
-draft pending that audit, final-head CI, merge and exact-main validation;
-Phase 3 is not yet declared complete.
+All 38 CI checks passed at d5e63aa, including the twelve OS/Python cells and
+all six Phase 1-3 fast/security jobs. Ubuntu's Phase 3 fast step was measured
+at 4 seconds. Main requires 22 strict app-bound checks: both new 03 contexts
+and all twenty previous contexts, with every other protection field preserved.
+The final evidence-head CI and merged-main verification are tracked in
+[PR #170](https://github.com/pyeconomics-dev/pyeconomics/pull/170).
 
-The next canonical attempt at d499e2d was stopped before changing any file
-when CI exposed a false SIGPIPE failure in Phase 1 static check 13. It is
-not counted as a completed audit. The fix consumes each producer's complete
-output while preserving both evidence requirements; the original check
-fails large-output positive fixtures, while the corrected check passes them
-and rejects all three missing-evidence fixtures. A fresh canonical audit
-must pass with this verifier correction before closure.
+Earlier attempts are diagnostic history, not passing audit evidence. The
+stable interpreter mismatch and inherited Phase 1 SIGPIPE false failure
+were fixed in this PR; unconfirmed receipt remained a failing criterion
+until the maintainer actually confirmed both alerts. Interrupted runs were
+discarded. The final canonical result above includes every correction.
