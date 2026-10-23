@@ -72,7 +72,7 @@ def test_the_redaction_factory_is_installed_once_from_many_threads() -> None:
     together(lambda _index: redaction.install())
     factory = logging.getLogRecordFactory()
     assert redaction.installed()
-    assert factory.previous is logging.LogRecord  # type: ignore[attr-defined]
+    assert factory.previous is logging.LogRecord  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
 
 
 def test_records_logged_from_many_threads_are_scrubbed() -> None:

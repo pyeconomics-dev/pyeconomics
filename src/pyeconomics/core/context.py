@@ -182,7 +182,8 @@ def library_warnings(
                 warnings.WarningMessage(message, category, filename, lineno, file, line)
             )
 
-        warnings.showwarning = record
+        # ty reads the module attribute as one fixed function, not a callable type.
+        warnings.showwarning = record  # ty: ignore[invalid-assignment]
         yield caught
     seen: set[str] = set()
     for item in caught:

@@ -44,7 +44,7 @@ def test_the_first_discovery_from_two_threads_at_once_runs_once(
         calls.append(threading.get_ident())
         # Hold the discovery open while the other thread arrives at the lock.
         time.sleep(0.2)
-        return real(entry_points)  # type: ignore[arg-type]
+        return real(entry_points)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
     def first_use(_index: int) -> Registry:
         barrier.wait(PATIENCE)
