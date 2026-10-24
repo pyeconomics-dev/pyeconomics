@@ -1,6 +1,6 @@
 # ADR-0012: Programmatic surfaces
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-23
 - Deciders: Nathan Ramos, CFA (maintainer)
 - Parent: ROADMAP §4 4.1–4.7; §5 "Model quality & governance" ("Parity"),
@@ -525,12 +525,24 @@ Bad:
   becomes Upstash Redis in §4 4.4 and §5 "Cost projection", §4 4.7 names the
   Worker edge, and §5 "Security controls by layer" no longer promises
   hosted API keys before Phase 8.
-- This draft goes beyond the roadmap's table in four places, each for the
-  maintainer to accept or amend: the error-table rows the roadmap left to
-  "anything else" (`DataError`, `ConfigError`, `RegistryError`), the two
-  surface errors (`InputTooLargeError`, `BudgetExceededError`), the codec's
-  local limit (16 MiB, since 1 MiB refuses valid inputs) beside the hosted
-  1 MiB, and a weak `ETag` in place of a strong one.
+- The maintainer accepted the twenty decisions, with the values in this
+  record, on 2026-10-23 in Phase 4 Step 2, answering one batched question:
+  the Cloudflare Worker edge over Cloud Run domain mapping (decision 20);
+  the drafted exit codes, `GET` form, tool names and server name (decisions
+  5, 9, 13 and 16) as drafted; and the draft's four additions to the
+  roadmap's table, each recommended in the question:
+  - the error-table rows the roadmap left to "anything else": a plain
+    `DataError` is `data-unavailable` (422, exit 7), because its raise
+    sites mean the data cannot answer the request, while `ConfigError` and
+    `RegistryError` keep 500 and exit 1 under their own slugs (decision 4);
+  - two surface errors, `InputTooLargeError` (413, exit 3) and
+    `BudgetExceededError` (422, exit 1) (decisions 4 and 10);
+  - the codec's 16 MiB local limit beside the hosted 1 MiB, because 1 MiB
+    refuses valid full-length inputs of 2.65 to 5.83 MiB (decision 10);
+  - a weak `ETag` in place of the drafted strong one, which RFC 9110 does
+    not allow when the bytes can change while `result_sha256` does not
+    (decision 12).
+- No decision was amended in place while the record read Proposed.
 - Sources, all accessed 2026-10-23:
   - [S1] Cloudflare Origin Rules, availability by plan (the host-header,
     SNI and DNS-record overrides are Enterprise only),
