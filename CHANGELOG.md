@@ -63,6 +63,34 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   `pyeconomics.surfaces.documents` (`data_document`, `jsonable`): the model
   entries and the data documents every surface returns, so the command line,
   and next the REST API and the MCP server, find and show them the same way.
+- The REST API, in the new `server` extra (FastAPI and uvicorn; ADR-0012
+  decisions 9 to 11): `pyeconomics.server.create_app(mode=..., settings=...)`
+  builds a `/v1` API whose routes come from the registry. `GET /v1/models`
+  (`?q=`, `?domain=`, `?limit=`), `GET /v1/models/{model_id}`, a
+  `POST /v1/models/{model_id}/run` for each model with the model's own input and
+  result schemas, and its `GET` form (`?inputs=`, the inputs' canonical JSON in
+  base64url, at most 8,192 characters), both answering the bytes of
+  `Result.to_json()`; `?as_of=`, `?vintage=`, `?profile=`, `?concept=` and
+  `?param=` bind a run's data first; `GET /v1/series/{target}`,
+  `GET /v1/sources`, `GET /healthz`, `GET /version` and `GET /openapi.json`.
+  `?format=csv|xlsx|parquet|arrow|bundle` answers a download through the
+  exports. Every error is an RFC 9457 `application/problem+json` problem from
+  the error table, FastAPI's own validation and unknown routes included. Runs
+  and series fetches execute in spawned worker processes
+  (`PYECONOMICS_WORKERS`, default the CPU count) behind a bounded queue; hosted
+  mode holds each run to its cost class's budget, stopping a run past it and
+  replacing its worker. Documented on a new page, `api`.
+- `pyeconomics serve [--host] [--port] [--workers] [--allow-remote]`, the local
+  API on 127.0.0.1: a host that is not a loopback address is refused unless
+  `--allow-remote` is passed, and a local server answers only requests
+  addressed to a loopback name. `pyeconomics registry export` also writes
+  `openapi.json`, the OpenAPI 3.1 document, when the `server` extra is
+  installed; a snapshot test holds the document.
+- Four rows in the error table for what a served surface refuses
+  (`pyeconomics.surfaces.service`): `route-not-found` (404),
+  `method-not-allowed` (405), `host-not-allowed` (400) and `server-busy` (503).
+  `pyeconomics.surfaces.problems.record` logs a problem already made, and
+  `InputTooLargeError` takes the advice its message ends with.
 
 ### Fixed
 
@@ -85,6 +113,12 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   pyeconomics` and `import pyeconomics.cli` load none of them.
 - `data.configure` documents that its overrides are process-wide: a server
   configures once, at start, never per request.
+- The `server` extra, empty until now, holds `fastapi>=0.162` and
+  `uvicorn>=0.54` (without uvicorn's `standard` extra), with their closure:
+  Starlette, anyio, idna, annotated-doc, typing-inspection, opentelemetry-api,
+  click and h11, each pure Python under the licence allowlist (ADR-0004). `all`
+  includes them. `import pyeconomics` loads none of them, and a worker process
+  loads no web framework.
 
 ## [1.0.0a2] - 2026-10-22
 

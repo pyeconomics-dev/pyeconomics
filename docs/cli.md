@@ -42,8 +42,9 @@ $ pyeconomics --version
 | `keys list` | Name where each key would be read from |
 | `keys delete PROVIDER` | Delete a key from the OS keyring |
 | `cache ls [--provider P]`, `cache info`, `cache clear [--provider P]`, `cache path` | Inspect and clear the data cache |
-| `registry export --out DIR [--no-figures]` | Write `DIR/registry.json` ({doc}`registry`) |
+| `registry export --out DIR [--no-figures]` | Write `DIR/registry.json` ({doc}`registry`), and `DIR/openapi.json` with the `server` extra |
 | `bundle check FILE` | Verify a reproducibility bundle without running anything from it ({doc}`exports`) |
+| `serve [--host] [--port] [--workers] [--allow-remote]` | Serve the REST API on this machine, with the `server` extra ({doc}`api`) |
 | `completion SHELL`, `--install-completion` | Shell completion |
 
 Every command takes `--help`, and `--debug` (anywhere on the line) adds a
@@ -152,7 +153,7 @@ $ pyeconomics cache clear
 ```
 
 `registry export` writes the description of every model, the file the web app
-is built from:
+is built from, and with the `server` extra the REST API's OpenAPI document:
 
 ```console
 $ pyeconomics registry export --out site --no-figures
@@ -190,6 +191,20 @@ it takes no field options, `--inputs`, `--bundle` or data options beside it:
 pyeconomics models run foundations.time_value --batch rows.csv --format csv --out results.csv
 pyeconomics bundle check pv.zip
 ```
+
+## Serving the REST API
+
+With the `server` extra, `pyeconomics serve` serves the REST API on
+`127.0.0.1` port 8000 until Ctrl+C, its runs in worker processes ({doc}`api`):
+
+```text
+pipx install --pre "pyeconomics[server]"
+pyeconomics serve --port 8000 --workers 2
+```
+
+It reads every source this machine can access, with its keys, so a host that is
+not a loopback address is refused (exit code 2) unless `--allow-remote` is
+passed. Without the extra it exits with code 8.
 
 ## Exit codes
 

@@ -53,7 +53,11 @@ from pyeconomics.cli.output import (
     show,
 )
 from pyeconomics.core.binding import DEFAULT_PROFILE
-from pyeconomics.core.errors import InputError, RegistryError
+from pyeconomics.core.errors import (
+    InputError,
+    MissingOptionalDependencyError,
+    RegistryError,
+)
 from pyeconomics.core.schema import input_schema, output_schema
 from pyeconomics.surfaces import codec, listing
 from pyeconomics.surfaces.envelope import canonical_bytes
@@ -228,8 +232,9 @@ def export_registry(
 ) -> None:
     """Write registry.json, the description of every model, into a directory.
 
-    The file is canonical JSON with no trailing newline, so its SHA-256
-    identifies it; the directory is created if it does not exist.
+    With the server extra installed it also writes openapi.json, the REST API's
+    OpenAPI 3.1 document. Each file is canonical JSON with no trailing newline,
+    so its SHA-256 identifies it; the directory is created if it does not exist.
 
     Parameters
     ----------
@@ -237,6 +242,7 @@ def export_registry(
         Include each model's example figure (it needs the plot extra);
         --no-figures writes null for every figure.
     """
+    from pyeconomics.core._optional import import_optional  # noqa: PLC0415
     from pyeconomics.surfaces.registry_export import (  # noqa: PLC0415 - loads plotting
         write_registry,
     )
@@ -251,7 +257,17 @@ def export_registry(
         raise InputError(msg)
     target = out / "registry.json"
     write_registry(target, figures=figures)
-    context.streams.write(f"{target}\n".encode())
+    written = [target]
+    try:
+        import_optional("fastapi", extra="server")
+    except MissingOptionalDependencyError as error:
+        context.streams.error(f"openapi.json skipped: {error}")
+    else:
+        from pyeconomics.server.openapi import write_openapi  # noqa: PLC0415
+
+        written.append(out / "openapi.json")
+        write_openapi(written[-1])
+    context.streams.write("".join(f"{path}\n" for path in written).encode())
 
 
 # --- run -----------------------------------------------------------------------

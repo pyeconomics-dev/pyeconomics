@@ -14,7 +14,9 @@ the registry on top of these modules, which import no framework:
 - :mod:`~pyeconomics.surfaces.codec`: input decoding with size and depth limits;
 - :mod:`~pyeconomics.surfaces.envelope`: the canonical bytes, the entity tag and
   a text summary;
-- :mod:`~pyeconomics.surfaces.budgets`: the hosted time budgets and size limits.
+- :mod:`~pyeconomics.surfaces.budgets`: the hosted time budgets and size limits;
+- :mod:`~pyeconomics.surfaces.service`: what a served surface refuses (a route,
+  a method, a host, a full queue) and which hosts are loopback.
 
 Importing this package loads no data module: the data layer arrives with the
 first bind. The function :func:`invoke` hides the module of that name here;

@@ -282,6 +282,26 @@ From Phase 4 Step 2, which builds the surface core (ADR-0012):
   `docs/cli.md`'s `console` examples run in the tests and exit 0, its `shell`
   examples read live data and must exit 7 offline, and `text` examples do not
   run (`tests/cli/test_cli_docs.py`).
+- The REST API (`pyeconomics.server`, Phase 4 Step 6) builds every route from
+  the registry in `create_app`. A run reads the raw body (or decodes
+  `?inputs=`), runs `invoke` through the worker pool (`server.pool`) and answers
+  its bytes unchanged; every error reaches the caller through the exception
+  handlers or the guard middleware as `problem_response(problem)`. A serving
+  error (a route, a method, a host, a full queue) is a class in
+  `surfaces/service.py` with its own row. Messages to a worker are canonical
+  JSON headers and raw bytes (`server.work`), never a pickle, and the modules a
+  worker loads (`pool`, `work`, `formats`, `settings`, `logs`) import no web
+  framework (`tests/server/test_server_layering.py`). The server logs route
+  templates and problem records only (`server.logs`), never a path or a query.
+- A server test uses `server_support.client()` (an inline pool, addressed to
+  127.0.0.1, which a local server requires) and carries `pytestmark =
+  LOOPBACK_ONLY`: asyncio's event loop needs a socket pair, which
+  `--disable-socket` refuses, so loopback hosts are allowed and every other
+  connection is still refused; a doctest cannot carry the mark, so no doctest
+  starts an event loop. A toy a spawned worker runs lives in `server_support.py`
+  (importable by name) and is installed through `ServerSettings.worker_setup`.
+  The OpenAPI snapshot records each model's own schemas by digest; after an
+  intended change, `uv run pytest tests/server --snapshot-update` and review.
 
 ## Units
 

@@ -308,7 +308,9 @@ def test_registry_export_writes_registry_json(
     outcome = cli("registry", "export", "--out", str(target), "--no-figures")
     assert outcome.code == 0
     assert calls == [(target / "registry.json", False)]
-    assert outcome.text == f"{target / 'registry.json'}\n"
+    # The test group installs the server extra, so openapi.json follows.
+    written = [target / "registry.json", target / "openapi.json"]
+    assert outcome.text == "".join(f"{path}\n" for path in written)
     assert target.is_dir()
     cli("registry", "export", "--out", str(target))
     assert calls[-1] == (target / "registry.json", True)
