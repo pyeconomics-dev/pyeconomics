@@ -3429,9 +3429,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 6 — REST API: App Factory, Routes and Worker Pool
+## Step 6 — REST API: App Factory, Routes and Worker Pool ✅
 
-**Status:** Not started
+**Status:** Complete — PR #181 (2026-10-24)
 
 > **Goal:** Serve every model and series over a versioned HTTP API that
 > returns the Python API's bytes. Fill the `[server]` extra with FastAPI and
@@ -3471,6 +3471,8 @@ Step 15 verifies live.
 | AA Index     | 50.2                                    | 52.6                                 | 56                                         |
 | Thinking     | —                                       | On                                   | —                                          |
 | Conversation | **New**                                 | **New**                              | **New**                                    |
+
+> Ran 2026-10-24: the Balanced column's Backup, also the Quality column's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -8889,7 +8891,7 @@ workflow above maps directly to the corresponding row below.
 | 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #179 |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
-| 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
