@@ -275,7 +275,9 @@ From Phase 4 Step 2, which builds the surface core (ADR-0012):
   notices and manifest; a new format or exportable type adds its case there and
   to `tests/providers/test_export_notices.py`. A CSV or XLSX text cell goes
   through `escape_text`; a number never does. XLSX numbers are written as their
-  shortest round-trip text (openpyxl's own `%.16g` drops a bit). `check_bundle`
+  shortest round-trip text (openpyxl's own `%.16g` drops a bit), and an XLSX
+  file records the second it was written, so a test compares two by their
+  sheets' values (`export_support.xlsx_sheet`), never their bytes. `check_bundle`
   reads the JSON members only and executes nothing; `reproduce.py`'s text is
   the `exports.reproduction.REPRODUCE_SCRIPT` constant (the wheel admits only
   `.py` files), standard library until it imports pyeconomics.

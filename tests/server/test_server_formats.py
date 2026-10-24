@@ -5,10 +5,12 @@
 
 A run's or a series' download must be the exports' own bytes, with its media
 type and an attachment ``Content-Disposition``; a bound run's bundle records its
-bind request. Parquet and Arrow without pyarrow answer 501 naming it. The series
-route answers ``data get --format json``'s document over the scripted providers,
-takes slashes in a provider's series key, refuses a URL as a target and, in
-hosted mode, refuses a library-only source with the licence problem.
+bind request. An XLSX file records the second it was written in its zip entries
+and properties, so two are compared by their sheets' values instead. Parquet
+and Arrow without pyarrow answer 501 naming it. The series route answers ``data
+get --format json``'s document over the scripted providers, takes slashes in a
+provider's series key, refuses a URL as a target and, in hosted mode, refuses a
+library-only source with the licence problem.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ import zipfile
 
 import pytest
 from cli_support import install_world
+from export_support import xlsx_sheet
 from server_support import LOOPBACK_ONLY, client, encode, problem
 
 import pyeconomics
@@ -37,6 +40,16 @@ INPUTS = {"calculation": "irr", "cash_flows": [-100, 30, 40, 50]}
 PAST = "2024-03-20"
 
 
+def _same(export_format: str, answered: bytes, exported: bytes) -> bool:
+    """Whether a download is the export: its bytes, or an XLSX file's values."""
+    if export_format != "xlsx":
+        return answered == exported
+    return all(
+        xlsx_sheet(answered, sheet) == xlsx_sheet(exported, sheet)
+        for sheet in ("data", "manifest")
+    )
+
+
 @pytest.mark.parametrize("export_format", ["csv", "xlsx", "parquet", "arrow"])
 def test_each_run_format_is_the_exports_bytes(export_format: str) -> None:
     result = pyeconomics.run(MODEL, INPUTS)
@@ -47,7 +60,7 @@ def test_each_run_format_is_the_exports_bytes(export_format: str) -> None:
             content=canonical_json(INPUTS),
         )
     assert response.status_code == 200
-    assert response.content == export_bytes(result, export_format)
+    assert _same(export_format, response.content, export_bytes(result, export_format))
     assert response.headers["content-type"] == formats.MEDIA_TYPES[export_format]
     extension = formats.EXTENSIONS[export_format]
     assert response.headers["content-disposition"] == (
@@ -156,7 +169,7 @@ def test_each_series_format_is_the_exports_bytes(
         response = api.get(
             "/v1/series/fred:UNRATE", params={"as_of": PAST, "format": export_format}
         )
-    assert response.content == export_bytes(resolved, export_format)
+    assert _same(export_format, response.content, export_bytes(resolved, export_format))
     assert response.headers["content-disposition"] == (
         f'attachment; filename="fred_UNRATE.{formats.EXTENSIONS[export_format]}"'
     )
