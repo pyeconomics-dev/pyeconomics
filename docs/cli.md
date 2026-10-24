@@ -32,6 +32,7 @@ $ pyeconomics --version
 | `models search TEXT [--limit N]` | Search models by id, title, tags, domain and summary |
 | `models describe ID [--format markdown\|json]` | Print a model's card, or its full description |
 | `models run ID [OPTIONS]` | Run a model; its inputs are options |
+| `models run ID --batch FILE` | Run a model once per row of a CSV or JSON Lines file |
 | `data search TEXT [--limit N]` | Search catalog concepts, then providers' series |
 | `data get TARGET [--start] [--end] [--as-of] [--vintage] [--provider]` | Get a concept's or a series' data |
 | `data describe TARGET` | Describe a concept, a series or a provider |
@@ -42,6 +43,7 @@ $ pyeconomics --version
 | `keys delete PROVIDER` | Delete a key from the OS keyring |
 | `cache ls [--provider P]`, `cache info`, `cache clear [--provider P]`, `cache path` | Inspect and clear the data cache |
 | `registry export --out DIR [--no-figures]` | Write `DIR/registry.json` ({doc}`registry`) |
+| `bundle check FILE` | Verify a reproducibility bundle without running anything from it ({doc}`exports`) |
 | `completion SHELL`, `--install-completion` | Shell completion |
 
 Every command takes `--help`, and `--debug` (anywhere on the line) adds a
@@ -163,10 +165,31 @@ $ pyeconomics registry export --out site --no-figures
 | `json` | Canonical JSON (RFC 8785) followed by one newline; the default of `models run` and `data get` |
 | `table` | Tables, drawn with borders on a terminal and as aligned plain text in a pipe or a file, with attributions and notices below; the default of the listing commands |
 | `markdown` | The model card (`models describe` only, its default) |
+| `csv`, `xlsx`, `parquet`, `arrow` | An export with its attributions, notices and manifest (`models run` and `data get`; {doc}`exports`) |
 
 `--out PATH` writes the same bytes to a file instead of standard output. Output
 is UTF-8 on every operating system, Windows included, whatever the console's
-code page.
+code page. A binary format (`xlsx`, `parquet`, `arrow`) goes to standard output
+only when it is not a terminal: name a file with `--out`, redirect it or pipe
+it. Parquet and Arrow need pyarrow, which pyeconomics never installs; without
+it they exit with code 8.
+
+```console
+$ pyeconomics models run foundations.time_value --calculation present_value --rate 0.05 --periods 10 --future-value 100 --format csv
+$ pyeconomics models run foundations.time_value --calculation present_value --rate 0.05 --periods 10 --future-value 100 --format xlsx --out pv.xlsx
+$ pyeconomics models run foundations.time_value --calculation present_value --rate 0.05 --periods 10 --future-value 100 --bundle pv.zip
+```
+
+`--bundle PATH` also writes the run's reproducibility bundle, a zip that
+`pyeconomics bundle check PATH` verifies and its own `reproduce.py` reruns
+({doc}`exports`). `--batch FILE` runs the model once per row of a CSV file with
+a header row of field names, or a JSON Lines file (`-` reads standard input);
+it takes no field options, `--inputs`, `--bundle` or data options beside it:
+
+```text
+pyeconomics models run foundations.time_value --batch rows.csv --format csv --out results.csv
+pyeconomics bundle check pv.zip
+```
 
 ## Exit codes
 

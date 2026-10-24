@@ -11,6 +11,10 @@ The console script ``pyeconomics`` calls :func:`main`. Its commands:
 - ``keys set|list|delete``: providers' keys in the OS keyring, read from a
   hidden prompt or standard input, never an argument;
 - ``cache ls|info|clear|path`` and ``registry export``;
+- ``bundle check``: verifies a reproducibility bundle, running nothing from it;
+  ``models run`` and ``data get`` also write the exports (``--format csv``,
+  ``xlsx``, ``parquet``, ``arrow``), and ``models run`` a bundle (``--bundle``)
+  or a batch (``--batch``);
 - ``completion`` and ``--install-completion``, ``--version``, ``--debug``.
 
 Every run goes through :func:`pyeconomics.surfaces.invoke`, every failure

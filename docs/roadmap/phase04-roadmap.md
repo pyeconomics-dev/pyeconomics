@@ -3380,11 +3380,12 @@ conversation per phase-boundary hygiene.
 
     <requirement>
       Notices (ADR-0005 Confirmation): for every registered
-      provider, replay one recorded frame offline, export it
-      in each format, and assert its attribution and each
-      required notice appear verbatim (the CSV block, the
-      XLSX manifest sheet, the schema metadata, the JSON
-      manifest).
+      provider, replay one recorded frame offline (its
+      records, for a source that serves records only:
+      openfigi), export it in each format, and assert its
+      attribution and each required notice appear verbatim
+      (the CSV block, the XLSX manifest sheet, the schema
+      metadata, the JSON manifest).
     </requirement>
 
     <requirement>
@@ -3733,6 +3734,25 @@ phase-boundary hygiene.
     - surfaces/ holds invoke (and invoke_batch), the error
       table, the codec, the envelope, the budgets and
       registry_export; the CLI and pyeconomics.exports exist.
+    - Step 5's exports, where ?format= plugs in:
+      `exports.export_bytes(value, format)` returns the bytes
+      of csv, xlsx, parquet, arrow or json for a Result, a
+      BatchResult, a Series or Table, data.get's Resolved or
+      Records (`exports.BINARY_FORMATS` are xlsx, parquet,
+      arrow); a bundle is `exports.bundle.bundle_bytes(
+      bundle_members(result, request))`, which needs the
+      BindRequest of a bound run. Media types: text/csv;
+      charset=utf-8, application/vnd.openxmlformats-
+      officedocument.spreadsheetml.sheet,
+      application/vnd.apache.parquet,
+      application/vnd.apache.arrow.file, application/zip. An
+      XLSX text cell over 32,767 characters is an InputError
+      (422), never a cut value. `invoke_batch(model_id, rows,
+      limit=...)` decodes each row through the codec and
+      names a row that cannot be decoded ("row N of the
+      batch: ..."). openpyxl spools each sheet to a temporary
+      file, so the server's temporary directory must be
+      writable.
     - Step 4 added surfaces.listing (`list_models(domain)`,
       `search_models(text, limit)`: the entries `GET
       /v1/models` with `?domain=` and `?q=` returns; an
@@ -5652,6 +5672,15 @@ conversation per phase-boundary hygiene.
       runs; the providers' cassettes replay every source.
     - The full offline suite runs serially in about 16–19
       minutes on a cell; the parity suite must not double it.
+    - Step 5's read-back traps: pandas.read_csv reads every
+      number exactly only with float_precision="round_trip";
+      CSV and XLSX hold an array as canonical JSON text and a
+      text cell starting =, +, -, @, a tab or a carriage
+      return with a leading '; Parquet and Arrow keep arrays
+      as lists. tests/exports/export_support.py has the
+      readers. A replayed frame carries its series' own terms
+      (an access date, a dataset's source line), so compare
+      notices with frame.meta.terms, not test_notices' rows.
 
     Files to read (every file before drafting):
     - docs/adr/0012-programmatic-surfaces.md (decisions 2
@@ -6496,6 +6525,12 @@ phase-boundary hygiene.
     - pylock.toml and uv.lock pin the runtime set; release.yml
       builds the wheel; ci.yml has no container job; no
       Dockerfile exists.
+    - The XLSX export (Step 5) runs openpyxl's write-only
+      workbook, which spools each sheet to a temporary file
+      in tempfile.gettempdir() until the workbook is saved: a
+      read-only root filesystem needs a writable TMPDIR
+      (tmpfs) for ?format=xlsx, and the image smoke should
+      request one.
     - ADR-0012 decision 19 fixes the image: Python 3.14 (arch
       has wheels there; issue #154 gates it on 3.15), the five
       extras, non-root, hosted mode, the SHA for /version.

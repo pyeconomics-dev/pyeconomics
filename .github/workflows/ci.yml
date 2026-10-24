@@ -198,6 +198,25 @@ jobs:
           "$RUNNER_TEMP/clean/bin/pyeconomics" models run foundations.time_value \
             --calculation present_value --rate 0.05 --periods 10 --future-value 100 > cli-run.json
           "$RUNNER_TEMP/clean/bin/python" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode() + b"\n"; assert pathlib.Path("cli-run.json").read_bytes() == expected, "the console script printed other bytes"'
+      # ADR-0012 decision 7: a bundle the wheel's console script writes passes
+      # bundle check, and its reproduce.py, run in a second fresh venv built
+      # from the same wheel, reruns the result to identical bytes.
+      - name: Rerun a bundle in a fresh venv built from the wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls "$PWD"/dist/*.whl)
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/clean/bin/pyeconomics" models run foundations.time_value \
+            --calculation irr --cash-flows "[-100, 30, 40, 50]" --bundle irr.zip > /dev/null
+          "$RUNNER_TEMP/clean/bin/pyeconomics" bundle check irr.zip
+          uv venv "$RUNNER_TEMP/reproduce"
+          uv pip install --python "$RUNNER_TEMP/reproduce/bin/python" "$wheel"
+          mkdir irr
+          "$RUNNER_TEMP/reproduce/bin/python" -c 'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' irr.zip irr
+          cd irr
+          "$RUNNER_TEMP/reproduce/bin/python" reproduce.py --out rerun.json
+          cmp rerun.json result.json
       # scripts/smoke.py exercises the installed wheel's core and refuses to
       # run against a checkout, so it runs from a copy outside it. It runs
       # every model's examples; with no extras, econometrics.ols must raise

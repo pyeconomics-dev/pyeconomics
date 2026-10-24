@@ -5,8 +5,9 @@
 
 - No module under src/pyeconomics/core or data imports a surface package:
   surfaces, exports, cli, server, mcp or ai.
-- No module under src/pyeconomics/surfaces imports a framework: fastapi,
-  starlette, uvicorn, mcp, cyclopts or rich.
+- No module under src/pyeconomics/surfaces or exports imports a framework:
+  fastapi, starlette, uvicorn, mcp, cyclopts or rich; and exporting a result
+  loads no data module (Step 5).
 - A fresh interpreter's ``import pyeconomics`` loads no framework and no surface,
   and ``import pyeconomics.surfaces`` loads no data module, even after a run that
   reads no data: the data layer arrives with the first bind.
@@ -111,7 +112,11 @@ def test_no_core_or_data_module_imports_a_surface(path: Path) -> None:
     assert found == [], f"{path.relative_to(SRC)} imports {found}"
 
 
-@pytest.mark.parametrize("path", _sources("surfaces"), ids=lambda path: path.name)
+@pytest.mark.parametrize(
+    "path",
+    _sources("surfaces", "exports"),
+    ids=lambda path: path.relative_to(SRC).as_posix(),
+)
 def test_no_surfaces_module_imports_a_framework(path: Path) -> None:
     found = sorted(name for name in _imports(_parse(path)) if _is_framework(name))
     assert found == [], f"{path.relative_to(SRC)} imports {found}"
@@ -223,3 +228,18 @@ def test_the_surfaces_load_no_data_module_until_a_bind(tmp_path: Path) -> None:
         + f"print(loaded({FRAMEWORKS!r}))\n"
     )
     assert _fresh(script, tmp_path) == ["[]", "foundations.time_value []", "[]"]
+
+
+def test_the_exports_load_no_data_module_to_export_a_result(tmp_path: Path) -> None:
+    script = (
+        "import sys\nimport pyeconomics.exports as e\nfrom pyeconomics import run\n"
+        + _LOADED
+        + "print(loaded(('pyeconomics.data',)))\n"
+        "inputs = {'calculation': 'future_value', 'present_value': 100,\n"
+        "          'rate': 0.05, 'periods': 2}\n"
+        "result = run('foundations.time_value', inputs)\n"
+        "data = [e.export_bytes(result, f) for f in ('csv', 'xlsx', 'json')]\n"
+        "print(len(data), loaded(('pyeconomics.data',)))\n"
+        + f"print(loaded({FRAMEWORKS!r}))\n"
+    )
+    assert _fresh(script, tmp_path) == ["[]", "3 []", "[]"]

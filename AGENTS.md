@@ -270,6 +270,15 @@ From Phase 4 Step 2, which builds the surface core (ADR-0012):
 - A key reaches the command line only in `keys set`, from a hidden prompt or
   `--stdin`, wrapped in a `Secret` at once and stored with
   `data.credentials.store_key`; never as an argument or an option.
+- The exports (`pyeconomics.exports`, Phase 4 Step 5) read every value through
+  `exports.layout.subject`, so each format carries the data's attributions,
+  notices and manifest; a new format or exportable type adds its case there and
+  to `tests/providers/test_export_notices.py`. A CSV or XLSX text cell goes
+  through `escape_text`; a number never does. XLSX numbers are written as their
+  shortest round-trip text (openpyxl's own `%.16g` drops a bit). `check_bundle`
+  reads the JSON members only and executes nothing; `reproduce.py`'s text is
+  the `exports.reproduction.REPRODUCE_SCRIPT` constant (the wheel admits only
+  `.py` files), standard library until it imports pyeconomics.
   `docs/cli.md`'s `console` examples run in the tests and exit 0, its `shell`
   examples read live data and must exit 7 offline, and `text` examples do not
   run (`tests/cli/test_cli_docs.py`).

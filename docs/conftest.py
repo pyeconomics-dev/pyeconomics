@@ -54,6 +54,7 @@ pytest_collect_file = Sybil(
         "cache.md",
         "writing-a-provider.md",
         "registry.md",
+        "exports.md",
     ],
     excludes=["roadmap/*", "adr/*", "releases/*", "reference/*", "_build/*"],
     fixtures=["isolated"],

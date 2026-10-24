@@ -30,20 +30,22 @@ Examples
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Mapping
+import itertools
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
 from pyeconomics.core import _fields as f
 from pyeconomics.core.binding import DEFAULT_PROFILE, VintagePolicy
-from pyeconomics.core.runner import run_model
+from pyeconomics.core.errors import InputError
+from pyeconomics.core.runner import MAX_BATCH_ROWS, run_model, run_model_batch
 from pyeconomics.surfaces import codec
 
 if TYPE_CHECKING:
-    from pyeconomics.core.results import Result
+    from pyeconomics.core.results import BatchResult, Result
 
-__all__ = ["BindRequest", "invoke"]
+__all__ = ["BindRequest", "invoke", "invoke_batch"]
 
 
 def _strings(value: object, what: str) -> Mapping[str, str]:
@@ -202,3 +204,52 @@ def invoke(
         overrides=decoded,
     )
     return run_model(model, bound)
+
+
+def invoke_batch(
+    model_id: str, rows: Iterable[object], /, *, limit: int = codec.MAX_INPUT_BYTES
+) -> BatchResult:
+    """Run a registered model once per row of inputs, for a surface.
+
+    Each row is decoded as :func:`invoke` decodes its inputs, then the rows run
+    through :func:`~pyeconomics.core.runner.run_model_batch`, so the batch's
+    results are ``pyeconomics.run_batch``'s. A batch reads no data.
+
+    Parameters
+    ----------
+    model_id
+        A model id or alias; an alias warns and the results carry the canonical
+        id.
+    rows
+        Each row's inputs: a mapping, JSON text or bytes, or ``field=value``
+        strings. At most :data:`~pyeconomics.core.runner.MAX_BATCH_ROWS` rows.
+    limit
+        The largest JSON row decoded, in bytes.
+
+    Raises
+    ------
+    ModelNotFoundError
+        If no model or alias has the id.
+    InputError
+        For more than ``MAX_BATCH_ROWS`` rows, or a row that cannot be decoded
+        (its message names the row, counted from 0) or fails validation.
+    DomainError, ConvergenceError
+        As the model raises them, with a note naming the row.
+    """
+    from pyeconomics.core.registry import installed  # noqa: PLC0415 - as run() does
+
+    model = installed().resolve(model_id, stacklevel=3)
+    taken = list(itertools.islice(rows, MAX_BATCH_ROWS + 1))
+    if len(taken) > MAX_BATCH_ROWS:
+        msg = f"a batch holds at most {MAX_BATCH_ROWS} rows"
+        raise InputError(msg)
+    decoded: list[dict[str, object]] = []
+    for index, row in enumerate(taken):
+        try:
+            decoded.append(codec.decode(row, model, limit=limit))
+        except codec.InputTooLargeError:
+            raise
+        except InputError as error:
+            msg = f"row {index} of the batch: {error}"
+            raise InputError(msg) from None
+    return run_model_batch(model, decoded)
