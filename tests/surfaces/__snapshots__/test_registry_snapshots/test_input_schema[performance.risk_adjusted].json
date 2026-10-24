@@ -1,0 +1,119 @@
+{
+  "$id": "urn:pyeconomics:model:performance.risk_adjusted:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Sharpe, Sortino, Treynor, Jensen's alpha, information ratio and tracking error, M², Calmar and up- and down-capture ratios from return series.",
+  "examples": [
+    {
+      "benchmark_returns": [
+        0.018,
+        -0.01,
+        0.029,
+        0.011,
+        -0.025,
+        0.012,
+        0.022,
+        -0.002,
+        0.01,
+        0.016,
+        -0.028,
+        0.02
+      ],
+      "minimum_acceptable_return": 0.0,
+      "periods_per_year": 12.0,
+      "returns": [
+        0.021,
+        -0.013,
+        0.034,
+        0.008,
+        -0.022,
+        0.015,
+        0.027,
+        -0.005,
+        0.012,
+        0.019,
+        -0.031,
+        0.024
+      ],
+      "risk_free_returns": [
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002
+      ]
+    }
+  ],
+  "properties": {
+    "benchmark_returns": {
+      "description": "Benchmark return each period, aligned with the portfolio's",
+      "items": {
+        "maximum": 100.0,
+        "minimum": -1.0,
+        "type": "number",
+        "x-unit": "return"
+      },
+      "maxItems": 10080,
+      "minItems": 2,
+      "title": "Benchmark Returns",
+      "type": "array"
+    },
+    "minimum_acceptable_return": {
+      "default": 0.0,
+      "description": "Minimum acceptable return per period, for the Sortino ratio",
+      "maximum": 100.0,
+      "minimum": -1.0,
+      "title": "Minimum Acceptable Return",
+      "type": "number",
+      "x-unit": "return"
+    },
+    "periods_per_year": {
+      "description": "Periods in a year, such as 12 or 252",
+      "exclusiveMinimum": 0,
+      "maximum": 100000,
+      "title": "Periods Per Year",
+      "type": "number",
+      "x-unit": "periods"
+    },
+    "returns": {
+      "description": "Portfolio return each period",
+      "items": {
+        "maximum": 100.0,
+        "minimum": -1.0,
+        "type": "number",
+        "x-unit": "return"
+      },
+      "maxItems": 10080,
+      "minItems": 2,
+      "title": "Returns",
+      "type": "array"
+    },
+    "risk_free_returns": {
+      "default": [],
+      "description": "Risk-free return each period; omit for zero",
+      "items": {
+        "maximum": 100.0,
+        "minimum": -1.0,
+        "type": "number",
+        "x-unit": "return"
+      },
+      "maxItems": 10080,
+      "title": "Risk Free Returns",
+      "type": "array"
+    }
+  },
+  "required": [
+    "returns",
+    "benchmark_returns",
+    "periods_per_year"
+  ],
+  "title": "Risk-adjusted performance: inputs",
+  "type": "object"
+}

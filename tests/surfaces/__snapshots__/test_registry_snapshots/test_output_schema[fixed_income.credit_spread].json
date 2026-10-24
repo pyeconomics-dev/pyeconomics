@@ -1,0 +1,214 @@
+{
+  "$defs": {
+    "ExpectedLossOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "expected_loss",
+          "default": "expected_loss",
+          "description": "Expected credit loss",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_loss": {
+          "description": "Probability x loss given default x exposure",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Expected Loss",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "loss_rate": {
+          "description": "Expected loss as a fraction of the exposure",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Loss Rate",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "expected_loss",
+        "loss_rate"
+      ],
+      "title": "ExpectedLossOutputs",
+      "type": "object"
+    },
+    "HazardFromSpreadOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "hazard_from_spread",
+          "default": "hazard_from_spread",
+          "description": "Hazard rate implied by a spread",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hazard_rate": {
+          "description": "Default intensity per year: s / (1 - R)",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Hazard Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "one_year_default_probability": {
+          "description": "Probability of default within a year: 1 - exp(-hazard)",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "One Year Default Probability",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "hazard_rate",
+        "one_year_default_probability"
+      ],
+      "title": "HazardFromSpreadOutputs",
+      "type": "object"
+    },
+    "SpreadFromHazardOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "spread_from_hazard",
+          "default": "spread_from_hazard",
+          "description": "Spread implied by a hazard rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "spread": {
+          "description": "Credit spread: hazard x (1 - R)",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Spread",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "spread"
+      ],
+      "title": "SpreadFromHazardOutputs",
+      "type": "object"
+    },
+    "SpreadReturnOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "spread_return",
+          "default": "spread_return",
+          "description": "Approximate excess return from the spread",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "carry": {
+          "description": "Spread earned over the holding period",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Carry",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "expected_loss": {
+          "description": "Probability of default x loss given default",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Expected Loss",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "spread_change_return": {
+          "description": "-Spread duration x the change in spread",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Spread Change Return",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "spread_return": {
+          "description": "Carry plus the spread-change return less the loss",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Spread Return",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "carry",
+        "spread_change_return",
+        "expected_loss",
+        "spread_return"
+      ],
+      "title": "SpreadReturnOutputs",
+      "type": "object"
+    },
+    "SurvivalOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "survival",
+          "default": "survival",
+          "description": "Survival and default probabilities",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "default_probability": {
+          "description": "Probability of default by the horizon",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Default Probability",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "survival_probability": {
+          "description": "Probability of no default by the horizon: exp(-hazard x T)",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Survival Probability",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "survival_probability",
+        "default_probability"
+      ],
+      "title": "SurvivalOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.credit_spread:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Expected loss, the credit triangle between spread and hazard rate, survival probabilities and the approximate excess return from a spread.",
+  "discriminator": {
+    "mapping": {
+      "expected_loss": "#/$defs/ExpectedLossOutputs",
+      "hazard_from_spread": "#/$defs/HazardFromSpreadOutputs",
+      "spread_from_hazard": "#/$defs/SpreadFromHazardOutputs",
+      "spread_return": "#/$defs/SpreadReturnOutputs",
+      "survival": "#/$defs/SurvivalOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ExpectedLossOutputs"
+    },
+    {
+      "$ref": "#/$defs/HazardFromSpreadOutputs"
+    },
+    {
+      "$ref": "#/$defs/SpreadFromHazardOutputs"
+    },
+    {
+      "$ref": "#/$defs/SurvivalOutputs"
+    },
+    {
+      "$ref": "#/$defs/SpreadReturnOutputs"
+    }
+  ],
+  "title": "Credit spread and default: outputs"
+}

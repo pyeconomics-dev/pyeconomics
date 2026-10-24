@@ -4,15 +4,17 @@
 """The JSON description of a model: what Phase 4's registry export is built from.
 
 ``registry.describe(id)`` returns one dictionary of JSON-ready values, which
-:func:`~pyeconomics.core.canonical.canonical_json` accepts. Phase 4's
-``registry.json`` is a list of these, so the keys are part of the contract:
+:func:`~pyeconomics.core.canonical.canonical_json` accepts. Each entry of
+``registry.json`` (:mod:`pyeconomics.surfaces.registry_export`) holds these keys,
+so they are part of the contract:
 
 ``id``, ``version``, ``domain``, ``title``, ``summary``, ``tags``, ``formula``,
 ``assumptions``, ``limitations``, ``evidence``, ``cost``, ``references``,
 ``invariants``, ``no_invariants_reason``, ``examples`` (each with ``name``,
 ``note`` and ``inputs`` as the model validates them), ``charts``, ``aliases``,
 ``bindings`` (each with ``field``, ``concept``, ``transform``, ``as_of``,
-``window``, ``vintage`` and ``profile``; empty for a model that reads no data),
+``window``, ``vintage``, ``profile``, ``tenors`` and ``columns``; empty for a
+model that reads no data),
 ``extra``, ``changelog``, ``input_schema``, ``output_schema`` and ``card``
 (the card's Markdown).
 

@@ -1,0 +1,117 @@
+{
+  "$id": "urn:pyeconomics:model:corporate.capital_budgeting:2:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Project NPV, IRR, MIRR, fractional payback, profitability index and equivalent annual annuity.",
+  "properties": {
+    "discounted_payback": {
+      "anyOf": [
+        {
+          "maximum": 1200,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "periods"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "First discounted cumulative recovery time, fractional periods",
+      "title": "Discounted Payback"
+    },
+    "equivalent_annual_annuity": {
+      "anyOf": [
+        {
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "type": "number",
+          "x-unit": "money"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "NPV / annuity factor over the project's periods; annual only when periods are years",
+      "title": "Equivalent Annual Annuity"
+    },
+    "irr": {
+      "anyOf": [
+        {
+          "maximum": 10,
+          "minimum": -0.99,
+          "type": "number",
+          "x-unit": "rate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Smallest IRR in [-0.99, 10], or null with warning",
+      "title": "Irr"
+    },
+    "mirr": {
+      "anyOf": [
+        {
+          "maximum": 10,
+          "minimum": -0.99,
+          "type": "number",
+          "x-unit": "rate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Modified IRR per period, or null with warning",
+      "title": "Mirr"
+    },
+    "npv": {
+      "description": "NPV including the undiscounted t=0 flow",
+      "maximum": 1000000000000000.0,
+      "minimum": -1000000000000000.0,
+      "title": "Npv",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "payback": {
+      "anyOf": [
+        {
+          "maximum": 1200,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "periods"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "First nominal cumulative recovery time, fractional periods; null if never reached",
+      "title": "Payback"
+    },
+    "profitability_index": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "PV of positive flows / absolute PV of negative flows",
+      "title": "Profitability Index"
+    }
+  },
+  "required": [
+    "npv",
+    "irr",
+    "mirr",
+    "payback",
+    "discounted_payback",
+    "profitability_index",
+    "equivalent_annual_annuity"
+  ],
+  "title": "Capital budgeting: outputs",
+  "type": "object"
+}

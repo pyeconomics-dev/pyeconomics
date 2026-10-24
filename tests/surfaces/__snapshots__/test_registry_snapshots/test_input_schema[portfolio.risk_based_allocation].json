@@ -1,0 +1,482 @@
+{
+  "$defs": {
+    "EqualRiskContributionInputs": {
+      "additionalProperties": false,
+      "description": "The portfolio in which every asset contributes the same risk.",
+      "properties": {
+        "calculation": {
+          "const": "equal_risk_contribution",
+          "default": "equal_risk_contribution",
+          "description": "Risk parity: every asset contributes the same risk",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations, or returns",
+          "title": "Covariance"
+        },
+        "returns": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 5.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "return"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 2520,
+              "minLength": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The assets' returns, as rows: one per period, one value per asset; their sample covariance (divisor T - 1) is used",
+          "title": "Returns"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        }
+      },
+      "title": "EqualRiskContributionInputs",
+      "type": "object"
+    },
+    "HierarchicalRiskParityInputs": {
+      "additionalProperties": false,
+      "description": "Hierarchical risk parity over the correlation tree.",
+      "properties": {
+        "calculation": {
+          "const": "hierarchical_risk_parity",
+          "default": "hierarchical_risk_parity",
+          "description": "Hierarchical risk parity: clustering and recursive bisection",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations, or returns",
+          "title": "Covariance"
+        },
+        "returns": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 5.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "return"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 2520,
+              "minLength": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The assets' returns, as rows: one per period, one value per asset; their sample covariance (divisor T - 1) is used",
+          "title": "Returns"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        }
+      },
+      "title": "HierarchicalRiskParityInputs",
+      "type": "object"
+    },
+    "InverseVolatilityInputs": {
+      "additionalProperties": false,
+      "description": "Weights inversely proportional to the volatilities.",
+      "properties": {
+        "calculation": {
+          "const": "inverse_volatility",
+          "default": "inverse_volatility",
+          "description": "Weights proportional to 1 / volatility",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations, or returns",
+          "title": "Covariance"
+        },
+        "returns": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 5.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "return"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 2520,
+              "minLength": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The assets' returns, as rows: one per period, one value per asset; their sample covariance (divisor T - 1) is used",
+          "title": "Returns"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        }
+      },
+      "title": "InverseVolatilityInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:portfolio.risk_based_allocation:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Long-only weights from the covariance alone: inverse volatility, equal risk contribution (risk parity) and hierarchical risk parity, with each asset's risk contribution and the portfolio's volatility.",
+  "discriminator": {
+    "mapping": {
+      "equal_risk_contribution": "#/$defs/EqualRiskContributionInputs",
+      "hierarchical_risk_parity": "#/$defs/HierarchicalRiskParityInputs",
+      "inverse_volatility": "#/$defs/InverseVolatilityInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "inverse_volatility",
+      "correlations": [
+        [
+          1.0,
+          0.8,
+          0.0,
+          0.0
+        ],
+        [
+          0.8,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          -0.5,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "returns": null,
+      "volatilities": [
+        0.1,
+        0.2,
+        0.3,
+        0.4
+      ]
+    },
+    {
+      "calculation": "equal_risk_contribution",
+      "correlations": [
+        [
+          1.0,
+          0.8,
+          0.0,
+          0.0
+        ],
+        [
+          0.8,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          -0.5,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "returns": null,
+      "volatilities": [
+        0.1,
+        0.2,
+        0.3,
+        0.4
+      ]
+    },
+    {
+      "calculation": "hierarchical_risk_parity",
+      "correlations": [
+        [
+          1.0,
+          0.8,
+          0.0,
+          0.0
+        ],
+        [
+          0.8,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          -0.5,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "returns": null,
+      "volatilities": [
+        0.1,
+        0.2,
+        0.3,
+        0.4
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/InverseVolatilityInputs"
+    },
+    {
+      "$ref": "#/$defs/EqualRiskContributionInputs"
+    },
+    {
+      "$ref": "#/$defs/HierarchicalRiskParityInputs"
+    }
+  ],
+  "title": "Risk-based allocation: inverse volatility, risk parity and HRP: inputs"
+}

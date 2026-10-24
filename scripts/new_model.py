@@ -355,6 +355,11 @@ def main(argv: list[str], root: Path = REPO) -> int:
         '`uv run python -c "from pyeconomics import registry; registry.validate()"` '
         "and `uv run pytest`."
     )
+    print(
+        "Then record the new model's schema snapshots with "
+        "`uv run pytest tests/surfaces --snapshot-update`; schemas are public API "
+        "at 1.0.0, so a later change to them is named in CHANGELOG.md."
+    )
     if arguments.bound:
         check = "from pyeconomics import data; data.validate_bindings()"
         print(

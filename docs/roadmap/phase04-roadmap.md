@@ -2774,6 +2774,15 @@ conversation per phase-boundary hygiene.
       the codec, the envelope and registry_export;
       ADR-0012 decisions 1–5 fix the CLI's place, grammar
       and exit codes.
+    - Step 3 built `registry_export.write_registry(path, *,
+      figures=True)` (canonical bytes, no trailing newline),
+      so `registry export --out DIR` writes
+      `DIR/registry.json` with it and `--no-figures` passes
+      `figures=False`; a failing first example raises
+      `RegistryError` (`registry-error`, exit 1).
+      Syrupy snapshots use `tests/json_snapshots.py`'s
+      `LFJSONExtension`: the stock JSON extension writes
+      CRLF on Windows.
     - No console script exists. The data API, the
       credential chain (KEYRING_SERVICE "pyeconomics",
       key_variable, has_key, the keyring extra) and the cache
@@ -3818,7 +3827,9 @@ phase-boundary hygiene.
       OpenAPI: `pyeconomics registry export --out DIR` also
       writes openapi.json (canonical bytes) when the server
       extra is installed; tests/server/test_openapi_snapshot.py
-      snapshots it with syrupy, and a Dependabot bump of
+      snapshots it with syrupy (through `tests/json_snapshots.py`'s
+      `LFJSONExtension`, as Step 3's schema snapshots do), and a
+      Dependabot bump of
       FastAPI that changes it fails until the snapshot is
       updated in that PR.
     </requirement>
@@ -4800,7 +4811,8 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 
     <requirement>
       Tests under tests/mcp/ (unique basenames), through the
-      SDK's Client in memory: tools/list (syrupy snapshot, in
+      SDK's Client in memory: tools/list (syrupy snapshot
+      through `tests/json_snapshots.py`'s `LFJSONExtension`, in
       local and hosted modes); every headline tool and
       run_model over each headline model's first example
       equal Result.to_json(); the gate (forbidden skipped,

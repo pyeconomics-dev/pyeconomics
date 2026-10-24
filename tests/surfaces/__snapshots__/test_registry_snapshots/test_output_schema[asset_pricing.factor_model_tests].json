@@ -1,0 +1,287 @@
+{
+  "$defs": {
+    "FamaMacBethOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "betas": {
+          "description": "Each asset's time-series betas on the factors, as rows",
+          "items": {
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 100,
+          "title": "Betas",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "fama_macbeth",
+          "default": "fama_macbeth",
+          "description": "Fama-MacBeth two-pass regressions of returns on betas",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "intercept": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The average cross-sectional constant per period: the zero-beta excess return; None without one",
+          "title": "Intercept"
+        },
+        "intercept_standard_error": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Its Fama-MacBeth standard error; None without a constant",
+          "title": "Intercept Standard Error"
+        },
+        "intercept_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The constant over its error; None without one, or when the cross-sections fit exactly",
+          "title": "Intercept T Statistic"
+        },
+        "observations": {
+          "description": "T, the periods",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "premia": {
+          "description": "Each factor's average premium per period, in order",
+          "items": {
+            "maximum": 1000000000.0,
+            "minimum": -1000000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10,
+          "title": "Premia",
+          "type": "array"
+        },
+        "premium_standard_errors": {
+          "description": "Fama-MacBeth standard errors of the premia",
+          "items": {
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10,
+          "title": "Premium Standard Errors",
+          "type": "array"
+        },
+        "premium_t_statistics": {
+          "description": "The premia over their standard errors",
+          "items": {
+            "maximum": 1000000000.0,
+            "minimum": -1000000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 10,
+          "title": "Premium T Statistics",
+          "type": "array"
+        },
+        "shanken_intercept_standard_error": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The constant's error with Shanken's correction; None without one",
+          "title": "Shanken Intercept Standard Error"
+        },
+        "shanken_standard_errors": {
+          "description": "The standard errors with Shanken's errors-in-variables correction",
+          "items": {
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10,
+          "title": "Shanken Standard Errors",
+          "type": "array"
+        },
+        "shanken_t_statistics": {
+          "description": "The premia over the corrected errors",
+          "items": {
+            "maximum": 1000000000.0,
+            "minimum": -1000000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 10,
+          "title": "Shanken T Statistics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "premia",
+        "premium_standard_errors",
+        "premium_t_statistics",
+        "shanken_standard_errors",
+        "shanken_t_statistics",
+        "intercept",
+        "intercept_standard_error",
+        "intercept_t_statistic",
+        "shanken_intercept_standard_error",
+        "betas",
+        "observations"
+      ],
+      "title": "FamaMacBethOutputs",
+      "type": "object"
+    },
+    "GrsOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "alphas": {
+          "description": "Each asset's alpha per period",
+          "items": {
+            "maximum": 1000000000.0,
+            "minimum": -1000000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Alphas",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "grs",
+          "default": "grs",
+          "description": "The Gibbons-Ross-Shanken test that every alpha is zero",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "denominator_degrees_of_freedom": {
+          "description": "T - N - L",
+          "maximum": 2520,
+          "minimum": 1,
+          "title": "Denominator Degrees Of Freedom",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "factor_sharpe_ratio": {
+          "description": "The highest Sharpe ratio per period of a portfolio of the factors, sqrt(f' Omega^-1 f)",
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "title": "Factor Sharpe Ratio",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "mean_absolute_alpha": {
+          "description": "The average absolute alpha per period",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Mean Absolute Alpha",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "numerator_degrees_of_freedom": {
+          "description": "N, the test assets",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Numerator Degrees Of Freedom",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "observations": {
+          "description": "T, the periods",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_value": {
+          "description": "The chance of a statistic at least this large if every alpha is zero",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "statistic": {
+          "description": "The GRS F statistic",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "numerator_degrees_of_freedom",
+        "denominator_degrees_of_freedom",
+        "alphas",
+        "mean_absolute_alpha",
+        "factor_sharpe_ratio",
+        "observations"
+      ],
+      "title": "GrsOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:asset_pricing.factor_model_tests:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Whether factors price a set of test assets: the Gibbons-Ross-Shanken F test that every alpha is zero, and Fama-MacBeth two-pass regressions with Fama-MacBeth and Shanken-corrected standard errors.",
+  "discriminator": {
+    "mapping": {
+      "fama_macbeth": "#/$defs/FamaMacBethOutputs",
+      "grs": "#/$defs/GrsOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GrsOutputs"
+    },
+    {
+      "$ref": "#/$defs/FamaMacBethOutputs"
+    }
+  ],
+  "title": "Tests of factor models: GRS and Fama-MacBeth: outputs"
+}

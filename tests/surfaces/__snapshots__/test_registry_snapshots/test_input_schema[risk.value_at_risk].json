@@ -1,0 +1,480 @@
+{
+  "$defs": {
+    "CornishFisherInputs": {
+      "additionalProperties": false,
+      "description": "The first four moments of returns per period.",
+      "properties": {
+        "calculation": {
+          "const": "cornish_fisher",
+          "default": "cornish_fisher",
+          "description": "Modified VaR and ES from skewness and kurtosis",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.99,
+          "description": "One-tailed confidence level, such as 0.99",
+          "maximum": 0.9999,
+          "minimum": 0.5,
+          "title": "Confidence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "excess_kurtosis": {
+          "default": 0.0,
+          "description": "Excess kurtosis of returns per period",
+          "maximum": 20.0,
+          "minimum": -2.0,
+          "title": "Excess Kurtosis",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "horizon": {
+          "default": 1.0,
+          "description": "Horizon in periods of the returns, such as 10 days",
+          "maximum": 1000.0,
+          "minimum": 1.0,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "mean": {
+          "default": 0.0,
+          "description": "Mean return per period",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Mean",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "position_value": {
+          "default": 1.0,
+          "description": "Position value; the default of 1 makes the amounts the decimals",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000000.0,
+          "title": "Position Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "skewness": {
+          "default": 0.0,
+          "description": "Skewness of returns per period",
+          "maximum": 3.0,
+          "minimum": -3.0,
+          "title": "Skewness",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "volatility": {
+          "description": "Standard deviation of returns per period",
+          "exclusiveMinimum": 0,
+          "maximum": 2.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "volatility"
+      ],
+      "title": "CornishFisherInputs",
+      "type": "object"
+    },
+    "EwmaInputs": {
+      "additionalProperties": false,
+      "description": "A return series and the RiskMetrics decay factor.",
+      "properties": {
+        "calculation": {
+          "const": "ewma",
+          "default": "ewma",
+          "description": "RiskMetrics EWMA volatility with normal VaR and ES",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.99,
+          "description": "One-tailed confidence level, such as 0.99",
+          "maximum": 0.9999,
+          "minimum": 0.5,
+          "title": "Confidence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "decay": {
+          "default": 0.94,
+          "description": "Decay factor lambda (RiskMetrics uses 0.94 for daily data)",
+          "maximum": 0.999,
+          "minimum": 0.5,
+          "title": "Decay",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "horizon": {
+          "default": 1.0,
+          "description": "Horizon in periods of the returns, such as 10 days",
+          "maximum": 1000.0,
+          "minimum": 1.0,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "position_value": {
+          "default": 1.0,
+          "description": "Position value; the default of 1 makes the amounts the decimals",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000000.0,
+          "title": "Position Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "returns": {
+          "description": "Returns per period, oldest first",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 1,
+          "title": "Returns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns"
+      ],
+      "title": "EwmaInputs",
+      "type": "object"
+    },
+    "HistoricalInputs": {
+      "additionalProperties": false,
+      "description": "A return series and the rule that picks its quantile.",
+      "properties": {
+        "calculation": {
+          "const": "historical",
+          "default": "historical",
+          "description": "Historical-simulation VaR and ES",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.99,
+          "description": "One-tailed confidence level, such as 0.99",
+          "maximum": 0.9999,
+          "minimum": 0.5,
+          "title": "Confidence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "horizon": {
+          "default": 1.0,
+          "description": "Horizon in periods of the returns, such as 10 days",
+          "maximum": 1000.0,
+          "minimum": 1.0,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "interpolation": {
+          "default": "linear",
+          "description": "How the quantile falls between two returns (NumPy's methods; linear is Hyndman and Fan's definition 7)",
+          "enum": [
+            "linear",
+            "lower",
+            "higher",
+            "midpoint",
+            "nearest"
+          ],
+          "title": "Interpolation",
+          "type": "string"
+        },
+        "position_value": {
+          "default": 1.0,
+          "description": "Position value; the default of 1 makes the amounts the decimals",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000000.0,
+          "title": "Position Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "returns": {
+          "description": "Returns per period, in time order",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 2,
+          "title": "Returns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns"
+      ],
+      "title": "HistoricalInputs",
+      "type": "object"
+    },
+    "MonteCarloInputs": {
+      "additionalProperties": false,
+      "description": "A return distribution and the size of the simulation.",
+      "properties": {
+        "calculation": {
+          "const": "monte_carlo",
+          "default": "monte_carlo",
+          "description": "Monte Carlo VaR and ES with standard errors",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.99,
+          "description": "One-tailed confidence level, such as 0.99",
+          "maximum": 0.9999,
+          "minimum": 0.5,
+          "title": "Confidence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "degrees_of_freedom": {
+          "default": 5.0,
+          "description": "Student-t degrees of freedom; ignored for the normal",
+          "exclusiveMinimum": 2.0,
+          "maximum": 1000.0,
+          "title": "Degrees Of Freedom",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "distribution": {
+          "default": "normal",
+          "description": "Distribution of the standardized horizon return",
+          "enum": [
+            "normal",
+            "student_t"
+          ],
+          "title": "Distribution",
+          "type": "string"
+        },
+        "horizon": {
+          "default": 1.0,
+          "description": "Horizon in periods of the returns, such as 10 days",
+          "maximum": 1000.0,
+          "minimum": 1.0,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "mean": {
+          "default": 0.0,
+          "description": "Mean return per period",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Mean",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "position_value": {
+          "default": 1.0,
+          "description": "Position value; the default of 1 makes the amounts the decimals",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000000.0,
+          "title": "Position Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "seed": {
+          "default": 0,
+          "description": "Random seed (ADR-0008 decision 7): the same seed, the same draws",
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "simulations": {
+          "default": 100000,
+          "description": "Number of simulated horizon returns",
+          "maximum": 1000000,
+          "minimum": 10000,
+          "title": "Simulations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "volatility": {
+          "description": "Standard deviation of returns per period",
+          "exclusiveMinimum": 0,
+          "maximum": 2.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "volatility"
+      ],
+      "title": "MonteCarloInputs",
+      "type": "object"
+    },
+    "ParametricInputs": {
+      "additionalProperties": false,
+      "description": "Normal returns with a mean and a volatility per period.",
+      "properties": {
+        "calculation": {
+          "const": "parametric",
+          "default": "parametric",
+          "description": "Normal VaR and ES",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.99,
+          "description": "One-tailed confidence level, such as 0.99",
+          "maximum": 0.9999,
+          "minimum": 0.5,
+          "title": "Confidence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "horizon": {
+          "default": 1.0,
+          "description": "Horizon in periods of the returns, such as 10 days",
+          "maximum": 1000.0,
+          "minimum": 1.0,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "mean": {
+          "default": 0.0,
+          "description": "Mean return per period",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Mean",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "position_value": {
+          "default": 1.0,
+          "description": "Position value; the default of 1 makes the amounts the decimals",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000000.0,
+          "title": "Position Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "volatility": {
+          "description": "Standard deviation of returns per period",
+          "exclusiveMinimum": 0,
+          "maximum": 2.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "volatility"
+      ],
+      "title": "ParametricInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:risk.value_at_risk:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "VaR and expected shortfall as positive losses by the parametric normal, Cornish-Fisher, historical, Monte Carlo and RiskMetrics EWMA methods.",
+  "discriminator": {
+    "mapping": {
+      "cornish_fisher": "#/$defs/CornishFisherInputs",
+      "ewma": "#/$defs/EwmaInputs",
+      "historical": "#/$defs/HistoricalInputs",
+      "monte_carlo": "#/$defs/MonteCarloInputs",
+      "parametric": "#/$defs/ParametricInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "parametric",
+      "confidence": 0.99,
+      "horizon": 10.0,
+      "mean": 0.0,
+      "position_value": 1000000.0,
+      "volatility": 0.012
+    },
+    {
+      "calculation": "cornish_fisher",
+      "confidence": 0.99,
+      "excess_kurtosis": 2.0,
+      "horizon": 1.0,
+      "mean": 0.0005,
+      "position_value": 1.0,
+      "skewness": -0.5,
+      "volatility": 0.012
+    },
+    {
+      "calculation": "historical",
+      "confidence": 0.9,
+      "horizon": 1.0,
+      "interpolation": "linear",
+      "position_value": 1.0,
+      "returns": [
+        -0.031,
+        0.012,
+        -0.008,
+        0.004,
+        -0.019,
+        0.022,
+        0.001,
+        -0.012,
+        0.009,
+        -0.002
+      ]
+    },
+    {
+      "calculation": "monte_carlo",
+      "confidence": 0.99,
+      "degrees_of_freedom": 4.0,
+      "distribution": "student_t",
+      "horizon": 1.0,
+      "mean": 0.0,
+      "position_value": 1.0,
+      "seed": 7,
+      "simulations": 20000,
+      "volatility": 0.012
+    },
+    {
+      "calculation": "ewma",
+      "confidence": 0.95,
+      "decay": 0.94,
+      "horizon": 1.0,
+      "position_value": 1.0,
+      "returns": [
+        0.004,
+        -0.011,
+        0.007,
+        -0.002,
+        0.013,
+        -0.009
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ParametricInputs"
+    },
+    {
+      "$ref": "#/$defs/CornishFisherInputs"
+    },
+    {
+      "$ref": "#/$defs/HistoricalInputs"
+    },
+    {
+      "$ref": "#/$defs/MonteCarloInputs"
+    },
+    {
+      "$ref": "#/$defs/EwmaInputs"
+    }
+  ],
+  "title": "Value-at-risk and expected shortfall: inputs"
+}

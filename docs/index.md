@@ -38,6 +38,7 @@ reference/providers/index
 reference/concepts/index
 reference/sources
 problems
+registry
 autoapi/index
 errata
 notices

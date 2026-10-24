@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from pyeconomics.core.results import Result
     from pyeconomics.core.spec import ChartSpec
 
-__all__ = ["PLOTLY_EXTRA", "figure"]
+__all__ = ["PLOTLY_EXTRA", "applicable", "figure"]
 
 #: The extra that installs Plotly.
 PLOTLY_EXTRA: Final = "plot"
@@ -38,17 +38,22 @@ def _calculation(result: Result[Any, Any]) -> str | None:
     return value if isinstance(value, str) else None
 
 
-def _applicable(result: Result[Any, Any]) -> list[ChartSpec]:
+def applicable(result: Result[Any, Any]) -> tuple[ChartSpec, ...]:
+    """Return the charts that apply to a result, in the order the model declares.
+
+    A chart tied to one calculation of a family applies only to a result of that
+    calculation. Reading the specification needs no Plotly.
+    """
     calculation = _calculation(result)
-    return [
+    return tuple(
         chart
         for chart in result.model.spec.charts
         if chart.calculation is None or chart.calculation == calculation
-    ]
+    )
 
 
 def _pick(result: Result[Any, Any], chart_id: str | None) -> ChartSpec:
-    charts = _applicable(result)
+    charts = applicable(result)
     if chart_id is not None:
         for chart in charts:
             if chart.id == chart_id:

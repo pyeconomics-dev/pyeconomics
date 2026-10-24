@@ -1,0 +1,166 @@
+{
+  "$id": "urn:pyeconomics:model:econometrics.ols:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "OLS over statsmodels, with classical, HC0-HC3 and HAC standard errors, and the Durbin-Watson, Breusch-Pagan, Jarque-Bera, omnibus, RESET and VIF diagnostics.",
+  "examples": [
+    {
+      "add_constant": true,
+      "alpha": 0.05,
+      "covariance": "nonrobust",
+      "design": [
+        [
+          0.2
+        ],
+        [
+          337.4
+        ],
+        [
+          118.2
+        ],
+        [
+          884.6
+        ],
+        [
+          10.1
+        ],
+        [
+          226.5
+        ],
+        [
+          666.3
+        ],
+        [
+          996.3
+        ]
+      ],
+      "hac_lags": null,
+      "names": [
+        "x"
+      ],
+      "reset_power": 2,
+      "response": [
+        0.1,
+        338.8,
+        118.1,
+        888.0,
+        9.2,
+        228.1,
+        668.5,
+        998.5
+      ]
+    }
+  ],
+  "properties": {
+    "add_constant": {
+      "default": true,
+      "description": "Add an intercept named const as the first term",
+      "title": "Add Constant",
+      "type": "boolean"
+    },
+    "alpha": {
+      "default": 0.05,
+      "description": "Size of tests and 1 - interval coverage",
+      "maximum": 0.5,
+      "minimum": 0.001,
+      "title": "Alpha",
+      "type": "number",
+      "x-unit": "probability"
+    },
+    "covariance": {
+      "default": "nonrobust",
+      "description": "Covariance of the coefficients",
+      "enum": [
+        "nonrobust",
+        "hc0",
+        "hc1",
+        "hc2",
+        "hc3",
+        "hac"
+      ],
+      "title": "Covariance",
+      "type": "string"
+    },
+    "design": {
+      "description": "Regressors, one row per observation (a table or a 2-D array)",
+      "items": {
+        "items": {
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "maxItems": 20,
+        "minItems": 1,
+        "type": "array"
+      },
+      "maxItems": 10000,
+      "minItems": 2,
+      "title": "Design",
+      "type": "array"
+    },
+    "hac_lags": {
+      "anyOf": [
+        {
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer",
+          "x-unit": "count"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "HAC lags; null for Newey-West's floor(4 (n/100)^(2/9))",
+      "title": "Hac Lags"
+    },
+    "names": {
+      "anyOf": [
+        {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Regressor names; a table's columns, or x1, x2, ... when null",
+      "title": "Names"
+    },
+    "reset_power": {
+      "default": 2,
+      "description": "Highest power of the fitted values in RESET",
+      "maximum": 4,
+      "minimum": 2,
+      "title": "Reset Power",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "response": {
+      "description": "The dependent variable, y",
+      "items": {
+        "maximum": 1000000000000000.0,
+        "minimum": -1000000000000000.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 10000,
+      "minItems": 2,
+      "title": "Response",
+      "type": "array"
+    }
+  },
+  "required": [
+    "response",
+    "design"
+  ],
+  "title": "Ordinary least squares: inputs",
+  "type": "object"
+}

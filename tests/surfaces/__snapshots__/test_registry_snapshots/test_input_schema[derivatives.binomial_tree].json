@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "OptionType": {
+      "enum": [
+        "call",
+        "put"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.binomial_tree:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Cox-Ross-Rubinstein binomial prices of European and American calls and puts with a dividend yield, with delta and gamma from the tree.",
+  "examples": [
+    {
+      "dividend_yield": 0.0,
+      "exercise": "american",
+      "option_type": "put",
+      "risk_free_rate": 0.1,
+      "spot": 50.0,
+      "steps": 5,
+      "strike": 50.0,
+      "volatility": 0.4,
+      "years": 0.4167
+    },
+    {
+      "dividend_yield": 0.06,
+      "exercise": "american",
+      "option_type": "call",
+      "risk_free_rate": 0.05,
+      "spot": 100.0,
+      "steps": 500,
+      "strike": 100.0,
+      "volatility": 0.25,
+      "years": 1.0
+    }
+  ],
+  "properties": {
+    "dividend_yield": {
+      "default": 0.0,
+      "description": "Dividend yield per year, continuously compounded",
+      "maximum": 1.0,
+      "minimum": -0.1,
+      "title": "Dividend Yield",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "exercise": {
+      "default": "american",
+      "description": "European (at expiry only) or American (at any step) exercise",
+      "enum": [
+        "european",
+        "american"
+      ],
+      "title": "Exercise",
+      "type": "string"
+    },
+    "option_type": {
+      "$ref": "#/$defs/OptionType",
+      "default": "call",
+      "description": "A call (the right to buy) or a put (to sell)"
+    },
+    "risk_free_rate": {
+      "description": "Risk-free rate per year, continuously compounded",
+      "maximum": 1.0,
+      "minimum": -0.1,
+      "title": "Risk Free Rate",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "spot": {
+      "description": "Price of the underlying asset now",
+      "maximum": 10000000.0,
+      "minimum": 0.01,
+      "title": "Spot",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "steps": {
+      "default": 100,
+      "description": "Number of time steps in the tree",
+      "maximum": 5000,
+      "minimum": 2,
+      "title": "Steps",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "strike": {
+      "description": "Strike price",
+      "maximum": 10000000.0,
+      "minimum": 0.01,
+      "title": "Strike",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "volatility": {
+      "description": "Volatility of the asset's return per year",
+      "maximum": 5.0,
+      "minimum": 0.01,
+      "title": "Volatility",
+      "type": "number",
+      "x-unit": "volatility"
+    },
+    "years": {
+      "description": "Time to expiry, in years",
+      "maximum": 100.0,
+      "minimum": 0.001,
+      "title": "Years",
+      "type": "number",
+      "x-unit": "years"
+    }
+  },
+  "required": [
+    "spot",
+    "strike",
+    "years",
+    "risk_free_rate",
+    "volatility"
+  ],
+  "title": "Binomial option tree: inputs",
+  "type": "object"
+}

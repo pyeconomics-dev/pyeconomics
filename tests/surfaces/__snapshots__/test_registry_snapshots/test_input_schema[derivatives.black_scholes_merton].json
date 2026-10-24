@@ -1,0 +1,214 @@
+{
+  "$defs": {
+    "ImpliedVolatilityInputs": {
+      "additionalProperties": false,
+      "description": "A European option and its price.",
+      "properties": {
+        "calculation": {
+          "const": "implied_volatility",
+          "default": "implied_volatility",
+          "description": "Volatility implied by a price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "dividend_yield": {
+          "default": 0.0,
+          "description": "Dividend yield per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Dividend Yield",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option_price": {
+          "description": "The option's price",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_type": {
+          "$ref": "#/$defs/OptionType",
+          "default": "call",
+          "description": "A call (the right to buy) or a put (to sell)"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Price of the underlying asset now",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "strike": {
+          "description": "Strike price",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Strike",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "years": {
+          "description": "Time to expiry, in years",
+          "maximum": 100.0,
+          "minimum": 0.001,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "strike",
+        "years",
+        "risk_free_rate",
+        "option_price"
+      ],
+      "title": "ImpliedVolatilityInputs",
+      "type": "object"
+    },
+    "OptionType": {
+      "enum": [
+        "call",
+        "put"
+      ],
+      "type": "string"
+    },
+    "PriceInputs": {
+      "additionalProperties": false,
+      "description": "A European option and the volatility to price it at.",
+      "properties": {
+        "calculation": {
+          "const": "price",
+          "default": "price",
+          "description": "Price, Greeks and the put-call parity residual",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "dividend_yield": {
+          "default": 0.0,
+          "description": "Dividend yield per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Dividend Yield",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option_type": {
+          "$ref": "#/$defs/OptionType",
+          "default": "call",
+          "description": "A call (the right to buy) or a put (to sell)"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Price of the underlying asset now",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "strike": {
+          "description": "Strike price",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Strike",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "volatility": {
+          "description": "Volatility of the asset's return per year",
+          "maximum": 5.0,
+          "minimum": 0.001,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "years": {
+          "description": "Time to expiry, in years",
+          "maximum": 100.0,
+          "minimum": 0.001,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "strike",
+        "years",
+        "risk_free_rate",
+        "volatility"
+      ],
+      "title": "PriceInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.black_scholes_merton:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Price, Greeks and implied volatility of European calls and puts on an asset with a continuous dividend yield.",
+  "discriminator": {
+    "mapping": {
+      "implied_volatility": "#/$defs/ImpliedVolatilityInputs",
+      "price": "#/$defs/PriceInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "price",
+      "dividend_yield": 0.0,
+      "option_type": "call",
+      "risk_free_rate": 0.1,
+      "spot": 42.0,
+      "strike": 40.0,
+      "volatility": 0.2,
+      "years": 0.5
+    },
+    {
+      "calculation": "price",
+      "dividend_yield": 0.05,
+      "option_type": "put",
+      "risk_free_rate": 0.1,
+      "spot": 100.0,
+      "strike": 95.0,
+      "volatility": 0.2,
+      "years": 0.5
+    },
+    {
+      "calculation": "implied_volatility",
+      "dividend_yield": 0.0,
+      "option_price": 1.875,
+      "option_type": "call",
+      "risk_free_rate": 0.1,
+      "spot": 21.0,
+      "strike": 20.0,
+      "years": 0.25
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PriceInputs"
+    },
+    {
+      "$ref": "#/$defs/ImpliedVolatilityInputs"
+    }
+  ],
+  "title": "Black-Scholes-Merton options: inputs"
+}

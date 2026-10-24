@@ -1,0 +1,595 @@
+{
+  "$defs": {
+    "alias": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){1,2}$",
+          "type": "string"
+        },
+        "removed_in": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "removed_in"
+      ],
+      "type": "object"
+    },
+    "binding": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "enum": [
+            "last_on_or_before",
+            "period",
+            "window"
+          ]
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "concept": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "tenors": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transform": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vintage": {
+          "enum": [
+            "real_time",
+            "latest"
+          ]
+        },
+        "window": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "field",
+        "concept",
+        "transform",
+        "as_of",
+        "window",
+        "vintage",
+        "profile",
+        "tenors",
+        "columns"
+      ],
+      "type": "object"
+    },
+    "changelog_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "version",
+        "note"
+      ],
+      "type": "object"
+    },
+    "chart": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "line",
+            "bar",
+            "scatter",
+            "band"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "x": {
+          "type": "string"
+        },
+        "x_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "y": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "y_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "x",
+        "y",
+        "x_label",
+        "y_label",
+        "calculation"
+      ],
+      "type": "object"
+    },
+    "example": {
+      "additionalProperties": false,
+      "properties": {
+        "inputs": {
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "note",
+        "inputs"
+      ],
+      "type": "object"
+    },
+    "figure": {
+      "description": "A Plotly figure as JSON, with no layout.template.",
+      "properties": {
+        "data": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "layout": {
+          "not": {
+            "required": [
+              "template"
+            ]
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "data",
+        "layout"
+      ],
+      "type": "object"
+    },
+    "invariant": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "statement"
+      ],
+      "type": "object"
+    },
+    "manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "bit_generator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data_sources": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "dependencies": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "inputs_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "model_id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){1,2}$",
+          "type": "string"
+        },
+        "model_version": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "package_version": {
+          "type": "string"
+        },
+        "result_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "seed": {
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "model_id",
+        "model_version",
+        "package_version",
+        "dependencies",
+        "seed",
+        "bit_generator",
+        "data_sources",
+        "inputs_sha256",
+        "result_sha256"
+      ],
+      "type": "object"
+    },
+    "model": {
+      "additionalProperties": false,
+      "properties": {
+        "aliases": {
+          "items": {
+            "$ref": "#/$defs/alias"
+          },
+          "type": "array"
+        },
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/binding"
+          },
+          "type": "array"
+        },
+        "card": {
+          "description": "The model card as MyST Markdown.",
+          "type": "string"
+        },
+        "changelog": {
+          "items": {
+            "$ref": "#/$defs/changelog_entry"
+          },
+          "type": "array"
+        },
+        "charts": {
+          "items": {
+            "$ref": "#/$defs/chart"
+          },
+          "type": "array"
+        },
+        "cost": {
+          "enum": [
+            "instant",
+            "light",
+            "heavy",
+            null
+          ]
+        },
+        "domain": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "evidence": {
+          "enum": [
+            "standard",
+            "practitioner",
+            "contested",
+            "rejected",
+            "historical",
+            null
+          ]
+        },
+        "example_figure": {
+          "description": "The first applicable chart of example_result; null without the plot extra or an applicable chart.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/figure"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "example_result": {
+          "description": "The first example's result; null without the model's extra.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/result"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "examples": {
+          "items": {
+            "$ref": "#/$defs/example"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "extra": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "formula": {
+          "description": "LaTeX, one line per item.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){1,2}$",
+          "type": "string"
+        },
+        "input_schema": {
+          "description": "The model's JSON Schema 2020-12 input document.",
+          "type": "object"
+        },
+        "invariants": {
+          "items": {
+            "$ref": "#/$defs/invariant"
+          },
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "no_invariants_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "output_schema": {
+          "description": "The model's JSON Schema 2020-12 output document.",
+          "type": "object"
+        },
+        "references": {
+          "items": {
+            "$ref": "#/$defs/reference"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "domain",
+        "title",
+        "summary",
+        "tags",
+        "formula",
+        "assumptions",
+        "limitations",
+        "evidence",
+        "cost",
+        "references",
+        "invariants",
+        "no_invariants_reason",
+        "examples",
+        "charts",
+        "aliases",
+        "bindings",
+        "extra",
+        "changelog",
+        "input_schema",
+        "output_schema",
+        "card",
+        "example_result",
+        "example_figure"
+      ],
+      "type": "object"
+    },
+    "reference": {
+      "additionalProperties": false,
+      "properties": {
+        "citation": {
+          "type": "string"
+        },
+        "doi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isbn": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "key": {
+          "type": "string"
+        },
+        "locator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "citation",
+        "doi",
+        "url",
+        "locator",
+        "isbn"
+      ],
+      "type": "object"
+    },
+    "result": {
+      "additionalProperties": false,
+      "properties": {
+        "inputs": {
+          "type": "object"
+        },
+        "manifest": {
+          "$ref": "#/$defs/manifest"
+        },
+        "model_id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){1,2}$",
+          "type": "string"
+        },
+        "model_version": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "outputs": {
+          "type": "object"
+        },
+        "warnings": {
+          "items": {
+            "$ref": "#/$defs/warning"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "model_id",
+        "model_version",
+        "inputs",
+        "outputs",
+        "warnings",
+        "manifest"
+      ],
+      "type": "object"
+    },
+    "warning": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://pyeconomics.dev/schemas/registry/1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Every registered model, as the surfaces and the web app are generated from it (ADR-0012 decision 8).",
+  "properties": {
+    "format": {
+      "const": 1
+    },
+    "models": {
+      "description": "One entry per registered model, sorted by id.",
+      "items": {
+        "$ref": "#/$defs/model"
+      },
+      "type": "array"
+    },
+    "pyeconomics": {
+      "description": "The installed package version.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "format",
+    "pyeconomics",
+    "models"
+  ],
+  "title": "pyeconomics model registry",
+  "type": "object"
+}

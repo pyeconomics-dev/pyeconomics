@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "CostOfCarryOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "cost_of_carry",
+          "default": "cost_of_carry",
+          "description": "Forward price by cost of carry",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "forward_price": {
+          "description": "Forward price for delivery at T",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Forward Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "forward_price"
+      ],
+      "title": "CostOfCarryOutputs",
+      "type": "object"
+    },
+    "ForwardValueOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "forward_value",
+          "default": "forward_value",
+          "description": "Value of an existing forward contract",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "forward_price": {
+          "description": "Forward price for delivery at T",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Forward Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "value": {
+          "description": "Value of the contract to the side given: +/-(F - K) e^-rT",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "forward_price",
+        "value"
+      ],
+      "title": "ForwardValueOutputs",
+      "type": "object"
+    },
+    "FxForwardOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "fx_forward",
+          "default": "fx_forward",
+          "description": "Forward exchange rate by covered interest parity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "forward_points": {
+          "description": "Forward less spot, in units of the quote currency; quoted points scale this by the pair's pip size",
+          "maximum": 100000000.0,
+          "minimum": -100000000.0,
+          "title": "Forward Points",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "forward_premium": {
+          "description": "Forward over spot, less one: the base currency's premium",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Forward Premium",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "forward_rate": {
+          "description": "Outright forward rate, in units of the quote currency per unit of the base currency",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100000000.0,
+          "title": "Forward Rate",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "forward_rate",
+        "forward_points",
+        "forward_premium"
+      ],
+      "title": "FxForwardOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.forwards:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Forward prices by cost of carry, the value of an existing forward, and forward exchange rates by covered interest parity.",
+  "discriminator": {
+    "mapping": {
+      "cost_of_carry": "#/$defs/CostOfCarryOutputs",
+      "forward_value": "#/$defs/ForwardValueOutputs",
+      "fx_forward": "#/$defs/FxForwardOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CostOfCarryOutputs"
+    },
+    {
+      "$ref": "#/$defs/ForwardValueOutputs"
+    },
+    {
+      "$ref": "#/$defs/FxForwardOutputs"
+    }
+  ],
+  "title": "Forward prices and values: outputs"
+}

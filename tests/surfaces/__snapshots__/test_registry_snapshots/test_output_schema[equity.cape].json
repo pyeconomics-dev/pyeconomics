@@ -1,0 +1,64 @@
+{
+  "$id": "urn:pyeconomics:model:equity.cape:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Shiller's CAPE: the price over the average of real earnings over a window, its earnings yield and the excess CAPE yield over a real 10-year rate.",
+  "properties": {
+    "average_real_earnings": {
+      "description": "The window's average earnings, in the dollars of month t",
+      "maximum": 1e+18,
+      "minimum": -1e+18,
+      "title": "Average Real Earnings",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "cape": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Price over average real earnings; None when they average nothing positive, with a warning",
+      "title": "Cape"
+    },
+    "cape_yield": {
+      "description": "Average real earnings over price, a decimal: 1 / CAPE",
+      "maximum": 1000000.0,
+      "minimum": -1000000.0,
+      "title": "Cape Yield",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "excess_cape_yield": {
+      "description": "The CAPE yield less the real 10-year rate, a decimal",
+      "maximum": 1000001.0,
+      "minimum": -1000001.0,
+      "title": "Excess Cape Yield",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "real_rate": {
+      "description": "The real 10-year rate the excess is over",
+      "maximum": 1.0,
+      "minimum": -1.0,
+      "title": "Real Rate",
+      "type": "number",
+      "x-unit": "rate"
+    }
+  },
+  "required": [
+    "cape",
+    "cape_yield",
+    "excess_cape_yield",
+    "real_rate",
+    "average_real_earnings"
+  ],
+  "title": "Cyclically adjusted price-to-earnings ratio (CAPE): outputs",
+  "type": "object"
+}

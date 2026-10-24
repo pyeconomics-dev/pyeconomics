@@ -1,0 +1,294 @@
+{
+  "$defs": {
+    "FrontierOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "frontier",
+          "default": "frontier",
+          "description": "Minimum-variance frontier, short sales allowed",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "minimum_variance_return": {
+          "description": "Expected return of the minimum-variance portfolio",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Minimum Variance Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "minimum_variance_volatility": {
+          "description": "Volatility of the minimum-variance portfolio",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Minimum Variance Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "target_returns": {
+          "description": "Target expected returns, ascending",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 200,
+          "title": "Target Returns",
+          "type": "array"
+        },
+        "variances": {
+          "description": "Lowest variance at each target return",
+          "items": {
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 200,
+          "title": "Variances",
+          "type": "array"
+        },
+        "volatilities": {
+          "description": "Lowest volatility at each target return",
+          "items": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 200,
+          "title": "Volatilities",
+          "type": "array"
+        },
+        "weights": {
+          "description": "Weights of the frontier portfolio at each target, as rows",
+          "items": {
+            "items": {
+              "maximum": 1000000.0,
+              "minimum": -1000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "maxItems": 200,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "minimum_variance_return",
+        "minimum_variance_volatility",
+        "target_returns",
+        "variances",
+        "volatilities",
+        "weights"
+      ],
+      "title": "FrontierOutputs",
+      "type": "object"
+    },
+    "MinimumVarianceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "minimum_variance",
+          "default": "minimum_variance",
+          "description": "Global minimum-variance portfolio",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_return": {
+          "description": "Expected return per period",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "variance": {
+          "description": "Variance, 1 / A; never above the least risky asset's",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Variance",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "volatility": {
+          "description": "Standard deviation of the return",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "weights": {
+          "description": "Weight of each asset; they sum to 1",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 100,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "weights",
+        "expected_return",
+        "variance",
+        "volatility"
+      ],
+      "title": "MinimumVarianceOutputs",
+      "type": "object"
+    },
+    "PortfolioOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "portfolio",
+          "default": "portfolio",
+          "description": "Expected return and risk of given weights",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_return": {
+          "description": "Expected return per period, w'mu",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "variance": {
+          "description": "Variance of the return, w' Sigma w",
+          "maximum": 10000000000.0,
+          "minimum": 0.0,
+          "title": "Variance",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "volatility": {
+          "description": "Standard deviation of the return",
+          "maximum": 100000.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "weight_sum": {
+          "description": "Sum of the weights",
+          "maximum": 10000.0,
+          "minimum": -10000.0,
+          "title": "Weight Sum",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "expected_return",
+        "variance",
+        "volatility",
+        "weight_sum"
+      ],
+      "title": "PortfolioOutputs",
+      "type": "object"
+    },
+    "TangencyOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "tangency",
+          "default": "tangency",
+          "description": "Tangency portfolio and the capital market line",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capital_market_line_slope": {
+          "description": "Slope of the capital market line: the tangency portfolio's Sharpe ratio per period, the highest of any portfolio of the assets",
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "title": "Capital Market Line Slope",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "expected_return": {
+          "description": "Expected return per period",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "variance": {
+          "description": "Variance of the return",
+          "maximum": 10000000000.0,
+          "minimum": 0.0,
+          "title": "Variance",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "volatility": {
+          "description": "Standard deviation of the return",
+          "maximum": 100000.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "weights": {
+          "description": "Weight of each asset; they sum to 1",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 100,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "weights",
+        "expected_return",
+        "variance",
+        "volatility",
+        "capital_market_line_slope"
+      ],
+      "title": "TangencyOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:portfolio.mean_variance:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Portfolio expected return and risk, the minimum-variance frontier with short sales, and the minimum-variance and tangency portfolios.",
+  "discriminator": {
+    "mapping": {
+      "frontier": "#/$defs/FrontierOutputs",
+      "minimum_variance": "#/$defs/MinimumVarianceOutputs",
+      "portfolio": "#/$defs/PortfolioOutputs",
+      "tangency": "#/$defs/TangencyOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PortfolioOutputs"
+    },
+    {
+      "$ref": "#/$defs/FrontierOutputs"
+    },
+    {
+      "$ref": "#/$defs/MinimumVarianceOutputs"
+    },
+    {
+      "$ref": "#/$defs/TangencyOutputs"
+    }
+  ],
+  "title": "Mean-variance portfolios: outputs"
+}

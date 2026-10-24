@@ -1,0 +1,545 @@
+{
+  "$defs": {
+    "BaxterKingInputs": {
+      "additionalProperties": false,
+      "description": "The Baxter-King band-pass filter.",
+      "properties": {
+        "calculation": {
+          "const": "baxter_king",
+          "default": "baxter_king",
+          "description": "The Baxter-King (1999) band-pass filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "form": {
+          "$ref": "#/$defs/Form",
+          "default": "ratio",
+          "description": "How the gap is stated: 'ratio' is output over trend less one; 'log' the difference of their logarithms"
+        },
+        "frequency": {
+          "$ref": "#/$defs/Frequency",
+          "description": "How often the series is observed; it sets the filter's defaults"
+        },
+        "high": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 2.0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The longest cycle kept, in periods; left out, 32 quarters (8 years, 96 months)",
+          "title": "High"
+        },
+        "lead_lag": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "K, the leads and lags of the moving average; left out, 12 quarters (3 years, 36 months)",
+          "title": "Lead Lag"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 2.0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The shortest cycle kept, in periods; left out, 6 quarters (2 years, 18 months)",
+          "title": "Low"
+        },
+        "series": {
+          "description": "Real output each period, positive; the filter runs on its log",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "minItems": 3,
+          "title": "Series",
+          "type": "array"
+        }
+      },
+      "required": [
+        "series",
+        "frequency"
+      ],
+      "title": "BaxterKingInputs",
+      "type": "object"
+    },
+    "ChristianoFitzgeraldInputs": {
+      "additionalProperties": false,
+      "description": "The Christiano-Fitzgerald band-pass filter.",
+      "properties": {
+        "calculation": {
+          "const": "christiano_fitzgerald",
+          "default": "christiano_fitzgerald",
+          "description": "The Christiano-Fitzgerald (2003) band-pass filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "drift": {
+          "default": true,
+          "description": "Remove the line from the first to the last observation before filtering (the random walk with drift)",
+          "title": "Drift",
+          "type": "boolean"
+        },
+        "form": {
+          "$ref": "#/$defs/Form",
+          "default": "ratio",
+          "description": "How the gap is stated: 'ratio' is output over trend less one; 'log' the difference of their logarithms"
+        },
+        "frequency": {
+          "$ref": "#/$defs/Frequency",
+          "description": "How often the series is observed; it sets the filter's defaults"
+        },
+        "high": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 2.0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The longest cycle kept, in periods; left out, 32 quarters (8 years, 96 months)",
+          "title": "High"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 2.0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The shortest cycle kept, in periods; left out, 6 quarters (2 years, 18 months)",
+          "title": "Low"
+        },
+        "series": {
+          "description": "Real output each period, positive; the filter runs on its log",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "minItems": 3,
+          "title": "Series",
+          "type": "array"
+        }
+      },
+      "required": [
+        "series",
+        "frequency"
+      ],
+      "title": "ChristianoFitzgeraldInputs",
+      "type": "object"
+    },
+    "Form": {
+      "enum": [
+        "ratio",
+        "log"
+      ],
+      "type": "string"
+    },
+    "Frequency": {
+      "enum": [
+        "annual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "FromPotentialInputs": {
+      "additionalProperties": false,
+      "description": "A published potential output: the gap is actual against potential.",
+      "properties": {
+        "actual": {
+          "description": "Real output each period, positive",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "minItems": 1,
+          "title": "Actual",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "from_potential",
+          "default": "from_potential",
+          "description": "The gap from a published potential output",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "form": {
+          "$ref": "#/$defs/Form",
+          "default": "ratio",
+          "description": "How the gap is stated: 'ratio' is output over trend less one; 'log' the difference of their logarithms"
+        },
+        "potential": {
+          "description": "Potential output each period, in the units of actual",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "minItems": 1,
+          "title": "Potential",
+          "type": "array"
+        }
+      },
+      "required": [
+        "actual",
+        "potential"
+      ],
+      "title": "FromPotentialInputs",
+      "type": "object"
+    },
+    "HamiltonInputs": {
+      "additionalProperties": false,
+      "description": "Hamilton's regression filter.",
+      "properties": {
+        "calculation": {
+          "const": "hamilton",
+          "default": "hamilton",
+          "description": "Hamilton's (2018) regression filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "form": {
+          "$ref": "#/$defs/Form",
+          "default": "ratio",
+          "description": "How the gap is stated: 'ratio' is output over trend less one; 'log' the difference of their logarithms"
+        },
+        "frequency": {
+          "$ref": "#/$defs/Frequency",
+          "description": "How often the series is observed; it sets the filter's defaults"
+        },
+        "horizon": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "h, periods ahead the regression predicts; left out, two years",
+          "title": "Horizon"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 19,
+              "minimum": 1,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "p, the most recent values it predicts from; left out, one year",
+          "title": "Lags"
+        },
+        "series": {
+          "description": "Real output each period, positive; the filter runs on its log",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "minItems": 3,
+          "title": "Series",
+          "type": "array"
+        }
+      },
+      "required": [
+        "series",
+        "frequency"
+      ],
+      "title": "HamiltonInputs",
+      "type": "object"
+    },
+    "HodrickPrescottInputs": {
+      "additionalProperties": false,
+      "description": "The Hodrick-Prescott filter.",
+      "properties": {
+        "calculation": {
+          "const": "hp",
+          "default": "hp",
+          "description": "The Hodrick-Prescott filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "form": {
+          "$ref": "#/$defs/Form",
+          "default": "ratio",
+          "description": "How the gap is stated: 'ratio' is output over trend less one; 'log' the difference of their logarithms"
+        },
+        "frequency": {
+          "$ref": "#/$defs/Frequency",
+          "description": "How often the series is observed; it sets the filter's defaults"
+        },
+        "series": {
+          "description": "Real output each period, positive; the filter runs on its log",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "minItems": 3,
+          "title": "Series",
+          "type": "array"
+        },
+        "smoothing": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lambda, the penalty on the trend's curvature; left out, 1,600 for quarterly data, 6.25 annual and 129,600 monthly (Ravn and Uhlig)",
+          "title": "Smoothing"
+        }
+      },
+      "required": [
+        "series",
+        "frequency"
+      ],
+      "title": "HodrickPrescottInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.output_gap:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The output gap from a published potential output, or by the Hodrick-Prescott, Hamilton, Baxter-King and Christiano-Fitzgerald filters, with the trend, the cycle and the latest gap.",
+  "discriminator": {
+    "mapping": {
+      "baxter_king": "#/$defs/BaxterKingInputs",
+      "christiano_fitzgerald": "#/$defs/ChristianoFitzgeraldInputs",
+      "from_potential": "#/$defs/FromPotentialInputs",
+      "hamilton": "#/$defs/HamiltonInputs",
+      "hp": "#/$defs/HodrickPrescottInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "hp",
+      "form": "ratio",
+      "frequency": "quarterly",
+      "series": [
+        19000.0,
+        19150.0,
+        19310.0,
+        19440.0,
+        19590.0,
+        19700.0,
+        19760.0,
+        19650.0,
+        19420.0,
+        19350.0,
+        19480.0,
+        19660.0,
+        19850.0,
+        20030.0,
+        20190.0,
+        20340.0,
+        20480.0,
+        20610.0,
+        20760.0,
+        20900.0,
+        21050.0,
+        21180.0,
+        21330.0,
+        21470.0
+      ],
+      "smoothing": null
+    },
+    {
+      "actual": [
+        23400.0,
+        23520.0
+      ],
+      "calculation": "from_potential",
+      "form": "ratio",
+      "potential": [
+        23300.0,
+        23470.0
+      ]
+    },
+    {
+      "calculation": "hamilton",
+      "form": "ratio",
+      "frequency": "quarterly",
+      "horizon": null,
+      "lags": null,
+      "series": [
+        19000.0,
+        19150.0,
+        19310.0,
+        19440.0,
+        19590.0,
+        19700.0,
+        19760.0,
+        19650.0,
+        19420.0,
+        19350.0,
+        19480.0,
+        19660.0,
+        19850.0,
+        20030.0,
+        20190.0,
+        20340.0,
+        20480.0,
+        20610.0,
+        20760.0,
+        20900.0,
+        21050.0,
+        21180.0,
+        21330.0,
+        21470.0
+      ]
+    },
+    {
+      "calculation": "baxter_king",
+      "form": "ratio",
+      "frequency": "quarterly",
+      "high": null,
+      "lead_lag": 6,
+      "low": null,
+      "series": [
+        19000.0,
+        19150.0,
+        19310.0,
+        19440.0,
+        19590.0,
+        19700.0,
+        19760.0,
+        19650.0,
+        19420.0,
+        19350.0,
+        19480.0,
+        19660.0,
+        19850.0,
+        20030.0,
+        20190.0,
+        20340.0,
+        20480.0,
+        20610.0,
+        20760.0,
+        20900.0,
+        21050.0,
+        21180.0,
+        21330.0,
+        21470.0
+      ]
+    },
+    {
+      "calculation": "christiano_fitzgerald",
+      "drift": true,
+      "form": "log",
+      "frequency": "quarterly",
+      "high": null,
+      "low": null,
+      "series": [
+        19000.0,
+        19150.0,
+        19310.0,
+        19440.0,
+        19590.0,
+        19700.0,
+        19760.0,
+        19650.0,
+        19420.0,
+        19350.0,
+        19480.0,
+        19660.0,
+        19850.0,
+        20030.0,
+        20190.0,
+        20340.0,
+        20480.0,
+        20610.0,
+        20760.0,
+        20900.0,
+        21050.0,
+        21180.0,
+        21330.0,
+        21470.0
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/FromPotentialInputs"
+    },
+    {
+      "$ref": "#/$defs/HodrickPrescottInputs"
+    },
+    {
+      "$ref": "#/$defs/HamiltonInputs"
+    },
+    {
+      "$ref": "#/$defs/BaxterKingInputs"
+    },
+    {
+      "$ref": "#/$defs/ChristianoFitzgeraldInputs"
+    }
+  ],
+  "title": "Output gap: inputs"
+}

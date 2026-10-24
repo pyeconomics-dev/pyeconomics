@@ -1,0 +1,236 @@
+{
+  "$id": "urn:pyeconomics:model:accounting.financial_ratios:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Liquidity, activity, solvency, profitability and three- and five-step DuPont ratios.",
+  "examples": [
+    {
+      "average_assets": 800.0,
+      "average_equity": 400.0,
+      "average_inventory": 150.0,
+      "average_payables": 100.0,
+      "average_receivables": 100.0,
+      "cash": 40.0,
+      "cost_of_goods_sold": 600.0,
+      "current_assets": 200.0,
+      "current_liabilities": 100.0,
+      "days": 365,
+      "ebit": 200.0,
+      "equity": 450.0,
+      "interest_expense": 40.0,
+      "inventory": 50.0,
+      "marketable_securities": 10.0,
+      "net_income": 120.0,
+      "prepayments": 10.0,
+      "pretax_income": 160.0,
+      "purchases": 500.0,
+      "revenue": 1000.0,
+      "total_assets": 900.0,
+      "total_debt": 300.0
+    }
+  ],
+  "properties": {
+    "average_assets": {
+      "description": "Average total assets over the period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Average Assets",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "average_equity": {
+      "description": "Average common equity over the period; may be negative",
+      "maximum": 1000000000000.0,
+      "minimum": -1000000000000.0,
+      "title": "Average Equity",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "average_inventory": {
+      "description": "Average inventory over the period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Average Inventory",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "average_payables": {
+      "description": "Average trade payables over the period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Average Payables",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "average_receivables": {
+      "description": "Average trade receivables over the period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Average Receivables",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "cash": {
+      "description": "Period-end cash and cash equivalents",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Cash",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "cost_of_goods_sold": {
+      "description": "Cost of goods sold, positive expense",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Cost Of Goods Sold",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "current_assets": {
+      "description": "Period-end current assets",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Current Assets",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "current_liabilities": {
+      "description": "Period-end current liabilities",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Current Liabilities",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "days": {
+      "default": 365,
+      "description": "Calendar days in the reporting period",
+      "maximum": 366,
+      "minimum": 1,
+      "title": "Days",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "ebit": {
+      "description": "Operating income before interest and taxes",
+      "maximum": 1000000000000.0,
+      "minimum": -1000000000000.0,
+      "title": "Ebit",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "equity": {
+      "description": "Period-end book common equity; may be negative",
+      "maximum": 1000000000000.0,
+      "minimum": -1000000000000.0,
+      "title": "Equity",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "interest_expense": {
+      "description": "Interest expense for the period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Interest Expense",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "inventory": {
+      "description": "Period-end inventory",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Inventory",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "marketable_securities": {
+      "description": "Period-end short-term marketable securities",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Marketable Securities",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "net_income": {
+      "description": "After-tax income attributable to common shareholders",
+      "maximum": 1000000000000.0,
+      "minimum": -1000000000000.0,
+      "title": "Net Income",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "prepayments": {
+      "description": "Period-end prepaid expenses excluded from quick assets",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Prepayments",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "pretax_income": {
+      "description": "Income before taxes for the period",
+      "maximum": 1000000000000.0,
+      "minimum": -1000000000000.0,
+      "title": "Pretax Income",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "purchases": {
+      "description": "Credit purchases for the period, positive outlay",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Purchases",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "revenue": {
+      "description": "Revenue for the period; all sales assumed on credit for receivables turnover",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Revenue",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "total_assets": {
+      "description": "Period-end total assets",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Total Assets",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "total_debt": {
+      "description": "Period-end interest-bearing debt; excludes non-debt liabilities",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Total Debt",
+      "type": "number",
+      "x-unit": "money"
+    }
+  },
+  "required": [
+    "current_assets",
+    "inventory",
+    "prepayments",
+    "cash",
+    "marketable_securities",
+    "current_liabilities",
+    "revenue",
+    "cost_of_goods_sold",
+    "purchases",
+    "average_receivables",
+    "average_inventory",
+    "average_payables",
+    "average_assets",
+    "average_equity",
+    "total_assets",
+    "total_debt",
+    "equity",
+    "ebit",
+    "interest_expense",
+    "pretax_income",
+    "net_income"
+  ],
+  "title": "Financial ratios and DuPont: inputs",
+  "type": "object"
+}

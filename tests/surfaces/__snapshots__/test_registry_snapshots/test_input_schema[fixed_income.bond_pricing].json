@@ -1,0 +1,681 @@
+{
+  "$defs": {
+    "Convention": {
+      "enum": [
+        "street",
+        "treasury"
+      ],
+      "type": "string"
+    },
+    "DayCountName": {
+      "enum": [
+        "act_act_icma",
+        "thirty_360_us",
+        "thirty_e_360"
+      ],
+      "type": "string"
+    },
+    "FrequencyName": {
+      "enum": [
+        "annual",
+        "semiannual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "PriceFromYieldInputs": {
+      "additionalProperties": false,
+      "description": "A bond and its yield to maturity.",
+      "properties": {
+        "calculation": {
+          "const": "price_from_yield",
+          "default": "price_from_yield",
+          "description": "Full and flat price from a yield",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "convention": {
+          "$ref": "#/$defs/Convention",
+          "default": "street",
+          "description": "Discounting over the first fraction of a period: compound (street) or simple interest (treasury, 31 CFR Part 356 Appendix B)"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "yield_to_maturity": {
+          "description": "Yield to maturity per year, compounded at the coupon frequency",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Maturity",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "yield_to_maturity"
+      ],
+      "title": "PriceFromYieldInputs",
+      "type": "object"
+    },
+    "YieldFromPriceInputs": {
+      "additionalProperties": false,
+      "description": "A bond and its price.",
+      "properties": {
+        "calculation": {
+          "const": "yield_from_price",
+          "default": "yield_from_price",
+          "description": "Yield to maturity from a price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "convention": {
+          "$ref": "#/$defs/Convention",
+          "default": "street",
+          "description": "Discounting over the first fraction of a period: compound (street) or simple interest (treasury, 31 CFR Part 356 Appendix B)"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "price": {
+          "description": "Price of the face value held",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price_type": {
+          "default": "flat",
+          "description": "Whether the price excludes (flat) or includes (full) accrued interest",
+          "enum": [
+            "flat",
+            "full"
+          ],
+          "title": "Price Type",
+          "type": "string"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "price"
+      ],
+      "title": "YieldFromPriceInputs",
+      "type": "object"
+    },
+    "YieldToCallInputs": {
+      "additionalProperties": false,
+      "description": "A bond, its price, and a call on one coupon date.",
+      "properties": {
+        "calculation": {
+          "const": "yield_to_call",
+          "default": "yield_to_call",
+          "description": "Yield to a call date",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "call_date": {
+          "description": "Coupon date on which the bond is called",
+          "format": "date",
+          "title": "Call Date",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "call_price": {
+          "description": "Amount paid on the call, per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Call Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "convention": {
+          "$ref": "#/$defs/Convention",
+          "default": "street",
+          "description": "Discounting over the first fraction of a period: compound (street) or simple interest (treasury, 31 CFR Part 356 Appendix B)"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "price": {
+          "description": "Price of the face value held",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price_type": {
+          "default": "flat",
+          "description": "Whether the price excludes (flat) or includes (full) accrued interest",
+          "enum": [
+            "flat",
+            "full"
+          ],
+          "title": "Price Type",
+          "type": "string"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "price",
+        "call_date",
+        "call_price"
+      ],
+      "title": "YieldToCallInputs",
+      "type": "object"
+    },
+    "YieldToWorstInputs": {
+      "additionalProperties": false,
+      "description": "A bond, its price, and a schedule of calls.",
+      "properties": {
+        "calculation": {
+          "const": "yield_to_worst",
+          "default": "yield_to_worst",
+          "description": "Lowest yield over the calls and maturity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "call_dates": {
+          "description": "Coupon dates on which the bond may be called",
+          "items": {
+            "format": "date",
+            "type": "string",
+            "x-unit": "date"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Call Dates",
+          "type": "array"
+        },
+        "call_prices": {
+          "description": "Amount paid on each call, per 100 of face value",
+          "items": {
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Call Prices",
+          "type": "array"
+        },
+        "convention": {
+          "$ref": "#/$defs/Convention",
+          "default": "street",
+          "description": "Discounting over the first fraction of a period: compound (street) or simple interest (treasury, 31 CFR Part 356 Appendix B)"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "price": {
+          "description": "Price of the face value held",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price_type": {
+          "default": "flat",
+          "description": "Whether the price excludes (flat) or includes (full) accrued interest",
+          "enum": [
+            "flat",
+            "full"
+          ],
+          "title": "Price Type",
+          "type": "string"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "price",
+        "call_dates",
+        "call_prices"
+      ],
+      "title": "YieldToWorstInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.bond_pricing:2:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Full and flat price and accrued interest of a fixed-coupon bond from its yield, and its yield to maturity, to a call and to worst from its price.",
+  "discriminator": {
+    "mapping": {
+      "price_from_yield": "#/$defs/PriceFromYieldInputs",
+      "yield_from_price": "#/$defs/YieldFromPriceInputs",
+      "yield_to_call": "#/$defs/YieldToCallInputs",
+      "yield_to_worst": "#/$defs/YieldToWorstInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "price_from_yield",
+      "convention": "treasury",
+      "coupon_rate": 0.0875,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2020-05-15",
+      "redemption": 100.0,
+      "settlement": "1990-05-15",
+      "yield_to_maturity": 0.0884
+    },
+    {
+      "calculation": "price_from_yield",
+      "convention": "street",
+      "coupon_rate": 0.045,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "redemption": 100.0,
+      "settlement": "2026-03-02",
+      "yield_to_maturity": 0.05
+    },
+    {
+      "calculation": "yield_from_price",
+      "convention": "street",
+      "coupon_rate": 0.045,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "price": 96.5,
+      "price_type": "flat",
+      "redemption": 100.0,
+      "settlement": "2026-01-15"
+    },
+    {
+      "calculation": "yield_to_call",
+      "call_date": "2031-01-15",
+      "call_price": 101.0,
+      "convention": "street",
+      "coupon_rate": 0.045,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "price": 103.0,
+      "price_type": "flat",
+      "redemption": 100.0,
+      "settlement": "2026-01-15"
+    },
+    {
+      "calculation": "yield_to_worst",
+      "call_dates": [
+        "2029-01-15",
+        "2031-01-15",
+        "2033-01-15"
+      ],
+      "call_prices": [
+        102.0,
+        101.0,
+        100.0
+      ],
+      "convention": "street",
+      "coupon_rate": 0.045,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "price": 104.0,
+      "price_type": "flat",
+      "redemption": 100.0,
+      "settlement": "2026-01-15"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PriceFromYieldInputs"
+    },
+    {
+      "$ref": "#/$defs/YieldFromPriceInputs"
+    },
+    {
+      "$ref": "#/$defs/YieldToCallInputs"
+    },
+    {
+      "$ref": "#/$defs/YieldToWorstInputs"
+    }
+  ],
+  "title": "Bond price and yield: inputs"
+}

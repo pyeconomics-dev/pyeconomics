@@ -1,0 +1,472 @@
+{
+  "$defs": {
+    "AnalyticalInputs": {
+      "additionalProperties": false,
+      "description": "A bond and its yield to maturity.",
+      "properties": {
+        "calculation": {
+          "const": "analytical",
+          "default": "analytical",
+          "description": "Convexity from the yield",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "yield_to_maturity": {
+          "description": "Yield to maturity per year, compounded at the coupon frequency",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Maturity",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "yield_to_maturity"
+      ],
+      "title": "AnalyticalInputs",
+      "type": "object"
+    },
+    "DayCountName": {
+      "enum": [
+        "act_act_icma",
+        "thirty_360_us",
+        "thirty_e_360"
+      ],
+      "type": "string"
+    },
+    "EffectiveInputs": {
+      "additionalProperties": false,
+      "description": "A bond and a spot curve.",
+      "properties": {
+        "bump": {
+          "default": 0.0001,
+          "description": "Shift of the curve up and down for the central difference",
+          "maximum": 0.01,
+          "minimum": 1e-06,
+          "title": "Bump",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "effective",
+          "default": "effective",
+          "description": "Effective convexity off a spot curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "curve_rates": {
+          "description": "Spot rate at each tenor, compounded at the coupon frequency; linear between nodes and flat beyond them",
+          "items": {
+            "maximum": 1.0,
+            "minimum": -0.1,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Curve Rates",
+          "type": "array"
+        },
+        "curve_tenors": {
+          "description": "Tenors of the spot curve's nodes, in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "curve_tenors",
+        "curve_rates"
+      ],
+      "title": "EffectiveInputs",
+      "type": "object"
+    },
+    "FrequencyName": {
+      "enum": [
+        "annual",
+        "semiannual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "PriceChangeInputs": {
+      "additionalProperties": false,
+      "description": "A bond, its yield to maturity and a change in that yield.",
+      "properties": {
+        "calculation": {
+          "const": "price_change",
+          "default": "price_change",
+          "description": "Duration and convexity price-change estimate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid in equal parts",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "day_count": {
+          "$ref": "#/$defs/DayCountName",
+          "default": "act_act_icma",
+          "description": "Day count for accrued interest and stubs"
+        },
+        "end_of_month": {
+          "default": true,
+          "description": "Keep coupon dates at month ends when the maturity is one",
+          "title": "End Of Month",
+          "type": "boolean"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face (par) value held",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "first_period": {
+          "default": "short",
+          "description": "Whether an irregular first period ends at the first coupon date after the issue date (short) or at the one after that (long)",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "First Period",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year (also the yield's compounding)"
+        },
+        "issue_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date interest starts to accrue, when the first coupon period is irregular; omitted (null) for a regular schedule",
+          "title": "Issue Date"
+        },
+        "maturity": {
+          "description": "Maturity date: the last coupon and redemption",
+          "format": "date",
+          "title": "Maturity",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "redemption": {
+          "default": 100.0,
+          "description": "Amount repaid at maturity per 100 of face value",
+          "maximum": 200.0,
+          "minimum": 1.0,
+          "title": "Redemption",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "settlement": {
+          "description": "Settlement date: the price is for this date",
+          "format": "date",
+          "title": "Settlement",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "yield_change": {
+          "description": "Change in the yield, in decimals (0.01 is 100 basis points)",
+          "maximum": 0.02,
+          "minimum": -0.02,
+          "title": "Yield Change",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "yield_to_maturity": {
+          "description": "Yield to maturity per year, compounded at the coupon frequency",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Maturity",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "settlement",
+        "maturity",
+        "coupon_rate",
+        "yield_to_maturity",
+        "yield_change"
+      ],
+      "title": "PriceChangeInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.convexity:2:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Convexity of a fixed-coupon bond from its yield, effective convexity off a spot curve, and the duration-and-convexity price-change estimate.",
+  "discriminator": {
+    "mapping": {
+      "analytical": "#/$defs/AnalyticalInputs",
+      "effective": "#/$defs/EffectiveInputs",
+      "price_change": "#/$defs/PriceChangeInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "analytical",
+      "coupon_rate": 0.045,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "redemption": 100.0,
+      "settlement": "2026-01-15",
+      "yield_to_maturity": 0.045
+    },
+    {
+      "bump": 0.001,
+      "calculation": "effective",
+      "coupon_rate": 0.045,
+      "curve_rates": [
+        0.043,
+        0.042,
+        0.041,
+        0.042,
+        0.045,
+        0.048
+      ],
+      "curve_tenors": [
+        0.5,
+        1.0,
+        2.0,
+        5.0,
+        10.0,
+        30.0
+      ],
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "redemption": 100.0,
+      "settlement": "2026-01-15"
+    },
+    {
+      "calculation": "price_change",
+      "coupon_rate": 0.045,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "semiannual",
+      "issue_date": null,
+      "maturity": "2036-01-15",
+      "redemption": 100.0,
+      "settlement": "2026-01-15",
+      "yield_change": 0.01,
+      "yield_to_maturity": 0.045
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AnalyticalInputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveInputs"
+    },
+    {
+      "$ref": "#/$defs/PriceChangeInputs"
+    }
+  ],
+  "title": "Bond convexity: inputs"
+}

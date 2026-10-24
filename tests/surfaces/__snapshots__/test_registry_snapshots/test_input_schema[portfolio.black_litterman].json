@@ -1,0 +1,322 @@
+{
+  "$id": "urn:pyeconomics:model:portfolio.black_litterman:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Equilibrium returns from market weights, views blended in with He-Litterman or Idzorek uncertainty, the posterior returns and covariance, and the unconstrained optimal weights.",
+  "examples": [
+    {
+      "confidence": "he_litterman",
+      "confidences": null,
+      "correlations": [
+        [
+          1.0,
+          0.5,
+          0.3
+        ],
+        [
+          0.5,
+          1.0,
+          0.4
+        ],
+        [
+          0.3,
+          0.4,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "market_weights": [
+        0.5,
+        0.3,
+        0.2
+      ],
+      "picks": [
+        [
+          1.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "returns": null,
+      "risk_aversion": 2.5,
+      "tau": 0.05,
+      "view_returns": [
+        0.002
+      ],
+      "volatilities": [
+        0.16,
+        0.2,
+        0.24
+      ]
+    },
+    {
+      "confidence": "idzorek",
+      "confidences": [
+        0.5,
+        0.25
+      ],
+      "correlations": [
+        [
+          1.0,
+          0.5,
+          0.3
+        ],
+        [
+          0.5,
+          1.0,
+          0.4
+        ],
+        [
+          0.3,
+          0.4,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "market_weights": [
+        0.5,
+        0.3,
+        0.2
+      ],
+      "picks": [
+        [
+          1.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "returns": null,
+      "risk_aversion": 2.5,
+      "tau": 0.05,
+      "view_returns": [
+        0.002,
+        0.01
+      ],
+      "volatilities": [
+        0.16,
+        0.2,
+        0.24
+      ]
+    }
+  ],
+  "properties": {
+    "confidence": {
+      "default": "he_litterman",
+      "description": "How the views' uncertainty is set: 'he_litterman', Omega = diag(P tau Sigma P'), or 'idzorek', from confidence levels",
+      "enum": [
+        "he_litterman",
+        "idzorek"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "confidences": {
+      "anyOf": [
+        {
+          "items": {
+            "maximum": 1.0,
+            "minimum": 1e-06,
+            "type": "number",
+            "x-unit": "probability"
+          },
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Idzorek's confidence in each view, from near 0 to 1 (certain); only with confidence='idzorek'",
+      "title": "Confidences"
+    },
+    "correlations": {
+      "anyOf": [
+        {
+          "items": {
+            "items": {
+              "maximum": 1.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "correlation"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+      "title": "Correlations"
+    },
+    "covariance": {
+      "anyOf": [
+        {
+          "items": {
+            "items": {
+              "maximum": 100.0,
+              "minimum": -100.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations, or returns",
+      "title": "Covariance"
+    },
+    "market_weights": {
+      "description": "Each asset's weight in the market portfolio",
+      "items": {
+        "maximum": 1.0,
+        "minimum": 0.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Market Weights",
+      "type": "array"
+    },
+    "picks": {
+      "anyOf": [
+        {
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": -10.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The pick matrix P: one row per view, one weight per asset (a relative view's row sums to zero, an absolute view's has a single 1)",
+      "title": "Picks"
+    },
+    "returns": {
+      "anyOf": [
+        {
+          "items": {
+            "items": {
+              "maximum": 5.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxLength": 2520,
+          "minLength": 2,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The assets' returns, as rows: one per period, one value per asset; their sample covariance (divisor T - 1) is used",
+      "title": "Returns"
+    },
+    "risk_aversion": {
+      "default": 2.5,
+      "description": "The market's risk aversion delta, the excess return per unit of variance (He and Litterman use 2.5)",
+      "maximum": 100.0,
+      "minimum": 0.001,
+      "title": "Risk Aversion",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "tau": {
+      "default": 0.05,
+      "description": "The uncertainty of the equilibrium, relative to Sigma",
+      "maximum": 1.0,
+      "minimum": 1e-06,
+      "title": "Tau",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "view_returns": {
+      "anyOf": [
+        {
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Q: each view portfolio's expected return per period",
+      "title": "View Returns"
+    },
+    "volatilities": {
+      "anyOf": [
+        {
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 10.0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Volatility of each asset per period, with correlations",
+      "title": "Volatilities"
+    }
+  },
+  "required": [
+    "market_weights"
+  ],
+  "title": "Black-Litterman expected returns and weights: inputs",
+  "type": "object"
+}

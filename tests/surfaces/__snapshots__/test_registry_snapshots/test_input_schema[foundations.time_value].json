@@ -1,0 +1,596 @@
+{
+  "$defs": {
+    "AmortizationInputs": {
+      "additionalProperties": false,
+      "description": "A loan repaid in level payments at the end of each period.",
+      "properties": {
+        "calculation": {
+          "const": "amortization",
+          "default": "amortization",
+          "description": "Level-payment amortization schedule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "periods": {
+          "description": "Number of payments",
+          "maximum": 1200,
+          "minimum": 1,
+          "title": "Periods",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "principal": {
+          "description": "Amount borrowed",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000000.0,
+          "title": "Principal",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "rate": {
+          "description": "Interest rate per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "principal",
+        "rate",
+        "periods"
+      ],
+      "title": "AmortizationInputs",
+      "type": "object"
+    },
+    "FutureValueInputs": {
+      "additionalProperties": false,
+      "description": "The future value of a sum, an annuity and a growing annuity together.",
+      "properties": {
+        "calculation": {
+          "const": "future_value",
+          "default": "future_value",
+          "description": "Compound a sum and a stream of payments",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "due": {
+          "default": false,
+          "description": "Payments at the start of each period (an annuity due)",
+          "title": "Due",
+          "type": "boolean"
+        },
+        "growth": {
+          "default": 0.0,
+          "description": "Growth of each payment over the last, per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "payment": {
+          "default": 0.0,
+          "description": "First payment of the stream (0 for none)",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Payment",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "periods": {
+          "description": "Number of periods",
+          "maximum": 1200,
+          "minimum": 0,
+          "title": "Periods",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "present_value": {
+          "default": 0.0,
+          "description": "Single sum invested now (0 for none)",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Present Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "rate": {
+          "description": "Interest rate per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "rate",
+        "periods"
+      ],
+      "title": "FutureValueInputs",
+      "type": "object"
+    },
+    "IrrInputs": {
+      "additionalProperties": false,
+      "description": "Periodic cash flows.",
+      "properties": {
+        "calculation": {
+          "const": "irr",
+          "default": "irr",
+          "description": "Internal rate of return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cash_flows": {
+          "description": "Cash flows at times 0, 1, 2, ... periods",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1201,
+          "minItems": 1,
+          "title": "Cash Flows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cash_flows"
+      ],
+      "title": "IrrInputs",
+      "type": "object"
+    },
+    "NpvInputs": {
+      "additionalProperties": false,
+      "description": "Periodic cash flows and a discount rate.",
+      "properties": {
+        "calculation": {
+          "const": "npv",
+          "default": "npv",
+          "description": "Net present value",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cash_flows": {
+          "description": "Cash flows at times 0, 1, 2, ... periods; the first is not discounted",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1201,
+          "minItems": 1,
+          "title": "Cash Flows",
+          "type": "array"
+        },
+        "rate": {
+          "description": "Discount rate per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "rate",
+        "cash_flows"
+      ],
+      "title": "NpvInputs",
+      "type": "object"
+    },
+    "PresentValueInputs": {
+      "additionalProperties": false,
+      "description": "The present value of a sum, an annuity and a growing annuity together.",
+      "properties": {
+        "calculation": {
+          "const": "present_value",
+          "default": "present_value",
+          "description": "Discount a sum and a stream of payments",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "due": {
+          "default": false,
+          "description": "Payments at the start of each period (an annuity due)",
+          "title": "Due",
+          "type": "boolean"
+        },
+        "future_value": {
+          "default": 0.0,
+          "description": "Single sum at the end of the last period (0 for none)",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Future Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "growth": {
+          "default": 0.0,
+          "description": "Growth of each payment over the last, per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "payment": {
+          "default": 0.0,
+          "description": "First payment of the stream (0 for none)",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Payment",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "periods": {
+          "anyOf": [
+            {
+              "maximum": 1200,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of periods; omitted (null) for a perpetuity",
+          "title": "Periods"
+        },
+        "rate": {
+          "description": "Discount rate per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "rate"
+      ],
+      "title": "PresentValueInputs",
+      "type": "object"
+    },
+    "SolveInputs": {
+      "additionalProperties": false,
+      "description": "The five-key equation, with exactly one of its five terms omitted.",
+      "properties": {
+        "calculation": {
+          "const": "solve",
+          "default": "solve",
+          "description": "Solve the time-value equation for the omitted term",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "due": {
+          "default": false,
+          "description": "Payments at the start of each period",
+          "title": "Due",
+          "type": "boolean"
+        },
+        "future_value": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000.0,
+              "minimum": -1000000000000.0,
+              "type": "number",
+              "x-unit": "money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cash flow at the end (FV); negative when paid out",
+          "title": "Future Value"
+        },
+        "payment": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000.0,
+              "minimum": -1000000000000.0,
+              "type": "number",
+              "x-unit": "money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Level cash flow each period (PMT); negative when paid out",
+          "title": "Payment"
+        },
+        "periods": {
+          "anyOf": [
+            {
+              "maximum": 1200,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of periods (N)",
+          "title": "Periods"
+        },
+        "present_value": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000.0,
+              "minimum": -1000000000000.0,
+              "type": "number",
+              "x-unit": "money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cash flow now (PV); negative when paid out",
+          "title": "Present Value"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.99,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Interest rate per period (I/Y)",
+          "title": "Rate"
+        }
+      },
+      "title": "SolveInputs",
+      "type": "object"
+    },
+    "XirrInputs": {
+      "additionalProperties": false,
+      "description": "Dated cash flows.",
+      "properties": {
+        "calculation": {
+          "const": "xirr",
+          "default": "xirr",
+          "description": "Internal rate of return of dated cash flows",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cash_flows": {
+          "description": "Cash flows, one per date",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Cash Flows",
+          "type": "array"
+        },
+        "dates": {
+          "description": "The date of each cash flow; the first is the base date",
+          "items": {
+            "format": "date",
+            "type": "string",
+            "x-unit": "date"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cash_flows",
+        "dates"
+      ],
+      "title": "XirrInputs",
+      "type": "object"
+    },
+    "XnpvInputs": {
+      "additionalProperties": false,
+      "description": "Dated cash flows and an annual discount rate.",
+      "properties": {
+        "calculation": {
+          "const": "xnpv",
+          "default": "xnpv",
+          "description": "Net present value of dated cash flows",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cash_flows": {
+          "description": "Cash flows, one per date",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Cash Flows",
+          "type": "array"
+        },
+        "dates": {
+          "description": "The date of each cash flow; the first is the base date",
+          "items": {
+            "format": "date",
+            "type": "string",
+            "x-unit": "date"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Dates",
+          "type": "array"
+        },
+        "rate": {
+          "description": "Annual discount rate",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "cash_flows",
+        "dates",
+        "rate"
+      ],
+      "title": "XnpvInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.time_value:2:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Present and future values of sums, annuities and perpetuities, the five-key solve, NPV, IRR, XNPV, XIRR and amortization schedules.",
+  "discriminator": {
+    "mapping": {
+      "amortization": "#/$defs/AmortizationInputs",
+      "future_value": "#/$defs/FutureValueInputs",
+      "irr": "#/$defs/IrrInputs",
+      "npv": "#/$defs/NpvInputs",
+      "present_value": "#/$defs/PresentValueInputs",
+      "solve": "#/$defs/SolveInputs",
+      "xirr": "#/$defs/XirrInputs",
+      "xnpv": "#/$defs/XnpvInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "present_value",
+      "due": false,
+      "future_value": 0.0,
+      "growth": 0.0,
+      "payment": 500.0,
+      "periods": 240.0,
+      "rate": 0.006666666666666667
+    },
+    {
+      "calculation": "future_value",
+      "due": true,
+      "growth": 0.0,
+      "payment": 200.0,
+      "periods": 10.0,
+      "present_value": 500.0,
+      "rate": 0.005
+    },
+    {
+      "calculation": "solve",
+      "due": false,
+      "future_value": 0.0,
+      "payment": -200.0,
+      "periods": 48.0,
+      "present_value": 8000.0,
+      "rate": null
+    },
+    {
+      "calculation": "npv",
+      "cash_flows": [
+        -70000.0,
+        12000.0,
+        15000.0,
+        18000.0,
+        21000.0,
+        26000.0
+      ],
+      "rate": 0.1
+    },
+    {
+      "calculation": "irr",
+      "cash_flows": [
+        -70000.0,
+        12000.0,
+        15000.0,
+        18000.0,
+        21000.0,
+        26000.0
+      ]
+    },
+    {
+      "calculation": "xnpv",
+      "cash_flows": [
+        -10000.0,
+        2750.0,
+        4250.0,
+        3250.0,
+        2750.0
+      ],
+      "dates": [
+        "2008-01-01",
+        "2008-03-01",
+        "2008-10-30",
+        "2009-02-15",
+        "2009-04-01"
+      ],
+      "rate": 0.09
+    },
+    {
+      "calculation": "xirr",
+      "cash_flows": [
+        -10000.0,
+        2750.0,
+        4250.0,
+        3250.0,
+        2750.0
+      ],
+      "dates": [
+        "2008-01-01",
+        "2008-03-01",
+        "2008-10-30",
+        "2009-02-15",
+        "2009-04-01"
+      ]
+    },
+    {
+      "calculation": "amortization",
+      "periods": 10,
+      "principal": 10000.0,
+      "rate": 0.006666666666666667
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PresentValueInputs"
+    },
+    {
+      "$ref": "#/$defs/FutureValueInputs"
+    },
+    {
+      "$ref": "#/$defs/SolveInputs"
+    },
+    {
+      "$ref": "#/$defs/NpvInputs"
+    },
+    {
+      "$ref": "#/$defs/IrrInputs"
+    },
+    {
+      "$ref": "#/$defs/XnpvInputs"
+    },
+    {
+      "$ref": "#/$defs/XirrInputs"
+    },
+    {
+      "$ref": "#/$defs/AmortizationInputs"
+    }
+  ],
+  "title": "Time value of money: inputs"
+}

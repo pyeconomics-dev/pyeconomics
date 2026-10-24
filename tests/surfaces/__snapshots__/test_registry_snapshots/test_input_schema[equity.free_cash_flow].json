@@ -1,0 +1,267 @@
+{
+  "$defs": {
+    "FcfeInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "fcfe",
+          "default": "fcfe",
+          "description": "Free cash flow to equity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capex": {
+          "description": "Capital expenditure, positive outlay",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Capex",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "depreciation": {
+          "description": "Noncash depreciation and amortization",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Depreciation",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "net_borrowing": {
+          "description": "New debt less principal repaid",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Net Borrowing",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "net_income": {
+          "description": "After-interest after-tax net income",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Net Income",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "working_capital_change": {
+          "description": "Increase in noncash working capital, positive outlay",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Working Capital Change",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "depreciation",
+        "capex",
+        "working_capital_change",
+        "net_income",
+        "net_borrowing"
+      ],
+      "title": "FcfeInputs",
+      "type": "object"
+    },
+    "FcffInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "fcff",
+          "default": "fcff",
+          "description": "Free cash flow to the firm",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capex": {
+          "description": "Capital expenditure, positive outlay",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Capex",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "depreciation": {
+          "description": "Noncash depreciation and amortization",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Depreciation",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "ebit": {
+          "description": "Operating earnings before interest and tax",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Ebit",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "tax_rate": {
+          "description": "Marginal tax rate; full loss tax benefit assumed",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Tax Rate",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "working_capital_change": {
+          "description": "Increase in noncash working capital, positive outlay",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Working Capital Change",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "depreciation",
+        "capex",
+        "working_capital_change",
+        "ebit",
+        "tax_rate"
+      ],
+      "title": "FcffInputs",
+      "type": "object"
+    },
+    "ValuationInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "default": "firm",
+          "description": "FCFF/WACC or FCFE/cost of equity",
+          "enum": [
+            "firm",
+            "equity"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "calculation": {
+          "const": "valuation",
+          "default": "valuation",
+          "description": "One- or two-stage DCF",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_rate": {
+          "description": "WACC for firm basis; cost of equity for equity basis",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Discount Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "growth": {
+          "default": 0,
+          "description": "Growth within the first stage",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "net_debt": {
+          "default": 0,
+          "description": "Debt less cash; excludes nonoperating assets other than cash",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Net Debt",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "next_cash_flow": {
+          "description": "FCFF or FCFE at t=1",
+          "maximum": 1000000000000.0,
+          "minimum": -1000000000000.0,
+          "title": "Next Cash Flow",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "terminal_growth": {
+          "default": 0,
+          "description": "Stable growth after the first stage, or after t=1 if years=0",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Terminal Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "years": {
+          "default": 0,
+          "description": "First-stage years; zero selects a single-stage perpetuity",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Years",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "next_cash_flow",
+        "discount_rate"
+      ],
+      "title": "ValuationInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:equity.free_cash_flow:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "FCFF from EBIT, FCFE from net income, and one- or two-stage firm or equity valuation.",
+  "discriminator": {
+    "mapping": {
+      "fcfe": "#/$defs/FcfeInputs",
+      "fcff": "#/$defs/FcffInputs",
+      "valuation": "#/$defs/ValuationInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "fcff",
+      "capex": 70.0,
+      "depreciation": 50.0,
+      "ebit": 200.0,
+      "tax_rate": 0.25,
+      "working_capital_change": 10.0
+    },
+    {
+      "calculation": "fcfe",
+      "capex": 70.0,
+      "depreciation": 50.0,
+      "net_borrowing": 20.0,
+      "net_income": 120.0,
+      "working_capital_change": 10.0
+    },
+    {
+      "basis": "firm",
+      "calculation": "valuation",
+      "discount_rate": 0.1,
+      "growth": 0.0,
+      "net_debt": 200.0,
+      "next_cash_flow": 100.0,
+      "terminal_growth": 0.0,
+      "years": 0
+    },
+    {
+      "basis": "firm",
+      "calculation": "valuation",
+      "discount_rate": 0.1,
+      "growth": 0.0,
+      "net_debt": 200.0,
+      "next_cash_flow": 100.0,
+      "terminal_growth": 0.02,
+      "years": 0
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/FcffInputs"
+    },
+    {
+      "$ref": "#/$defs/FcfeInputs"
+    },
+    {
+      "$ref": "#/$defs/ValuationInputs"
+    }
+  ],
+  "title": "Free cash flow and DCF valuation: inputs"
+}

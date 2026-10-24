@@ -1,0 +1,1254 @@
+{
+  "$defs": {
+    "CapmOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "description": "The intercept: the average excess return the factors leave",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Alpha",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_annualized": {
+          "description": "Alpha times the periods in a year",
+          "maximum": 366000000000.0,
+          "minimum": -366000000000.0,
+          "title": "Alpha Annualized",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_standard_error": {
+          "description": "The standard error of alpha per period",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Alpha Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alpha over its standard error; None for a fit exact to rounding",
+          "title": "Alpha T Statistic"
+        },
+        "calculation": {
+          "const": "capm",
+          "default": "capm",
+          "description": "CAPM: beta on the market and the security market line",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_excess_return": {
+          "description": "The security market line's excess return for the beta: beta times the market premium, per period",
+          "maximum": 10000000010.0,
+          "minimum": -10000000010.0,
+          "title": "Expected Excess Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_return": {
+          "description": "The security market line's expected return: the risk-free rate plus the excess return, per period",
+          "maximum": 10000000020.0,
+          "minimum": -10000000011.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "market_beta": {
+          "description": "The beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Market Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_standard_error": {
+          "description": "The standard error of the beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Market Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the market's excess return (Mkt-RF) over its standard error; None for a fit exact to rounding",
+          "title": "Market Beta T Statistic"
+        },
+        "observations": {
+          "description": "Periods in the regression",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the excess return does not vary",
+          "title": "R Squared"
+        },
+        "residual_volatility": {
+          "description": "The residuals' standard deviation per period, sqrt(e'e / (T - k))",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Residual Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "residual_volatility_annualized": {
+          "description": "The residual volatility times the root of the periods in a year",
+          "maximum": 191311.2646970899,
+          "minimum": 0.0,
+          "title": "Residual Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "alpha",
+        "alpha_annualized",
+        "alpha_standard_error",
+        "alpha_t_statistic",
+        "market_beta",
+        "market_beta_standard_error",
+        "market_beta_t_statistic",
+        "r_squared",
+        "residual_volatility",
+        "residual_volatility_annualized",
+        "observations",
+        "hac_lags",
+        "expected_excess_return",
+        "expected_return"
+      ],
+      "title": "CapmOutputs",
+      "type": "object"
+    },
+    "CarhartOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "description": "The intercept: the average excess return the factors leave",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Alpha",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_annualized": {
+          "description": "Alpha times the periods in a year",
+          "maximum": 366000000000.0,
+          "minimum": -366000000000.0,
+          "title": "Alpha Annualized",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_standard_error": {
+          "description": "The standard error of alpha per period",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Alpha Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alpha over its standard error; None for a fit exact to rounding",
+          "title": "Alpha T Statistic"
+        },
+        "calculation": {
+          "const": "carhart",
+          "default": "carhart",
+          "description": "Carhart four factors: the three and momentum",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "market_beta": {
+          "description": "The beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Market Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_standard_error": {
+          "description": "The standard error of the beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Market Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the market's excess return (Mkt-RF) over its standard error; None for a fit exact to rounding",
+          "title": "Market Beta T Statistic"
+        },
+        "momentum_beta": {
+          "description": "The beta on the momentum factor (Mom, UMD)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Momentum Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "momentum_beta_standard_error": {
+          "description": "The standard error of the beta on the momentum factor (Mom, UMD)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Momentum Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "momentum_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the momentum factor (Mom, UMD) over its standard error; None for a fit exact to rounding",
+          "title": "Momentum Beta T Statistic"
+        },
+        "observations": {
+          "description": "Periods in the regression",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the excess return does not vary",
+          "title": "R Squared"
+        },
+        "residual_volatility": {
+          "description": "The residuals' standard deviation per period, sqrt(e'e / (T - k))",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Residual Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "residual_volatility_annualized": {
+          "description": "The residual volatility times the root of the periods in a year",
+          "maximum": 191311.2646970899,
+          "minimum": 0.0,
+          "title": "Residual Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "size_beta": {
+          "description": "The beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Size Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_standard_error": {
+          "description": "The standard error of the beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Size Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the size factor (SMB) over its standard error; None for a fit exact to rounding",
+          "title": "Size Beta T Statistic"
+        },
+        "value_beta": {
+          "description": "The beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Value Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_standard_error": {
+          "description": "The standard error of the beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Value Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the value factor (HML) over its standard error; None for a fit exact to rounding",
+          "title": "Value Beta T Statistic"
+        }
+      },
+      "required": [
+        "alpha",
+        "alpha_annualized",
+        "alpha_standard_error",
+        "alpha_t_statistic",
+        "market_beta",
+        "market_beta_standard_error",
+        "market_beta_t_statistic",
+        "r_squared",
+        "residual_volatility",
+        "residual_volatility_annualized",
+        "observations",
+        "hac_lags",
+        "size_beta",
+        "size_beta_standard_error",
+        "size_beta_t_statistic",
+        "value_beta",
+        "value_beta_standard_error",
+        "value_beta_t_statistic",
+        "momentum_beta",
+        "momentum_beta_standard_error",
+        "momentum_beta_t_statistic"
+      ],
+      "title": "CarhartOutputs",
+      "type": "object"
+    },
+    "Ff3Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "description": "The intercept: the average excess return the factors leave",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Alpha",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_annualized": {
+          "description": "Alpha times the periods in a year",
+          "maximum": 366000000000.0,
+          "minimum": -366000000000.0,
+          "title": "Alpha Annualized",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_standard_error": {
+          "description": "The standard error of alpha per period",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Alpha Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alpha over its standard error; None for a fit exact to rounding",
+          "title": "Alpha T Statistic"
+        },
+        "calculation": {
+          "const": "ff3",
+          "default": "ff3",
+          "description": "Fama-French three factors: market, size and value",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "market_beta": {
+          "description": "The beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Market Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_standard_error": {
+          "description": "The standard error of the beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Market Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the market's excess return (Mkt-RF) over its standard error; None for a fit exact to rounding",
+          "title": "Market Beta T Statistic"
+        },
+        "observations": {
+          "description": "Periods in the regression",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the excess return does not vary",
+          "title": "R Squared"
+        },
+        "residual_volatility": {
+          "description": "The residuals' standard deviation per period, sqrt(e'e / (T - k))",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Residual Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "residual_volatility_annualized": {
+          "description": "The residual volatility times the root of the periods in a year",
+          "maximum": 191311.2646970899,
+          "minimum": 0.0,
+          "title": "Residual Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "size_beta": {
+          "description": "The beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Size Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_standard_error": {
+          "description": "The standard error of the beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Size Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the size factor (SMB) over its standard error; None for a fit exact to rounding",
+          "title": "Size Beta T Statistic"
+        },
+        "value_beta": {
+          "description": "The beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Value Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_standard_error": {
+          "description": "The standard error of the beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Value Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the value factor (HML) over its standard error; None for a fit exact to rounding",
+          "title": "Value Beta T Statistic"
+        }
+      },
+      "required": [
+        "alpha",
+        "alpha_annualized",
+        "alpha_standard_error",
+        "alpha_t_statistic",
+        "market_beta",
+        "market_beta_standard_error",
+        "market_beta_t_statistic",
+        "r_squared",
+        "residual_volatility",
+        "residual_volatility_annualized",
+        "observations",
+        "hac_lags",
+        "size_beta",
+        "size_beta_standard_error",
+        "size_beta_t_statistic",
+        "value_beta",
+        "value_beta_standard_error",
+        "value_beta_t_statistic"
+      ],
+      "title": "Ff3Outputs",
+      "type": "object"
+    },
+    "Ff5Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "description": "The intercept: the average excess return the factors leave",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Alpha",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_annualized": {
+          "description": "Alpha times the periods in a year",
+          "maximum": 366000000000.0,
+          "minimum": -366000000000.0,
+          "title": "Alpha Annualized",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_standard_error": {
+          "description": "The standard error of alpha per period",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Alpha Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alpha over its standard error; None for a fit exact to rounding",
+          "title": "Alpha T Statistic"
+        },
+        "calculation": {
+          "const": "ff5",
+          "default": "ff5",
+          "description": "Fama-French five factors: market, size, value, profitability and investment",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "investment_beta": {
+          "description": "The beta on the investment factor (CMA)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Investment Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "investment_beta_standard_error": {
+          "description": "The standard error of the beta on the investment factor (CMA)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Investment Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "investment_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the investment factor (CMA) over its standard error; None for a fit exact to rounding",
+          "title": "Investment Beta T Statistic"
+        },
+        "market_beta": {
+          "description": "The beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Market Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_standard_error": {
+          "description": "The standard error of the beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Market Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the market's excess return (Mkt-RF) over its standard error; None for a fit exact to rounding",
+          "title": "Market Beta T Statistic"
+        },
+        "observations": {
+          "description": "Periods in the regression",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "profitability_beta": {
+          "description": "The beta on the profitability factor (RMW)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Profitability Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "profitability_beta_standard_error": {
+          "description": "The standard error of the beta on the profitability factor (RMW)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Profitability Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "profitability_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the profitability factor (RMW) over its standard error; None for a fit exact to rounding",
+          "title": "Profitability Beta T Statistic"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the excess return does not vary",
+          "title": "R Squared"
+        },
+        "residual_volatility": {
+          "description": "The residuals' standard deviation per period, sqrt(e'e / (T - k))",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Residual Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "residual_volatility_annualized": {
+          "description": "The residual volatility times the root of the periods in a year",
+          "maximum": 191311.2646970899,
+          "minimum": 0.0,
+          "title": "Residual Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "size_beta": {
+          "description": "The beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Size Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_standard_error": {
+          "description": "The standard error of the beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Size Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the size factor (SMB) over its standard error; None for a fit exact to rounding",
+          "title": "Size Beta T Statistic"
+        },
+        "value_beta": {
+          "description": "The beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Value Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_standard_error": {
+          "description": "The standard error of the beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Value Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the value factor (HML) over its standard error; None for a fit exact to rounding",
+          "title": "Value Beta T Statistic"
+        }
+      },
+      "required": [
+        "alpha",
+        "alpha_annualized",
+        "alpha_standard_error",
+        "alpha_t_statistic",
+        "market_beta",
+        "market_beta_standard_error",
+        "market_beta_t_statistic",
+        "r_squared",
+        "residual_volatility",
+        "residual_volatility_annualized",
+        "observations",
+        "hac_lags",
+        "size_beta",
+        "size_beta_standard_error",
+        "size_beta_t_statistic",
+        "value_beta",
+        "value_beta_standard_error",
+        "value_beta_t_statistic",
+        "profitability_beta",
+        "profitability_beta_standard_error",
+        "profitability_beta_t_statistic",
+        "investment_beta",
+        "investment_beta_standard_error",
+        "investment_beta_t_statistic"
+      ],
+      "title": "Ff5Outputs",
+      "type": "object"
+    },
+    "Ff6Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "description": "The intercept: the average excess return the factors leave",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Alpha",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_annualized": {
+          "description": "Alpha times the periods in a year",
+          "maximum": 366000000000.0,
+          "minimum": -366000000000.0,
+          "title": "Alpha Annualized",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_standard_error": {
+          "description": "The standard error of alpha per period",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Alpha Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "alpha_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alpha over its standard error; None for a fit exact to rounding",
+          "title": "Alpha T Statistic"
+        },
+        "calculation": {
+          "const": "ff6",
+          "default": "ff6",
+          "description": "Fama-French six factors: the five and momentum",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "investment_beta": {
+          "description": "The beta on the investment factor (CMA)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Investment Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "investment_beta_standard_error": {
+          "description": "The standard error of the beta on the investment factor (CMA)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Investment Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "investment_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the investment factor (CMA) over its standard error; None for a fit exact to rounding",
+          "title": "Investment Beta T Statistic"
+        },
+        "market_beta": {
+          "description": "The beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Market Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_standard_error": {
+          "description": "The standard error of the beta on the market's excess return (Mkt-RF)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Market Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the market's excess return (Mkt-RF) over its standard error; None for a fit exact to rounding",
+          "title": "Market Beta T Statistic"
+        },
+        "momentum_beta": {
+          "description": "The beta on the momentum factor (Mom, UMD)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Momentum Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "momentum_beta_standard_error": {
+          "description": "The standard error of the beta on the momentum factor (Mom, UMD)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Momentum Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "momentum_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the momentum factor (Mom, UMD) over its standard error; None for a fit exact to rounding",
+          "title": "Momentum Beta T Statistic"
+        },
+        "observations": {
+          "description": "Periods in the regression",
+          "maximum": 2520,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "profitability_beta": {
+          "description": "The beta on the profitability factor (RMW)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Profitability Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "profitability_beta_standard_error": {
+          "description": "The standard error of the beta on the profitability factor (RMW)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Profitability Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "profitability_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the profitability factor (RMW) over its standard error; None for a fit exact to rounding",
+          "title": "Profitability Beta T Statistic"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the excess return does not vary",
+          "title": "R Squared"
+        },
+        "residual_volatility": {
+          "description": "The residuals' standard deviation per period, sqrt(e'e / (T - k))",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Residual Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "residual_volatility_annualized": {
+          "description": "The residual volatility times the root of the periods in a year",
+          "maximum": 191311.2646970899,
+          "minimum": 0.0,
+          "title": "Residual Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "size_beta": {
+          "description": "The beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Size Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_standard_error": {
+          "description": "The standard error of the beta on the size factor (SMB)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Size Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "size_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the size factor (SMB) over its standard error; None for a fit exact to rounding",
+          "title": "Size Beta T Statistic"
+        },
+        "value_beta": {
+          "description": "The beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Value Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_standard_error": {
+          "description": "The standard error of the beta on the value factor (HML)",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Value Beta Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_beta_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The beta on the value factor (HML) over its standard error; None for a fit exact to rounding",
+          "title": "Value Beta T Statistic"
+        }
+      },
+      "required": [
+        "alpha",
+        "alpha_annualized",
+        "alpha_standard_error",
+        "alpha_t_statistic",
+        "market_beta",
+        "market_beta_standard_error",
+        "market_beta_t_statistic",
+        "r_squared",
+        "residual_volatility",
+        "residual_volatility_annualized",
+        "observations",
+        "hac_lags",
+        "size_beta",
+        "size_beta_standard_error",
+        "size_beta_t_statistic",
+        "value_beta",
+        "value_beta_standard_error",
+        "value_beta_t_statistic",
+        "profitability_beta",
+        "profitability_beta_standard_error",
+        "profitability_beta_t_statistic",
+        "investment_beta",
+        "investment_beta_standard_error",
+        "investment_beta_t_statistic",
+        "momentum_beta",
+        "momentum_beta_standard_error",
+        "momentum_beta_t_statistic"
+      ],
+      "title": "Ff6Outputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:asset_pricing.factor_regression:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An asset's excess returns regressed on the market (CAPM), the Fama-French three or five factors, Carhart's four or the six-factor model: alpha per period and annualized, each beta with Newey-West errors, R-squared, residual volatility and the CAPM's security market line.",
+  "discriminator": {
+    "mapping": {
+      "capm": "#/$defs/CapmOutputs",
+      "carhart": "#/$defs/CarhartOutputs",
+      "ff3": "#/$defs/Ff3Outputs",
+      "ff5": "#/$defs/Ff5Outputs",
+      "ff6": "#/$defs/Ff6Outputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CapmOutputs"
+    },
+    {
+      "$ref": "#/$defs/Ff3Outputs"
+    },
+    {
+      "$ref": "#/$defs/CarhartOutputs"
+    },
+    {
+      "$ref": "#/$defs/Ff5Outputs"
+    },
+    {
+      "$ref": "#/$defs/Ff6Outputs"
+    }
+  ],
+  "title": "Factor regressions: CAPM to the six-factor model: outputs"
+}

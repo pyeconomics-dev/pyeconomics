@@ -1,0 +1,771 @@
+{
+  "$defs": {
+    "EgarchOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aic": {
+          "description": "Akaike criterion",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Aic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "bic": {
+          "description": "Bayesian criterion",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Bic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "egarch",
+          "default": "egarch",
+          "description": "EGARCH",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "horizons": {
+          "description": "Forecast horizons, 1 to horizon periods ahead",
+          "items": {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 500,
+          "title": "Horizons",
+          "type": "array"
+        },
+        "last_volatility": {
+          "description": "The conditional volatility of the last period",
+          "maximum": 191311.2646970899,
+          "minimum": 0,
+          "title": "Last Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "last_volatility_annualized": {
+          "description": "The last conditional volatility times sqrt(periods_per_year)",
+          "maximum": 191311.2646970899,
+          "minimum": 0,
+          "title": "Last Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "log_likelihood": {
+          "description": "Log-likelihood of the decimal returns",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Log Likelihood",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Returns fitted",
+          "maximum": 10000,
+          "minimum": 100,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_values": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "probability"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Two-sided p-values from the normal distribution",
+          "title": "P Values"
+        },
+        "parameter_names": {
+          "description": "Parameter names, in arch's order: mu, omega, alpha, gamma, beta, nu",
+          "items": {
+            "maxLength": 16,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 9,
+          "title": "Parameter Names",
+          "type": "array"
+        },
+        "parameters": {
+          "description": "Estimates in decimal units: mu a return per period, omega a variance per period (the log-variance intercept for EGARCH), the rest pure numbers",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 9,
+          "title": "Parameters",
+          "type": "array"
+        },
+        "persistence": {
+          "description": "alpha + beta (GARCH), alpha + gamma / 2 + beta (GJR) or beta (EGARCH), each summed over its lags",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Persistence",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "standard_errors": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Standard errors of the parameters; null for fixed parameters",
+          "title": "Standard Errors"
+        },
+        "t_statistics": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": -1e+300,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parameter over standard error; null without standard errors",
+          "title": "T Statistics"
+        },
+        "term_volatility_annualized": {
+          "description": "Annualized volatility of the cumulative return to each horizon: sqrt(periods_per_year / h x the sum of the first h variance forecasts)",
+          "items": {
+            "maximum": 191311.2646970899,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 500,
+          "title": "Term Volatility Annualized",
+          "type": "array"
+        },
+        "unconditional_volatility": {
+          "anyOf": [
+            {
+              "maximum": 191311.2646970899,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Long-run volatility per period, sqrt(omega / (1 - persistence)); null when persistence is at least one, and for EGARCH",
+          "title": "Unconditional Volatility"
+        },
+        "unconditional_volatility_annualized": {
+          "anyOf": [
+            {
+              "maximum": 191311.2646970899,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The unconditional volatility times sqrt(periods_per_year)",
+          "title": "Unconditional Volatility Annualized"
+        },
+        "variance_forecasts": {
+          "description": "Forecast variance of the decimal return each period ahead",
+          "items": {
+            "maximum": 100000000.0,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 500,
+          "title": "Variance Forecasts",
+          "type": "array"
+        },
+        "volatility_forecasts_annualized": {
+          "description": "sqrt(periods_per_year x the variance forecast) each period ahead",
+          "items": {
+            "maximum": 191311.2646970899,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 500,
+          "title": "Volatility Forecasts Annualized",
+          "type": "array"
+        }
+      },
+      "required": [
+        "parameter_names",
+        "parameters",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "observations",
+        "persistence",
+        "unconditional_volatility",
+        "unconditional_volatility_annualized",
+        "last_volatility",
+        "last_volatility_annualized",
+        "horizons",
+        "variance_forecasts",
+        "volatility_forecasts_annualized",
+        "term_volatility_annualized"
+      ],
+      "title": "EgarchOutputs",
+      "type": "object"
+    },
+    "GarchOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aic": {
+          "description": "Akaike criterion",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Aic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "bic": {
+          "description": "Bayesian criterion",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Bic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "garch",
+          "default": "garch",
+          "description": "GARCH",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "horizons": {
+          "description": "Forecast horizons, 1 to horizon periods ahead",
+          "items": {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 500,
+          "title": "Horizons",
+          "type": "array"
+        },
+        "last_volatility": {
+          "description": "The conditional volatility of the last period",
+          "maximum": 191311.2646970899,
+          "minimum": 0,
+          "title": "Last Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "last_volatility_annualized": {
+          "description": "The last conditional volatility times sqrt(periods_per_year)",
+          "maximum": 191311.2646970899,
+          "minimum": 0,
+          "title": "Last Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "log_likelihood": {
+          "description": "Log-likelihood of the decimal returns",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Log Likelihood",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Returns fitted",
+          "maximum": 10000,
+          "minimum": 100,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_values": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "probability"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Two-sided p-values from the normal distribution",
+          "title": "P Values"
+        },
+        "parameter_names": {
+          "description": "Parameter names, in arch's order: mu, omega, alpha, gamma, beta, nu",
+          "items": {
+            "maxLength": 16,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 9,
+          "title": "Parameter Names",
+          "type": "array"
+        },
+        "parameters": {
+          "description": "Estimates in decimal units: mu a return per period, omega a variance per period (the log-variance intercept for EGARCH), the rest pure numbers",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 9,
+          "title": "Parameters",
+          "type": "array"
+        },
+        "persistence": {
+          "description": "alpha + beta (GARCH), alpha + gamma / 2 + beta (GJR) or beta (EGARCH), each summed over its lags",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Persistence",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "standard_errors": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Standard errors of the parameters; null for fixed parameters",
+          "title": "Standard Errors"
+        },
+        "t_statistics": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": -1e+300,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parameter over standard error; null without standard errors",
+          "title": "T Statistics"
+        },
+        "term_volatility_annualized": {
+          "description": "Annualized volatility of the cumulative return to each horizon: sqrt(periods_per_year / h x the sum of the first h variance forecasts)",
+          "items": {
+            "maximum": 191311.2646970899,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 500,
+          "title": "Term Volatility Annualized",
+          "type": "array"
+        },
+        "unconditional_volatility": {
+          "anyOf": [
+            {
+              "maximum": 191311.2646970899,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Long-run volatility per period, sqrt(omega / (1 - persistence)); null when persistence is at least one, and for EGARCH",
+          "title": "Unconditional Volatility"
+        },
+        "unconditional_volatility_annualized": {
+          "anyOf": [
+            {
+              "maximum": 191311.2646970899,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The unconditional volatility times sqrt(periods_per_year)",
+          "title": "Unconditional Volatility Annualized"
+        },
+        "variance_forecasts": {
+          "description": "Forecast variance of the decimal return each period ahead",
+          "items": {
+            "maximum": 100000000.0,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 500,
+          "title": "Variance Forecasts",
+          "type": "array"
+        },
+        "volatility_forecasts_annualized": {
+          "description": "sqrt(periods_per_year x the variance forecast) each period ahead",
+          "items": {
+            "maximum": 191311.2646970899,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 500,
+          "title": "Volatility Forecasts Annualized",
+          "type": "array"
+        }
+      },
+      "required": [
+        "parameter_names",
+        "parameters",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "observations",
+        "persistence",
+        "unconditional_volatility",
+        "unconditional_volatility_annualized",
+        "last_volatility",
+        "last_volatility_annualized",
+        "horizons",
+        "variance_forecasts",
+        "volatility_forecasts_annualized",
+        "term_volatility_annualized"
+      ],
+      "title": "GarchOutputs",
+      "type": "object"
+    },
+    "GjrOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aic": {
+          "description": "Akaike criterion",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Aic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "bic": {
+          "description": "Bayesian criterion",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Bic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "gjr",
+          "default": "gjr",
+          "description": "GJR-GARCH",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "horizons": {
+          "description": "Forecast horizons, 1 to horizon periods ahead",
+          "items": {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 500,
+          "title": "Horizons",
+          "type": "array"
+        },
+        "last_volatility": {
+          "description": "The conditional volatility of the last period",
+          "maximum": 191311.2646970899,
+          "minimum": 0,
+          "title": "Last Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "last_volatility_annualized": {
+          "description": "The last conditional volatility times sqrt(periods_per_year)",
+          "maximum": 191311.2646970899,
+          "minimum": 0,
+          "title": "Last Volatility Annualized",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "log_likelihood": {
+          "description": "Log-likelihood of the decimal returns",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Log Likelihood",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Returns fitted",
+          "maximum": 10000,
+          "minimum": 100,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_values": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "probability"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Two-sided p-values from the normal distribution",
+          "title": "P Values"
+        },
+        "parameter_names": {
+          "description": "Parameter names, in arch's order: mu, omega, alpha, gamma, beta, nu",
+          "items": {
+            "maxLength": 16,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 9,
+          "title": "Parameter Names",
+          "type": "array"
+        },
+        "parameters": {
+          "description": "Estimates in decimal units: mu a return per period, omega a variance per period (the log-variance intercept for EGARCH), the rest pure numbers",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 9,
+          "title": "Parameters",
+          "type": "array"
+        },
+        "persistence": {
+          "description": "alpha + beta (GARCH), alpha + gamma / 2 + beta (GJR) or beta (EGARCH), each summed over its lags",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Persistence",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "standard_errors": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Standard errors of the parameters; null for fixed parameters",
+          "title": "Standard Errors"
+        },
+        "t_statistics": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": -1e+300,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxLength": 9,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parameter over standard error; null without standard errors",
+          "title": "T Statistics"
+        },
+        "term_volatility_annualized": {
+          "description": "Annualized volatility of the cumulative return to each horizon: sqrt(periods_per_year / h x the sum of the first h variance forecasts)",
+          "items": {
+            "maximum": 191311.2646970899,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 500,
+          "title": "Term Volatility Annualized",
+          "type": "array"
+        },
+        "unconditional_volatility": {
+          "anyOf": [
+            {
+              "maximum": 191311.2646970899,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Long-run volatility per period, sqrt(omega / (1 - persistence)); null when persistence is at least one, and for EGARCH",
+          "title": "Unconditional Volatility"
+        },
+        "unconditional_volatility_annualized": {
+          "anyOf": [
+            {
+              "maximum": 191311.2646970899,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The unconditional volatility times sqrt(periods_per_year)",
+          "title": "Unconditional Volatility Annualized"
+        },
+        "variance_forecasts": {
+          "description": "Forecast variance of the decimal return each period ahead",
+          "items": {
+            "maximum": 100000000.0,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 500,
+          "title": "Variance Forecasts",
+          "type": "array"
+        },
+        "volatility_forecasts_annualized": {
+          "description": "sqrt(periods_per_year x the variance forecast) each period ahead",
+          "items": {
+            "maximum": 191311.2646970899,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 500,
+          "title": "Volatility Forecasts Annualized",
+          "type": "array"
+        }
+      },
+      "required": [
+        "parameter_names",
+        "parameters",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "observations",
+        "persistence",
+        "unconditional_volatility",
+        "unconditional_volatility_annualized",
+        "last_volatility",
+        "last_volatility_annualized",
+        "horizons",
+        "variance_forecasts",
+        "volatility_forecasts_annualized",
+        "term_volatility_annualized"
+      ],
+      "title": "GjrOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:econometrics.garch:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "GARCH, GJR-GARCH and EGARCH over arch, with normal or Student's t errors and a zero or constant mean: each parameter with its standard error, the log-likelihood, AIC and BIC, persistence, the unconditional and last conditional volatility, and annualized variance forecasts.",
+  "discriminator": {
+    "mapping": {
+      "egarch": "#/$defs/EgarchOutputs",
+      "garch": "#/$defs/GarchOutputs",
+      "gjr": "#/$defs/GjrOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GarchOutputs"
+    },
+    {
+      "$ref": "#/$defs/GjrOutputs"
+    },
+    {
+      "$ref": "#/$defs/EgarchOutputs"
+    }
+  ],
+  "title": "GARCH, GJR-GARCH and EGARCH volatility: outputs"
+}

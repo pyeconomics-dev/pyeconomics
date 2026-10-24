@@ -1,0 +1,188 @@
+{
+  "$defs": {
+    "ForwardRateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "forward_rate",
+          "default": "forward_rate",
+          "description": "Forward rate between two maturities",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "forward_rate": {
+          "description": "Rate from the near to the far maturity",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Forward Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "forward_rate"
+      ],
+      "title": "ForwardRateOutputs",
+      "type": "object"
+    },
+    "FromParOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "from_par",
+          "default": "from_par",
+          "description": "Bootstrap spot rates from par yields",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_factors": {
+          "description": "Discount factor at each tenor",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 200,
+          "title": "Discount Factors",
+          "type": "array"
+        },
+        "forward_rates": {
+          "description": "Forward rate over each period, ending at its tenor",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "title": "Forward Rates",
+          "type": "array"
+        },
+        "spot_rates": {
+          "description": "Spot (zero) rate at each tenor",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "title": "Spot Rates",
+          "type": "array"
+        },
+        "tenors": {
+          "description": "Tenor of each point, in years",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 200.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 200,
+          "title": "Tenors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tenors",
+        "discount_factors",
+        "spot_rates",
+        "forward_rates"
+      ],
+      "title": "FromParOutputs",
+      "type": "object"
+    },
+    "FromSpotOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "from_spot",
+          "default": "from_spot",
+          "description": "Par yields and forwards from spot rates",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_factors": {
+          "description": "Discount factor at each tenor",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 200,
+          "title": "Discount Factors",
+          "type": "array"
+        },
+        "forward_rates": {
+          "description": "Forward rate over each period, ending at its tenor",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "title": "Forward Rates",
+          "type": "array"
+        },
+        "par_yields": {
+          "description": "Par yield at each tenor",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "tenors": {
+          "description": "Tenor of each point, in years",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 200.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 200,
+          "title": "Tenors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tenors",
+        "discount_factors",
+        "par_yields",
+        "forward_rates"
+      ],
+      "title": "FromSpotOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.curve_bootstrap:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Bootstrap spot rates and discount factors from par yields, par yields from spot rates, and forward rates between maturities.",
+  "discriminator": {
+    "mapping": {
+      "forward_rate": "#/$defs/ForwardRateOutputs",
+      "from_par": "#/$defs/FromParOutputs",
+      "from_spot": "#/$defs/FromSpotOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/FromParOutputs"
+    },
+    {
+      "$ref": "#/$defs/FromSpotOutputs"
+    },
+    {
+      "$ref": "#/$defs/ForwardRateOutputs"
+    }
+  ],
+  "title": "Spot, par and forward curves: outputs"
+}

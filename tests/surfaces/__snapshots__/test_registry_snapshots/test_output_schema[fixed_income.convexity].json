@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "AnalyticalOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "analytical",
+          "default": "analytical",
+          "description": "Convexity from the yield",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "convexity": {
+          "description": "Second derivative of the price in the yield, over the price (years squared)",
+          "maximum": 100000.0,
+          "minimum": 0.0,
+          "title": "Convexity",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "convexity",
+        "full_price"
+      ],
+      "title": "AnalyticalOutputs",
+      "type": "object"
+    },
+    "EffectiveOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "effective",
+          "default": "effective",
+          "description": "Effective convexity off a spot curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "effective_convexity": {
+          "description": "(P_down + P_up - 2 P) / (P bump^2), in years squared",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Effective Convexity",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "effective_convexity",
+        "full_price"
+      ],
+      "title": "EffectiveOutputs",
+      "type": "object"
+    },
+    "PriceChangeOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "actual_change": {
+          "description": "Relative change in the full price on repricing",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Actual Change",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "approximation_error": {
+          "description": "Actual change less the estimate",
+          "maximum": 1000.0,
+          "minimum": -1000.0,
+          "title": "Approximation Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "price_change",
+          "default": "price_change",
+          "description": "Duration and convexity price-change estimate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "convexity": {
+          "description": "Convexity at the yield (years squared)",
+          "maximum": 100000.0,
+          "minimum": 0.0,
+          "title": "Convexity",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "convexity_effect": {
+          "description": "Half the convexity x the yield change squared",
+          "maximum": 1000.0,
+          "minimum": -1000.0,
+          "title": "Convexity Effect",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "duration_effect": {
+          "description": "-D_mod x the yield change",
+          "maximum": 1000.0,
+          "minimum": -1000.0,
+          "title": "Duration Effect",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "estimated_change": {
+          "description": "Relative price change estimated by duration and convexity",
+          "maximum": 1000.0,
+          "minimum": -1000.0,
+          "title": "Estimated Change",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "modified_duration": {
+          "description": "Modified duration at the yield",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Modified Duration",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "modified_duration",
+        "convexity",
+        "duration_effect",
+        "convexity_effect",
+        "estimated_change",
+        "actual_change",
+        "approximation_error"
+      ],
+      "title": "PriceChangeOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.convexity:2:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Convexity of a fixed-coupon bond from its yield, effective convexity off a spot curve, and the duration-and-convexity price-change estimate.",
+  "discriminator": {
+    "mapping": {
+      "analytical": "#/$defs/AnalyticalOutputs",
+      "effective": "#/$defs/EffectiveOutputs",
+      "price_change": "#/$defs/PriceChangeOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AnalyticalOutputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveOutputs"
+    },
+    {
+      "$ref": "#/$defs/PriceChangeOutputs"
+    }
+  ],
+  "title": "Bond convexity: outputs"
+}

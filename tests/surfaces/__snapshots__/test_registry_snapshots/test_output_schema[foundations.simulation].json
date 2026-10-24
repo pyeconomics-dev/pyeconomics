@@ -1,0 +1,167 @@
+{
+  "$defs": {
+    "BootstrapOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "bootstrap",
+          "default": "bootstrap",
+          "description": "Nonparametric bootstrap of a statistic",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "estimate": {
+          "description": "Statistic of the sample",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "interval_lower": {
+          "description": "Percentile interval, lower",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Interval Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "interval_upper": {
+          "description": "Percentile interval, upper",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Interval Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "standard_error": {
+          "description": "Standard deviation of the bootstrap replicates (B - 1)",
+          "maximum": 10000000.0,
+          "minimum": 0,
+          "title": "Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "estimate",
+        "standard_error",
+        "interval_lower",
+        "interval_upper"
+      ],
+      "title": "BootstrapOutputs",
+      "type": "object"
+    },
+    "GbmOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "gbm",
+          "default": "gbm",
+          "description": "Monte Carlo of geometric Brownian motion",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "paths_simulated": {
+          "description": "Paths simulated",
+          "maximum": 100000,
+          "minimum": 4,
+          "title": "Paths Simulated",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "percentile_values": {
+          "description": "Terminal quantiles at the requested probabilities",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "index_level"
+          },
+          "maxItems": 99,
+          "title": "Percentile Values",
+          "type": "array"
+        },
+        "probability_below": {
+          "description": "Share of paths ending below the level",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Probability Below",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "standard_error": {
+          "description": "Standard error of the mean (from pair averages with antithetic variates)",
+          "maximum": 1e+30,
+          "minimum": 0,
+          "title": "Standard Error",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "terminal_max": {
+          "description": "Largest terminal value",
+          "maximum": 1e+30,
+          "minimum": 0,
+          "title": "Terminal Max",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "terminal_mean": {
+          "description": "Mean terminal value",
+          "maximum": 1e+30,
+          "minimum": 0,
+          "title": "Terminal Mean",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "terminal_min": {
+          "description": "Smallest terminal value",
+          "maximum": 1e+30,
+          "minimum": 0,
+          "title": "Terminal Min",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "terminal_std": {
+          "description": "Standard deviation of terminal values",
+          "maximum": 1e+30,
+          "minimum": 0,
+          "title": "Terminal Std",
+          "type": "number",
+          "x-unit": "index_level"
+        }
+      },
+      "required": [
+        "terminal_mean",
+        "terminal_std",
+        "standard_error",
+        "terminal_min",
+        "terminal_max",
+        "percentile_values",
+        "probability_below",
+        "paths_simulated"
+      ],
+      "title": "GbmOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.simulation:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Seeded Monte Carlo of geometric Brownian motion, with antithetic variates, and the nonparametric bootstrap of a mean, median or standard deviation.",
+  "discriminator": {
+    "mapping": {
+      "bootstrap": "#/$defs/BootstrapOutputs",
+      "gbm": "#/$defs/GbmOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GbmOutputs"
+    },
+    {
+      "$ref": "#/$defs/BootstrapOutputs"
+    }
+  ],
+  "title": "Monte Carlo simulation: outputs"
+}

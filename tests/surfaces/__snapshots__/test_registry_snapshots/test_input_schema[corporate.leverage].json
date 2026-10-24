@@ -1,0 +1,66 @@
+{
+  "$id": "urn:pyeconomics:model:corporate.leverage:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DOL, DFL, DTL and operating and total breakeven quantities for one product.",
+  "examples": [
+    {
+      "fixed_costs": 100.0,
+      "interest": 20.0,
+      "price": 20.0,
+      "quantity": 30,
+      "variable_cost": 10.0
+    }
+  ],
+  "properties": {
+    "fixed_costs": {
+      "description": "Fixed operating costs per period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Fixed Costs",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "interest": {
+      "description": "Interest expense per period",
+      "maximum": 1000000000000.0,
+      "minimum": 0,
+      "title": "Interest",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "price": {
+      "description": "Selling price per unit",
+      "maximum": 1000000.0,
+      "minimum": 0,
+      "title": "Price",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "quantity": {
+      "description": "Units sold per period",
+      "maximum": 100000000.0,
+      "minimum": 0,
+      "title": "Quantity",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "variable_cost": {
+      "description": "Variable cost per unit",
+      "maximum": 1000000.0,
+      "minimum": 0,
+      "title": "Variable Cost",
+      "type": "number",
+      "x-unit": "money"
+    }
+  },
+  "required": [
+    "price",
+    "variable_cost",
+    "fixed_costs",
+    "interest",
+    "quantity"
+  ],
+  "title": "Operating and financial leverage: inputs",
+  "type": "object"
+}

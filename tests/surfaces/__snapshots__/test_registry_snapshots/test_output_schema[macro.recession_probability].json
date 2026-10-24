@@ -1,0 +1,39 @@
+{
+  "$id": "urn:pyeconomics:model:macro.recession_probability:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The New York Fed's probit of a US recession twelve months ahead from the spread of the 10-year Treasury yield over the 3-month bill.",
+  "properties": {
+    "bill_bond_equivalent": {
+      "description": "The bill rate on a bond-equivalent basis",
+      "maximum": 1.0,
+      "minimum": -1.0,
+      "title": "Bill Bond Equivalent",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "probability": {
+      "description": "The probability of a recession twelve months ahead",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Probability",
+      "type": "number",
+      "x-unit": "probability"
+    },
+    "spread": {
+      "description": "The 10-year yield less the bond-equivalent bill rate",
+      "maximum": 1.0,
+      "minimum": -1.0,
+      "title": "Spread",
+      "type": "number",
+      "x-unit": "rate"
+    }
+  },
+  "required": [
+    "probability",
+    "spread",
+    "bill_bond_equivalent"
+  ],
+  "title": "Yield-curve recession probability: outputs",
+  "type": "object"
+}

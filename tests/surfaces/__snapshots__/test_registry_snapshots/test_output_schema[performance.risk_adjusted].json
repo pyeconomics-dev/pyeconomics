@@ -1,0 +1,233 @@
+{
+  "$id": "urn:pyeconomics:model:performance.risk_adjusted:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Sharpe, Sortino, Treynor, Jensen's alpha, information ratio and tracking error, M², Calmar and up- and down-capture ratios from return series.",
+  "properties": {
+    "annualized_return": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1.0,
+          "type": "number",
+          "x-unit": "return"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Compound annual growth rate of the portfolio",
+      "title": "Annualized Return"
+    },
+    "annualized_volatility": {
+      "description": "Standard deviation of the portfolio returns (n - 1) times sqrt(m)",
+      "maximum": 100000.0,
+      "minimum": 0.0,
+      "title": "Annualized Volatility",
+      "type": "number",
+      "x-unit": "volatility"
+    },
+    "beta": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Covariance of portfolio and benchmark excess returns over the benchmark's variance",
+      "title": "Beta"
+    },
+    "calmar_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Compound annual growth rate over the maximum drawdown",
+      "title": "Calmar Ratio"
+    },
+    "down_capture": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Geometric mean portfolio return over the benchmark's, in periods the benchmark fell",
+      "title": "Down Capture"
+    },
+    "downside_deviation": {
+      "description": "Root mean square shortfall below the minimum acceptable return (n), times sqrt(m)",
+      "maximum": 100000.0,
+      "minimum": 0.0,
+      "title": "Downside Deviation",
+      "type": "number",
+      "x-unit": "volatility"
+    },
+    "information_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Mean active return over its standard deviation, times sqrt(m)",
+      "title": "Information Ratio"
+    },
+    "jensen_alpha": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "return"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Annualized intercept: m times (mean excess return - beta * benchmark's)",
+      "title": "Jensen Alpha"
+    },
+    "m_squared": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "return"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Annualized risk-free return plus the Sharpe ratio times the benchmark's annualized excess volatility",
+      "title": "M Squared"
+    },
+    "max_drawdown": {
+      "description": "Largest decline of the wealth index from a peak",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Max Drawdown",
+      "type": "number",
+      "x-unit": "return"
+    },
+    "observations": {
+      "description": "Number of periods",
+      "maximum": 10080,
+      "minimum": 2,
+      "title": "Observations",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "sharpe_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Mean excess return over its standard deviation, times sqrt(m)",
+      "title": "Sharpe Ratio"
+    },
+    "sortino_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Mean return less the minimum acceptable return, over the downside deviation, times sqrt(m)",
+      "title": "Sortino Ratio"
+    },
+    "tracking_error": {
+      "description": "Standard deviation of the active returns (n - 1) times sqrt(m)",
+      "maximum": 100000.0,
+      "minimum": 0.0,
+      "title": "Tracking Error",
+      "type": "number",
+      "x-unit": "volatility"
+    },
+    "treynor_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Annualized mean excess return over beta",
+      "title": "Treynor Ratio"
+    },
+    "up_capture": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Geometric mean portfolio return over the benchmark's, in periods the benchmark rose",
+      "title": "Up Capture"
+    }
+  },
+  "required": [
+    "observations",
+    "annualized_return",
+    "annualized_volatility",
+    "sharpe_ratio",
+    "downside_deviation",
+    "sortino_ratio",
+    "beta",
+    "treynor_ratio",
+    "jensen_alpha",
+    "tracking_error",
+    "information_ratio",
+    "m_squared",
+    "max_drawdown",
+    "calmar_ratio",
+    "up_capture",
+    "down_capture"
+  ],
+  "title": "Risk-adjusted performance: outputs",
+  "type": "object"
+}

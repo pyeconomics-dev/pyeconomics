@@ -1,0 +1,259 @@
+{
+  "$defs": {
+    "GrowthAccountingInputs": {
+      "additionalProperties": false,
+      "description": "Solow's (1957) growth accounting over a run of periods.",
+      "properties": {
+        "calculation": {
+          "const": "growth_accounting",
+          "default": "growth_accounting",
+          "description": "Growth accounting and the TFP residual",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capital_growth": {
+          "description": "Growth of the capital stock each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Capital Growth",
+          "type": "array"
+        },
+        "capital_share": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A constant capital share, in place of labour_share",
+          "title": "Capital Share"
+        },
+        "human_capital_growth": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -0.99,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Growth of human capital per worker each period; none when left out",
+          "title": "Human Capital Growth"
+        },
+        "labour_growth": {
+          "description": "Growth of labour input (persons or hours) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Labour Growth",
+          "type": "array"
+        },
+        "labour_share": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Labour's share of income each period; capital's is one less it",
+          "title": "Labour Share"
+        },
+        "method": {
+          "$ref": "#/$defs/Method",
+          "default": "log",
+          "description": "'log' accounts in log growth, ln(1 + g); 'discrete' in the growth rates themselves, Solow's (1957) arithmetic"
+        },
+        "output_growth": {
+          "description": "Growth of real output each period, Y(t) / Y(t-1) - 1",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Output Growth",
+          "type": "array"
+        }
+      },
+      "required": [
+        "output_growth",
+        "capital_growth",
+        "labour_growth"
+      ],
+      "title": "GrowthAccountingInputs",
+      "type": "object"
+    },
+    "Method": {
+      "enum": [
+        "log",
+        "discrete"
+      ],
+      "type": "string"
+    },
+    "SteadyStateInputs": {
+      "additionalProperties": false,
+      "description": "Solow's (1956) model with Cobb-Douglas technology.",
+      "properties": {
+        "calculation": {
+          "const": "steady_state",
+          "default": "steady_state",
+          "description": "The steady state and convergence",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capital_share": {
+          "default": 0.3333333333333333,
+          "description": "Alpha, capital's share of income (the Cobb-Douglas exponent)",
+          "maximum": 0.95,
+          "minimum": 0.01,
+          "title": "Capital Share",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "depreciation": {
+          "default": 0.05,
+          "description": "Delta, per year",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Depreciation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "population_growth": {
+          "default": 0.01,
+          "description": "n, per year",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Population Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "saving_rate": {
+          "description": "s, the share of output saved and invested",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Saving Rate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "technology_growth": {
+          "default": 0.02,
+          "description": "g, the growth of labour-augmenting technology per year",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Technology Growth",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "saving_rate"
+      ],
+      "title": "SteadyStateInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.solow_growth:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The Solow steady state with Cobb-Douglas technology, the golden rule and the speed of convergence, and growth accounting into capital, labour, human capital and the TFP residual.",
+  "discriminator": {
+    "mapping": {
+      "growth_accounting": "#/$defs/GrowthAccountingInputs",
+      "steady_state": "#/$defs/SteadyStateInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "steady_state",
+      "capital_share": 0.3333333333333333,
+      "depreciation": 0.05,
+      "population_growth": 0.01,
+      "saving_rate": 0.25,
+      "technology_growth": 0.02
+    },
+    {
+      "calculation": "growth_accounting",
+      "capital_growth": [
+        0.021,
+        0.024,
+        0.018,
+        0.017
+      ],
+      "capital_share": null,
+      "human_capital_growth": [
+        0.004,
+        0.004,
+        0.004,
+        0.004
+      ],
+      "labour_growth": [
+        0.012,
+        0.015,
+        -0.02,
+        0.011
+      ],
+      "labour_share": [
+        0.6,
+        0.6,
+        0.61,
+        0.6
+      ],
+      "method": "log",
+      "output_growth": [
+        0.025,
+        0.031,
+        -0.004,
+        0.022
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SteadyStateInputs"
+    },
+    {
+      "$ref": "#/$defs/GrowthAccountingInputs"
+    }
+  ],
+  "title": "Solow growth model: inputs"
+}

@@ -1,0 +1,456 @@
+{
+  "$defs": {
+    "AbsolutePppInputs": {
+      "additionalProperties": false,
+      "description": "A basket's price in each currency, and the spot rate.",
+      "properties": {
+        "base_price": {
+          "description": "Basket's price in the base currency",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Base Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "absolute_ppp",
+          "default": "absolute_ppp",
+          "description": "Exchange rate by absolute purchasing power",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "quote_price": {
+          "description": "Basket's price in the quote currency",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Quote Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote currency per unit of the base currency",
+          "maximum": 1000000.0,
+          "minimum": 1e-06,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "quote_price",
+        "base_price",
+        "spot"
+      ],
+      "title": "AbsolutePppInputs",
+      "type": "object"
+    },
+    "CoveredInputs": {
+      "additionalProperties": false,
+      "description": "A spot rate and each currency's interest rate.",
+      "properties": {
+        "base_rate": {
+          "description": "Nominal interest rate of the base currency per year",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Base Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "covered_interest_parity",
+          "default": "covered_interest_parity",
+          "description": "Forward rate by covered parity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "default": "periodic",
+          "description": "How both rates compound over the horizon",
+          "enum": [
+            "simple",
+            "periodic",
+            "continuous"
+          ],
+          "title": "Compounding",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "annual",
+          "description": "Compounding frequency of periodic rates"
+        },
+        "quote_rate": {
+          "description": "Nominal interest rate of the quote currency per year",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Quote Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote currency per unit of the base currency",
+          "maximum": 1000000.0,
+          "minimum": 1e-06,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "years": {
+          "description": "Horizon in years",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "quote_rate",
+        "base_rate",
+        "years"
+      ],
+      "title": "CoveredInputs",
+      "type": "object"
+    },
+    "FrequencyName": {
+      "enum": [
+        "annual",
+        "semiannual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "InternationalFisherInputs": {
+      "additionalProperties": false,
+      "description": "Each currency's nominal rate and expected inflation.",
+      "properties": {
+        "base_inflation": {
+          "description": "Inflation per year in the base currency's economy",
+          "maximum": 1.0,
+          "minimum": -0.2,
+          "title": "Base Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "base_rate": {
+          "description": "Nominal interest rate of the base currency per year",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Base Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "international_fisher",
+          "default": "international_fisher",
+          "description": "Real rates and the expected change",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "quote_inflation": {
+          "description": "Inflation per year in the quote currency's economy",
+          "maximum": 1.0,
+          "minimum": -0.2,
+          "title": "Quote Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "quote_rate": {
+          "description": "Nominal interest rate of the quote currency per year",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Quote Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "quote_rate",
+        "base_rate",
+        "quote_inflation",
+        "base_inflation"
+      ],
+      "title": "InternationalFisherInputs",
+      "type": "object"
+    },
+    "RealExchangeRateInputs": {
+      "additionalProperties": false,
+      "description": "A spot rate, each economy's price level, and a period's changes.",
+      "properties": {
+        "base_inflation": {
+          "default": 0.0,
+          "description": "Inflation in the base economy over it",
+          "maximum": 10.0,
+          "minimum": -0.5,
+          "title": "Base Inflation",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "base_price_level": {
+          "description": "Price index of the base economy",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Base Price Level",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "calculation": {
+          "const": "real_exchange_rate",
+          "default": "real_exchange_rate",
+          "description": "Real exchange rate and its change",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "quote_inflation": {
+          "default": 0.0,
+          "description": "Inflation in the quote economy over it",
+          "maximum": 10.0,
+          "minimum": -0.5,
+          "title": "Quote Inflation",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "quote_price_level": {
+          "description": "Price index of the quote economy",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Quote Price Level",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote currency per unit of the base currency",
+          "maximum": 1000000.0,
+          "minimum": 1e-06,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "spot_change": {
+          "default": 0.0,
+          "description": "Change in the spot rate over the period",
+          "maximum": 10.0,
+          "minimum": -0.9,
+          "title": "Spot Change",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "spot",
+        "quote_price_level",
+        "base_price_level"
+      ],
+      "title": "RealExchangeRateInputs",
+      "type": "object"
+    },
+    "RelativePppInputs": {
+      "additionalProperties": false,
+      "description": "A spot rate and each economy's expected inflation.",
+      "properties": {
+        "base_inflation": {
+          "description": "Inflation per year in the base currency's economy",
+          "maximum": 1.0,
+          "minimum": -0.2,
+          "title": "Base Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "relative_ppp",
+          "default": "relative_ppp",
+          "description": "Expected spot by relative purchasing power",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "quote_inflation": {
+          "description": "Inflation per year in the quote currency's economy",
+          "maximum": 1.0,
+          "minimum": -0.2,
+          "title": "Quote Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote currency per unit of the base currency",
+          "maximum": 1000000.0,
+          "minimum": 1e-06,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "years": {
+          "description": "Horizon in years",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "quote_inflation",
+        "base_inflation",
+        "years"
+      ],
+      "title": "RelativePppInputs",
+      "type": "object"
+    },
+    "UncoveredInputs": {
+      "additionalProperties": false,
+      "description": "A spot rate and each currency's interest rate.",
+      "properties": {
+        "base_rate": {
+          "description": "Nominal interest rate of the base currency per year",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Base Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "uncovered_interest_parity",
+          "default": "uncovered_interest_parity",
+          "description": "Expected spot by uncovered parity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "default": "periodic",
+          "description": "How both rates compound over the horizon",
+          "enum": [
+            "simple",
+            "periodic",
+            "continuous"
+          ],
+          "title": "Compounding",
+          "type": "string"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "annual",
+          "description": "Compounding frequency of periodic rates"
+        },
+        "quote_rate": {
+          "description": "Nominal interest rate of the quote currency per year",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Quote Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote currency per unit of the base currency",
+          "maximum": 1000000.0,
+          "minimum": 1e-06,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "years": {
+          "description": "Horizon in years",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "quote_rate",
+        "base_rate",
+        "years"
+      ],
+      "title": "UncoveredInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:international.parity_conditions:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Covered and uncovered interest parity, relative and absolute purchasing power parity, the international Fisher effect and real exchange rates.",
+  "discriminator": {
+    "mapping": {
+      "absolute_ppp": "#/$defs/AbsolutePppInputs",
+      "covered_interest_parity": "#/$defs/CoveredInputs",
+      "international_fisher": "#/$defs/InternationalFisherInputs",
+      "real_exchange_rate": "#/$defs/RealExchangeRateInputs",
+      "relative_ppp": "#/$defs/RelativePppInputs",
+      "uncovered_interest_parity": "#/$defs/UncoveredInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "base_rate": 0.03,
+      "calculation": "covered_interest_parity",
+      "compounding": "continuous",
+      "frequency": "annual",
+      "quote_rate": 0.01,
+      "spot": 0.75,
+      "years": 2.0
+    },
+    {
+      "base_rate": 0.045,
+      "calculation": "uncovered_interest_parity",
+      "compounding": "periodic",
+      "frequency": "annual",
+      "quote_rate": 0.005,
+      "spot": 150.0,
+      "years": 1.0
+    },
+    {
+      "base_inflation": 0.035,
+      "calculation": "relative_ppp",
+      "quote_inflation": 0.02,
+      "spot": 1.25,
+      "years": 5.0
+    },
+    {
+      "base_price": 4.95,
+      "calculation": "absolute_ppp",
+      "quote_price": 5.69,
+      "spot": 1.1
+    },
+    {
+      "base_inflation": 0.01,
+      "base_rate": 0.02,
+      "calculation": "international_fisher",
+      "quote_inflation": 0.03,
+      "quote_rate": 0.05
+    },
+    {
+      "base_inflation": 0.02,
+      "base_price_level": 115.0,
+      "calculation": "real_exchange_rate",
+      "quote_inflation": 0.03,
+      "quote_price_level": 120.0,
+      "spot": 1.1,
+      "spot_change": 0.05
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CoveredInputs"
+    },
+    {
+      "$ref": "#/$defs/UncoveredInputs"
+    },
+    {
+      "$ref": "#/$defs/RelativePppInputs"
+    },
+    {
+      "$ref": "#/$defs/AbsolutePppInputs"
+    },
+    {
+      "$ref": "#/$defs/InternationalFisherInputs"
+    },
+    {
+      "$ref": "#/$defs/RealExchangeRateInputs"
+    }
+  ],
+  "title": "International parity conditions: inputs"
+}

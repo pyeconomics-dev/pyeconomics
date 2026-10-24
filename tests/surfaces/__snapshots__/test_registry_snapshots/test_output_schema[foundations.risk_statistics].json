@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "DrawdownOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "drawdown",
+          "default": "drawdown",
+          "description": "Maximum drawdown with its peak and trough",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "max_drawdown": {
+          "description": "Largest decline from a peak, as a positive decimal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Max Drawdown",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "peak_index": {
+          "description": "Position of the peak, from 0",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Peak Index",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trough_index": {
+          "description": "Position of the trough, from 0",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Trough Index",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "max_drawdown",
+        "peak_index",
+        "trough_index"
+      ],
+      "title": "DrawdownOutputs",
+      "type": "object"
+    },
+    "MomentsOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "moments",
+          "default": "moments",
+          "description": "Adjusted skewness (G1) and excess kurtosis (G2)",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "excess_kurtosis": {
+          "description": "Adjusted excess kurtosis, G2",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Excess Kurtosis",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Number of returns",
+          "maximum": 10080,
+          "minimum": 4,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "skewness": {
+          "description": "Adjusted Fisher-Pearson skewness, G1",
+          "maximum": 1000.0,
+          "minimum": -1000.0,
+          "title": "Skewness",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "skewness",
+        "excess_kurtosis",
+        "observations"
+      ],
+      "title": "MomentsOutputs",
+      "type": "object"
+    },
+    "SemideviationOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "below_mean": {
+          "description": "Semideviation below the sample mean, with n - 1",
+          "maximum": 150.0,
+          "minimum": 0,
+          "title": "Below Mean",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "below_target": {
+          "description": "Downside deviation below the target, with n",
+          "maximum": 150.0,
+          "minimum": 0,
+          "title": "Below Target",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "calculation": {
+          "const": "semideviation",
+          "default": "semideviation",
+          "description": "Downside deviation below the mean and a target",
+          "title": "Calculation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "below_mean",
+        "below_target"
+      ],
+      "title": "SemideviationOutputs",
+      "type": "object"
+    },
+    "VolatilityOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annualized_volatility": {
+          "description": "Volatility times the square root of periods_per_year",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Annualized Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "calculation": {
+          "const": "volatility",
+          "default": "volatility",
+          "description": "Sample volatility and its annualization",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "degrees_of_freedom": {
+          "description": "n - 1, the denominator of the variance",
+          "maximum": 10080,
+          "minimum": 1,
+          "title": "Degrees Of Freedom",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "mean": {
+          "description": "Mean periodic return",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Mean",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "volatility": {
+          "description": "Sample standard deviation of the periodic returns (n - 1)",
+          "maximum": 100.0,
+          "minimum": 0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "mean",
+        "volatility",
+        "annualized_volatility",
+        "degrees_of_freedom"
+      ],
+      "title": "VolatilityOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.risk_statistics:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Sample volatility and its annualization, semideviation, adjusted skewness and excess kurtosis, and maximum drawdown.",
+  "discriminator": {
+    "mapping": {
+      "drawdown": "#/$defs/DrawdownOutputs",
+      "moments": "#/$defs/MomentsOutputs",
+      "semideviation": "#/$defs/SemideviationOutputs",
+      "volatility": "#/$defs/VolatilityOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/VolatilityOutputs"
+    },
+    {
+      "$ref": "#/$defs/SemideviationOutputs"
+    },
+    {
+      "$ref": "#/$defs/MomentsOutputs"
+    },
+    {
+      "$ref": "#/$defs/DrawdownOutputs"
+    }
+  ],
+  "title": "Risk statistics: outputs"
+}

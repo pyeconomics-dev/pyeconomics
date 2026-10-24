@@ -1,0 +1,407 @@
+{
+  "$defs": {
+    "BhbOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "active_return": {
+          "description": "Compound portfolio return less the compound benchmark return",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Active Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "allocation": {
+          "description": "Total linked allocation effect",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Allocation",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "benchmark_return": {
+          "description": "Compound benchmark return",
+          "maximum": 10000000.0,
+          "minimum": -1.0,
+          "title": "Benchmark Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "calculation": {
+          "const": "bhb",
+          "default": "bhb",
+          "description": "Brinson-Hood-Beebower: allocation against zero",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "interaction": {
+          "description": "Total linked interaction effect",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Interaction",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "period_allocation": {
+          "description": "Allocation effect of each period",
+          "items": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Allocation",
+          "type": "array"
+        },
+        "period_benchmark_returns": {
+          "description": "Benchmark return B_t of each period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Benchmark Returns",
+          "type": "array"
+        },
+        "period_interaction": {
+          "description": "Interaction effect of each period",
+          "items": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Interaction",
+          "type": "array"
+        },
+        "period_portfolio_returns": {
+          "description": "Portfolio return R_t of each period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Portfolio Returns",
+          "type": "array"
+        },
+        "period_selection": {
+          "description": "Selection effect of each period",
+          "items": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Selection",
+          "type": "array"
+        },
+        "periods": {
+          "description": "Number of periods",
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Periods",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "portfolio_return": {
+          "description": "Compound portfolio return",
+          "maximum": 10000000.0,
+          "minimum": -1.0,
+          "title": "Portfolio Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "sector_allocation": {
+          "description": "Linked allocation effect of each sector",
+          "items": {
+            "maximum": 10000000.0,
+            "minimum": -10000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Sector Allocation",
+          "type": "array"
+        },
+        "sector_interaction": {
+          "description": "Linked interaction effect of each sector",
+          "items": {
+            "maximum": 10000000.0,
+            "minimum": -10000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Sector Interaction",
+          "type": "array"
+        },
+        "sector_selection": {
+          "description": "Linked selection effect of each sector",
+          "items": {
+            "maximum": 10000000.0,
+            "minimum": -10000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Sector Selection",
+          "type": "array"
+        },
+        "sectors": {
+          "description": "Number of sectors",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Sectors",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "selection": {
+          "description": "Total linked selection effect",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Selection",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "periods",
+        "sectors",
+        "period_portfolio_returns",
+        "period_benchmark_returns",
+        "period_allocation",
+        "period_selection",
+        "period_interaction",
+        "sector_allocation",
+        "sector_selection",
+        "sector_interaction",
+        "allocation",
+        "selection",
+        "interaction",
+        "portfolio_return",
+        "benchmark_return",
+        "active_return"
+      ],
+      "title": "BhbOutputs",
+      "type": "object"
+    },
+    "BrinsonFachlerOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "active_return": {
+          "description": "Compound portfolio return less the compound benchmark return",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Active Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "allocation": {
+          "description": "Total linked allocation effect",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Allocation",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "benchmark_return": {
+          "description": "Compound benchmark return",
+          "maximum": 10000000.0,
+          "minimum": -1.0,
+          "title": "Benchmark Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "calculation": {
+          "const": "brinson_fachler",
+          "default": "brinson_fachler",
+          "description": "Brinson-Fachler: allocation against the total benchmark return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "interaction": {
+          "description": "Total linked interaction effect",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Interaction",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "period_allocation": {
+          "description": "Allocation effect of each period",
+          "items": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Allocation",
+          "type": "array"
+        },
+        "period_benchmark_returns": {
+          "description": "Benchmark return B_t of each period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Benchmark Returns",
+          "type": "array"
+        },
+        "period_interaction": {
+          "description": "Interaction effect of each period",
+          "items": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Interaction",
+          "type": "array"
+        },
+        "period_portfolio_returns": {
+          "description": "Portfolio return R_t of each period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Portfolio Returns",
+          "type": "array"
+        },
+        "period_selection": {
+          "description": "Selection effect of each period",
+          "items": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 600,
+          "title": "Period Selection",
+          "type": "array"
+        },
+        "periods": {
+          "description": "Number of periods",
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Periods",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "portfolio_return": {
+          "description": "Compound portfolio return",
+          "maximum": 10000000.0,
+          "minimum": -1.0,
+          "title": "Portfolio Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "sector_allocation": {
+          "description": "Linked allocation effect of each sector",
+          "items": {
+            "maximum": 10000000.0,
+            "minimum": -10000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Sector Allocation",
+          "type": "array"
+        },
+        "sector_interaction": {
+          "description": "Linked interaction effect of each sector",
+          "items": {
+            "maximum": 10000000.0,
+            "minimum": -10000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Sector Interaction",
+          "type": "array"
+        },
+        "sector_selection": {
+          "description": "Linked selection effect of each sector",
+          "items": {
+            "maximum": 10000000.0,
+            "minimum": -10000000.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "title": "Sector Selection",
+          "type": "array"
+        },
+        "sectors": {
+          "description": "Number of sectors",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Sectors",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "selection": {
+          "description": "Total linked selection effect",
+          "maximum": 10000000.0,
+          "minimum": -10000000.0,
+          "title": "Selection",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "periods",
+        "sectors",
+        "period_portfolio_returns",
+        "period_benchmark_returns",
+        "period_allocation",
+        "period_selection",
+        "period_interaction",
+        "sector_allocation",
+        "sector_selection",
+        "sector_interaction",
+        "allocation",
+        "selection",
+        "interaction",
+        "portfolio_return",
+        "benchmark_return",
+        "active_return"
+      ],
+      "title": "BrinsonFachlerOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:performance.brinson_attribution:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Brinson-Hood-Beebower and Brinson-Fachler allocation, selection and interaction effects, single-period and linked over periods with Carino's method.",
+  "discriminator": {
+    "mapping": {
+      "bhb": "#/$defs/BhbOutputs",
+      "brinson_fachler": "#/$defs/BrinsonFachlerOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/BhbOutputs"
+    },
+    {
+      "$ref": "#/$defs/BrinsonFachlerOutputs"
+    }
+  ],
+  "title": "Brinson attribution: outputs"
+}

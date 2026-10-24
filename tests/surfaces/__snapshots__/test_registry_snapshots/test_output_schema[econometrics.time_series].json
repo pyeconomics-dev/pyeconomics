@@ -1,0 +1,678 @@
+{
+  "$defs": {
+    "ArimaOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aic": {
+          "description": "Akaike criterion, -2 LL + 2k",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Aic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "bic": {
+          "description": "Schwarz criterion, -2 LL + k ln n",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Bic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "arima",
+          "default": "arima",
+          "description": "ARIMA",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "forecast_lower": {
+          "description": "Lower end of each 1 - alpha forecast interval",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 120,
+          "title": "Forecast Lower",
+          "type": "array"
+        },
+        "forecast_standard_errors": {
+          "description": "Standard error of each forecast",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 120,
+          "title": "Forecast Standard Errors",
+          "type": "array"
+        },
+        "forecast_upper": {
+          "description": "Upper end of each 1 - alpha forecast interval",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 120,
+          "title": "Forecast Upper",
+          "type": "array"
+        },
+        "forecasts": {
+          "description": "Forecast mean each period ahead",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 120,
+          "title": "Forecasts",
+          "type": "array"
+        },
+        "horizons": {
+          "description": "Forecast horizons, 1 to horizon periods ahead",
+          "items": {
+            "maximum": 120,
+            "minimum": 1,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 120,
+          "title": "Horizons",
+          "type": "array"
+        },
+        "hqic": {
+          "description": "Hannan-Quinn criterion, -2 LL + 2k ln ln n",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Hqic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "log_likelihood": {
+          "description": "Exact Gaussian log-likelihood",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Log Likelihood",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Observations in the series",
+          "maximum": 2000,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_values": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "probability"
+              },
+              "maxItems": 15,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Two-sided p-values from the normal distribution",
+          "title": "P Values"
+        },
+        "parameter_names": {
+          "description": "Parameter names, as statsmodels gives them (ar.L1, sigma2)",
+          "items": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 15,
+          "title": "Parameter Names",
+          "type": "array"
+        },
+        "parameters": {
+          "description": "Estimates, in the series' units (sigma2 in its square)",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 15,
+          "title": "Parameters",
+          "type": "array"
+        },
+        "standard_errors": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxItems": 15,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Standard errors (outer product of gradients); null if undefined",
+          "title": "Standard Errors"
+        },
+        "t_statistics": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": -1e+300,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxItems": 15,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Estimate over standard error; null without standard errors",
+          "title": "T Statistics"
+        },
+        "trend": {
+          "description": "The trend fitted",
+          "enum": [
+            "n",
+            "c",
+            "t",
+            "ct"
+          ],
+          "title": "Trend",
+          "type": "string"
+        }
+      },
+      "required": [
+        "parameter_names",
+        "parameters",
+        "standard_errors",
+        "t_statistics",
+        "p_values",
+        "trend",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "hqic",
+        "observations",
+        "horizons",
+        "forecasts",
+        "forecast_standard_errors",
+        "forecast_lower",
+        "forecast_upper"
+      ],
+      "title": "ArimaOutputs",
+      "type": "object"
+    },
+    "EngleGrangerOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "engle_granger",
+          "default": "engle_granger",
+          "description": "The Engle-Granger test",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coefficient_names": {
+          "description": "The cointegrating regression's terms: const, trend, regressors",
+          "items": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Coefficient Names",
+          "type": "array"
+        },
+        "coefficients": {
+          "description": "The cointegrating regression's least-squares coefficients",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 8,
+          "title": "Coefficients",
+          "type": "array"
+        },
+        "critical_levels": {
+          "description": "The levels: 0.01, 0.05, 0.10",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 3,
+          "title": "Critical Levels",
+          "type": "array"
+        },
+        "critical_values": {
+          "description": "MacKinnon's (2010) critical values at those levels",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 3,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "lags": {
+          "description": "ADF lags used",
+          "maximum": 24,
+          "minimum": 0,
+          "title": "Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "observations": {
+          "description": "Observations",
+          "maximum": 2000,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_value": {
+          "description": "MacKinnon's (1994, 2010) p-value",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "statistic": {
+          "description": "ADF t statistic of the residuals",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "coefficient_names",
+        "coefficients",
+        "statistic",
+        "p_value",
+        "critical_levels",
+        "critical_values",
+        "lags",
+        "observations"
+      ],
+      "title": "EngleGrangerOutputs",
+      "type": "object"
+    },
+    "JohansenOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "johansen",
+          "default": "johansen",
+          "description": "Johansen's tests",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "eigenvalues": {
+          "description": "The eigenvalues, largest first",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 6,
+          "title": "Eigenvalues",
+          "type": "array"
+        },
+        "max_eigenvalue_critical_values": {
+          "description": "Critical values per null rank, at 0.10, 0.05 and 0.01",
+          "items": {
+            "items": {
+              "maximum": 1e+300,
+              "minimum": -1e+300,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "maxItems": 6,
+          "title": "Max Eigenvalue Critical Values",
+          "type": "array"
+        },
+        "max_eigenvalue_statistics": {
+          "description": "Maximum-eigenvalue statistic for each null rank r = 0 to K - 1",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 6,
+          "title": "Max Eigenvalue Statistics",
+          "type": "array"
+        },
+        "observations": {
+          "description": "Observations in the test's regressions",
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "rank_max_eigenvalue": {
+          "description": "The rank the maximum-eigenvalue test selects",
+          "maximum": 6,
+          "minimum": 0,
+          "title": "Rank Max Eigenvalue",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "rank_trace": {
+          "description": "The rank the trace test selects",
+          "maximum": 6,
+          "minimum": 0,
+          "title": "Rank Trace",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trace_critical_values": {
+          "description": "Critical values per null rank, at 0.10, 0.05 and 0.01",
+          "items": {
+            "items": {
+              "maximum": 1e+300,
+              "minimum": -1e+300,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "maxItems": 6,
+          "title": "Trace Critical Values",
+          "type": "array"
+        },
+        "trace_statistics": {
+          "description": "Trace statistic for each null rank r = 0 to K - 1",
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 6,
+          "title": "Trace Statistics",
+          "type": "array"
+        },
+        "variables": {
+          "description": "The variables, in order",
+          "items": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Variables",
+          "type": "array"
+        }
+      },
+      "required": [
+        "variables",
+        "eigenvalues",
+        "trace_statistics",
+        "trace_critical_values",
+        "max_eigenvalue_statistics",
+        "max_eigenvalue_critical_values",
+        "rank_trace",
+        "rank_max_eigenvalue",
+        "observations"
+      ],
+      "title": "JohansenOutputs",
+      "type": "object"
+    },
+    "VarOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aic": {
+          "description": "ln det(Sigma_ML) + 2 m / n, m the coefficients",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Aic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "bic": {
+          "description": "ln det(Sigma_ML) + m ln n / n",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Bic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "var",
+          "default": "var",
+          "description": "A vector autoregression",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coefficient_names": {
+          "description": "Each equation's terms: const, trend, then L1.series and so on",
+          "items": {
+            "maxLength": 36,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 74,
+          "title": "Coefficient Names",
+          "type": "array"
+        },
+        "coefficients": {
+          "description": "One row per equation (variable), one value per term",
+          "items": {
+            "items": {
+              "maximum": 1e+300,
+              "minimum": -1e+300,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 74,
+            "type": "array"
+          },
+          "maxItems": 6,
+          "title": "Coefficients",
+          "type": "array"
+        },
+        "hqic": {
+          "description": "ln det(Sigma_ML) + 2 m ln ln n / n",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Hqic",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "impulse_responses": {
+          "description": "Orthogonalized responses at horizons 0 to horizon: [h][i][j] is variable i's response to a one-standard-deviation shock j",
+          "items": {
+            "items": {
+              "items": {
+                "maximum": 1e+300,
+                "minimum": -1e+300,
+                "type": "number",
+                "x-unit": "ratio"
+              },
+              "maxItems": 6,
+              "type": "array"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "maxItems": 61,
+          "title": "Impulse Responses",
+          "type": "array"
+        },
+        "lags": {
+          "description": "The lag order fitted, p",
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "log_likelihood": {
+          "description": "Gaussian log-likelihood",
+          "maximum": 1e+300,
+          "minimum": -1e+300,
+          "title": "Log Likelihood",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Observations in the fit, n - p",
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "residual_covariance": {
+          "description": "Covariance of the residuals, with n - p - (terms) degrees",
+          "items": {
+            "items": {
+              "maximum": 1e+300,
+              "minimum": -1e+300,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "maxItems": 6,
+          "title": "Residual Covariance",
+          "type": "array"
+        },
+        "stable": {
+          "description": "Whether every lag-polynomial root lies outside the unit circle",
+          "title": "Stable",
+          "type": "boolean"
+        },
+        "standard_errors": {
+          "description": "The coefficients' standard errors, row by row",
+          "items": {
+            "items": {
+              "maximum": 1e+300,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 74,
+            "type": "array"
+          },
+          "maxItems": 6,
+          "title": "Standard Errors",
+          "type": "array"
+        },
+        "variables": {
+          "description": "The variables, in the Cholesky ordering of the responses",
+          "items": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Variables",
+          "type": "array"
+        },
+        "variance_decomposition": {
+          "description": "Forecast-error variance shares 1 to horizon periods ahead: [h][i][j] is the share of variable i's variance due to shock j",
+          "items": {
+            "items": {
+              "items": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number",
+                "x-unit": "probability"
+              },
+              "maxItems": 6,
+              "type": "array"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "maxItems": 60,
+          "title": "Variance Decomposition",
+          "type": "array"
+        }
+      },
+      "required": [
+        "variables",
+        "lags",
+        "observations",
+        "coefficient_names",
+        "coefficients",
+        "standard_errors",
+        "residual_covariance",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "hqic",
+        "stable",
+        "impulse_responses",
+        "variance_decomposition"
+      ],
+      "title": "VarOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:econometrics.time_series:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "ARIMA and seasonal ARIMA fits and forecasts with intervals, VARs with lag selection, orthogonalized impulse responses and variance decompositions, and the Engle-Granger and Johansen cointegration tests, over statsmodels.",
+  "discriminator": {
+    "mapping": {
+      "arima": "#/$defs/ArimaOutputs",
+      "engle_granger": "#/$defs/EngleGrangerOutputs",
+      "johansen": "#/$defs/JohansenOutputs",
+      "var": "#/$defs/VarOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ArimaOutputs"
+    },
+    {
+      "$ref": "#/$defs/VarOutputs"
+    },
+    {
+      "$ref": "#/$defs/EngleGrangerOutputs"
+    },
+    {
+      "$ref": "#/$defs/JohansenOutputs"
+    }
+  ],
+  "title": "ARIMA, VAR and cointegration tests: outputs"
+}

@@ -1,0 +1,169 @@
+{
+  "$defs": {
+    "GordonOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "gordon",
+          "default": "gordon",
+          "description": "Constant growth",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "value": {
+          "description": "Equity value per share",
+          "maximum": 1000000000000000.0,
+          "minimum": 0,
+          "title": "Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "GordonOutputs",
+      "type": "object"
+    },
+    "HModelOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "h_model",
+          "default": "h_model",
+          "description": "Linear-growth approximation",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "value": {
+          "description": "Approximate equity value per share",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "HModelOutputs",
+      "type": "object"
+    },
+    "ImpliedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "implied_return",
+          "default": "implied_return",
+          "description": "Gordon implied return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "required_return": {
+          "description": "Dividend yield plus growth; decimal",
+          "maximum": 10,
+          "minimum": -0.5,
+          "title": "Required Return",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "required_return"
+      ],
+      "title": "ImpliedOutputs",
+      "type": "object"
+    },
+    "PvgoOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "pvgo",
+          "default": "pvgo",
+          "description": "Value of growth opportunities",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "no_growth_value": {
+          "description": "Earnings capitalized at required return",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "No Growth Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "pvgo": {
+          "description": "Observed price less no-growth value",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Pvgo",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "no_growth_value",
+        "pvgo"
+      ],
+      "title": "PvgoOutputs",
+      "type": "object"
+    },
+    "TwoStageOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "two_stage",
+          "default": "two_stage",
+          "description": "Two-stage DDM",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "value": {
+          "description": "Equity value per share",
+          "maximum": 1000000000000000.0,
+          "minimum": 0,
+          "title": "Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "TwoStageOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:equity.dividend_discount:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Gordon, two-stage and H-model values, PVGO and the Gordon implied return.",
+  "discriminator": {
+    "mapping": {
+      "gordon": "#/$defs/GordonOutputs",
+      "h_model": "#/$defs/HModelOutputs",
+      "implied_return": "#/$defs/ImpliedOutputs",
+      "pvgo": "#/$defs/PvgoOutputs",
+      "two_stage": "#/$defs/TwoStageOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GordonOutputs"
+    },
+    {
+      "$ref": "#/$defs/TwoStageOutputs"
+    },
+    {
+      "$ref": "#/$defs/HModelOutputs"
+    },
+    {
+      "$ref": "#/$defs/PvgoOutputs"
+    },
+    {
+      "$ref": "#/$defs/ImpliedOutputs"
+    }
+  ],
+  "title": "Dividend discount valuation: outputs"
+}

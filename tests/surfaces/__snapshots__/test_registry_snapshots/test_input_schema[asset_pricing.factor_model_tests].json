@@ -1,0 +1,380 @@
+{
+  "$defs": {
+    "FamaMacBethInputs": {
+      "additionalProperties": false,
+      "description": "The test assets and factors, and how to run the cross-sections.",
+      "properties": {
+        "calculation": {
+          "const": "fama_macbeth",
+          "default": "fama_macbeth",
+          "description": "Fama-MacBeth two-pass regressions of returns on betas",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "factors": {
+          "description": "The factors' returns, as rows: one per period, one value per factor. Each is the excess return of a traded portfolio",
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": -10.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Factors",
+          "type": "array"
+        },
+        "intercept": {
+          "default": true,
+          "description": "Include a constant in each cross-sectional regression: the zero-beta excess return; without it the constant is held at zero",
+          "title": "Intercept",
+          "type": "boolean"
+        },
+        "returns": {
+          "description": "The test assets' returns, as rows: one per period, one value per asset; excess returns when risk_free is left out",
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": -10.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from every asset's return; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        }
+      },
+      "required": [
+        "returns",
+        "factors"
+      ],
+      "title": "FamaMacBethInputs",
+      "type": "object"
+    },
+    "GrsInputs": {
+      "additionalProperties": false,
+      "description": "The test assets and traded factors, over more periods than both.",
+      "properties": {
+        "calculation": {
+          "const": "grs",
+          "default": "grs",
+          "description": "The Gibbons-Ross-Shanken test that every alpha is zero",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "factors": {
+          "description": "The factors' returns, as rows: one per period, one value per factor. Each is the excess return of a traded portfolio",
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": -10.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Factors",
+          "type": "array"
+        },
+        "returns": {
+          "description": "The test assets' returns, as rows: one per period, one value per asset; excess returns when risk_free is left out",
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": -10.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from every asset's return; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        }
+      },
+      "required": [
+        "returns",
+        "factors"
+      ],
+      "title": "GrsInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:asset_pricing.factor_model_tests:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Whether factors price a set of test assets: the Gibbons-Ross-Shanken F test that every alpha is zero, and Fama-MacBeth two-pass regressions with Fama-MacBeth and Shanken-corrected standard errors.",
+  "discriminator": {
+    "mapping": {
+      "fama_macbeth": "#/$defs/FamaMacBethInputs",
+      "grs": "#/$defs/GrsInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "grs",
+      "factors": [
+        [
+          0.018,
+          0.004
+        ],
+        [
+          -0.02,
+          -0.006
+        ],
+        [
+          0.03,
+          0.011
+        ],
+        [
+          0.006,
+          -0.002
+        ],
+        [
+          -0.025,
+          0.003
+        ],
+        [
+          0.012,
+          0.007
+        ],
+        [
+          0.022,
+          -0.005
+        ],
+        [
+          -0.006,
+          0.001
+        ],
+        [
+          0.009,
+          0.002
+        ],
+        [
+          0.016,
+          -0.004
+        ]
+      ],
+      "returns": [
+        [
+          0.021,
+          0.014,
+          0.009
+        ],
+        [
+          -0.013,
+          -0.008,
+          -0.017
+        ],
+        [
+          0.034,
+          0.027,
+          0.031
+        ],
+        [
+          0.008,
+          0.011,
+          0.002
+        ],
+        [
+          -0.022,
+          -0.015,
+          -0.026
+        ],
+        [
+          0.015,
+          0.012,
+          0.019
+        ],
+        [
+          0.027,
+          0.018,
+          0.024
+        ],
+        [
+          -0.004,
+          0.001,
+          -0.009
+        ],
+        [
+          0.012,
+          0.009,
+          0.016
+        ],
+        [
+          0.019,
+          0.013,
+          0.011
+        ]
+      ],
+      "risk_free": null
+    },
+    {
+      "calculation": "fama_macbeth",
+      "factors": [
+        [
+          0.018,
+          0.004
+        ],
+        [
+          -0.02,
+          -0.006
+        ],
+        [
+          0.03,
+          0.011
+        ],
+        [
+          0.006,
+          -0.002
+        ],
+        [
+          -0.025,
+          0.003
+        ],
+        [
+          0.012,
+          0.007
+        ],
+        [
+          0.022,
+          -0.005
+        ],
+        [
+          -0.006,
+          0.001
+        ],
+        [
+          0.009,
+          0.002
+        ],
+        [
+          0.016,
+          -0.004
+        ]
+      ],
+      "intercept": false,
+      "returns": [
+        [
+          0.021,
+          0.014,
+          0.009
+        ],
+        [
+          -0.013,
+          -0.008,
+          -0.017
+        ],
+        [
+          0.034,
+          0.027,
+          0.031
+        ],
+        [
+          0.008,
+          0.011,
+          0.002
+        ],
+        [
+          -0.022,
+          -0.015,
+          -0.026
+        ],
+        [
+          0.015,
+          0.012,
+          0.019
+        ],
+        [
+          0.027,
+          0.018,
+          0.024
+        ],
+        [
+          -0.004,
+          0.001,
+          -0.009
+        ],
+        [
+          0.012,
+          0.009,
+          0.016
+        ],
+        [
+          0.019,
+          0.013,
+          0.011
+        ]
+      ],
+      "risk_free": null
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GrsInputs"
+    },
+    {
+      "$ref": "#/$defs/FamaMacBethInputs"
+    }
+  ],
+  "title": "Tests of factor models: GRS and Fama-MacBeth: inputs"
+}

@@ -165,6 +165,13 @@ until you complete it, and says what to register by hand. Then:
   input), that two runs give the same canonical JSON, and that the result
   survives a round trip. A model with a rule between fields (a strike
   below a spot) adds a strategy to `strategies.OVERRIDES`.
+- **The schema snapshots** (`tests/surfaces/test_registry_snapshots.py`) hold
+  every model's input and output JSON Schema, the registry schema and the
+  (id, version, domain) index under `tests/surfaces/__snapshots__/`. A new
+  model fails until its snapshots exist, and a changed schema fails until they
+  are rewritten: run `uv run pytest tests/surfaces --snapshot-update`, review
+  the diff, and name every changed schema in `CHANGELOG.md`, because model ids,
+  field names, units and their schemas are public API at 1.0.0 (ADR-0003).
 - **The coverage floors.** CI's tests job runs
   `scripts/checks/coverage_floors.py`: 95% branch coverage on `src/pyeconomics/core/`
   and 90% on `src/pyeconomics/models/`, beside the overall 95%.

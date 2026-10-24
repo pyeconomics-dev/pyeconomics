@@ -1,0 +1,247 @@
+{
+  "$defs": {
+    "BootstrapInputs": {
+      "additionalProperties": false,
+      "description": "A sample, the statistic to bootstrap, and the size of the resampling.",
+      "properties": {
+        "calculation": {
+          "const": "bootstrap",
+          "default": "bootstrap",
+          "description": "Nonparametric bootstrap of a statistic",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.95,
+          "description": "Coverage of the percentile interval",
+          "maximum": 0.999,
+          "minimum": 0.5,
+          "title": "Confidence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "resamples": {
+          "default": 1000,
+          "description": "Number of bootstrap resamples",
+          "maximum": 10000,
+          "minimum": 2,
+          "title": "Resamples",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "sample": {
+          "description": "The observed sample",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 1000,
+          "minItems": 2,
+          "title": "Sample",
+          "type": "array"
+        },
+        "seed": {
+          "default": 0,
+          "description": "Random seed (ADR-0008 decision 7): the same seed, the same draws",
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "statistic": {
+          "default": "mean",
+          "description": "The statistic to bootstrap (standard deviation: n - 1)",
+          "enum": [
+            "mean",
+            "median",
+            "standard_deviation"
+          ],
+          "title": "Statistic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample"
+      ],
+      "title": "BootstrapInputs",
+      "type": "object"
+    },
+    "GbmInputs": {
+      "additionalProperties": false,
+      "description": "Geometric Brownian motion and the size of the simulation.",
+      "properties": {
+        "antithetic": {
+          "default": false,
+          "description": "Pair each path with its mirror image (rounds paths up to even)",
+          "title": "Antithetic",
+          "type": "boolean"
+        },
+        "calculation": {
+          "const": "gbm",
+          "default": "gbm",
+          "description": "Monte Carlo of geometric Brownian motion",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "drift": {
+          "description": "Expected growth rate mu, continuous, per year",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Drift",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "horizon": {
+          "description": "Time to the horizon, in years",
+          "exclusiveMinimum": 0,
+          "maximum": 30,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "initial_value": {
+          "description": "Value at time 0",
+          "maximum": 1000000.0,
+          "minimum": 0.01,
+          "title": "Initial Value",
+          "type": "number",
+          "x-unit": "index_level"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": 0.01,
+              "type": "number",
+              "x-unit": "index_level"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Level for the probability of ending below; null for the start",
+          "title": "Level"
+        },
+        "paths": {
+          "default": 10000,
+          "description": "Number of simulated paths",
+          "maximum": 100000,
+          "minimum": 4,
+          "title": "Paths",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "percentiles": {
+          "default": [
+            0.05,
+            0.5,
+            0.95
+          ],
+          "description": "Probabilities at which to report terminal quantiles",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "probability"
+          },
+          "maxItems": 99,
+          "minItems": 1,
+          "title": "Percentiles",
+          "type": "array"
+        },
+        "seed": {
+          "default": 0,
+          "description": "Random seed (ADR-0008 decision 7): the same seed, the same draws",
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "steps": {
+          "default": 252,
+          "description": "Time steps per path",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Steps",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "volatility": {
+          "description": "Volatility per year",
+          "exclusiveMinimum": 0,
+          "maximum": 3.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "initial_value",
+        "drift",
+        "volatility",
+        "horizon"
+      ],
+      "title": "GbmInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.simulation:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Seeded Monte Carlo of geometric Brownian motion, with antithetic variates, and the nonparametric bootstrap of a mean, median or standard deviation.",
+  "discriminator": {
+    "mapping": {
+      "bootstrap": "#/$defs/BootstrapInputs",
+      "gbm": "#/$defs/GbmInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "antithetic": false,
+      "calculation": "gbm",
+      "drift": 0.05,
+      "horizon": 1.0,
+      "initial_value": 100.0,
+      "level": null,
+      "paths": 2000,
+      "percentiles": [
+        0.05,
+        0.5,
+        0.95
+      ],
+      "seed": 7,
+      "steps": 12,
+      "volatility": 0.2
+    },
+    {
+      "calculation": "bootstrap",
+      "confidence": 0.95,
+      "resamples": 500,
+      "sample": [
+        94.0,
+        197.0,
+        16.0,
+        38.0,
+        99.0,
+        141.0,
+        23.0
+      ],
+      "seed": 7,
+      "statistic": "mean"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GbmInputs"
+    },
+    {
+      "$ref": "#/$defs/BootstrapInputs"
+    }
+  ],
+  "title": "Monte Carlo simulation: inputs"
+}

@@ -1,0 +1,209 @@
+{
+  "$defs": {
+    "AnnualizedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annualized_return": {
+          "description": "Return compounded to one year",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Annualized Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "calculation": {
+          "const": "annualized",
+          "default": "annualized",
+          "description": "Annualized (compounded) return",
+          "title": "Calculation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "annualized_return"
+      ],
+      "title": "AnnualizedOutputs",
+      "type": "object"
+    },
+    "HoldingPeriodOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "holding_period",
+          "default": "holding_period",
+          "description": "Holding-period return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "holding_period_return": {
+          "description": "Return over the holding period",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Holding Period Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "income_return": {
+          "description": "Part of the return from income",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Income Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "price_return": {
+          "description": "Part of the return from the change in value",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Price Return",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "holding_period_return",
+        "income_return",
+        "price_return"
+      ],
+      "title": "HoldingPeriodOutputs",
+      "type": "object"
+    },
+    "LogOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "log",
+          "default": "log",
+          "description": "Convert between simple and log returns",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "converted": {
+          "description": "The converted returns, in order",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -40.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "title": "Converted",
+          "type": "array"
+        }
+      },
+      "required": [
+        "converted"
+      ],
+      "title": "LogOutputs",
+      "type": "object"
+    },
+    "MeansOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "arithmetic": {
+          "description": "Arithmetic mean return",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Arithmetic",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "calculation": {
+          "const": "means",
+          "default": "means",
+          "description": "Arithmetic, geometric and harmonic means",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "geometric": {
+          "description": "Geometric mean return, of the gross returns",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Geometric",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "harmonic": {
+          "description": "Harmonic mean return, of the gross returns",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Harmonic",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "observations": {
+          "description": "Number of returns",
+          "maximum": 10080,
+          "minimum": 1,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "arithmetic",
+        "geometric",
+        "harmonic",
+        "observations"
+      ],
+      "title": "MeansOutputs",
+      "type": "object"
+    },
+    "RealOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "real",
+          "default": "real",
+          "description": "Real rate by the exact Fisher relation",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "real": {
+          "description": "Real rate: (1 + nominal) / (1 + inflation) - 1",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Real",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "real"
+      ],
+      "title": "RealOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.returns:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Holding-period, arithmetic, geometric, harmonic, annualized, log and real returns.",
+  "discriminator": {
+    "mapping": {
+      "annualized": "#/$defs/AnnualizedOutputs",
+      "holding_period": "#/$defs/HoldingPeriodOutputs",
+      "log": "#/$defs/LogOutputs",
+      "means": "#/$defs/MeansOutputs",
+      "real": "#/$defs/RealOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/HoldingPeriodOutputs"
+    },
+    {
+      "$ref": "#/$defs/MeansOutputs"
+    },
+    {
+      "$ref": "#/$defs/AnnualizedOutputs"
+    },
+    {
+      "$ref": "#/$defs/LogOutputs"
+    },
+    {
+      "$ref": "#/$defs/RealOutputs"
+    }
+  ],
+  "title": "Return toolkit: outputs"
+}

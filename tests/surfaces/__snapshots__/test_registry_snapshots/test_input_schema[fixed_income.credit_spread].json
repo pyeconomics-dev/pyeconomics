@@ -1,0 +1,287 @@
+{
+  "$defs": {
+    "ExpectedLossInputs": {
+      "additionalProperties": false,
+      "description": "A default probability, a loss given default and an exposure.",
+      "properties": {
+        "calculation": {
+          "const": "expected_loss",
+          "default": "expected_loss",
+          "description": "Expected credit loss",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "exposure": {
+          "description": "Exposure at default",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Exposure",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "loss_given_default": {
+          "description": "Fraction of the exposure lost at default (1 less the recovery rate)",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Loss Given Default",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "probability_of_default": {
+          "description": "Probability of default over the horizon",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability Of Default",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "probability_of_default",
+        "loss_given_default",
+        "exposure"
+      ],
+      "title": "ExpectedLossInputs",
+      "type": "object"
+    },
+    "HazardFromSpreadInputs": {
+      "additionalProperties": false,
+      "description": "A credit spread and a recovery rate.",
+      "properties": {
+        "calculation": {
+          "const": "hazard_from_spread",
+          "default": "hazard_from_spread",
+          "description": "Hazard rate implied by a spread",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "recovery_rate": {
+          "default": 0.4,
+          "description": "Recovery rate: the fraction of par recovered at default",
+          "maximum": 0.9,
+          "minimum": 0.0,
+          "title": "Recovery Rate",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "spread": {
+          "description": "Credit spread over the risk-free rate, continuously compounded",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Spread",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "spread"
+      ],
+      "title": "HazardFromSpreadInputs",
+      "type": "object"
+    },
+    "SpreadFromHazardInputs": {
+      "additionalProperties": false,
+      "description": "A hazard rate and a recovery rate.",
+      "properties": {
+        "calculation": {
+          "const": "spread_from_hazard",
+          "default": "spread_from_hazard",
+          "description": "Spread implied by a hazard rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hazard_rate": {
+          "description": "Default intensity per year",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Hazard Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "recovery_rate": {
+          "default": 0.4,
+          "description": "Recovery rate: the fraction of par recovered at default",
+          "maximum": 0.9,
+          "minimum": 0.0,
+          "title": "Recovery Rate",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "hazard_rate"
+      ],
+      "title": "SpreadFromHazardInputs",
+      "type": "object"
+    },
+    "SpreadReturnInputs": {
+      "additionalProperties": false,
+      "description": "A bond's spread, its spread duration, and what happens over a horizon.",
+      "properties": {
+        "calculation": {
+          "const": "spread_return",
+          "default": "spread_return",
+          "description": "Approximate excess return from the spread",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "holding_period": {
+          "description": "Holding period in years",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Holding Period",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "loss_given_default": {
+          "description": "Fraction lost at default",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Loss Given Default",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "probability_of_default": {
+          "description": "Probability of default over the holding period",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability Of Default",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "spread": {
+          "description": "Credit spread per year at the start",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Spread",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spread_change": {
+          "description": "Change in the spread over the holding period",
+          "maximum": 0.1,
+          "minimum": -0.1,
+          "title": "Spread Change",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spread_duration": {
+          "description": "Spread duration: price change per unit of spread",
+          "maximum": 30.0,
+          "minimum": 0.0,
+          "title": "Spread Duration",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spread",
+        "holding_period",
+        "spread_duration",
+        "spread_change",
+        "probability_of_default",
+        "loss_given_default"
+      ],
+      "title": "SpreadReturnInputs",
+      "type": "object"
+    },
+    "SurvivalInputs": {
+      "additionalProperties": false,
+      "description": "A hazard rate and a horizon.",
+      "properties": {
+        "calculation": {
+          "const": "survival",
+          "default": "survival",
+          "description": "Survival and default probabilities",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hazard_rate": {
+          "description": "Default intensity per year",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Hazard Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "horizon": {
+          "description": "Horizon in years",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Horizon",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "hazard_rate",
+        "horizon"
+      ],
+      "title": "SurvivalInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.credit_spread:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Expected loss, the credit triangle between spread and hazard rate, survival probabilities and the approximate excess return from a spread.",
+  "discriminator": {
+    "mapping": {
+      "expected_loss": "#/$defs/ExpectedLossInputs",
+      "hazard_from_spread": "#/$defs/HazardFromSpreadInputs",
+      "spread_from_hazard": "#/$defs/SpreadFromHazardInputs",
+      "spread_return": "#/$defs/SpreadReturnInputs",
+      "survival": "#/$defs/SurvivalInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "expected_loss",
+      "exposure": 1000000.0,
+      "loss_given_default": 0.6,
+      "probability_of_default": 0.02
+    },
+    {
+      "calculation": "hazard_from_spread",
+      "recovery_rate": 0.4,
+      "spread": 0.02
+    },
+    {
+      "calculation": "spread_from_hazard",
+      "hazard_rate": 0.03,
+      "recovery_rate": 0.4
+    },
+    {
+      "calculation": "survival",
+      "hazard_rate": 0.0333,
+      "horizon": 5.0
+    },
+    {
+      "calculation": "spread_return",
+      "holding_period": 1.0,
+      "loss_given_default": 0.6,
+      "probability_of_default": 0.01,
+      "spread": 0.015,
+      "spread_change": 0.0025,
+      "spread_duration": 6.5
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ExpectedLossInputs"
+    },
+    {
+      "$ref": "#/$defs/HazardFromSpreadInputs"
+    },
+    {
+      "$ref": "#/$defs/SpreadFromHazardInputs"
+    },
+    {
+      "$ref": "#/$defs/SurvivalInputs"
+    },
+    {
+      "$ref": "#/$defs/SpreadReturnInputs"
+    }
+  ],
+  "title": "Credit spread and default: inputs"
+}

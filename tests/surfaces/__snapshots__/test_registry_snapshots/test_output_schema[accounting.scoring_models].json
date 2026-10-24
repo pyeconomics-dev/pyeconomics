@@ -1,0 +1,311 @@
+{
+  "$defs": {
+    "AltmanOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "altman_z",
+          "default": "altman_z",
+          "description": "Original public manufacturing Z-score",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ebit_component": {
+          "description": "3.3 * EBIT/assets",
+          "maximum": 330,
+          "minimum": -330,
+          "title": "Ebit Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "equity_component": {
+          "description": "0.6 * market equity/book liabilities",
+          "maximum": 60,
+          "minimum": 0,
+          "title": "Equity Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "retained_earnings_component": {
+          "description": "1.4 * retained earnings/assets",
+          "maximum": 140,
+          "minimum": -140,
+          "title": "Retained Earnings Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sales_component": {
+          "description": "0.999 * sales/assets",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Sales Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "working_capital_component": {
+          "description": "1.2 * working capital/assets",
+          "maximum": 120,
+          "minimum": -120,
+          "title": "Working Capital Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "z_score": {
+          "description": "Original discriminant score, using .999 sales coefficient",
+          "maximum": 1000,
+          "minimum": -1000,
+          "title": "Z Score",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "zone": {
+          "description": "Historical bands: below 1.81, 1.81 through 2.99, above 2.99",
+          "enum": [
+            "distress",
+            "grey",
+            "safe"
+          ],
+          "title": "Zone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "z_score",
+        "zone",
+        "working_capital_component",
+        "retained_earnings_component",
+        "ebit_component",
+        "equity_component",
+        "sales_component"
+      ],
+      "title": "AltmanOutputs",
+      "type": "object"
+    },
+    "BeneishOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aqi_component": {
+          "description": "0.404 * AQI",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Aqi Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "beneish_m",
+          "default": "beneish_m",
+          "description": "Eight-variable M-score",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "depi_component": {
+          "description": "0.115 * DEPI",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Depi Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "dsri_component": {
+          "description": "0.920 * DSRI",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Dsri Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "gmi_component": {
+          "description": "0.528 * GMI",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Gmi Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lvgi_component": {
+          "description": "-0.327 * LVGI",
+          "maximum": 0,
+          "minimum": -100,
+          "title": "Lvgi Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "m_score": {
+          "description": "-4.84 plus the eight weighted components; no probability or classification implied",
+          "maximum": 1000,
+          "minimum": -1000,
+          "title": "M Score",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sgai_component": {
+          "description": "-0.172 * SGAI",
+          "maximum": 0,
+          "minimum": -100,
+          "title": "Sgai Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sgi_component": {
+          "description": "0.892 * SGI",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Sgi Component",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "tata_component": {
+          "description": "4.679 * TATA",
+          "maximum": 500,
+          "minimum": -500,
+          "title": "Tata Component",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "m_score",
+        "dsri_component",
+        "gmi_component",
+        "aqi_component",
+        "sgi_component",
+        "depi_component",
+        "sgai_component",
+        "tata_component",
+        "lvgi_component"
+      ],
+      "title": "BeneishOutputs",
+      "type": "object"
+    },
+    "PiotroskiOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "piotroski_f",
+          "default": "piotroski_f",
+          "description": "Nine original binary signals",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cash_exceeds_income": {
+          "description": "CFO greater than ROA signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Cash Exceeds Income",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "decreasing_leverage": {
+          "description": "Decreasing leverage signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Decreasing Leverage",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "f_score": {
+          "description": "Sum of the nine binary signals",
+          "maximum": 9,
+          "minimum": 0,
+          "title": "F Score",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "improving_liquidity": {
+          "description": "Increasing current ratio signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Improving Liquidity",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "improving_margin": {
+          "description": "Increasing gross margin signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Improving Margin",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "improving_roa": {
+          "description": "Increasing ROA signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Improving Roa",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "improving_turnover": {
+          "description": "Increasing asset turnover signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Improving Turnover",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "no_equity_issuance": {
+          "description": "No common equity issuance signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "No Equity Issuance",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "positive_cfo": {
+          "description": "Positive CFO signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Positive Cfo",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "positive_roa": {
+          "description": "Positive ROA signal",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Positive Roa",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "f_score",
+        "positive_roa",
+        "positive_cfo",
+        "improving_roa",
+        "cash_exceeds_income",
+        "decreasing_leverage",
+        "improving_liquidity",
+        "no_equity_issuance",
+        "improving_margin",
+        "improving_turnover"
+      ],
+      "title": "PiotroskiOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:accounting.scoring_models:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Original Altman Z with historical bands, eight-variable Beneish M, and Piotroski F with components.",
+  "discriminator": {
+    "mapping": {
+      "altman_z": "#/$defs/AltmanOutputs",
+      "beneish_m": "#/$defs/BeneishOutputs",
+      "piotroski_f": "#/$defs/PiotroskiOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AltmanOutputs"
+    },
+    {
+      "$ref": "#/$defs/BeneishOutputs"
+    },
+    {
+      "$ref": "#/$defs/PiotroskiOutputs"
+    }
+  ],
+  "title": "Accounting scoring models: outputs"
+}
