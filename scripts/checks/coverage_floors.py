@@ -6,9 +6,10 @@
 pyproject.toml's `fail_under = 95` holds the whole package to 95%. This check
 holds the trees that matter most to their own floors (ROADMAP section 4 2.4,
 "Model quality & governance"): `src/pyeconomics/core/` to 95%,
-`src/pyeconomics/models/` to 90% and, from Phase 3 Step 2,
-`src/pyeconomics/data/` to 95%, so a well-covered tree cannot hide an untested
-one.
+`src/pyeconomics/models/` to 90%, from Phase 3 Step 2,
+`src/pyeconomics/data/` to 95% and, from Phase 4 Step 2,
+`src/pyeconomics/surfaces/` to 95%, so a well-covered tree cannot hide an
+untested one.
 
 It reads the JSON report `coverage json` writes. Coverage is coverage.py's own
 measure with branch coverage on: covered statements plus covered branches, over
@@ -36,6 +37,7 @@ FLOORS: Final = (
     ("core", "/pyeconomics/core/", 95.0),
     ("models", "/pyeconomics/models/", 90.0),
     ("data", "/pyeconomics/data/", 95.0),
+    ("surfaces", "/pyeconomics/surfaces/", 95.0),
 )
 
 DEFAULT_REPORT = "coverage.json"

@@ -36,6 +36,7 @@ extensions = [
     "model_pages",
     "provider_pages",
     "concept_pages",
+    "problem_pages",
 ]
 myst_enable_extensions = ["dollarmath", "amsmath"]
 nb_execution_mode = "force"
