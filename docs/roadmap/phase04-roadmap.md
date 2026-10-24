@@ -2056,9 +2056,9 @@ it has no Thinking toggle. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Registry Export and Schema Snapshots
+## Step 3 — Registry Export and Schema Snapshots ✅
 
-**Status:** Not started
+**Status:** Complete — PR #178 (2026-10-23)
 
 > **Goal:** Publish the description every surface and the Phase 5 web app
 > are generated from, and make an unintended schema change fail CI. Add
@@ -2098,6 +2098,8 @@ rebuilds with `docs/registry.md`, and Step 15 verifies it live.
 | Conversation | **New**                                  | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-23: Balanced column's Backup, also the Quality column — Opus 5.5 · Effort High. The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Model rationale:** Coding is PRIMARY and planning SECONDARY: a
 deterministic writer over `describe()`, a schema module and snapshot tests,
@@ -8758,7 +8760,7 @@ workflow above maps directly to the corresponding row below.
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #175 |
 | 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Complete — PR #177 |
-| 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
