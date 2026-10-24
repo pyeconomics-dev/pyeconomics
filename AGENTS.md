@@ -40,7 +40,8 @@ planning/          roadmodel's planning kit, re-exported by its updater: never e
 ```
 
 The target layout, as phases add it, is in ROADMAP §3: `core/`, `models/`,
-`data/`, `cli/`, `server/` and `mcp/` under `src/pyeconomics/`.
+`data/`, `cli/`, `server/` and `mcp/` under `src/pyeconomics/`, with
+`surfaces/` (Phase 4 Step 2, ADR-0012) beneath the last three.
 
 ## Registry rules
 
@@ -234,6 +235,30 @@ From Phase 3 Step 12, which binds models to data (ADR-0011 decision 16):
   observation), so a model may pair array fields by position; a window read
   through `convert` is sized in the target frequency. A growth rate bound with
   `pct_change` is a `Return`; shared least squares is `core.least_squares`.
+
+## Surface rules
+
+From Phase 4 Step 2, which builds the surface core (ADR-0012):
+
+- A surface (the CLI, the REST API, the MCP server, the exports) runs a model
+  only through `pyeconomics.surfaces.invoke`, never `core.runner`,
+  `pyeconomics.run` or `pyeconomics.bind`, and returns
+  `envelope.canonical_bytes(result)` unchanged; a table or a summary goes beside
+  those bytes, never in their place.
+- No module under `core/` or `data/` imports a surface package, `surfaces/`
+  imports no framework, and `import pyeconomics.surfaces` loads no data module
+  (`tests/surfaces/test_surface_layering.py`).
+- An error reaches a user only as `problems.problem_for(error)`, or through
+  `problems.report`, which also logs one scrubbed record: the exit code, the
+  HTTP status and the detail come from the table, never a raw message or a
+  traceback. A new `PyeconomicsError` subclass in core, the data layer or the
+  surfaces gets its own row in `problems.ROWS`, or the walking test fails; a new
+  sink joins `tests/surfaces/test_problem_canary.py`.
+- Decode a caller's inputs with `surfaces.codec`; hosted mode passes
+  `budgets.HOSTED_BODY_LIMIT`. Validation stays the model's own.
+- `pyeconomics.surfaces` exports the function `invoke`, which hides the module
+  of that name: `import pyeconomics.surfaces.invoke as m` binds the function, so
+  import from the module with `from pyeconomics.surfaces.invoke import ...`.
 
 ## Units
 

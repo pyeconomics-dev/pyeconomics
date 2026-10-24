@@ -37,6 +37,7 @@ reference/models/index
 reference/providers/index
 reference/concepts/index
 reference/sources
+problems
 autoapi/index
 errata
 notices

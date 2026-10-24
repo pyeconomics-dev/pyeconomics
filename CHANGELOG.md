@@ -13,6 +13,21 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+### Added
+
+- `pyeconomics.surfaces`, the framework-free core the command line, REST API,
+  MCP server and exports will share (ADR-0012): `invoke(model_id, inputs, *,
+  bind=None, mode=None)`, the one way a surface runs a model, returning the same
+  bytes as `pyeconomics.run` (with `BindRequest` to bind its data first); the
+  error table, which maps every pyeconomics error to an RFC 9457 problem
+  (`problem_for`), an HTTP status and a command-line exit code, with a detail
+  that never holds a key, a file path, a host or an upstream URL; a bounded,
+  strict input codec (JSON text or bytes, mappings, and `field=value` pairs
+  typed by the model's schema); the canonical bytes, a weak entity tag and a
+  text summary of a result; and the hosted time budgets and size limits. The
+  problem types are listed on a new documentation page, `problems`. Importing
+  `pyeconomics.surfaces` loads no framework and no data module.
+
 ### Fixed
 
 - Models that wrap a library (`econometrics.garch`, `econometrics.time_series`)
