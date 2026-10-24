@@ -4,6 +4,8 @@
 # checkout, it installs pyeconomics==<version> from the index the release went
 # to, with no dependencies, then installs its dependencies from PyPI only, and
 # asserts that the installed package reports the version that was released.
+# It runs the release's `pyeconomics` console script (its version and one model
+# run, byte for byte; a release before 1.0.0b1.dev1 has no console script).
 # It then runs scripts/smoke.py, taken from the repository at the release's
 # tag, against the installed release from outside the checkout: the registry
 # validates, and one model per domain runs twice with identical results
@@ -125,6 +127,17 @@ jobs:
           print(f"released {expected}; metadata {metadata}; module {pyeconomics.__version__}")
           sys.exit(not (metadata == pyeconomics.__version__ == expected))
           EOF
+
+      # The release's console script, from the same venv: its version, and one
+      # model run whose bytes must equal Result.to_json() plus one newline.
+      - name: Run the console script of the installed release
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          test "$("$RUNNER_TEMP/smoke/bin/pyeconomics" --version)" = "pyeconomics ${VERSION}"
+          "$RUNNER_TEMP/smoke/bin/pyeconomics" models run foundations.time_value \
+            --calculation present_value --rate 0.05 --periods 10 --future-value 100 > cli-run.json
+          "$RUNNER_TEMP/smoke/bin/python" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode() + b"\n"; assert pathlib.Path("cli-run.json").read_bytes() == expected, "the console script printed other bytes"'
 
       # From outside the checkout, with the interpreter that has the release
       # installed; the script refuses to run against a source tree.

@@ -36,8 +36,8 @@ assert json.loads(written)["pyeconomics"] == document["pyeconomics"]
 digest = hashlib.sha256(written).hexdigest()  # identifies this document
 ```
 
-The command `pyeconomics registry export` (Step 4 of the 1.0 roadmap) writes
-the same file.
+The command line writes the same file: `pyeconomics registry export --out DIR`
+writes `DIR/registry.json` ({doc}`cli`).
 
 ## What it holds
 
