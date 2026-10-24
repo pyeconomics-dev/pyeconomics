@@ -1557,9 +1557,9 @@ hygiene.
 
 ---
 
-## Step 2 — ADR-0012 Programmatic Surfaces and the Surface Core
+## Step 2 — ADR-0012 Programmatic Surfaces and the Surface Core ✅
 
-**Status:** Not started
+**Status:** Complete — PR #177 (2026-10-23)
 
 > **Goal:** Fix the surface contract every later step encodes, and build the
 > framework-free core the surfaces share. Write
@@ -1600,6 +1600,8 @@ verifies the surface pages live.
 | AA Index     | 47.8                                   | 53.6                                       | 56                                         |
 | Thinking     | —                                      | —                                          | —                                          |
 | Conversation | **New**                                | **New**                                    | **New**                                    |
+
+> Ran 2026-10-23: Balanced column — Opus 5.5 · Effort High. The Runs line's column; the Claude weekly pool's dated reset (2026-10-13) had passed, so it read headroom.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -8743,7 +8745,7 @@ workflow above maps directly to the corresponding row below.
 | Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #175 |
-| 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Not started |
+| 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Complete — PR #177 |
 | 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
