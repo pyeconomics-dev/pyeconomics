@@ -2471,9 +2471,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 4 — The pyeconomics CLI
+## Step 4 — The pyeconomics CLI ✅
 
-**Status:** Not started
+**Status:** Complete — PR #179 (2026-10-24)
 
 > **Goal:** Give every model and every data source a command line that
 > shell scripts, R and Excel Power Query can consume. Add Cyclopts as a core
@@ -2511,6 +2511,8 @@ Step 15 verifies live.
 | AA Index     | 50.2                                    | 52.6                                 | 56                                         |
 | Thinking     | —                                       | On                                   | —                                          |
 | Conversation | **New**                                 | **New**                              | **New**                                    |
+
+> Ran 2026-10-24: the Balanced column's Backup, also the Quality column's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -8791,7 +8793,7 @@ workflow above maps directly to the corresponding row below.
 | 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #175 |
 | 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Complete — PR #177 |
 | 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
-| 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #179 |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
