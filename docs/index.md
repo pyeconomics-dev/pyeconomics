@@ -14,8 +14,8 @@ sources, 171 catalog concepts and live bindings with real-time vintages.
 OLS, GARCH and time-series models require the `econometrics` extra; result
 charts use the `plot` extra.
 Each has a generated card with units, bounds, assumptions, limitations and a
-worked example. The Python API and the `pyeconomics` command line are
-available in this checkout; the REST API, MCP server and web app follow.
+worked example. The Python API, the `pyeconomics` command line and the local
+REST API are available in this checkout; the MCP server and web app follow.
 
 ```{toctree}
 :maxdepth: 2
@@ -23,6 +23,7 @@ available in this checkout; the REST API, MCP server and web app follow.
 installation
 quickstart
 cli
+api
 tutorials/first-model
 conventions
 results

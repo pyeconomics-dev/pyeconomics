@@ -37,7 +37,9 @@ digest = hashlib.sha256(written).hexdigest()  # identifies this document
 ```
 
 The command line writes the same file: `pyeconomics registry export --out DIR`
-writes `DIR/registry.json` ({doc}`cli`).
+writes `DIR/registry.json` ({doc}`cli`), and with the `server` extra installed,
+`DIR/openapi.json`, the REST API's OpenAPI 3.1 document, whose operations carry
+the same input and output schemas ({doc}`api`).
 
 ## What it holds
 

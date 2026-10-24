@@ -96,6 +96,8 @@ class InputTooLargeError(InputError):
         The size of what was sent, in bytes.
     limit
         The limit, in bytes.
+    advice
+        What to do instead.
 
     Examples
     --------
@@ -104,10 +106,11 @@ class InputTooLargeError(InputError):
 
     """
 
-    def __init__(self, size: int, limit: int) -> None:
+    def __init__(
+        self, size: int, limit: int, *, advice: str = "run large inputs locally"
+    ) -> None:
         super().__init__(
-            f"the inputs are {size} bytes, above the limit of {limit}; "
-            "run large inputs locally"
+            f"the inputs are {size} bytes, above the limit of {limit}; {advice}"
         )
         self.size = size
         self.limit = limit

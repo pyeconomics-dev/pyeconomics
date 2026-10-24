@@ -217,6 +217,37 @@ jobs:
           cd irr
           "$RUNNER_TEMP/reproduce/bin/python" reproduce.py --out rerun.json
           cmp rerun.json result.json
+      # ADR-0012 decisions 9 and 11: without the server extra, serve exits 8;
+      # with it, a non-loopback host is refused (exit 2), and a real `pyeconomics
+      # serve` with spawned workers answers a run over HTTP with the bytes of
+      # Result.to_json(), then shuts down cleanly on Ctrl+C.
+      - name: Serve the REST API from a fresh venv built from the wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls "$PWD"/dist/*.whl)
+          cd "$RUNNER_TEMP"
+          status=0
+          "$RUNNER_TEMP/clean/bin/pyeconomics" serve || status=$?
+          test "$status" -eq 8
+          uv venv "$RUNNER_TEMP/server"
+          uv pip install --python "$RUNNER_TEMP/server/bin/python" "${wheel}[server]"
+          status=0
+          "$RUNNER_TEMP/server/bin/pyeconomics" serve --host 0.0.0.0 || status=$?
+          test "$status" -eq 2
+          "$RUNNER_TEMP/server/bin/pyeconomics" serve --port 8765 --workers 2 2> serve.log &
+          server=$!
+          for _ in $(seq 1 120); do
+            curl --silent --fail http://127.0.0.1:8765/healthz > /dev/null && break
+            sleep 1
+          done
+          curl --silent --fail --request POST \
+            --data '{"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}' \
+            http://127.0.0.1:8765/v1/models/foundations.time_value/run > api-run.json
+          kill -INT "$server"
+          wait "$server"
+          cat serve.log
+          "$RUNNER_TEMP/server/bin/python" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode(); assert pathlib.Path("api-run.json").read_bytes() == expected, "the API answered other bytes"'
       # scripts/smoke.py exercises the installed wheel's core and refuses to
       # run against a checkout, so it runs from a copy outside it. It runs
       # every model's examples; with no extras, econometrics.ols must raise

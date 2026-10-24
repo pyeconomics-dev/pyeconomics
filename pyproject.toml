@@ -117,7 +117,12 @@ fred = "pyeconomics.data.providers.fred"
 # added only when their packages exist (Phases 5 and 6). ADR-0011 decision 11
 # adds [keyring] (Phase 3 Step 3), [sdmx] and [yfinance]; [all] includes each.
 [project.optional-dependencies]
-server = []
+# The REST API (ADR-0012 decisions 9-11): FastAPI and uvicorn without its
+# [standard] extra, so the closure stays pure Python.
+server = [
+    "fastapi>=0.162",
+    "uvicorn>=0.54",
+]
 mcp = []
 ai = []
 econometrics = [
@@ -132,6 +137,8 @@ keyring = [
     "keyring>=25.7",
 ]
 all = [
+    "fastapi>=0.162",
+    "uvicorn>=0.54",
     "yfinance>=1.7",
     "sdmx1>=2.27",
     "keyring>=25.7",
@@ -151,6 +158,11 @@ yfinance = [
 test = [
     "yfinance>=1.7",
     "sdmx1>=2.27",
+    "fastapi>=0.162",
+    "uvicorn>=0.54",
+    # httpx2: Starlette's TestClient (tests/server); Starlette 1.10 deprecates
+    # httpx there.
+    "httpx2>=2.16.0",
     "hypothesis>=6.168.5",
     "jsonschema>=4.26.0",
     "keyring>=25.7",
@@ -310,7 +322,7 @@ python-version = "3.12"
 # tests/registry holds the toy models the result and smoke tests import too;
 # tests itself holds the strategies and the contract check, tests/golden the
 # loader and tests/data the data layer's shared frames.
-extra-paths = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/providers", "tests/registry"]
+extra-paths = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/providers", "tests/registry", "tests/server"]
 
 [tool.ty.src]
 include = ["src", "tests"]
@@ -358,10 +370,11 @@ testpaths = ["tests", "src", "docs"]
 # tests/data/bindings/bound_support.py the toy bound models, and
 # tests/json_snapshots.py the LF JSON snapshot extension, and
 # tests/cli/cli_support.py the in-process command line runner, and
-# tests/exports/export_support.py the exports' readers. Only these
+# tests/exports/export_support.py the exports' readers, and
+# tests/server/server_support.py the REST API's client and toys. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
-pythonpath = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/providers", "tests/registry"]
+pythonpath = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/providers", "tests/registry", "tests/server"]
 markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",

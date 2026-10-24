@@ -60,7 +60,8 @@ if TYPE_CHECKING:
 #: The modules whose error classes the table must name, one row each.
 ERROR_MODULES = ("pyeconomics.core.errors", "pyeconomics.data.errors")
 
-#: The mapping ADR-0012 decision 4 records: slug, HTTP status, exit code.
+#: The mapping ADR-0012 decision 4 records, with the serving errors Phase 4 Step 6
+#: added under its rule (a new class gets its own row): slug, HTTP status, exit code.
 ACCEPTED = {
     "InputError": ("invalid-input", 422, 3),
     "InputTooLargeError": ("input-too-large", 413, 3),
@@ -79,6 +80,10 @@ ACCEPTED = {
     "DataError": ("data-unavailable", 422, 7),
     "MissingOptionalDependencyError": ("missing-extra", 501, 8),
     "BudgetExceededError": ("budget-exceeded", 422, 1),
+    "RouteNotFoundError": ("route-not-found", 404, 5),
+    "MethodNotAllowedError": ("method-not-allowed", 405, 1),
+    "HostNotAllowedError": ("host-not-allowed", 400, 1),
+    "ServerBusyError": ("server-busy", 503, 1),
     "RegistryError": ("registry-error", 500, 1),
     "ConfigError": ("invalid-configuration", 500, 1),
     "PyeconomicsError": ("pyeconomics-error", 500, 1),
@@ -88,7 +93,7 @@ ACCEPTED = {
 
 def _surface_modules() -> list[ModuleType]:
     package = pyeconomics.surfaces
-    names = ("budgets", "codec", "envelope", "invoke", "problems")
+    names = ("budgets", "codec", "envelope", "invoke", "problems", "service")
     return [importlib.import_module(f"{package.__name__}.{name}") for name in names]
 
 

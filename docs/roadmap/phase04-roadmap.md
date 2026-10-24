@@ -376,12 +376,12 @@ step time are the authority:
 | limits, deprecated, wrapt, packaging | 5.8.0, 3.0.0, 2.5.1, 26.3 | `MIT`, `MIT`, `BSD-2-Clause`, `Apache-2.0 OR BSD-2-Clause` | Passes | pure Python (wrapt also cp315) | `[server]`: per-IP limits (Step 7) |
 | redis | 8.1.0; `limits[redis]` pins `redis<8` | `MIT` | Passes | pure Python | `[server]`: the limiter's Redis storage (Step 7); `limits[valkey]` is the alternative |
 | mcp, mcp-types | 2.3.0 (2026-10-02) | `MIT` | Passes | pure Python | `[mcp]` (Step 8) |
-| httpx2, httpcore2 | 2.16.0 | `BSD-3-Clause`; they use truststore, not certifi | Passes | pure Python | `[mcp]`: the SDK's HTTP client |
+| httpx2, httpcore2 | 2.16.0 | `BSD-3-Clause`; they use truststore, not certifi | Passes | pure Python | `[mcp]`: the SDK's HTTP client; test: Starlette's `TestClient` (Step 6) |
 | pyjwt, cryptography, cffi, pycparser | 2.15.1, 50.0.2, 2.1.1, 3.12 | `MIT`, `Apache-2.0 OR BSD-3-Clause`, `MIT-0`, `BSD-3-Clause` | Passes, except cffi's reviewed exception (Phase 3 Step 3), which now also covers `[mcp]` | cryptography abi3 and cp315; cffi cp315 | `[mcp]`: `pyjwt[crypto]` |
 | jsonschema, referencing, jsonschema-specifications, rpds-py | 4.26.0, 0.37.0, 2025.9.1, 2026.9.1 | `MIT` | Passes | pure Python; rpds-py cp315 | `[mcp]`: the SDK's schema validation |
 | sse-starlette, python-multipart | 3.5.0, 0.0.32 | `BSD-3-Clause`, `Apache-2.0` | Passes | pure Python | `[mcp]` |
 | pywin32 | 312 (Windows only) | `PSF`; classifier `Python Software Foundation License` | Expected to fail as ambiguous: a reviewed exception after reading its licence file | cp315 | `[mcp]` on Windows |
-| httpx | 0.28.1 | `BSD-3-Clause`; requires certifi | outside the allowlist's scope (test only) | pure Python | test: Starlette's `TestClient` (Step 6) |
+| httpx | 0.28.1 | `BSD-3-Clause`; requires certifi | outside the allowlist's scope (dev only) | pure Python | dev: openapi-python-client's client (Step 7); Starlette 1.10 deprecates it in `TestClient`, which Step 6 runs on httpx2 (read 2026-10-24) |
 | schemathesis | 4.32.4 (2026-10-22) | `MIT`; requires PyYAML | outside the allowlist's scope (test only) | PyYAML 6.0.3 has none | test: API fuzzing on Python 3.14, under the Wheel rule (Step 7) |
 | openapi-python-client | 0.29.1 | `MIT`; requires httpx<0.29, ruff, typer | outside the allowlist's scope (dev tool) | pure Python | dev: the Python client (Step 7) |
 | @hey-api/openapi-ts | 0.99.0 (npm) | `MIT`; Node 22.18 or later | npm audit only | — | dev: the TypeScript client (Step 7) |
@@ -3429,9 +3429,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 6 — REST API: App Factory, Routes and Worker Pool
+## Step 6 — REST API: App Factory, Routes and Worker Pool ✅
 
-**Status:** Not started
+**Status:** Complete — PR #181 (2026-10-24)
 
 > **Goal:** Serve every model and series over a versioned HTTP API that
 > returns the Python API's bytes. Fill the `[server]` extra with FastAPI and
@@ -3471,6 +3471,8 @@ Step 15 verifies live.
 | AA Index     | 50.2                                    | 52.6                                 | 56                                         |
 | Thinking     | —                                       | On                                   | —                                          |
 | Conversation | **New**                                 | **New**                              | **New**                                    |
+
+> Ran 2026-10-24: the Balanced column's Backup, also the Quality column's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -3771,7 +3773,8 @@ phase-boundary hygiene.
       pydantic, typing-extensions, typing-inspection,
       annotated-doc and now opentelemetry-api; uvicorn
       0.54.0 (BSD-3-Clause) requires click and h11; all pure
-      Python. Starlette's TestClient needs httpx (test only).
+      Python. Starlette's TestClient needs httpx2 (test only):
+      Starlette 1.10 deprecates httpx there (read 2026-10-24).
     - core/schema.py builds each model's input and output
       JSON Schemas (2020-12); data.api.get resolves a series
       target; data.api.sources lists providers.
@@ -3817,7 +3820,7 @@ phase-boundary hygiene.
       Dependencies (Dependency rule): `[server]` gains
       `fastapi>=0.162` and `uvicorn>=0.54` (no [standard]);
       both join `[all]` and the test group; the test group
-      gains `httpx` for TestClient. Every package passes the
+      gains `httpx2` for TestClient. Every package passes the
       licences hook (a reviewed exception for any that does
       not, approved by the maintainer) and pip-audit.
     </requirement>
@@ -4247,6 +4250,33 @@ conversation per phase-boundary hygiene.
       bytes, answers problems, runs in a budgeted pool, and
       exports openapi.json; `pyeconomics serve` guards
       loopback.
+    - Step 6 as built: `create_app(mode=, settings=ServerSettings)`
+      in server/app.py keeps its pool and cached documents on
+      `app.state.service`; a run is `_run` -> `service.answer(Task)`
+      -> `pool.submit`, so the GET cache and ETag (decision 12)
+      wrap `_run`'s GET form and Cache-Control goes on
+      `service.answer`'s response. The `_Guard` middleware
+      (outermost user middleware) holds the host check, the
+      access line and the last-resort 500: the edge-credential
+      check belongs there. Hosted mode already refuses a body
+      above HOSTED_BODY_LIMIT before decoding (413), runs every
+      model under HOSTED_BUDGETS, holds a series fetch to the
+      heavy budget, and skips the loopback Host check (which is
+      local-only). The error table gained `route-not-found`,
+      `method-not-allowed`, `host-not-allowed` and `server-busy`
+      (surfaces/service.py), so a 429 limiter error needs its own
+      class and row in the same way.
+    - The OpenAPI document (server/openapi.py) names components
+      `<id>.input`, `<id>.output`, `<id>.result` and
+      `<id>.input.<Def>`, operations `run_<domain>_<name>` and
+      `..._get`; tests/server/test_openapi_snapshot.py records
+      model components by SHA-256. Generated clients must
+      resolve `#/components/schemas/<dotted name>` references.
+    - Server tests: `server_support.client()` (inline pool,
+      base_url http://127.0.0.1) and `pytestmark = LOOPBACK_ONLY`
+      (asyncio's socket pair vs --disable-socket; loopback only).
+      TestClient runs on httpx2; Schemathesis can drive the app
+      in-process the same way.
     - Hosted mode exists in the data layer (require_allowed,
       the resolver's originator-only rule); the app does not
       yet rate-limit, cache or trust an edge.
@@ -4729,6 +4759,14 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
     - surfaces.invoke serves the CLI and the REST API;
       server/ mounts routes, limits, the edge check and the
       pool; hosted mode refuses library-only data.
+    - From Step 6: a /mcp tool call reaches the same pool and
+      budgets as /v1 through `app.state.service.answer(Task(kind=
+      "run", target=model.id, payload=..., budget=service.budget(
+      model.spec.cost)))` (server/work.py's Task and Outcome,
+      plain values only); `surfaces.service.is_loopback` is the
+      bind guard `pyeconomics serve` uses, and
+      `cli.serve_command.run_server` runs uvicorn with no
+      forwarded-header trust and single-line logs.
     - The discovery tools' model entries are Step 4's
       surfaces.listing (`list_models`, `search_models`), and a
       data tool's document is surfaces.documents'
@@ -5674,6 +5712,17 @@ conversation per phase-boundary hygiene.
       runs; the providers' cassettes replay every source.
     - The full offline suite runs serially in about 16–19
       minutes on a cell; the parity suite must not double it.
+    - REST through TestClient (Step 6): use
+      tests/server/server_support.py's `client()` (inline pool,
+      base_url http://127.0.0.1, which a local server requires)
+      and mark the module `pytestmark = LOOPBACK_ONLY`; a bound
+      run is `?as_of=` (and `vintage`, `profile`, `concept=F=ID`,
+      `param=N=V`) with the inputs as the body. create_app reads
+      the registry when it is built, so a toy registry injected
+      as `use_toys` does (core registry `_CACHE`) gets its routes
+      and OpenAPI operations; a spawned worker needs it through
+      `ServerSettings.worker_setup`. ci.yml's package job already
+      runs a real `pyeconomics serve --workers 2` over HTTP.
     - Step 5's read-back traps: pandas.read_csv reads every
       number exactly only with float_precision="round_trip";
       CSV and XLSX hold an array as canonical JSON text and a
@@ -6524,6 +6573,16 @@ phase-boundary hygiene.
       hosted mode limits, caches, checks the edge credential
       and refuses library-only data; the AI narrative never
       runs in hosted mode.
+    - From Step 6: `create_app(mode="hosted", settings=
+      ServerSettings(...))` reads PYECONOMICS_WORKERS and
+      PYECONOMICS_GIT_SHA (7–40 lowercase hex digits, else
+      `unknown` on /version); `server.logs.configure(stream)`
+      gives single-line logs with no traceback, and
+      `cli.serve_command.run_server` shows the uvicorn settings
+      (no access log, no proxy headers, no server header).
+      Workers are spawned, ignore SIGINT and SIGBREAK, and exit
+      when the app closes their pipes on SIGTERM's graceful
+      shutdown.
     - pylock.toml and uv.lock pin the runtime set; release.yml
       builds the wheel; ci.yml has no container job; no
       Dockerfile exists.
@@ -8832,7 +8891,7 @@ workflow above maps directly to the corresponding row below.
 | 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #179 |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
-| 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
@@ -9146,6 +9205,14 @@ whatever is still open here.
     ADR-0012 decision 10 (not needed);
   - issue #157, assigned to Phase 4 by its own text — Step 1;
   - issue #162, the first operational need for a provider switch — Step 7.
+- From Phase 4 Step 6, additions to Step 2's surface core made in-step under
+  ADR-0012 decision 4's own rule (a new error class gets its own row; no
+  decision changed): four serving rows in the error table, `route-not-found`
+  (404), `method-not-allowed` (405), `host-not-allowed` (400) and `server-busy`
+  (503), whose classes live in `surfaces/service.py` with `is_loopback`;
+  `problems.record`, which logs a problem made in a worker process; and
+  `InputTooLargeError(..., advice=...)`. Steps 7, 8, 10 and 12's task blocks
+  note what they build on.
 
 ---
 

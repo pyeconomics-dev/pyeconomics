@@ -25,7 +25,7 @@ holds a key, a file path, a host or an upstream URL**:
 
 The only URLs a problem holds are its ``type`` and, for a licence refusal, the
 source's terms page in ``terms``. :func:`report` logs a problem as one scrubbed
-record, never a traceback.
+record, never a traceback; :func:`record` logs one already made.
 
 Examples
 --------
@@ -61,6 +61,7 @@ __all__ = [
     "Problem",
     "Row",
     "problem_for",
+    "record",
     "report",
     "row_for",
     "scrub",
@@ -81,6 +82,7 @@ _LOGGER: Final = logging.getLogger("pyeconomics.surfaces")
 
 _CORE: Final = "pyeconomics.core.errors"
 _DATA: Final = "pyeconomics.data.errors"
+_SERVICE: Final = "pyeconomics.surfaces.service"
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,6 +210,28 @@ ROWS: Final = (
         422,
         1,
     ),
+    Row(
+        f"{_SERVICE}.RouteNotFoundError",
+        "route-not-found",
+        "No such route",
+        404,
+        5,
+    ),
+    Row(
+        f"{_SERVICE}.MethodNotAllowedError",
+        "method-not-allowed",
+        "The route does not take this method",
+        405,
+        1,
+    ),
+    Row(
+        f"{_SERVICE}.HostNotAllowedError",
+        "host-not-allowed",
+        "This server does not answer for that host",
+        400,
+        1,
+    ),
+    Row(f"{_SERVICE}.ServerBusyError", "server-busy", "The server is busy", 503, 1),
     Row(
         f"{_CORE}.RegistryError",
         "registry-error",
@@ -507,21 +531,33 @@ def _problem(row: Row, detail: str) -> Problem:
     )
 
 
-def report(error: BaseException, *, logger: logging.Logger | None = None) -> Problem:
-    """Return an error's problem, after logging it as one scrubbed record.
+def record(
+    problem: Problem, error_name: str, *, logger: logging.Logger | None = None
+) -> None:
+    """Log a problem as one record: its slug, status, error type name and detail.
 
-    The record holds the slug, the status, the scrubbed detail and the error's
-    type name: never a traceback or the raw message. A server error (5xx) logs at
-    ``ERROR``, any other at ``INFO``, on ``pyeconomics.surfaces`` by default.
+    :func:`report` logs through this; a surface whose error was raised in another
+    process (the REST API's workers) logs the problem it received the same way.
+    A server error (5xx) logs at ``ERROR``, any other at ``INFO``, on
+    ``pyeconomics.surfaces`` by default.
     """
-    problem = problem_for(error)
     level = logging.ERROR if problem.status >= _SERVER_ERROR else logging.INFO
     (logger or _LOGGER).log(
         level,
         "%s (%d, %s): %s",
         problem.slug,
         problem.status,
-        type(error).__qualname__,
+        error_name,
         problem.detail,
     )
+
+
+def report(error: BaseException, *, logger: logging.Logger | None = None) -> Problem:
+    """Return an error's problem, after logging it as one scrubbed record.
+
+    The record holds the slug, the status, the scrubbed detail and the error's
+    type name: never a traceback or the raw message (:func:`record`).
+    """
+    problem = problem_for(error)
+    record(problem, type(error).__qualname__, logger=logger)
     return problem

@@ -10,7 +10,10 @@ The console script ``pyeconomics`` calls :func:`main`. Its commands:
 - ``data search|get|describe|vintages|sources``: the data API;
 - ``keys set|list|delete``: providers' keys in the OS keyring, read from a
   hidden prompt or standard input, never an argument;
-- ``cache ls|info|clear|path`` and ``registry export``;
+- ``cache ls|info|clear|path`` and ``registry export`` (``registry.json``, and
+  ``openapi.json`` with the ``server`` extra);
+- ``serve``: the local REST API, in the ``server`` extra
+  (:mod:`pyeconomics.server`);
 - ``bundle check``: verifies a reproducibility bundle, running nothing from it;
   ``models run`` and ``data get`` also write the exports (``--format csv``,
   ``xlsx``, ``parquet``, ``arrow``), and ``models run`` a bundle (``--bundle``)

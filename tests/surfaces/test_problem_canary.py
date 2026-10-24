@@ -46,6 +46,12 @@ from pyeconomics.data import (
 from pyeconomics.surfaces.budgets import BudgetExceededError
 from pyeconomics.surfaces.codec import InputTooLargeError
 from pyeconomics.surfaces.problems import ROWS, problem_for, report
+from pyeconomics.surfaces.service import (
+    HostNotAllowedError,
+    MethodNotAllowedError,
+    RouteNotFoundError,
+    ServerBusyError,
+)
 
 
 @dataclass(frozen=True)
@@ -105,6 +111,10 @@ def _errors(text: str) -> list[BaseException]:
         DataError(text),
         MissingOptionalDependencyError("toy_library", note=text),
         BudgetExceededError(text, 2.0),
+        RouteNotFoundError(),
+        MethodNotAllowedError([text]),
+        HostNotAllowedError(),
+        ServerBusyError(3),
         RegistryError(text, problems=(text,)),
         ConfigError(text),
         PyeconomicsError(text),
