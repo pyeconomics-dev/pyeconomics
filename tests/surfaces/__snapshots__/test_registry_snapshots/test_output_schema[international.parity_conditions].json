@@ -1,0 +1,288 @@
+{
+  "$defs": {
+    "AbsolutePppOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "base_currency_valuation": {
+          "description": "Spot over the PPP rate, less one: above zero, the base is dear",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Base Currency Valuation",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "calculation": {
+          "const": "absolute_ppp",
+          "default": "absolute_ppp",
+          "description": "Exchange rate by absolute purchasing power",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ppp_rate": {
+          "description": "Exchange rate equating the basket's prices, in units of the quote currency per unit of the base currency",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000.0,
+          "title": "Ppp Rate",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "ppp_rate",
+        "base_currency_valuation"
+      ],
+      "title": "AbsolutePppOutputs",
+      "type": "object"
+    },
+    "CoveredOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "covered_interest_parity",
+          "default": "covered_interest_parity",
+          "description": "Forward rate by covered parity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "forward_points": {
+          "description": "Forward less spot, in units of the quote currency",
+          "maximum": 100000000000.0,
+          "minimum": -100000000000.0,
+          "title": "Forward Points",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "forward_premium": {
+          "description": "Forward over spot, less one: the base currency's forward premium",
+          "maximum": 100000.0,
+          "minimum": -1.0,
+          "title": "Forward Premium",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "forward_rate": {
+          "description": "Forward exchange rate for the horizon, in units of the quote currency per unit of the base currency",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100000000000.0,
+          "title": "Forward Rate",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "forward_rate",
+        "forward_points",
+        "forward_premium"
+      ],
+      "title": "CoveredOutputs",
+      "type": "object"
+    },
+    "InternationalFisherOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "approximate_change": {
+          "description": "Quote rate less base rate: the change's linear approximation",
+          "maximum": 3.0,
+          "minimum": -3.0,
+          "title": "Approximate Change",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "base_real_rate": {
+          "description": "(1 + base rate) / (1 + base inflation) - 1",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Base Real Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "international_fisher",
+          "default": "international_fisher",
+          "description": "Real rates and the expected change",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_change": {
+          "description": "Expected change in the spot rate over a year: (1 + i_q) / (1 + i_b) - 1",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Expected Change",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "quote_real_rate": {
+          "description": "(1 + quote rate) / (1 + quote inflation) - 1",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Quote Real Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_rate_differential": {
+          "description": "Quote real rate less base real rate",
+          "maximum": 3.0,
+          "minimum": -3.0,
+          "title": "Real Rate Differential",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "quote_real_rate",
+        "base_real_rate",
+        "real_rate_differential",
+        "expected_change",
+        "approximate_change"
+      ],
+      "title": "InternationalFisherOutputs",
+      "type": "object"
+    },
+    "RealExchangeRateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "real_exchange_rate",
+          "default": "real_exchange_rate",
+          "description": "Real exchange rate and its change",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "real_change": {
+          "description": "(1 + spot change)(1 + base inflation)/(1 + quote inflation) - 1",
+          "maximum": 250.0,
+          "minimum": -1.0,
+          "title": "Real Change",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "real_exchange_rate": {
+          "description": "Spot times the base price level over the quote price level",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000000.0,
+          "title": "Real Exchange Rate",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "real_exchange_rate",
+        "real_change"
+      ],
+      "title": "RealExchangeRateOutputs",
+      "type": "object"
+    },
+    "RelativePppOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "relative_ppp",
+          "default": "relative_ppp",
+          "description": "Expected spot by relative purchasing power",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_change": {
+          "description": "Expected change in the spot rate",
+          "maximum": 100000.0,
+          "minimum": -1.0,
+          "title": "Expected Change",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_spot": {
+          "description": "Spot rate expected at the horizon, in units of the quote currency per unit of the base currency",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100000000000.0,
+          "title": "Expected Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "inflation_differential": {
+          "description": "Quote inflation less base inflation: the change per year, approx.",
+          "maximum": 3.0,
+          "minimum": -3.0,
+          "title": "Inflation Differential",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "expected_spot",
+        "expected_change",
+        "inflation_differential"
+      ],
+      "title": "RelativePppOutputs",
+      "type": "object"
+    },
+    "UncoveredOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "uncovered_interest_parity",
+          "default": "uncovered_interest_parity",
+          "description": "Expected spot by uncovered parity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_change": {
+          "description": "Expected change in the spot rate",
+          "maximum": 100000.0,
+          "minimum": -1.0,
+          "title": "Expected Change",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_spot": {
+          "description": "Spot rate expected at the horizon, in units of the quote currency per unit of the base currency",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100000000000.0,
+          "title": "Expected Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "expected_spot",
+        "expected_change"
+      ],
+      "title": "UncoveredOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:international.parity_conditions:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Covered and uncovered interest parity, relative and absolute purchasing power parity, the international Fisher effect and real exchange rates.",
+  "discriminator": {
+    "mapping": {
+      "absolute_ppp": "#/$defs/AbsolutePppOutputs",
+      "covered_interest_parity": "#/$defs/CoveredOutputs",
+      "international_fisher": "#/$defs/InternationalFisherOutputs",
+      "real_exchange_rate": "#/$defs/RealExchangeRateOutputs",
+      "relative_ppp": "#/$defs/RelativePppOutputs",
+      "uncovered_interest_parity": "#/$defs/UncoveredOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CoveredOutputs"
+    },
+    {
+      "$ref": "#/$defs/UncoveredOutputs"
+    },
+    {
+      "$ref": "#/$defs/RelativePppOutputs"
+    },
+    {
+      "$ref": "#/$defs/AbsolutePppOutputs"
+    },
+    {
+      "$ref": "#/$defs/InternationalFisherOutputs"
+    },
+    {
+      "$ref": "#/$defs/RealExchangeRateOutputs"
+    }
+  ],
+  "title": "International parity conditions: outputs"
+}

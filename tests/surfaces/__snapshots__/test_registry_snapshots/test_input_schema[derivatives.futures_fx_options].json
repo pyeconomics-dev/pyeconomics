@@ -1,0 +1,364 @@
+{
+  "$defs": {
+    "Black76ImpliedInputs": {
+      "additionalProperties": false,
+      "description": "A European option on a futures price, and its price.",
+      "properties": {
+        "calculation": {
+          "const": "black_76_implied_volatility",
+          "default": "black_76_implied_volatility",
+          "description": "Volatility implied by a Black-76 price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "futures_price": {
+          "description": "Futures or forward price for delivery at expiry",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Futures Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_price": {
+          "description": "The option's price",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_type": {
+          "$ref": "#/$defs/OptionType",
+          "default": "call",
+          "description": "A call (the right to buy) or a put (to sell)"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "strike": {
+          "description": "Strike price",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Strike",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "years": {
+          "description": "Time to expiry, in years",
+          "maximum": 100.0,
+          "minimum": 0.001,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "futures_price",
+        "strike",
+        "years",
+        "risk_free_rate",
+        "option_price"
+      ],
+      "title": "Black76ImpliedInputs",
+      "type": "object"
+    },
+    "Black76Inputs": {
+      "additionalProperties": false,
+      "description": "A European option on a futures price, and its volatility.",
+      "properties": {
+        "calculation": {
+          "const": "black_76",
+          "default": "black_76",
+          "description": "Black-76 price and Greeks",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "futures_price": {
+          "description": "Futures or forward price for delivery at expiry",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Futures Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_type": {
+          "$ref": "#/$defs/OptionType",
+          "default": "call",
+          "description": "A call (the right to buy) or a put (to sell)"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "strike": {
+          "description": "Strike price",
+          "maximum": 10000000.0,
+          "minimum": 0.01,
+          "title": "Strike",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "volatility": {
+          "description": "Volatility of the futures price per year",
+          "maximum": 5.0,
+          "minimum": 0.001,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "years": {
+          "description": "Time to expiry, in years",
+          "maximum": 100.0,
+          "minimum": 0.001,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "futures_price",
+        "strike",
+        "years",
+        "risk_free_rate",
+        "volatility"
+      ],
+      "title": "Black76Inputs",
+      "type": "object"
+    },
+    "GarmanKohlhagenImpliedInputs": {
+      "additionalProperties": false,
+      "description": "A European currency option, and its price.",
+      "properties": {
+        "calculation": {
+          "const": "garman_kohlhagen_implied_volatility",
+          "default": "garman_kohlhagen_implied_volatility",
+          "description": "Volatility implied by a Garman-Kohlhagen price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "domestic_rate": {
+          "description": "Interest rate of the quote (domestic) currency, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Domestic Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "foreign_rate": {
+          "description": "Interest rate of the base (foreign) currency, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Foreign Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option_price": {
+          "description": "The option's price, in the quote currency per unit of base",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_type": {
+          "$ref": "#/$defs/OptionType",
+          "default": "call",
+          "description": "A call (the right to buy) or a put (to sell)"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote (domestic) currency per unit of the base (foreign) currency",
+          "maximum": 1000000.0,
+          "minimum": 0.0001,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "strike": {
+          "description": "Strike exchange rate, in units of the quote (domestic) currency per unit of the base (foreign) currency",
+          "maximum": 1000000.0,
+          "minimum": 0.0001,
+          "title": "Strike",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "years": {
+          "description": "Time to expiry, in years",
+          "maximum": 100.0,
+          "minimum": 0.001,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "strike",
+        "years",
+        "domestic_rate",
+        "foreign_rate",
+        "option_price"
+      ],
+      "title": "GarmanKohlhagenImpliedInputs",
+      "type": "object"
+    },
+    "GarmanKohlhagenInputs": {
+      "additionalProperties": false,
+      "description": "A European currency option, and its volatility.",
+      "properties": {
+        "calculation": {
+          "const": "garman_kohlhagen",
+          "default": "garman_kohlhagen",
+          "description": "Garman-Kohlhagen price and Greeks",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "domestic_rate": {
+          "description": "Interest rate of the quote (domestic) currency, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Domestic Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "foreign_rate": {
+          "description": "Interest rate of the base (foreign) currency, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Foreign Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option_type": {
+          "$ref": "#/$defs/OptionType",
+          "default": "call",
+          "description": "A call (the right to buy) or a put (to sell)"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote (domestic) currency per unit of the base (foreign) currency",
+          "maximum": 1000000.0,
+          "minimum": 0.0001,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "strike": {
+          "description": "Strike exchange rate, in units of the quote (domestic) currency per unit of the base (foreign) currency",
+          "maximum": 1000000.0,
+          "minimum": 0.0001,
+          "title": "Strike",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "volatility": {
+          "description": "Volatility of the exchange rate per year",
+          "maximum": 5.0,
+          "minimum": 0.001,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "years": {
+          "description": "Time to expiry, in years",
+          "maximum": 100.0,
+          "minimum": 0.001,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "strike",
+        "years",
+        "domestic_rate",
+        "foreign_rate",
+        "volatility"
+      ],
+      "title": "GarmanKohlhagenInputs",
+      "type": "object"
+    },
+    "OptionType": {
+      "enum": [
+        "call",
+        "put"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.futures_fx_options:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Black-76 prices of options on futures and Garman-Kohlhagen prices of currency options, with Greeks and implied volatilities.",
+  "discriminator": {
+    "mapping": {
+      "black_76": "#/$defs/Black76Inputs",
+      "black_76_implied_volatility": "#/$defs/Black76ImpliedInputs",
+      "garman_kohlhagen": "#/$defs/GarmanKohlhagenInputs",
+      "garman_kohlhagen_implied_volatility": "#/$defs/GarmanKohlhagenImpliedInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "black_76",
+      "futures_price": 20.0,
+      "option_type": "put",
+      "risk_free_rate": 0.09,
+      "strike": 20.0,
+      "volatility": 0.25,
+      "years": 0.3333
+    },
+    {
+      "calculation": "black_76_implied_volatility",
+      "futures_price": 19.0,
+      "option_price": 1.7011,
+      "option_type": "call",
+      "risk_free_rate": 0.1,
+      "strike": 19.0,
+      "years": 0.75
+    },
+    {
+      "calculation": "garman_kohlhagen",
+      "domestic_rate": 0.045,
+      "foreign_rate": 0.03,
+      "option_type": "call",
+      "spot": 1.08,
+      "strike": 1.1,
+      "volatility": 0.08,
+      "years": 0.5
+    },
+    {
+      "calculation": "garman_kohlhagen_implied_volatility",
+      "domestic_rate": 0.045,
+      "foreign_rate": 0.03,
+      "option_price": 0.02,
+      "option_type": "put",
+      "spot": 1.08,
+      "strike": 1.1,
+      "years": 0.5
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Black76Inputs"
+    },
+    {
+      "$ref": "#/$defs/Black76ImpliedInputs"
+    },
+    {
+      "$ref": "#/$defs/GarmanKohlhagenInputs"
+    },
+    {
+      "$ref": "#/$defs/GarmanKohlhagenImpliedInputs"
+    }
+  ],
+  "title": "Futures and currency options: inputs"
+}

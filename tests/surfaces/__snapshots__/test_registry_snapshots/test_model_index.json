@@ -1,0 +1,252 @@
+[
+  {
+    "domain": "accounting",
+    "id": "accounting.financial_ratios",
+    "version": 1
+  },
+  {
+    "domain": "accounting",
+    "id": "accounting.scoring_models",
+    "version": 1
+  },
+  {
+    "domain": "asset_pricing",
+    "id": "asset_pricing.factor_model_tests",
+    "version": 1
+  },
+  {
+    "domain": "asset_pricing",
+    "id": "asset_pricing.factor_regression",
+    "version": 1
+  },
+  {
+    "domain": "corporate",
+    "id": "corporate.capital_budgeting",
+    "version": 2
+  },
+  {
+    "domain": "corporate",
+    "id": "corporate.cost_of_capital",
+    "version": 1
+  },
+  {
+    "domain": "corporate",
+    "id": "corporate.leverage",
+    "version": 1
+  },
+  {
+    "domain": "derivatives",
+    "id": "derivatives.binomial_tree",
+    "version": 1
+  },
+  {
+    "domain": "derivatives",
+    "id": "derivatives.black_scholes_merton",
+    "version": 1
+  },
+  {
+    "domain": "derivatives",
+    "id": "derivatives.forwards",
+    "version": 1
+  },
+  {
+    "domain": "derivatives",
+    "id": "derivatives.futures_fx_options",
+    "version": 1
+  },
+  {
+    "domain": "derivatives",
+    "id": "derivatives.interest_rate_swap",
+    "version": 1
+  },
+  {
+    "domain": "econometrics",
+    "id": "econometrics.garch",
+    "version": 1
+  },
+  {
+    "domain": "econometrics",
+    "id": "econometrics.ols",
+    "version": 1
+  },
+  {
+    "domain": "econometrics",
+    "id": "econometrics.time_series",
+    "version": 1
+  },
+  {
+    "domain": "equity",
+    "id": "equity.cape",
+    "version": 1
+  },
+  {
+    "domain": "equity",
+    "id": "equity.dividend_discount",
+    "version": 1
+  },
+  {
+    "domain": "equity",
+    "id": "equity.free_cash_flow",
+    "version": 1
+  },
+  {
+    "domain": "equity",
+    "id": "equity.implied_risk_premium",
+    "version": 1
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.bond_pricing",
+    "version": 2
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.convexity",
+    "version": 2
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.credit_spread",
+    "version": 1
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.curve_bootstrap",
+    "version": 1
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.curve_fitting",
+    "version": 1
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.duration",
+    "version": 2
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.interest_rate_tree",
+    "version": 1
+  },
+  {
+    "domain": "fixed_income",
+    "id": "fixed_income.money_market",
+    "version": 1
+  },
+  {
+    "domain": "foundations",
+    "id": "foundations.hypothesis_tests",
+    "version": 1
+  },
+  {
+    "domain": "foundations",
+    "id": "foundations.returns",
+    "version": 1
+  },
+  {
+    "domain": "foundations",
+    "id": "foundations.risk_statistics",
+    "version": 1
+  },
+  {
+    "domain": "foundations",
+    "id": "foundations.simulation",
+    "version": 1
+  },
+  {
+    "domain": "foundations",
+    "id": "foundations.time_value",
+    "version": 2
+  },
+  {
+    "domain": "international",
+    "id": "international.parity_conditions",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.debt_dynamics",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.neutral_rate",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.okun_law",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.output_gap",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.phillips_curve",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.policy_rule",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.recession_probability",
+    "version": 1
+  },
+  {
+    "domain": "macro",
+    "id": "macro.solow_growth",
+    "version": 1
+  },
+  {
+    "domain": "performance",
+    "id": "performance.brinson_attribution",
+    "version": 1
+  },
+  {
+    "domain": "performance",
+    "id": "performance.return_measurement",
+    "version": 2
+  },
+  {
+    "domain": "performance",
+    "id": "performance.risk_adjusted",
+    "version": 1
+  },
+  {
+    "domain": "portfolio",
+    "id": "portfolio.black_litterman",
+    "version": 1
+  },
+  {
+    "domain": "portfolio",
+    "id": "portfolio.mean_variance",
+    "version": 1
+  },
+  {
+    "domain": "portfolio",
+    "id": "portfolio.risk_based_allocation",
+    "version": 1
+  },
+  {
+    "domain": "portfolio",
+    "id": "portfolio.utility",
+    "version": 1
+  },
+  {
+    "domain": "risk",
+    "id": "risk.value_at_risk",
+    "version": 1
+  },
+  {
+    "domain": "risk",
+    "id": "risk.var_backtest",
+    "version": 1
+  }
+]

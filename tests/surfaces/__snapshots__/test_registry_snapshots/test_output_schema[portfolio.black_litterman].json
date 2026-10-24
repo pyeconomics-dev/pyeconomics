@@ -1,0 +1,94 @@
+{
+  "$id": "urn:pyeconomics:model:portfolio.black_litterman:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Equilibrium returns from market weights, views blended in with He-Litterman or Idzorek uncertainty, the posterior returns and covariance, and the unconstrained optimal weights.",
+  "properties": {
+    "equilibrium_returns": {
+      "description": "Pi = delta Sigma w_mkt: the returns that make the market optimal",
+      "items": {
+        "maximum": 1000000.0,
+        "minimum": -1000000.0,
+        "type": "number",
+        "x-unit": "return"
+      },
+      "maxItems": 100,
+      "title": "Equilibrium Returns",
+      "type": "array"
+    },
+    "posterior_covariance": {
+      "description": "Sigma + M: the posterior covariance of returns, as rows",
+      "items": {
+        "items": {
+          "maximum": 200.0,
+          "minimum": -200.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "maxItems": 100,
+        "type": "array"
+      },
+      "maxItems": 100,
+      "title": "Posterior Covariance",
+      "type": "array"
+    },
+    "posterior_returns": {
+      "description": "The Black-Litterman expected returns per period",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": -1000000000.0,
+        "type": "number",
+        "x-unit": "return"
+      },
+      "maxItems": 100,
+      "title": "Posterior Returns",
+      "type": "array"
+    },
+    "posterior_weights": {
+      "description": "He and Litterman's weights against the posterior covariance, (delta (Sigma + M))^-1 mu",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": -1000000000.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "title": "Posterior Weights",
+      "type": "array"
+    },
+    "view_variances": {
+      "description": "The diagonal of Omega, one variance per view; empty with no views",
+      "items": {
+        "maximum": 1000000000000000.0,
+        "minimum": 0.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "title": "View Variances",
+      "type": "array"
+    },
+    "weights": {
+      "description": "The unconstrained optimal weights (delta Sigma)^-1 mu: the market's with no views",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": -1000000000.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "title": "Weights",
+      "type": "array"
+    }
+  },
+  "required": [
+    "equilibrium_returns",
+    "posterior_returns",
+    "posterior_covariance",
+    "weights",
+    "posterior_weights",
+    "view_variances"
+  ],
+  "title": "Black-Litterman expected returns and weights: outputs",
+  "type": "object"
+}

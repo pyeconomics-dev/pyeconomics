@@ -1,0 +1,392 @@
+{
+  "$defs": {
+    "ModifiedDietzInputs": {
+      "additionalProperties": false,
+      "description": "A beginning and ending value, and dated external flows in between.",
+      "properties": {
+        "beginning_value": {
+          "description": "Portfolio value at the start",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Beginning Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "modified_dietz",
+          "default": "modified_dietz",
+          "description": "Modified Dietz return, day-weighted flows",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "end_date": {
+          "description": "End of the period",
+          "format": "date",
+          "title": "End Date",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "ending_value": {
+          "description": "Portfolio value at the end",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Ending Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "flow_dates": {
+          "default": [],
+          "description": "The date of each flow",
+          "items": {
+            "format": "date",
+            "type": "string",
+            "x-unit": "date"
+          },
+          "maxItems": 1000,
+          "title": "Flow Dates",
+          "type": "array"
+        },
+        "flows": {
+          "default": [],
+          "description": "External flows; positive adds money",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1000,
+          "title": "Flows",
+          "type": "array"
+        },
+        "periods": {
+          "default": 1.0,
+          "description": "Length of the period in periods, for annualizing",
+          "exclusiveMinimum": 0,
+          "maximum": 100000.0,
+          "title": "Periods",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "periods_per_year": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Periods in a year, such as 12, to annualize; omit not to",
+          "title": "Periods Per Year"
+        },
+        "start_date": {
+          "description": "Start of the period",
+          "format": "date",
+          "title": "Start Date",
+          "type": "string",
+          "x-unit": "date"
+        }
+      },
+      "required": [
+        "beginning_value",
+        "ending_value",
+        "start_date",
+        "end_date"
+      ],
+      "title": "ModifiedDietzInputs",
+      "type": "object"
+    },
+    "MoneyWeightedInputs": {
+      "additionalProperties": false,
+      "description": "A beginning and ending value, and external flows at times or on dates.",
+      "properties": {
+        "beginning_value": {
+          "description": "Portfolio value at the start",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Beginning Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "money_weighted",
+          "default": "money_weighted",
+          "description": "Money-weighted return, an IRR",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Dated flows: the end",
+          "title": "End Date"
+        },
+        "ending_value": {
+          "description": "Portfolio value at the end",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Ending Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "flow_dates": {
+          "default": [],
+          "description": "Dated flows: the date of each flow",
+          "items": {
+            "format": "date",
+            "type": "string",
+            "x-unit": "date"
+          },
+          "maxItems": 1000,
+          "title": "Flow Dates",
+          "type": "array"
+        },
+        "flow_times": {
+          "default": [],
+          "description": "Periodic flows: when each flow occurs, in periods from the start",
+          "items": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "periods"
+          },
+          "maxItems": 1000,
+          "title": "Flow Times",
+          "type": "array"
+        },
+        "flows": {
+          "default": [],
+          "description": "External flows in between; positive adds money",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1000,
+          "title": "Flows",
+          "type": "array"
+        },
+        "periods": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000.0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Periodic flows: the length of the span in periods",
+          "title": "Periods"
+        },
+        "periods_per_year": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Periods in a year, such as 12, to annualize; omit not to",
+          "title": "Periods Per Year"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string",
+              "x-unit": "date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Dated flows: the start",
+          "title": "Start Date"
+        }
+      },
+      "required": [
+        "beginning_value",
+        "ending_value"
+      ],
+      "title": "MoneyWeightedInputs",
+      "type": "object"
+    },
+    "TimeWeightedInputs": {
+      "additionalProperties": false,
+      "description": "Valuations before each external flow, and the flows.",
+      "properties": {
+        "calculation": {
+          "const": "time_weighted",
+          "default": "time_weighted",
+          "description": "Time-weighted return, linked geometrically",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "flows": {
+          "default": [],
+          "description": "External flow just after each valuation but the last (one fewer than the values); positive adds money. Omit for none",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 10080,
+          "title": "Flows",
+          "type": "array"
+        },
+        "periods": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000.0,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Length of the span in periods; by default one per sub-period",
+          "title": "Periods"
+        },
+        "periods_per_year": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000,
+              "type": "number",
+              "x-unit": "periods"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Periods in a year, such as 12, to annualize; omit not to",
+          "title": "Periods Per Year"
+        },
+        "values": {
+          "description": "Portfolio values V0, V1, ..., Vn, each taken just before that date's external flow",
+          "items": {
+            "maximum": 1000000000000.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 10081,
+          "minItems": 2,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "title": "TimeWeightedInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:performance.return_measurement:2:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Time-weighted, money-weighted and Modified Dietz returns of a portfolio with external cash flows, optionally annualized.",
+  "discriminator": {
+    "mapping": {
+      "modified_dietz": "#/$defs/ModifiedDietzInputs",
+      "money_weighted": "#/$defs/MoneyWeightedInputs",
+      "time_weighted": "#/$defs/TimeWeightedInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "time_weighted",
+      "flows": [
+        0.0,
+        100.0,
+        0.0
+      ],
+      "periods": null,
+      "periods_per_year": 12.0,
+      "values": [
+        1000.0,
+        1050.0,
+        1180.0,
+        1250.0
+      ]
+    },
+    {
+      "beginning_value": 10000.0,
+      "calculation": "money_weighted",
+      "end_date": "2009-04-01",
+      "ending_value": 2750.0,
+      "flow_dates": [
+        "2008-03-01",
+        "2008-10-30",
+        "2009-02-15"
+      ],
+      "flow_times": [],
+      "flows": [
+        -2750.0,
+        -4250.0,
+        -3250.0
+      ],
+      "periods": null,
+      "periods_per_year": null,
+      "start_date": "2008-01-01"
+    },
+    {
+      "beginning_value": 1000.0,
+      "calculation": "modified_dietz",
+      "end_date": "2026-05-01",
+      "ending_value": 1300.0,
+      "flow_dates": [
+        "2026-04-16"
+      ],
+      "flows": [
+        200.0
+      ],
+      "periods": 1.0,
+      "periods_per_year": 12.0,
+      "start_date": "2026-04-01"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/TimeWeightedInputs"
+    },
+    {
+      "$ref": "#/$defs/MoneyWeightedInputs"
+    },
+    {
+      "$ref": "#/$defs/ModifiedDietzInputs"
+    }
+  ],
+  "title": "Return measurement: inputs"
+}

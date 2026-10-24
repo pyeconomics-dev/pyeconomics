@@ -1,0 +1,287 @@
+{
+  "$defs": {
+    "AltmanInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "altman_z",
+          "default": "altman_z",
+          "description": "Original public manufacturing Z-score",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ebit_to_assets": {
+          "description": "EBIT / total assets, decimal ratio",
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Ebit To Assets",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "market_equity_to_liabilities": {
+          "description": "Market common and preferred equity / book total liabilities",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Market Equity To Liabilities",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "retained_earnings_to_assets": {
+          "description": "Retained earnings / total assets, decimal ratio",
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Retained Earnings To Assets",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sales_to_assets": {
+          "description": "Sales / total assets, unscaled turnover",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Sales To Assets",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "working_capital_to_assets": {
+          "description": "Working capital / total assets, decimal ratio",
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Working Capital To Assets",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "working_capital_to_assets",
+        "retained_earnings_to_assets",
+        "ebit_to_assets",
+        "market_equity_to_liabilities",
+        "sales_to_assets"
+      ],
+      "title": "AltmanInputs",
+      "type": "object"
+    },
+    "BeneishInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "aqi": {
+          "description": "[1-(current assets+PPE)/assets]t / same t-1",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Aqi",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "beneish_m",
+          "default": "beneish_m",
+          "description": "Eight-variable M-score",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "depi": {
+          "description": "[Depreciation/(depreciation+PPE)]t-1 / same t",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Depi",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "dsri": {
+          "description": "(Receivables/sales)t / (receivables/sales)t-1",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Dsri",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "gmi": {
+          "description": "Gross margin t-1 / gross margin t",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Gmi",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lvgi": {
+          "description": "[(Current liabilities+long-term debt)/assets]t / same t-1",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Lvgi",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sgai": {
+          "description": "(SG&A/sales)t / (SG&A/sales)t-1",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Sgai",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sgi": {
+          "description": "Sales t / sales t-1",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Sgi",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "tata": {
+          "description": "(Change in current assets - change in cash - change in current liabilities + change in current maturities of long-term debt + change in income-tax payable - depreciation and amortization) / total assets",
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Tata",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "dsri",
+        "gmi",
+        "aqi",
+        "sgi",
+        "depi",
+        "sgai",
+        "tata",
+        "lvgi"
+      ],
+      "title": "BeneishInputs",
+      "type": "object"
+    },
+    "PiotroskiInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "piotroski_f",
+          "default": "piotroski_f",
+          "description": "Nine original binary signals",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cash_exceeds_income": {
+          "description": "CFO / beginning assets exceeds ROA, strictly",
+          "title": "Cash Exceeds Income",
+          "type": "boolean"
+        },
+        "decreasing_leverage": {
+          "description": "Long-term debt including its current portion / average assets decreased, strictly",
+          "title": "Decreasing Leverage",
+          "type": "boolean"
+        },
+        "improving_liquidity": {
+          "description": "Current assets / current liabilities increased, strictly",
+          "title": "Improving Liquidity",
+          "type": "boolean"
+        },
+        "improving_margin": {
+          "description": "Gross margin increased, strictly",
+          "title": "Improving Margin",
+          "type": "boolean"
+        },
+        "improving_roa": {
+          "description": "Current ROA exceeds prior ROA; each scaled by its beginning assets",
+          "title": "Improving Roa",
+          "type": "boolean"
+        },
+        "improving_turnover": {
+          "description": "Sales / beginning assets increased, strictly",
+          "title": "Improving Turnover",
+          "type": "boolean"
+        },
+        "no_equity_issuance": {
+          "description": "No common equity issued during the preceding year",
+          "title": "No Equity Issuance",
+          "type": "boolean"
+        },
+        "positive_cfo": {
+          "description": "Operating cash flow / beginning assets > 0",
+          "title": "Positive Cfo",
+          "type": "boolean"
+        },
+        "positive_roa": {
+          "description": "Net income before extraordinary items / beginning assets > 0",
+          "title": "Positive Roa",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "positive_roa",
+        "positive_cfo",
+        "improving_roa",
+        "cash_exceeds_income",
+        "decreasing_leverage",
+        "improving_liquidity",
+        "no_equity_issuance",
+        "improving_margin",
+        "improving_turnover"
+      ],
+      "title": "PiotroskiInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:accounting.scoring_models:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Original Altman Z with historical bands, eight-variable Beneish M, and Piotroski F with components.",
+  "discriminator": {
+    "mapping": {
+      "altman_z": "#/$defs/AltmanInputs",
+      "beneish_m": "#/$defs/BeneishInputs",
+      "piotroski_f": "#/$defs/PiotroskiInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "altman_z",
+      "ebit_to_assets": 0.0,
+      "market_equity_to_liabilities": 0.0,
+      "retained_earnings_to_assets": 0.0,
+      "sales_to_assets": 0.0,
+      "working_capital_to_assets": 0.0
+    },
+    {
+      "aqi": 1.0,
+      "calculation": "beneish_m",
+      "depi": 1.0,
+      "dsri": 1.0,
+      "gmi": 1.0,
+      "lvgi": 1.0,
+      "sgai": 1.0,
+      "sgi": 1.0,
+      "tata": 0.0
+    },
+    {
+      "calculation": "piotroski_f",
+      "cash_exceeds_income": true,
+      "decreasing_leverage": true,
+      "improving_liquidity": true,
+      "improving_margin": true,
+      "improving_roa": true,
+      "improving_turnover": true,
+      "no_equity_issuance": true,
+      "positive_cfo": true,
+      "positive_roa": true
+    },
+    {
+      "calculation": "altman_z",
+      "ebit_to_assets": 1.0,
+      "market_equity_to_liabilities": 1.0,
+      "retained_earnings_to_assets": 1.0,
+      "sales_to_assets": 1.0,
+      "working_capital_to_assets": 1.0
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AltmanInputs"
+    },
+    {
+      "$ref": "#/$defs/BeneishInputs"
+    },
+    {
+      "$ref": "#/$defs/PiotroskiInputs"
+    }
+  ],
+  "title": "Accounting scoring models: inputs"
+}

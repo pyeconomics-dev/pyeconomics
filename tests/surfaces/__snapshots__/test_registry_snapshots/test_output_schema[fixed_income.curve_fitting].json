@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "EvaluateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "evaluate",
+          "default": "evaluate",
+          "description": "Yields, forwards and par yields of given parameters",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_factors": {
+          "description": "The discount factor to each maturity",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1e+44,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 360,
+          "title": "Discount Factors",
+          "type": "array"
+        },
+        "forward_rates": {
+          "description": "The instantaneous forward rate at each maturity, continuously compounded",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 360,
+          "title": "Forward Rates",
+          "type": "array"
+        },
+        "maturities": {
+          "description": "The maturities evaluated, in years",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 360,
+          "title": "Maturities",
+          "type": "array"
+        },
+        "par_yields": {
+          "description": "The par yield at each maturity, with coupon_frequency coupons a year",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 360,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "zero_yields": {
+          "description": "The zero-coupon yield at each maturity, continuously compounded",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 360,
+          "title": "Zero Yields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "maturities",
+        "zero_yields",
+        "forward_rates",
+        "par_yields",
+        "discount_factors"
+      ],
+      "title": "EvaluateOutputs",
+      "type": "object"
+    },
+    "FitOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "beta0": {
+          "description": "The fitted long-run level",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Beta0",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "beta1": {
+          "description": "The fitted slope",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Beta1",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "beta2": {
+          "description": "The fitted first hump",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Beta2",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "beta3": {
+          "description": "The fitted second hump; 0 for a Nelson-Siegel fit",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Beta3",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "fit",
+          "default": "fit",
+          "description": "Fit a curve to observed yields by least squares",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "evaluations": {
+          "description": "Evaluations of the residuals across every start",
+          "maximum": 8528,
+          "minimum": 0,
+          "title": "Evaluations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "fitted_yields": {
+          "description": "The fitted curve's yield at each observed maturity, of the observed type",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -0.99,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 60,
+          "title": "Fitted Yields",
+          "type": "array"
+        },
+        "rmse": {
+          "description": "Root mean squared difference of the fitted and observed yields",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Rmse",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "tau1": {
+          "description": "The fitted first decay, in years",
+          "maximum": 30.0,
+          "minimum": 0.05,
+          "title": "Tau1",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "tau2": {
+          "description": "The fitted second decay, in years; a Nelson-Siegel fit repeats tau1, so the parameters evaluate as a Svensson curve with beta3 = 0",
+          "maximum": 30.0,
+          "minimum": 0.05,
+          "title": "Tau2",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "beta0",
+        "beta1",
+        "beta2",
+        "beta3",
+        "tau1",
+        "tau2",
+        "fitted_yields",
+        "rmse",
+        "evaluations"
+      ],
+      "title": "FitOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.curve_fitting:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Zero yields, forward rates and par yields of Nelson-Siegel and Svensson curves, and least-squares fits of either curve to observed yields.",
+  "discriminator": {
+    "mapping": {
+      "evaluate": "#/$defs/EvaluateOutputs",
+      "fit": "#/$defs/FitOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/EvaluateOutputs"
+    },
+    {
+      "$ref": "#/$defs/FitOutputs"
+    }
+  ],
+  "title": "Nelson-Siegel and Svensson yield curves: outputs"
+}

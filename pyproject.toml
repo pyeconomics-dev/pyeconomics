@@ -349,7 +349,8 @@ testpaths = ["tests", "src", "docs"]
 # contract check, tests/golden/_loader.py the golden-file loader, and
 # tests/data/frame_builders.py the data layer's shared frames, and
 # tests/data/catalog/catalog_support.py the catalog's synthetic series, and
-# tests/data/bindings/bound_support.py the toy bound models. Only these
+# tests/data/bindings/bound_support.py the toy bound models, and
+# tests/json_snapshots.py the LF JSON snapshot extension. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
 pythonpath = ["tests", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/golden", "tests/providers", "tests/registry"]

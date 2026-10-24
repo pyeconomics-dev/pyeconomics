@@ -1,0 +1,404 @@
+{
+  "$defs": {
+    "AmortizationOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "balance": {
+          "description": "Balance after each payment",
+          "items": {
+            "maximum": 1000000000000000.0,
+            "minimum": -1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1200,
+          "title": "Balance",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "amortization",
+          "default": "amortization",
+          "description": "Level-payment amortization schedule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "interest": {
+          "description": "Interest part of each payment",
+          "items": {
+            "maximum": 1000000000000000.0,
+            "minimum": -1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1200,
+          "title": "Interest",
+          "type": "array"
+        },
+        "level_payment": {
+          "description": "The level payment each period",
+          "maximum": 2000000000000.0,
+          "minimum": 0,
+          "title": "Level Payment",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "payment": {
+          "description": "Payment in each period",
+          "items": {
+            "maximum": 1000000000000000.0,
+            "minimum": -1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1200,
+          "title": "Payment",
+          "type": "array"
+        },
+        "period": {
+          "description": "Payment numbers, 1 to n",
+          "items": {
+            "maximum": 1200,
+            "minimum": 1,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 1200,
+          "title": "Period",
+          "type": "array"
+        },
+        "principal": {
+          "description": "Principal part of each payment",
+          "items": {
+            "maximum": 1000000000000000.0,
+            "minimum": -1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1200,
+          "title": "Principal",
+          "type": "array"
+        },
+        "total_interest": {
+          "description": "Interest paid over the loan",
+          "maximum": 2400000000000000.0,
+          "minimum": -2000000000000.0,
+          "title": "Total Interest",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "level_payment",
+        "total_interest",
+        "period",
+        "payment",
+        "interest",
+        "principal",
+        "balance"
+      ],
+      "title": "AmortizationOutputs",
+      "type": "object"
+    },
+    "FutureValueOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "future_value",
+          "default": "future_value",
+          "description": "Compound a sum and a stream of payments",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "future_value": {
+          "description": "Future value of the sum and the payments",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Future Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "future_value"
+      ],
+      "title": "FutureValueOutputs",
+      "type": "object"
+    },
+    "IrrOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "irr",
+          "default": "irr",
+          "description": "Internal rate of return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "irr": {
+          "anyOf": [
+            {
+              "maximum": 10.0,
+              "minimum": -0.99,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rate per period at which the NPV is zero; null when undefined",
+          "title": "Irr"
+        },
+        "sign_changes": {
+          "description": "Sign changes in the cash flows",
+          "maximum": 1201,
+          "minimum": 0,
+          "title": "Sign Changes",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "irr",
+        "sign_changes"
+      ],
+      "title": "IrrOutputs",
+      "type": "object"
+    },
+    "NpvOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "npv",
+          "default": "npv",
+          "description": "Net present value",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "npv": {
+          "description": "Net present value at time 0",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Npv",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "npv"
+      ],
+      "title": "NpvOutputs",
+      "type": "object"
+    },
+    "PresentValueOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "present_value",
+          "default": "present_value",
+          "description": "Discount a sum and a stream of payments",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "present_value": {
+          "description": "Present value of the sum and the payments",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Present Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "present_value"
+      ],
+      "title": "PresentValueOutputs",
+      "type": "object"
+    },
+    "Solvable": {
+      "enum": [
+        "periods",
+        "rate",
+        "present_value",
+        "payment",
+        "future_value"
+      ],
+      "type": "string"
+    },
+    "SolveOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "solve",
+          "default": "solve",
+          "description": "Solve the time-value equation for the omitted term",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "future_value": {
+          "description": "Cash flow at the end (FV)",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Future Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "payment": {
+          "description": "Level cash flow each period (PMT)",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Payment",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "periods": {
+          "description": "Number of periods (N)",
+          "maximum": 1200,
+          "minimum": 0,
+          "title": "Periods",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "present_value": {
+          "description": "Cash flow now (PV)",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Present Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "rate": {
+          "description": "Interest rate per period",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "solved_for": {
+          "$ref": "#/$defs/Solvable",
+          "description": "The term that was omitted and solved"
+        }
+      },
+      "required": [
+        "solved_for",
+        "periods",
+        "rate",
+        "present_value",
+        "payment",
+        "future_value"
+      ],
+      "title": "SolveOutputs",
+      "type": "object"
+    },
+    "XirrOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "xirr",
+          "default": "xirr",
+          "description": "Internal rate of return of dated cash flows",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "sign_changes": {
+          "description": "Sign changes in the cash flows",
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Sign Changes",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "xirr": {
+          "anyOf": [
+            {
+              "maximum": 10.0,
+              "minimum": -0.99,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Annual rate at which the XNPV is zero; null when undefined",
+          "title": "Xirr"
+        }
+      },
+      "required": [
+        "xirr",
+        "sign_changes"
+      ],
+      "title": "XirrOutputs",
+      "type": "object"
+    },
+    "XnpvOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "xnpv",
+          "default": "xnpv",
+          "description": "Net present value of dated cash flows",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "xnpv": {
+          "description": "Net present value at the first date",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Xnpv",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "xnpv"
+      ],
+      "title": "XnpvOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.time_value:2:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Present and future values of sums, annuities and perpetuities, the five-key solve, NPV, IRR, XNPV, XIRR and amortization schedules.",
+  "discriminator": {
+    "mapping": {
+      "amortization": "#/$defs/AmortizationOutputs",
+      "future_value": "#/$defs/FutureValueOutputs",
+      "irr": "#/$defs/IrrOutputs",
+      "npv": "#/$defs/NpvOutputs",
+      "present_value": "#/$defs/PresentValueOutputs",
+      "solve": "#/$defs/SolveOutputs",
+      "xirr": "#/$defs/XirrOutputs",
+      "xnpv": "#/$defs/XnpvOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PresentValueOutputs"
+    },
+    {
+      "$ref": "#/$defs/FutureValueOutputs"
+    },
+    {
+      "$ref": "#/$defs/SolveOutputs"
+    },
+    {
+      "$ref": "#/$defs/NpvOutputs"
+    },
+    {
+      "$ref": "#/$defs/IrrOutputs"
+    },
+    {
+      "$ref": "#/$defs/XnpvOutputs"
+    },
+    {
+      "$ref": "#/$defs/XirrOutputs"
+    },
+    {
+      "$ref": "#/$defs/AmortizationOutputs"
+    }
+  ],
+  "title": "Time value of money: outputs"
+}

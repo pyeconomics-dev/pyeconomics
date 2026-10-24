@@ -1,0 +1,56 @@
+{
+  "$defs": {
+    "BillBasis": {
+      "enum": [
+        "bond_equivalent",
+        "discount"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.recession_probability:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The New York Fed's probit of a US recession twelve months ahead from the spread of the 10-year Treasury yield over the 3-month bill.",
+  "examples": [
+    {
+      "bill_basis": "bond_equivalent",
+      "ten_year_yield": 0.0357,
+      "three_month_yield": 0.0528
+    },
+    {
+      "bill_basis": "discount",
+      "ten_year_yield": 0.0499,
+      "three_month_yield": 0.0394
+    }
+  ],
+  "properties": {
+    "bill_basis": {
+      "$ref": "#/$defs/BillBasis",
+      "default": "bond_equivalent",
+      "description": "How the bill rate is quoted: 'bond_equivalent' (an investment yield, as Treasury's par curve gives it) or 'discount' (as H.15 publishes secondary-market bills)"
+    },
+    "ten_year_yield": {
+      "description": "The 10-year Treasury yield, a monthly average",
+      "maximum": 0.5,
+      "minimum": -0.05,
+      "title": "Ten Year Yield",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "three_month_yield": {
+      "description": "The 3-month Treasury bill rate, a monthly average",
+      "maximum": 0.5,
+      "minimum": -0.05,
+      "title": "Three Month Yield",
+      "type": "number",
+      "x-unit": "rate"
+    }
+  },
+  "required": [
+    "ten_year_yield",
+    "three_month_yield"
+  ],
+  "title": "Yield-curve recession probability: inputs",
+  "type": "object"
+}

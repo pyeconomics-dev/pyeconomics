@@ -1,0 +1,223 @@
+{
+  "$defs": {
+    "ForwardRateInputs": {
+      "additionalProperties": false,
+      "description": "Two spot rates and their maturities.",
+      "properties": {
+        "calculation": {
+          "const": "forward_rate",
+          "default": "forward_rate",
+          "description": "Forward rate between two maturities",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "$ref": "#/$defs/QuoteCompounding",
+          "default": "periodic",
+          "description": "How spot and forward rates compound: at the frequency (periodic) or continuously"
+        },
+        "far_rate": {
+          "description": "Spot rate to the far maturity",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Far Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "far_years": {
+          "description": "Far maturity, in years",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Far Years",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "annual",
+          "description": "Compounding frequency of periodic rates"
+        },
+        "near_rate": {
+          "description": "Spot rate to the near maturity",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Near Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "near_years": {
+          "description": "Near maturity, in years (0 for now)",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Near Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "near_rate",
+        "near_years",
+        "far_rate",
+        "far_years"
+      ],
+      "title": "ForwardRateInputs",
+      "type": "object"
+    },
+    "FrequencyName": {
+      "enum": [
+        "annual",
+        "semiannual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "FromParInputs": {
+      "additionalProperties": false,
+      "description": "Par yields at regular tenors.",
+      "properties": {
+        "calculation": {
+          "const": "from_par",
+          "default": "from_par",
+          "description": "Bootstrap spot rates from par yields",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "$ref": "#/$defs/QuoteCompounding",
+          "default": "periodic",
+          "description": "How spot and forward rates compound: at the frequency (periodic) or continuously"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year of the par bonds, and the tenor spacing"
+        },
+        "par_yields": {
+          "description": "Par yield at each tenor 1/f, 2/f, ... years",
+          "items": {
+            "maximum": 1.0,
+            "minimum": -0.1,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Par Yields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "par_yields"
+      ],
+      "title": "FromParInputs",
+      "type": "object"
+    },
+    "FromSpotInputs": {
+      "additionalProperties": false,
+      "description": "Spot rates at regular tenors.",
+      "properties": {
+        "calculation": {
+          "const": "from_spot",
+          "default": "from_spot",
+          "description": "Par yields and forwards from spot rates",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "$ref": "#/$defs/QuoteCompounding",
+          "default": "periodic",
+          "description": "How spot and forward rates compound: at the frequency (periodic) or continuously"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Coupons per year of the par bonds, and the tenor spacing"
+        },
+        "spot_rates": {
+          "description": "Spot (zero) rate at each tenor 1/f, 2/f, ... years",
+          "items": {
+            "maximum": 1.0,
+            "minimum": -0.1,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Spot Rates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "spot_rates"
+      ],
+      "title": "FromSpotInputs",
+      "type": "object"
+    },
+    "QuoteCompounding": {
+      "enum": [
+        "periodic",
+        "continuous"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.curve_bootstrap:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Bootstrap spot rates and discount factors from par yields, par yields from spot rates, and forward rates between maturities.",
+  "discriminator": {
+    "mapping": {
+      "forward_rate": "#/$defs/ForwardRateInputs",
+      "from_par": "#/$defs/FromParInputs",
+      "from_spot": "#/$defs/FromSpotInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "from_par",
+      "compounding": "periodic",
+      "frequency": "semiannual",
+      "par_yields": [
+        0.04,
+        0.041,
+        0.042,
+        0.0425,
+        0.043,
+        0.0435
+      ]
+    },
+    {
+      "calculation": "from_spot",
+      "compounding": "continuous",
+      "frequency": "semiannual",
+      "spot_rates": [
+        0.05,
+        0.058,
+        0.064,
+        0.068
+      ]
+    },
+    {
+      "calculation": "forward_rate",
+      "compounding": "periodic",
+      "far_rate": 0.04,
+      "far_years": 2.0,
+      "frequency": "annual",
+      "near_rate": 0.03,
+      "near_years": 1.0
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/FromParInputs"
+    },
+    {
+      "$ref": "#/$defs/FromSpotInputs"
+    },
+    {
+      "$ref": "#/$defs/ForwardRateInputs"
+    }
+  ],
+  "title": "Spot, par and forward curves: inputs"
+}

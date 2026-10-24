@@ -1,0 +1,1119 @@
+{
+  "$defs": {
+    "CapmInputs": {
+      "additionalProperties": false,
+      "description": "The market factor alone, and a market premium for the security market line.",
+      "properties": {
+        "calculation": {
+          "const": "capm",
+          "default": "capm",
+          "description": "CAPM: beta on the market and the security market line",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "market": {
+          "description": "The return of the market's excess return (Mkt-RF) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Market",
+          "type": "array"
+        },
+        "market_premium": {
+          "description": "The expected market excess return per period, at which the security market line prices the asset's beta",
+          "maximum": 10.0,
+          "minimum": -10.0,
+          "title": "Market Premium",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, to annualize alpha and the residual volatility: 12 for months, 52 for weeks, 252 for trading days",
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Periods Per Year",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "returns": {
+          "description": "The asset's return each period; its excess return when risk_free is left out",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from returns; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        },
+        "risk_free_rate": {
+          "default": 0.0,
+          "description": "The risk-free return per period the security market line starts from; at 0 its expected return is the excess return",
+          "maximum": 10.0,
+          "minimum": -1.0,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "returns",
+        "market",
+        "periods_per_year",
+        "market_premium"
+      ],
+      "title": "CapmInputs",
+      "type": "object"
+    },
+    "CarhartInputs": {
+      "additionalProperties": false,
+      "description": "The Fama-French three factors and momentum.",
+      "properties": {
+        "calculation": {
+          "const": "carhart",
+          "default": "carhart",
+          "description": "Carhart four factors: the three and momentum",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "market": {
+          "description": "The return of the market's excess return (Mkt-RF) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Market",
+          "type": "array"
+        },
+        "momentum": {
+          "description": "The return of the momentum factor (Mom, UMD) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Momentum",
+          "type": "array"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, to annualize alpha and the residual volatility: 12 for months, 52 for weeks, 252 for trading days",
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Periods Per Year",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "returns": {
+          "description": "The asset's return each period; its excess return when risk_free is left out",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from returns; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        },
+        "size": {
+          "description": "The return of the size factor (SMB) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Size",
+          "type": "array"
+        },
+        "value": {
+          "description": "The return of the value factor (HML) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns",
+        "market",
+        "periods_per_year",
+        "size",
+        "value",
+        "momentum"
+      ],
+      "title": "CarhartInputs",
+      "type": "object"
+    },
+    "CovarianceName": {
+      "enum": [
+        "classical",
+        "hc1",
+        "newey_west"
+      ],
+      "type": "string"
+    },
+    "Ff3Inputs": {
+      "additionalProperties": false,
+      "description": "The Fama-French three factors.",
+      "properties": {
+        "calculation": {
+          "const": "ff3",
+          "default": "ff3",
+          "description": "Fama-French three factors: market, size and value",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "market": {
+          "description": "The return of the market's excess return (Mkt-RF) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Market",
+          "type": "array"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, to annualize alpha and the residual volatility: 12 for months, 52 for weeks, 252 for trading days",
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Periods Per Year",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "returns": {
+          "description": "The asset's return each period; its excess return when risk_free is left out",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from returns; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        },
+        "size": {
+          "description": "The return of the size factor (SMB) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Size",
+          "type": "array"
+        },
+        "value": {
+          "description": "The return of the value factor (HML) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns",
+        "market",
+        "periods_per_year",
+        "size",
+        "value"
+      ],
+      "title": "Ff3Inputs",
+      "type": "object"
+    },
+    "Ff5Inputs": {
+      "additionalProperties": false,
+      "description": "The Fama-French five factors.",
+      "properties": {
+        "calculation": {
+          "const": "ff5",
+          "default": "ff5",
+          "description": "Fama-French five factors: market, size, value, profitability and investment",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "investment": {
+          "description": "The return of the investment factor (CMA) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Investment",
+          "type": "array"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "market": {
+          "description": "The return of the market's excess return (Mkt-RF) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Market",
+          "type": "array"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, to annualize alpha and the residual volatility: 12 for months, 52 for weeks, 252 for trading days",
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Periods Per Year",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "profitability": {
+          "description": "The return of the profitability factor (RMW) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Profitability",
+          "type": "array"
+        },
+        "returns": {
+          "description": "The asset's return each period; its excess return when risk_free is left out",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from returns; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        },
+        "size": {
+          "description": "The return of the size factor (SMB) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Size",
+          "type": "array"
+        },
+        "value": {
+          "description": "The return of the value factor (HML) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns",
+        "market",
+        "periods_per_year",
+        "size",
+        "value",
+        "profitability",
+        "investment"
+      ],
+      "title": "Ff5Inputs",
+      "type": "object"
+    },
+    "Ff6Inputs": {
+      "additionalProperties": false,
+      "description": "The Fama-French five factors and momentum.",
+      "properties": {
+        "calculation": {
+          "const": "ff6",
+          "default": "ff6",
+          "description": "Fama-French six factors: the five and momentum",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "investment": {
+          "description": "The return of the investment factor (CMA) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Investment",
+          "type": "array"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "market": {
+          "description": "The return of the market's excess return (Mkt-RF) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Market",
+          "type": "array"
+        },
+        "momentum": {
+          "description": "The return of the momentum factor (Mom, UMD) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Momentum",
+          "type": "array"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, to annualize alpha and the residual volatility: 12 for months, 52 for weeks, 252 for trading days",
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Periods Per Year",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "profitability": {
+          "description": "The return of the profitability factor (RMW) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Profitability",
+          "type": "array"
+        },
+        "returns": {
+          "description": "The asset's return each period; its excess return when risk_free is left out",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Returns",
+          "type": "array"
+        },
+        "risk_free": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 10.0,
+                "minimum": -10.0,
+                "type": "number",
+                "x-unit": "return"
+              },
+              "maxLength": 2520,
+              "minLength": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The risk-free return each period, subtracted from returns; leave it out when returns are already excess returns",
+          "title": "Risk Free"
+        },
+        "size": {
+          "description": "The return of the size factor (SMB) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Size",
+          "type": "array"
+        },
+        "value": {
+          "description": "The return of the value factor (HML) each period",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 2520,
+          "minItems": 3,
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns",
+        "market",
+        "periods_per_year",
+        "size",
+        "value",
+        "profitability",
+        "investment",
+        "momentum"
+      ],
+      "title": "Ff6Inputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:asset_pricing.factor_regression:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An asset's excess returns regressed on the market (CAPM), the Fama-French three or five factors, Carhart's four or the six-factor model: alpha per period and annualized, each beta with Newey-West errors, R-squared, residual volatility and the CAPM's security market line.",
+  "discriminator": {
+    "mapping": {
+      "capm": "#/$defs/CapmInputs",
+      "carhart": "#/$defs/CarhartInputs",
+      "ff3": "#/$defs/Ff3Inputs",
+      "ff5": "#/$defs/Ff5Inputs",
+      "ff6": "#/$defs/Ff6Inputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "capm",
+      "covariance": "newey_west",
+      "lags": null,
+      "market": [
+        0.018,
+        -0.02,
+        0.03,
+        0.006,
+        -0.025,
+        0.012,
+        0.022,
+        -0.006,
+        0.009,
+        0.016
+      ],
+      "market_premium": 0.005,
+      "periods_per_year": 12,
+      "returns": [
+        0.021,
+        -0.013,
+        0.034,
+        0.008,
+        -0.022,
+        0.015,
+        0.027,
+        -0.004,
+        0.012,
+        0.019
+      ],
+      "risk_free": [
+        0.004,
+        0.004,
+        0.004,
+        0.0045,
+        0.0045,
+        0.0045,
+        0.0042,
+        0.0042,
+        0.0041,
+        0.0041
+      ],
+      "risk_free_rate": 0.004
+    },
+    {
+      "calculation": "ff3",
+      "covariance": "classical",
+      "lags": null,
+      "market": [
+        0.018,
+        -0.02,
+        0.03,
+        0.006,
+        -0.025,
+        0.012,
+        0.022,
+        -0.006,
+        0.009,
+        0.016
+      ],
+      "periods_per_year": 12,
+      "returns": [
+        0.021,
+        -0.013,
+        0.034,
+        0.008,
+        -0.022,
+        0.015,
+        0.027,
+        -0.004,
+        0.012,
+        0.019
+      ],
+      "risk_free": [
+        0.004,
+        0.004,
+        0.004,
+        0.0045,
+        0.0045,
+        0.0045,
+        0.0042,
+        0.0042,
+        0.0041,
+        0.0041
+      ],
+      "size": [
+        0.004,
+        -0.006,
+        0.011,
+        -0.002,
+        0.003,
+        0.007,
+        -0.005,
+        0.001,
+        0.002,
+        -0.004
+      ],
+      "value": [
+        -0.003,
+        0.008,
+        -0.004,
+        0.006,
+        0.01,
+        -0.002,
+        0.004,
+        -0.007,
+        0.005,
+        0.0
+      ]
+    },
+    {
+      "calculation": "carhart",
+      "covariance": "newey_west",
+      "lags": null,
+      "market": [
+        0.018,
+        -0.02,
+        0.03,
+        0.006,
+        -0.025,
+        0.012,
+        0.022,
+        -0.006,
+        0.009,
+        0.016
+      ],
+      "momentum": [
+        0.012,
+        -0.018,
+        0.006,
+        0.009,
+        -0.031,
+        0.014,
+        0.007,
+        -0.002,
+        0.011,
+        0.004
+      ],
+      "periods_per_year": 12,
+      "returns": [
+        0.021,
+        -0.013,
+        0.034,
+        0.008,
+        -0.022,
+        0.015,
+        0.027,
+        -0.004,
+        0.012,
+        0.019
+      ],
+      "risk_free": [
+        0.004,
+        0.004,
+        0.004,
+        0.0045,
+        0.0045,
+        0.0045,
+        0.0042,
+        0.0042,
+        0.0041,
+        0.0041
+      ],
+      "size": [
+        0.004,
+        -0.006,
+        0.011,
+        -0.002,
+        0.003,
+        0.007,
+        -0.005,
+        0.001,
+        0.002,
+        -0.004
+      ],
+      "value": [
+        -0.003,
+        0.008,
+        -0.004,
+        0.006,
+        0.01,
+        -0.002,
+        0.004,
+        -0.007,
+        0.005,
+        0.0
+      ]
+    },
+    {
+      "calculation": "ff5",
+      "covariance": "hc1",
+      "investment": [
+        0.001,
+        0.005,
+        -0.003,
+        0.002,
+        0.004,
+        0.0,
+        -0.002,
+        0.003,
+        0.001,
+        -0.001
+      ],
+      "lags": null,
+      "market": [
+        0.018,
+        -0.02,
+        0.03,
+        0.006,
+        -0.025,
+        0.012,
+        0.022,
+        -0.006,
+        0.009,
+        0.016
+      ],
+      "periods_per_year": 12,
+      "profitability": [
+        0.002,
+        0.004,
+        -0.001,
+        0.003,
+        0.006,
+        -0.002,
+        0.001,
+        0.005,
+        -0.003,
+        0.002
+      ],
+      "returns": [
+        0.021,
+        -0.013,
+        0.034,
+        0.008,
+        -0.022,
+        0.015,
+        0.027,
+        -0.004,
+        0.012,
+        0.019
+      ],
+      "risk_free": [
+        0.004,
+        0.004,
+        0.004,
+        0.0045,
+        0.0045,
+        0.0045,
+        0.0042,
+        0.0042,
+        0.0041,
+        0.0041
+      ],
+      "size": [
+        0.004,
+        -0.006,
+        0.011,
+        -0.002,
+        0.003,
+        0.007,
+        -0.005,
+        0.001,
+        0.002,
+        -0.004
+      ],
+      "value": [
+        -0.003,
+        0.008,
+        -0.004,
+        0.006,
+        0.01,
+        -0.002,
+        0.004,
+        -0.007,
+        0.005,
+        0.0
+      ]
+    },
+    {
+      "calculation": "ff6",
+      "covariance": "classical",
+      "investment": [
+        0.001,
+        0.005,
+        -0.003,
+        0.002,
+        0.004,
+        0.0,
+        -0.002,
+        0.003,
+        0.001,
+        -0.001
+      ],
+      "lags": null,
+      "market": [
+        0.018,
+        -0.02,
+        0.03,
+        0.006,
+        -0.025,
+        0.012,
+        0.022,
+        -0.006,
+        0.009,
+        0.016
+      ],
+      "momentum": [
+        0.012,
+        -0.018,
+        0.006,
+        0.009,
+        -0.031,
+        0.014,
+        0.007,
+        -0.002,
+        0.011,
+        0.004
+      ],
+      "periods_per_year": 12,
+      "profitability": [
+        0.002,
+        0.004,
+        -0.001,
+        0.003,
+        0.006,
+        -0.002,
+        0.001,
+        0.005,
+        -0.003,
+        0.002
+      ],
+      "returns": [
+        0.021,
+        -0.013,
+        0.034,
+        0.008,
+        -0.022,
+        0.015,
+        0.027,
+        -0.004,
+        0.012,
+        0.019
+      ],
+      "risk_free": [
+        0.004,
+        0.004,
+        0.004,
+        0.0045,
+        0.0045,
+        0.0045,
+        0.0042,
+        0.0042,
+        0.0041,
+        0.0041
+      ],
+      "size": [
+        0.004,
+        -0.006,
+        0.011,
+        -0.002,
+        0.003,
+        0.007,
+        -0.005,
+        0.001,
+        0.002,
+        -0.004
+      ],
+      "value": [
+        -0.003,
+        0.008,
+        -0.004,
+        0.006,
+        0.01,
+        -0.002,
+        0.004,
+        -0.007,
+        0.005,
+        0.0
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CapmInputs"
+    },
+    {
+      "$ref": "#/$defs/Ff3Inputs"
+    },
+    {
+      "$ref": "#/$defs/CarhartInputs"
+    },
+    {
+      "$ref": "#/$defs/Ff5Inputs"
+    },
+    {
+      "$ref": "#/$defs/Ff6Inputs"
+    }
+  ],
+  "title": "Factor regressions: CAPM to the six-factor model: inputs"
+}

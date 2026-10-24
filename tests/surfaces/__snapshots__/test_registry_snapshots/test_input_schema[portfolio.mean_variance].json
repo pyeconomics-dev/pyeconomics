@@ -1,0 +1,636 @@
+{
+  "$defs": {
+    "FrontierInputs": {
+      "additionalProperties": false,
+      "description": "How many points of the frontier to trace, and over which returns.",
+      "properties": {
+        "calculation": {
+          "const": "frontier",
+          "default": "frontier",
+          "description": "Minimum-variance frontier, short sales allowed",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations",
+          "title": "Covariance"
+        },
+        "expected_returns": {
+          "description": "Expected return of each asset per period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Expected Returns",
+          "type": "array"
+        },
+        "max_return": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Highest target return; by default the highest expected return of an asset",
+          "title": "Max Return"
+        },
+        "min_return": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lowest target return; by default the minimum-variance return",
+          "title": "Min Return"
+        },
+        "points": {
+          "default": 21,
+          "description": "Number of target returns to trace",
+          "maximum": 200,
+          "minimum": 2,
+          "title": "Points",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        }
+      },
+      "required": [
+        "expected_returns"
+      ],
+      "title": "FrontierInputs",
+      "type": "object"
+    },
+    "MinimumVarianceInputs": {
+      "additionalProperties": false,
+      "description": "The assets alone.",
+      "properties": {
+        "calculation": {
+          "const": "minimum_variance",
+          "default": "minimum_variance",
+          "description": "Global minimum-variance portfolio",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations",
+          "title": "Covariance"
+        },
+        "expected_returns": {
+          "description": "Expected return of each asset per period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Expected Returns",
+          "type": "array"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        }
+      },
+      "required": [
+        "expected_returns"
+      ],
+      "title": "MinimumVarianceInputs",
+      "type": "object"
+    },
+    "PortfolioInputs": {
+      "additionalProperties": false,
+      "description": "Weights of a portfolio of the assets.",
+      "properties": {
+        "calculation": {
+          "const": "portfolio",
+          "default": "portfolio",
+          "description": "Expected return and risk of given weights",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations",
+          "title": "Covariance"
+        },
+        "expected_returns": {
+          "description": "Expected return of each asset per period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Expected Returns",
+          "type": "array"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        },
+        "weights": {
+          "description": "Weight of each asset; negative is short. They need not sum to 1",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -100.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "expected_returns",
+        "weights"
+      ],
+      "title": "PortfolioInputs",
+      "type": "object"
+    },
+    "TangencyInputs": {
+      "additionalProperties": false,
+      "description": "The assets and a risk-free rate per period.",
+      "properties": {
+        "calculation": {
+          "const": "tangency",
+          "default": "tangency",
+          "description": "Tangency portfolio and the capital market line",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "correlations": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 1.0,
+                  "minimum": -1.0,
+                  "type": "number",
+                  "x-unit": "correlation"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Correlation matrix of the asset returns, as rows, with volatilities",
+          "title": "Correlations"
+        },
+        "covariance": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maximum": 100.0,
+                  "minimum": -100.0,
+                  "type": "number",
+                  "x-unit": "ratio"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Covariance matrix of the asset returns per period, as rows; or give volatilities and correlations",
+          "title": "Covariance"
+        },
+        "expected_returns": {
+          "description": "Expected return of each asset per period",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Expected Returns",
+          "type": "array"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per period",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "volatilities": {
+          "anyOf": [
+            {
+              "items": {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number",
+                "x-unit": "volatility"
+              },
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Volatility of each asset per period, with correlations",
+          "title": "Volatilities"
+        }
+      },
+      "required": [
+        "expected_returns",
+        "risk_free_rate"
+      ],
+      "title": "TangencyInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:portfolio.mean_variance:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Portfolio expected return and risk, the minimum-variance frontier with short sales, and the minimum-variance and tangency portfolios.",
+  "discriminator": {
+    "mapping": {
+      "frontier": "#/$defs/FrontierInputs",
+      "minimum_variance": "#/$defs/MinimumVarianceInputs",
+      "portfolio": "#/$defs/PortfolioInputs",
+      "tangency": "#/$defs/TangencyInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "portfolio",
+      "correlations": [
+        [
+          1.0,
+          0.3
+        ],
+        [
+          0.3,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "expected_returns": [
+        0.1,
+        0.06
+      ],
+      "volatilities": [
+        0.2,
+        0.1
+      ],
+      "weights": [
+        0.6,
+        0.4
+      ]
+    },
+    {
+      "calculation": "frontier",
+      "correlations": [
+        [
+          1.0,
+          0.3,
+          0.2
+        ],
+        [
+          0.3,
+          1.0,
+          0.5
+        ],
+        [
+          0.2,
+          0.5,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "expected_returns": [
+        0.08,
+        0.12,
+        0.15
+      ],
+      "max_return": null,
+      "min_return": null,
+      "points": 5,
+      "volatilities": [
+        0.15,
+        0.2,
+        0.25
+      ]
+    },
+    {
+      "calculation": "minimum_variance",
+      "correlations": [
+        [
+          1.0,
+          0.3,
+          0.2
+        ],
+        [
+          0.3,
+          1.0,
+          0.5
+        ],
+        [
+          0.2,
+          0.5,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "expected_returns": [
+        0.08,
+        0.12,
+        0.15
+      ],
+      "volatilities": [
+        0.15,
+        0.2,
+        0.25
+      ]
+    },
+    {
+      "calculation": "tangency",
+      "correlations": [
+        [
+          1.0,
+          0.3,
+          0.2
+        ],
+        [
+          0.3,
+          1.0,
+          0.5
+        ],
+        [
+          0.2,
+          0.5,
+          1.0
+        ]
+      ],
+      "covariance": null,
+      "expected_returns": [
+        0.08,
+        0.12,
+        0.15
+      ],
+      "risk_free_rate": 0.03,
+      "volatilities": [
+        0.15,
+        0.2,
+        0.25
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PortfolioInputs"
+    },
+    {
+      "$ref": "#/$defs/FrontierInputs"
+    },
+    {
+      "$ref": "#/$defs/MinimumVarianceInputs"
+    },
+    {
+      "$ref": "#/$defs/TangencyInputs"
+    }
+  ],
+  "title": "Mean-variance portfolios: inputs"
+}

@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "CapmOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "capm",
+          "default": "capm",
+          "description": "Capital asset pricing model",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cost_of_equity": {
+          "description": "Risk-free rate plus beta times ERP",
+          "maximum": 3,
+          "minimum": -3,
+          "title": "Cost Of Equity",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "cost_of_equity"
+      ],
+      "title": "CapmOutputs",
+      "type": "object"
+    },
+    "CountryOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "country_risk_premium",
+          "default": "country_risk_premium",
+          "description": "Volatility-scaled sovereign spread",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "premium": {
+          "description": "Country equity risk premium",
+          "maximum": 5000000.0,
+          "minimum": 0,
+          "title": "Premium",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "premium"
+      ],
+      "title": "CountryOutputs",
+      "type": "object"
+    },
+    "ReleverOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "beta": {
+          "description": "Levered beta",
+          "maximum": 505,
+          "minimum": -505,
+          "title": "Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "relever_beta",
+          "default": "relever_beta",
+          "description": "Add financial leverage",
+          "title": "Calculation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "beta"
+      ],
+      "title": "ReleverOutputs",
+      "type": "object"
+    },
+    "UnleverOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "beta": {
+          "description": "Unlevered beta",
+          "maximum": 505,
+          "minimum": -505,
+          "title": "Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "unlever_beta",
+          "default": "unlever_beta",
+          "description": "Remove financial leverage",
+          "title": "Calculation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "beta"
+      ],
+      "title": "UnleverOutputs",
+      "type": "object"
+    },
+    "WaccOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "wacc",
+          "default": "wacc",
+          "description": "Weighted average cost of capital",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "wacc": {
+          "description": "Market-weighted after-tax cost of capital",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Wacc",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "wacc"
+      ],
+      "title": "WaccOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:corporate.cost_of_capital:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "CAPM, WACC with preferred equity, Hamada unlevering/relevering, and country risk premium.",
+  "discriminator": {
+    "mapping": {
+      "capm": "#/$defs/CapmOutputs",
+      "country_risk_premium": "#/$defs/CountryOutputs",
+      "relever_beta": "#/$defs/ReleverOutputs",
+      "unlever_beta": "#/$defs/UnleverOutputs",
+      "wacc": "#/$defs/WaccOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CapmOutputs"
+    },
+    {
+      "$ref": "#/$defs/WaccOutputs"
+    },
+    {
+      "$ref": "#/$defs/UnleverOutputs"
+    },
+    {
+      "$ref": "#/$defs/ReleverOutputs"
+    },
+    {
+      "$ref": "#/$defs/CountryOutputs"
+    }
+  ],
+  "title": "Cost of capital and beta: outputs"
+}

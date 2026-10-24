@@ -1,0 +1,266 @@
+{
+  "$defs": {
+    "AnnualizedInputs": {
+      "additionalProperties": false,
+      "description": "A return over some periods, and how many periods make a year.",
+      "properties": {
+        "calculation": {
+          "const": "annualized",
+          "default": "annualized",
+          "description": "Annualized (compounded) return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "period_return": {
+          "description": "Return over the whole span",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Period Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "periods": {
+          "default": 1.0,
+          "description": "Number of periods the return spans",
+          "exclusiveMinimum": 0,
+          "maximum": 100000,
+          "title": "Periods",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, such as 12 or 252",
+          "exclusiveMinimum": 0,
+          "maximum": 100000,
+          "title": "Periods Per Year",
+          "type": "number",
+          "x-unit": "periods"
+        }
+      },
+      "required": [
+        "period_return",
+        "periods_per_year"
+      ],
+      "title": "AnnualizedInputs",
+      "type": "object"
+    },
+    "HoldingPeriodInputs": {
+      "additionalProperties": false,
+      "description": "Values at the start and end of a holding period, and the income between.",
+      "properties": {
+        "beginning_value": {
+          "description": "Value at the start of the period",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000000.0,
+          "title": "Beginning Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "holding_period",
+          "default": "holding_period",
+          "description": "Holding-period return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ending_value": {
+          "description": "Value at the end of the period",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Ending Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "income": {
+          "default": 0.0,
+          "description": "Income received during the period",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Income",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "beginning_value",
+        "ending_value"
+      ],
+      "title": "HoldingPeriodInputs",
+      "type": "object"
+    },
+    "LogInputs": {
+      "additionalProperties": false,
+      "description": "A series to convert between simple and log returns.",
+      "properties": {
+        "calculation": {
+          "const": "log",
+          "default": "log",
+          "description": "Convert between simple and log returns",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "direction": {
+          "default": "simple_to_log",
+          "description": "Which way to convert",
+          "enum": [
+            "simple_to_log",
+            "log_to_simple"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "returns": {
+          "description": "Simple returns, or log returns when direction is log_to_simple",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -40.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 1,
+          "title": "Returns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns"
+      ],
+      "title": "LogInputs",
+      "type": "object"
+    },
+    "MeansInputs": {
+      "additionalProperties": false,
+      "description": "A series of periodic returns.",
+      "properties": {
+        "calculation": {
+          "const": "means",
+          "default": "means",
+          "description": "Arithmetic, geometric and harmonic means",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "returns": {
+          "description": "Periodic returns",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 1,
+          "title": "Returns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns"
+      ],
+      "title": "MeansInputs",
+      "type": "object"
+    },
+    "RealInputs": {
+      "additionalProperties": false,
+      "description": "A nominal rate and the inflation over the same period.",
+      "properties": {
+        "calculation": {
+          "const": "real",
+          "default": "real",
+          "description": "Real rate by the exact Fisher relation",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation": {
+          "description": "Inflation rate",
+          "maximum": 10.0,
+          "minimum": -0.5,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "nominal": {
+          "description": "Nominal rate or return",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Nominal",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "nominal",
+        "inflation"
+      ],
+      "title": "RealInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.returns:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Holding-period, arithmetic, geometric, harmonic, annualized, log and real returns.",
+  "discriminator": {
+    "mapping": {
+      "annualized": "#/$defs/AnnualizedInputs",
+      "holding_period": "#/$defs/HoldingPeriodInputs",
+      "log": "#/$defs/LogInputs",
+      "means": "#/$defs/MeansInputs",
+      "real": "#/$defs/RealInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "beginning_value": 100.0,
+      "calculation": "holding_period",
+      "ending_value": 108.0,
+      "income": 2.0
+    },
+    {
+      "calculation": "means",
+      "returns": [
+        0.1,
+        -0.05,
+        0.2
+      ]
+    },
+    {
+      "calculation": "annualized",
+      "period_return": 0.01,
+      "periods": 1.0,
+      "periods_per_year": 12.0
+    },
+    {
+      "calculation": "log",
+      "direction": "simple_to_log",
+      "returns": [
+        0.1,
+        -0.05,
+        0.2
+      ]
+    },
+    {
+      "calculation": "real",
+      "inflation": 0.03,
+      "nominal": 0.05
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/HoldingPeriodInputs"
+    },
+    {
+      "$ref": "#/$defs/MeansInputs"
+    },
+    {
+      "$ref": "#/$defs/AnnualizedInputs"
+    },
+    {
+      "$ref": "#/$defs/LogInputs"
+    },
+    {
+      "$ref": "#/$defs/RealInputs"
+    }
+  ],
+  "title": "Return toolkit: inputs"
+}

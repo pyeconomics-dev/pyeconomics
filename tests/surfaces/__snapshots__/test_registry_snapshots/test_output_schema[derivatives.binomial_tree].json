@@ -1,0 +1,57 @@
+{
+  "$id": "urn:pyeconomics:model:derivatives.binomial_tree:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Cox-Ross-Rubinstein binomial prices of European and American calls and puts with a dividend yield, with delta and gamma from the tree.",
+  "properties": {
+    "delta": {
+      "description": "Change in price per unit of spot, across the first step",
+      "maximum": 100000.0,
+      "minimum": -100000.0,
+      "title": "Delta",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "gamma": {
+      "description": "Change in delta per unit of spot, across the second step",
+      "maximum": 1000000000000.0,
+      "minimum": -1000000000000.0,
+      "title": "Gamma",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "price": {
+      "description": "Option price",
+      "maximum": 1000000000000000.0,
+      "minimum": 0.0,
+      "title": "Price",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "up_factor": {
+      "description": "Price ratio of a move up: e^(sigma sqrt(dt))",
+      "exclusiveMinimum": 1.0,
+      "maximum": 1e+16,
+      "title": "Up Factor",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "up_probability": {
+      "description": "Risk-neutral probability of a move up",
+      "exclusiveMaximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Up Probability",
+      "type": "number",
+      "x-unit": "probability"
+    }
+  },
+  "required": [
+    "price",
+    "delta",
+    "gamma",
+    "up_factor",
+    "up_probability"
+  ],
+  "title": "Binomial option tree: outputs",
+  "type": "object"
+}

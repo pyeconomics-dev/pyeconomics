@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "EqualRiskContributionOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "equal_risk_contribution",
+          "default": "equal_risk_contribution",
+          "description": "Risk parity: every asset contributes the same risk",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "iterations": {
+          "description": "Newton steps the solve took",
+          "maximum": 200,
+          "minimum": 0,
+          "title": "Iterations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "risk_contributions": {
+          "description": "Each asset's contribution to the volatility, w_i (Sigma w)_i / sigma_p; they sum to the volatility",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 100,
+          "title": "Risk Contributions",
+          "type": "array"
+        },
+        "volatility": {
+          "description": "The portfolio's volatility per period",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "weights": {
+          "description": "Weight of each asset: long only, summing to 1",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 100,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "weights",
+        "risk_contributions",
+        "volatility",
+        "iterations"
+      ],
+      "title": "EqualRiskContributionOutputs",
+      "type": "object"
+    },
+    "HierarchicalRiskParityOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "hierarchical_risk_parity",
+          "default": "hierarchical_risk_parity",
+          "description": "Hierarchical risk parity: clustering and recursive bisection",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "order": {
+          "description": "The assets' quasi-diagonal order: their positions in the inputs, as the tree's leaves run, from 0",
+          "items": {
+            "maximum": 99,
+            "minimum": 0,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 100,
+          "title": "Order",
+          "type": "array"
+        },
+        "risk_contributions": {
+          "description": "Each asset's contribution to the volatility, w_i (Sigma w)_i / sigma_p; they sum to the volatility",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 100,
+          "title": "Risk Contributions",
+          "type": "array"
+        },
+        "volatility": {
+          "description": "The portfolio's volatility per period",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "weights": {
+          "description": "Weight of each asset: long only, summing to 1",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 100,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "weights",
+        "risk_contributions",
+        "volatility",
+        "order"
+      ],
+      "title": "HierarchicalRiskParityOutputs",
+      "type": "object"
+    },
+    "InverseVolatilityOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "inverse_volatility",
+          "default": "inverse_volatility",
+          "description": "Weights proportional to 1 / volatility",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "risk_contributions": {
+          "description": "Each asset's contribution to the volatility, w_i (Sigma w)_i / sigma_p; they sum to the volatility",
+          "items": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "type": "number",
+            "x-unit": "volatility"
+          },
+          "maxItems": 100,
+          "title": "Risk Contributions",
+          "type": "array"
+        },
+        "volatility": {
+          "description": "The portfolio's volatility per period",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "weights": {
+          "description": "Weight of each asset: long only, summing to 1",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 100,
+          "title": "Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "weights",
+        "risk_contributions",
+        "volatility"
+      ],
+      "title": "InverseVolatilityOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:portfolio.risk_based_allocation:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Long-only weights from the covariance alone: inverse volatility, equal risk contribution (risk parity) and hierarchical risk parity, with each asset's risk contribution and the portfolio's volatility.",
+  "discriminator": {
+    "mapping": {
+      "equal_risk_contribution": "#/$defs/EqualRiskContributionOutputs",
+      "hierarchical_risk_parity": "#/$defs/HierarchicalRiskParityOutputs",
+      "inverse_volatility": "#/$defs/InverseVolatilityOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/InverseVolatilityOutputs"
+    },
+    {
+      "$ref": "#/$defs/EqualRiskContributionOutputs"
+    },
+    {
+      "$ref": "#/$defs/HierarchicalRiskParityOutputs"
+    }
+  ],
+  "title": "Risk-based allocation: inverse volatility, risk parity and HRP: outputs"
+}

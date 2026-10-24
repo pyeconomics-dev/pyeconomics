@@ -1,0 +1,336 @@
+{
+  "$defs": {
+    "ChristoffersenOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "christoffersen",
+          "default": "christoffersen",
+          "description": "Christoffersen's independence and conditional coverage tests",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "exceptions": {
+          "description": "Periods whose loss exceeded the VaR",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Exceptions",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "lr_conditional_coverage": {
+          "description": "LR_CC, chi-square with two degrees of freedom",
+          "maximum": 1000000.0,
+          "minimum": 0,
+          "title": "Lr Conditional Coverage",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lr_independence": {
+          "description": "LR_IND, chi-square with one degree of freedom",
+          "maximum": 1000000.0,
+          "minimum": 0,
+          "title": "Lr Independence",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lr_unconditional": {
+          "description": "LR_UC over the transitions, chi-square with one degree of freedom",
+          "maximum": 1000000.0,
+          "minimum": 0,
+          "title": "Lr Unconditional",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "n00": {
+          "description": "No exception, then none",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "N00",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "n01": {
+          "description": "No exception, then one",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "N01",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "n10": {
+          "description": "An exception, then none",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "N10",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "n11": {
+          "description": "An exception, then another",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "N11",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "observations": {
+          "description": "Periods tested",
+          "maximum": 10080,
+          "minimum": 1,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_value_conditional_coverage": {
+          "description": "LR_CC p-value",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value Conditional Coverage",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "p_value_independence": {
+          "description": "LR_IND p-value",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value Independence",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "p_value_unconditional": {
+          "description": "LR_UC p-value",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value Unconditional",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject_conditional_coverage": {
+          "description": "Whether LR_CC rejects at alpha",
+          "title": "Reject Conditional Coverage",
+          "type": "boolean"
+        },
+        "reject_independence": {
+          "description": "Whether LR_IND rejects at alpha",
+          "title": "Reject Independence",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "observations",
+        "exceptions",
+        "n00",
+        "n01",
+        "n10",
+        "n11",
+        "lr_unconditional",
+        "lr_independence",
+        "lr_conditional_coverage",
+        "p_value_unconditional",
+        "p_value_independence",
+        "p_value_conditional_coverage",
+        "reject_independence",
+        "reject_conditional_coverage"
+      ],
+      "title": "ChristoffersenOutputs",
+      "type": "object"
+    },
+    "KupiecOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "kupiec",
+          "default": "kupiec",
+          "description": "Kupiec's proportion-of-failures test",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "critical_value": {
+          "description": "Chi-square(1) quantile at 1 - alpha",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Critical Value",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "exception_rate": {
+          "description": "Exceptions per observation",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Exception Rate",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "exceptions": {
+          "description": "Periods whose loss exceeded the VaR",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Exceptions",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "expected_exceptions": {
+          "description": "Observations times (1 - confidence)",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Expected Exceptions",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "likelihood_ratio": {
+          "description": "LR_POF, chi-square with one degree of freedom",
+          "maximum": 1000000.0,
+          "minimum": 0,
+          "title": "Likelihood Ratio",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Periods tested",
+          "maximum": 10080,
+          "minimum": 1,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "p_value": {
+          "description": "P-value of LR_POF",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether LR_POF rejects correct coverage",
+          "title": "Reject",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "observations",
+        "exceptions",
+        "exception_rate",
+        "expected_exceptions",
+        "likelihood_ratio",
+        "p_value",
+        "critical_value",
+        "reject"
+      ],
+      "title": "KupiecOutputs",
+      "type": "object"
+    },
+    "TrafficLightOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "basel_traffic_light",
+          "default": "basel_traffic_light",
+          "description": "The Basel Committee's traffic light",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cumulative_probability": {
+          "description": "Probability of this many exceptions or fewer for an accurate VaR",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Cumulative Probability",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "exceptions": {
+          "description": "Periods whose loss exceeded the VaR",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Exceptions",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "observations": {
+          "description": "Periods tested",
+          "maximum": 10080,
+          "minimum": 1,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "plus_factor": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Increase in the scaling factor (Table 2); null where undefined",
+          "title": "Plus Factor"
+        },
+        "red_from": {
+          "description": "Fewest exceptions in the red zone",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Red From",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "yellow_from": {
+          "description": "Fewest exceptions in the yellow zone",
+          "maximum": 10080,
+          "minimum": 0,
+          "title": "Yellow From",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "zone": {
+          "description": "The zone",
+          "enum": [
+            "green",
+            "yellow",
+            "red"
+          ],
+          "title": "Zone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observations",
+        "exceptions",
+        "zone",
+        "cumulative_probability",
+        "yellow_from",
+        "red_from",
+        "plus_factor"
+      ],
+      "title": "TrafficLightOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:risk.var_backtest:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Kupiec's proportion-of-failures test, Christoffersen's independence and conditional coverage tests, and the Basel traffic light, from a series of VaR exceptions.",
+  "discriminator": {
+    "mapping": {
+      "basel_traffic_light": "#/$defs/TrafficLightOutputs",
+      "christoffersen": "#/$defs/ChristoffersenOutputs",
+      "kupiec": "#/$defs/KupiecOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/KupiecOutputs"
+    },
+    {
+      "$ref": "#/$defs/ChristoffersenOutputs"
+    },
+    {
+      "$ref": "#/$defs/TrafficLightOutputs"
+    }
+  ],
+  "title": "VaR backtests: outputs"
+}

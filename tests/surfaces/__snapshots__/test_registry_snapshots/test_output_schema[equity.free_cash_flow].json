@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "FcfeOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "fcfe",
+          "default": "fcfe",
+          "description": "Free cash flow to equity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "fcfe": {
+          "description": "Cash flow after debt financing",
+          "maximum": 5000000000000.0,
+          "minimum": -5000000000000.0,
+          "title": "Fcfe",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "fcfe"
+      ],
+      "title": "FcfeOutputs",
+      "type": "object"
+    },
+    "FcffOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "fcff",
+          "default": "fcff",
+          "description": "Free cash flow to the firm",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "fcff": {
+          "description": "Cash flow before debt financing",
+          "maximum": 4000000000000.0,
+          "minimum": -4000000000000.0,
+          "title": "Fcff",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "fcff"
+      ],
+      "title": "FcffOutputs",
+      "type": "object"
+    },
+    "ValuationOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "valuation",
+          "default": "valuation",
+          "description": "One- or two-stage DCF",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "equity_value": {
+          "description": "Firm value less net debt",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Equity Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "firm_value": {
+          "description": "Operating firm value",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Firm Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "firm_value",
+        "equity_value"
+      ],
+      "title": "ValuationOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:equity.free_cash_flow:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "FCFF from EBIT, FCFE from net income, and one- or two-stage firm or equity valuation.",
+  "discriminator": {
+    "mapping": {
+      "fcfe": "#/$defs/FcfeOutputs",
+      "fcff": "#/$defs/FcffOutputs",
+      "valuation": "#/$defs/ValuationOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/FcffOutputs"
+    },
+    {
+      "$ref": "#/$defs/FcfeOutputs"
+    },
+    {
+      "$ref": "#/$defs/ValuationOutputs"
+    }
+  ],
+  "title": "Free cash flow and DCF valuation: outputs"
+}

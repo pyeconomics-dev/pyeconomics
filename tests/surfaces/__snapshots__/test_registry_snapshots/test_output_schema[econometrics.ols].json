@@ -1,0 +1,399 @@
+{
+  "$id": "urn:pyeconomics:model:econometrics.ols:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "OLS over statsmodels, with classical, HC0-HC3 and HAC standard errors, and the Durbin-Watson, Breusch-Pagan, Jarque-Bera, omnibus, RESET and VIF diagnostics.",
+  "properties": {
+    "adjusted_r_squared": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": -10000,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "R-squared adjusted for degrees of freedom",
+      "title": "Adjusted R Squared"
+    },
+    "breusch_pagan": {
+      "anyOf": [
+        {
+          "maximum": 1e+300,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Breusch-Pagan LM statistic (Koenker's studentized form)",
+      "title": "Breusch Pagan"
+    },
+    "breusch_pagan_p_value": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "probability"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Breusch-Pagan p-value",
+      "title": "Breusch Pagan P Value"
+    },
+    "coefficients": {
+      "description": "Estimated coefficients",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": -1e+300,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 21,
+      "title": "Coefficients",
+      "type": "array"
+    },
+    "conf_lower": {
+      "description": "Lower ends of the 1 - alpha confidence intervals",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": -1e+300,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 21,
+      "title": "Conf Lower",
+      "type": "array"
+    },
+    "conf_upper": {
+      "description": "Upper ends of the 1 - alpha confidence intervals",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": -1e+300,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 21,
+      "title": "Conf Upper",
+      "type": "array"
+    },
+    "degrees_of_freedom": {
+      "description": "Residual degrees of freedom, n - k",
+      "maximum": 10000,
+      "minimum": 1,
+      "title": "Degrees Of Freedom",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "durbin_watson": {
+      "anyOf": [
+        {
+          "maximum": 4,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Durbin-Watson statistic of the residuals",
+      "title": "Durbin Watson"
+    },
+    "f_p_value": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "probability"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "P-value of the F statistic",
+      "title": "F P Value"
+    },
+    "f_statistic": {
+      "anyOf": [
+        {
+          "maximum": 1e+300,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Wald F statistic that every slope is zero, under the chosen covariance",
+      "title": "F Statistic"
+    },
+    "fitted": {
+      "description": "Fitted values",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": -1e+300,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 10000,
+      "title": "Fitted",
+      "type": "array"
+    },
+    "hac_lags": {
+      "description": "Lags in the HAC covariance; 0 for the others",
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Hac Lags",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "jarque_bera": {
+      "anyOf": [
+        {
+          "maximum": 1e+300,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Jarque-Bera statistic of the residuals",
+      "title": "Jarque Bera"
+    },
+    "jarque_bera_p_value": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "probability"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Jarque-Bera p-value",
+      "title": "Jarque Bera P Value"
+    },
+    "names": {
+      "description": "Term names, const first when added",
+      "items": {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 21,
+      "title": "Names",
+      "type": "array"
+    },
+    "observations": {
+      "description": "Observations, n",
+      "maximum": 10000,
+      "minimum": 2,
+      "title": "Observations",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "omnibus": {
+      "anyOf": [
+        {
+          "maximum": 1e+300,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "D'Agostino-Pearson omnibus K-squared statistic of the residuals",
+      "title": "Omnibus"
+    },
+    "omnibus_p_value": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "probability"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Omnibus p-value",
+      "title": "Omnibus P Value"
+    },
+    "p_values": {
+      "anyOf": [
+        {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number",
+            "x-unit": "probability"
+          },
+          "maxLength": 21,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Two-sided p-values from Student's t; null for a perfect fit",
+      "title": "P Values"
+    },
+    "r_squared": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "R-squared, uncentered without a constant; null if y does not vary about its mean (or, without a constant, is all zero)",
+      "title": "R Squared"
+    },
+    "reset_f": {
+      "anyOf": [
+        {
+          "maximum": 1e+300,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ramsey RESET F statistic",
+      "title": "Reset F"
+    },
+    "reset_p_value": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number",
+          "x-unit": "probability"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ramsey RESET p-value",
+      "title": "Reset P Value"
+    },
+    "residual_std_error": {
+      "description": "sqrt(SSR / (n - k))",
+      "maximum": 1e+300,
+      "minimum": 0,
+      "title": "Residual Std Error",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "residuals": {
+      "description": "Residuals, y - fitted",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": -1e+300,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 10000,
+      "title": "Residuals",
+      "type": "array"
+    },
+    "standard_errors": {
+      "description": "Standard errors, from the covariance",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": 0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 21,
+      "title": "Standard Errors",
+      "type": "array"
+    },
+    "t_statistics": {
+      "anyOf": [
+        {
+          "items": {
+            "maximum": 1e+300,
+            "minimum": -1e+300,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxLength": 21,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "t statistics; null for a perfect fit",
+      "title": "T Statistics"
+    },
+    "vif": {
+      "description": "Variance inflation factor per regressor",
+      "items": {
+        "maximum": 1e+300,
+        "minimum": 1,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 20,
+      "title": "Vif",
+      "type": "array"
+    }
+  },
+  "required": [
+    "names",
+    "coefficients",
+    "standard_errors",
+    "conf_lower",
+    "conf_upper",
+    "vif",
+    "observations",
+    "degrees_of_freedom",
+    "hac_lags",
+    "r_squared",
+    "adjusted_r_squared",
+    "residual_std_error",
+    "fitted",
+    "residuals"
+  ],
+  "title": "Ordinary least squares: outputs",
+  "type": "object"
+}

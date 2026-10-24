@@ -2056,9 +2056,9 @@ it has no Thinking toggle. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Registry Export and Schema Snapshots
+## Step 3 — Registry Export and Schema Snapshots ✅
 
-**Status:** Not started
+**Status:** Complete — PR #178 (2026-10-23)
 
 > **Goal:** Publish the description every surface and the Phase 5 web app
 > are generated from, and make an unintended schema change fail CI. Add
@@ -2098,6 +2098,8 @@ rebuilds with `docs/registry.md`, and Step 15 verifies it live.
 | Conversation | **New**                                  | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-23: Balanced column's Backup, also the Quality column — Opus 5.5 · Effort High. The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Model rationale:** Coding is PRIMARY and planning SECONDARY: a
 deterministic writer over `describe()`, a schema module and snapshot tests,
@@ -2774,6 +2776,15 @@ conversation per phase-boundary hygiene.
       the codec, the envelope and registry_export;
       ADR-0012 decisions 1–5 fix the CLI's place, grammar
       and exit codes.
+    - Step 3 built `registry_export.write_registry(path, *,
+      figures=True)` (canonical bytes, no trailing newline),
+      so `registry export --out DIR` writes
+      `DIR/registry.json` with it and `--no-figures` passes
+      `figures=False`; a failing first example raises
+      `RegistryError` (`registry-error`, exit 1).
+      Syrupy snapshots use `tests/json_snapshots.py`'s
+      `LFJSONExtension`: the stock JSON extension writes
+      CRLF on Windows.
     - No console script exists. The data API, the
       credential chain (KEYRING_SERVICE "pyeconomics",
       key_variable, has_key, the keyring extra) and the cache
@@ -3818,7 +3829,9 @@ phase-boundary hygiene.
       OpenAPI: `pyeconomics registry export --out DIR` also
       writes openapi.json (canonical bytes) when the server
       extra is installed; tests/server/test_openapi_snapshot.py
-      snapshots it with syrupy, and a Dependabot bump of
+      snapshots it with syrupy (through `tests/json_snapshots.py`'s
+      `LFJSONExtension`, as Step 3's schema snapshots do), and a
+      Dependabot bump of
       FastAPI that changes it fails until the snapshot is
       updated in that PR.
     </requirement>
@@ -4800,7 +4813,8 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 
     <requirement>
       Tests under tests/mcp/ (unique basenames), through the
-      SDK's Client in memory: tools/list (syrupy snapshot, in
+      SDK's Client in memory: tools/list (syrupy snapshot
+      through `tests/json_snapshots.py`'s `LFJSONExtension`, in
       local and hosted modes); every headline tool and
       run_model over each headline model's first example
       equal Result.to_json(); the gate (forbidden skipped,
@@ -8746,7 +8760,7 @@ workflow above maps directly to the corresponding row below.
 | ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #175 |
 | 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Complete — PR #177 |
-| 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |

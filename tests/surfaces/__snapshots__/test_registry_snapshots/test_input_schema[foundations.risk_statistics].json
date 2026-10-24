@@ -1,0 +1,220 @@
+{
+  "$defs": {
+    "DrawdownInputs": {
+      "additionalProperties": false,
+      "description": "A series of positive values, such as prices or an index.",
+      "properties": {
+        "calculation": {
+          "const": "drawdown",
+          "default": "drawdown",
+          "description": "Maximum drawdown with its peak and trough",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "values": {
+          "description": "Values in time order, each above zero",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000.0,
+            "type": "number",
+            "x-unit": "index_level"
+          },
+          "maxItems": 10080,
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "title": "DrawdownInputs",
+      "type": "object"
+    },
+    "MomentsInputs": {
+      "additionalProperties": false,
+      "description": "A return series of at least four observations.",
+      "properties": {
+        "calculation": {
+          "const": "moments",
+          "default": "moments",
+          "description": "Adjusted skewness (G1) and excess kurtosis (G2)",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "returns": {
+          "description": "Periodic returns",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 4,
+          "title": "Returns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns"
+      ],
+      "title": "MomentsInputs",
+      "type": "object"
+    },
+    "SemideviationInputs": {
+      "additionalProperties": false,
+      "description": "A return series and a target return.",
+      "properties": {
+        "calculation": {
+          "const": "semideviation",
+          "default": "semideviation",
+          "description": "Downside deviation below the mean and a target",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "returns": {
+          "description": "Periodic returns",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 2,
+          "title": "Returns",
+          "type": "array"
+        },
+        "target": {
+          "default": 0.0,
+          "description": "Target return per period",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Target",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "returns"
+      ],
+      "title": "SemideviationInputs",
+      "type": "object"
+    },
+    "VolatilityInputs": {
+      "additionalProperties": false,
+      "description": "A return series and how many of its periods make a year.",
+      "properties": {
+        "calculation": {
+          "const": "volatility",
+          "default": "volatility",
+          "description": "Sample volatility and its annualization",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "periods_per_year": {
+          "description": "Periods in a year, such as 12 or 252",
+          "exclusiveMinimum": 0,
+          "maximum": 100000,
+          "title": "Periods Per Year",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "returns": {
+          "description": "Periodic returns",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "minItems": 2,
+          "title": "Returns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "returns",
+        "periods_per_year"
+      ],
+      "title": "VolatilityInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.risk_statistics:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Sample volatility and its annualization, semideviation, adjusted skewness and excess kurtosis, and maximum drawdown.",
+  "discriminator": {
+    "mapping": {
+      "drawdown": "#/$defs/DrawdownInputs",
+      "moments": "#/$defs/MomentsInputs",
+      "semideviation": "#/$defs/SemideviationInputs",
+      "volatility": "#/$defs/VolatilityInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "volatility",
+      "periods_per_year": 12.0,
+      "returns": [
+        0.02,
+        -0.01,
+        0.03,
+        0.005,
+        -0.02,
+        0.01
+      ]
+    },
+    {
+      "calculation": "semideviation",
+      "returns": [
+        0.02,
+        -0.01,
+        0.03,
+        0.005,
+        -0.02,
+        0.01
+      ],
+      "target": 0.0
+    },
+    {
+      "calculation": "moments",
+      "returns": [
+        0.02,
+        -0.01,
+        0.03,
+        0.005,
+        -0.02,
+        0.01
+      ]
+    },
+    {
+      "calculation": "drawdown",
+      "values": [
+        100.0,
+        120.0,
+        90.0,
+        130.0,
+        117.0
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/VolatilityInputs"
+    },
+    {
+      "$ref": "#/$defs/SemideviationInputs"
+    },
+    {
+      "$ref": "#/$defs/MomentsInputs"
+    },
+    {
+      "$ref": "#/$defs/DrawdownInputs"
+    }
+  ],
+  "title": "Risk statistics: inputs"
+}

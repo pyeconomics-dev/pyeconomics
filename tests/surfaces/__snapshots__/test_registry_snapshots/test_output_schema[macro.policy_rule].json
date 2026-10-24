@@ -1,0 +1,497 @@
+{
+  "$defs": {
+    "AdjustedTaylor1993Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "adjusted_taylor_1993",
+          "default": "adjusted_taylor_1993",
+          "description": "The adjusted Taylor (1993) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation_gap_term": {
+          "description": "The weight on inflation times its gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Inflation Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the target: the rate at no gaps",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "prescribed_rate": {
+          "description": "The policy rate the rule prescribes",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Prescribed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_gap_term": {
+          "description": "The weight on the resource gap times the gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Resource Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "unconstrained_rate": {
+          "description": "The prescription before the lower bound: the rule, smoothed",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Unconstrained Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "prescribed_rate",
+        "unconstrained_rate",
+        "inflation_gap_term",
+        "resource_gap_term",
+        "nominal_neutral_rate"
+      ],
+      "title": "AdjustedTaylor1993Outputs",
+      "type": "object"
+    },
+    "BalancedApproachOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "balanced_approach",
+          "default": "balanced_approach",
+          "description": "The balanced-approach rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation_gap_term": {
+          "description": "The weight on inflation times its gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Inflation Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the target: the rate at no gaps",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "prescribed_rate": {
+          "description": "The policy rate the rule prescribes",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Prescribed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_gap_term": {
+          "description": "The weight on the resource gap times the gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Resource Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "unconstrained_rate": {
+          "description": "The prescription before the lower bound: the rule, smoothed",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Unconstrained Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "prescribed_rate",
+        "unconstrained_rate",
+        "inflation_gap_term",
+        "resource_gap_term",
+        "nominal_neutral_rate"
+      ],
+      "title": "BalancedApproachOutputs",
+      "type": "object"
+    },
+    "FirstDifferenceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "first_difference",
+          "default": "first_difference",
+          "description": "The first-difference rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation_gap_term": {
+          "description": "The weight on inflation times its gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Inflation Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "prescribed_rate": {
+          "description": "The policy rate the rule prescribes",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Prescribed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_gap_term": {
+          "description": "The weight on the resource gap times the gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Resource Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "unconstrained_rate": {
+          "description": "The prescription before the lower bound: the rule, smoothed",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Unconstrained Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "prescribed_rate",
+        "unconstrained_rate",
+        "inflation_gap_term",
+        "resource_gap_term"
+      ],
+      "title": "FirstDifferenceOutputs",
+      "type": "object"
+    },
+    "PathOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "path",
+          "default": "path",
+          "description": "A rule over a forecast",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "horizon": {
+          "description": "Horizons after the first: 0, 1, 2, ...",
+          "items": {
+            "maximum": 40,
+            "minimum": 0,
+            "type": "integer",
+            "x-unit": "count"
+          },
+          "maxItems": 40,
+          "title": "Horizon",
+          "type": "array"
+        },
+        "lower_path": {
+          "description": "The band's lower edge (low inflation, weak activity); empty with no band",
+          "items": {
+            "maximum": 500.0,
+            "minimum": -500.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 40,
+          "title": "Lower Path",
+          "type": "array"
+        },
+        "prescribed_path": {
+          "description": "The prescribed rate at each horizon",
+          "items": {
+            "maximum": 500.0,
+            "minimum": -500.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 40,
+          "title": "Prescribed Path",
+          "type": "array"
+        },
+        "rule": {
+          "$ref": "#/$defs/RuleName",
+          "description": "The rule applied at each horizon"
+        },
+        "unconstrained_path": {
+          "description": "Each prescription before the lower bound",
+          "items": {
+            "maximum": 500.0,
+            "minimum": -500.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 40,
+          "title": "Unconstrained Path",
+          "type": "array"
+        },
+        "upper_path": {
+          "description": "The band's upper edge (high inflation, strong activity); empty with no band",
+          "items": {
+            "maximum": 500.0,
+            "minimum": -500.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 40,
+          "title": "Upper Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rule",
+        "horizon",
+        "prescribed_path",
+        "unconstrained_path",
+        "lower_path",
+        "upper_path"
+      ],
+      "title": "PathOutputs",
+      "type": "object"
+    },
+    "RuleName": {
+      "enum": [
+        "taylor_1993",
+        "taylor_1999",
+        "balanced_approach",
+        "balanced_approach_shortfalls",
+        "adjusted_taylor_1993",
+        "first_difference"
+      ],
+      "type": "string"
+    },
+    "ShortfallsOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "balanced_approach_shortfalls",
+          "default": "balanced_approach_shortfalls",
+          "description": "The balanced-approach (shortfalls) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation_gap_term": {
+          "description": "The weight on inflation times its gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Inflation Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the target: the rate at no gaps",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "prescribed_rate": {
+          "description": "The policy rate the rule prescribes",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Prescribed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_gap_term": {
+          "description": "The weight on the resource gap times the gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Resource Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "unconstrained_rate": {
+          "description": "The prescription before the lower bound: the rule, smoothed",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Unconstrained Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "prescribed_rate",
+        "unconstrained_rate",
+        "inflation_gap_term",
+        "resource_gap_term",
+        "nominal_neutral_rate"
+      ],
+      "title": "ShortfallsOutputs",
+      "type": "object"
+    },
+    "Taylor1993Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "taylor_1993",
+          "default": "taylor_1993",
+          "description": "The Taylor (1993) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation_gap_term": {
+          "description": "The weight on inflation times its gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Inflation Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the target: the rate at no gaps",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "prescribed_rate": {
+          "description": "The policy rate the rule prescribes",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Prescribed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_gap_term": {
+          "description": "The weight on the resource gap times the gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Resource Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "unconstrained_rate": {
+          "description": "The prescription before the lower bound: the rule, smoothed",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Unconstrained Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "prescribed_rate",
+        "unconstrained_rate",
+        "inflation_gap_term",
+        "resource_gap_term",
+        "nominal_neutral_rate"
+      ],
+      "title": "Taylor1993Outputs",
+      "type": "object"
+    },
+    "Taylor1999Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "taylor_1999",
+          "default": "taylor_1999",
+          "description": "The Taylor (1999) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation_gap_term": {
+          "description": "The weight on inflation times its gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Inflation Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the target: the rate at no gaps",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "prescribed_rate": {
+          "description": "The policy rate the rule prescribes",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Prescribed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_gap_term": {
+          "description": "The weight on the resource gap times the gap",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Resource Gap Term",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "unconstrained_rate": {
+          "description": "The prescription before the lower bound: the rule, smoothed",
+          "maximum": 20.0,
+          "minimum": -20.0,
+          "title": "Unconstrained Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "prescribed_rate",
+        "unconstrained_rate",
+        "inflation_gap_term",
+        "resource_gap_term",
+        "nominal_neutral_rate"
+      ],
+      "title": "Taylor1999Outputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.policy_rule:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Taylor (1993 and 1999), balanced-approach, shortfalls, adjusted and first-difference rules, smoothed and floored, on a gap measured in output or unemployment, and over forecast paths.",
+  "discriminator": {
+    "mapping": {
+      "adjusted_taylor_1993": "#/$defs/AdjustedTaylor1993Outputs",
+      "balanced_approach": "#/$defs/BalancedApproachOutputs",
+      "balanced_approach_shortfalls": "#/$defs/ShortfallsOutputs",
+      "first_difference": "#/$defs/FirstDifferenceOutputs",
+      "path": "#/$defs/PathOutputs",
+      "taylor_1993": "#/$defs/Taylor1993Outputs",
+      "taylor_1999": "#/$defs/Taylor1999Outputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Taylor1993Outputs"
+    },
+    {
+      "$ref": "#/$defs/Taylor1999Outputs"
+    },
+    {
+      "$ref": "#/$defs/BalancedApproachOutputs"
+    },
+    {
+      "$ref": "#/$defs/ShortfallsOutputs"
+    },
+    {
+      "$ref": "#/$defs/AdjustedTaylor1993Outputs"
+    },
+    {
+      "$ref": "#/$defs/FirstDifferenceOutputs"
+    },
+    {
+      "$ref": "#/$defs/PathOutputs"
+    }
+  ],
+  "title": "Monetary-policy rules: outputs"
+}

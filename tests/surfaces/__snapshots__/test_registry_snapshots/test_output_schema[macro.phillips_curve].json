@@ -1,0 +1,124 @@
+{
+  "$id": "urn:pyeconomics:model:macro.phillips_curve:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Inflation less expected inflation regressed on the unemployment gap, with optional supply-shock controls and Newey-West errors: the slope, intercept, standard errors and R-squared.",
+  "properties": {
+    "control_coefficients": {
+      "description": "The coefficient on each supply-shock control, in order",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": -1000000000.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 4,
+      "title": "Control Coefficients",
+      "type": "array"
+    },
+    "control_standard_errors": {
+      "description": "Their standard errors",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": 0.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 4,
+      "title": "Control Standard Errors",
+      "type": "array"
+    },
+    "hac_lags": {
+      "description": "Newey-West lags used; 0 for the others",
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Hac Lags",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "intercept": {
+      "description": "The constant",
+      "maximum": 1000000000.0,
+      "minimum": -1000000000.0,
+      "title": "Intercept",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "intercept_standard_error": {
+      "description": "The intercept's standard error",
+      "maximum": 1000000000.0,
+      "minimum": 0.0,
+      "title": "Intercept Standard Error",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "observations": {
+      "description": "Observations in the regression",
+      "maximum": 1000,
+      "minimum": 3,
+      "title": "Observations",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "r_squared": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "R-squared; None when the dependent variable does not vary",
+      "title": "R Squared"
+    },
+    "slope": {
+      "description": "The coefficient on the gap",
+      "maximum": 1000000000.0,
+      "minimum": -1000000000.0,
+      "title": "Slope",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "slope_standard_error": {
+      "description": "The slope's standard error",
+      "maximum": 1000000000.0,
+      "minimum": 0.0,
+      "title": "Slope Standard Error",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "slope_t_statistic": {
+      "anyOf": [
+        {
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The slope over its standard error; None for a fit exact to rounding",
+      "title": "Slope T Statistic"
+    }
+  },
+  "required": [
+    "slope",
+    "intercept",
+    "slope_standard_error",
+    "intercept_standard_error",
+    "slope_t_statistic",
+    "r_squared",
+    "observations",
+    "hac_lags",
+    "control_coefficients",
+    "control_standard_errors"
+  ],
+  "title": "Expectations-augmented Phillips curve: outputs",
+  "type": "object"
+}

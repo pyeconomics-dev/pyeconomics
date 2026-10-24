@@ -1,0 +1,407 @@
+{
+  "$defs": {
+    "BaxterKingOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "baxter_king",
+          "default": "baxter_king",
+          "description": "The Baxter-King (1999) band-pass filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "The gap in each period, in the stated form",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -100.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 2000,
+          "title": "Cycle",
+          "type": "array"
+        },
+        "gap": {
+          "description": "The gap in the last period the cycle covers",
+          "maximum": 1000000.0,
+          "minimum": -100.0,
+          "title": "Gap",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "high": {
+          "description": "The band's high end",
+          "maximum": 1000.0,
+          "minimum": 2.0,
+          "title": "High",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "lead_lag": {
+          "description": "The K it used",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Lead Lag",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "low": {
+          "description": "The band's low end",
+          "maximum": 1000.0,
+          "minimum": 2.0,
+          "title": "Low",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "start": {
+          "description": "The position in the series (from 0) of the first period the trend and cycle cover",
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trend": {
+          "description": "The trend (potential output) in each period the cycle covers, in the series' units",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1e+18,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "title": "Trend",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trend",
+        "cycle",
+        "gap",
+        "start",
+        "low",
+        "high",
+        "lead_lag"
+      ],
+      "title": "BaxterKingOutputs",
+      "type": "object"
+    },
+    "ChristianoFitzgeraldOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "christiano_fitzgerald",
+          "default": "christiano_fitzgerald",
+          "description": "The Christiano-Fitzgerald (2003) band-pass filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "The gap in each period, in the stated form",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -100.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 2000,
+          "title": "Cycle",
+          "type": "array"
+        },
+        "gap": {
+          "description": "The gap in the last period the cycle covers",
+          "maximum": 1000000.0,
+          "minimum": -100.0,
+          "title": "Gap",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "high": {
+          "description": "The band's high end",
+          "maximum": 1000.0,
+          "minimum": 2.0,
+          "title": "High",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "low": {
+          "description": "The band's low end",
+          "maximum": 1000.0,
+          "minimum": 2.0,
+          "title": "Low",
+          "type": "number",
+          "x-unit": "periods"
+        },
+        "start": {
+          "description": "The position in the series (from 0) of the first period the trend and cycle cover",
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trend": {
+          "description": "The trend (potential output) in each period the cycle covers, in the series' units",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1e+18,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "title": "Trend",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trend",
+        "cycle",
+        "gap",
+        "start",
+        "low",
+        "high"
+      ],
+      "title": "ChristianoFitzgeraldOutputs",
+      "type": "object"
+    },
+    "FromPotentialOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "from_potential",
+          "default": "from_potential",
+          "description": "The gap from a published potential output",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "The gap in each period, in the stated form",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -100.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 2000,
+          "title": "Cycle",
+          "type": "array"
+        },
+        "gap": {
+          "description": "The gap in the last period the cycle covers",
+          "maximum": 1000000.0,
+          "minimum": -100.0,
+          "title": "Gap",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "start": {
+          "description": "The position in the series (from 0) of the first period the trend and cycle cover",
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trend": {
+          "description": "The trend (potential output) in each period the cycle covers, in the series' units",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1e+18,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "title": "Trend",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trend",
+        "cycle",
+        "gap",
+        "start"
+      ],
+      "title": "FromPotentialOutputs",
+      "type": "object"
+    },
+    "HamiltonOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "hamilton",
+          "default": "hamilton",
+          "description": "Hamilton's (2018) regression filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "The gap in each period, in the stated form",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -100.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 2000,
+          "title": "Cycle",
+          "type": "array"
+        },
+        "gap": {
+          "description": "The gap in the last period the cycle covers",
+          "maximum": 1000000.0,
+          "minimum": -100.0,
+          "title": "Gap",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "horizon": {
+          "description": "The h it used",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Horizon",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "lags": {
+          "description": "The p it used",
+          "maximum": 19,
+          "minimum": 1,
+          "title": "Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "start": {
+          "description": "The position in the series (from 0) of the first period the trend and cycle cover",
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trend": {
+          "description": "The trend (potential output) in each period the cycle covers, in the series' units",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1e+18,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "title": "Trend",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trend",
+        "cycle",
+        "gap",
+        "start",
+        "horizon",
+        "lags"
+      ],
+      "title": "HamiltonOutputs",
+      "type": "object"
+    },
+    "HodrickPrescottOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "hp",
+          "default": "hp",
+          "description": "The Hodrick-Prescott filter",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "The gap in each period, in the stated form",
+          "items": {
+            "maximum": 1000000.0,
+            "minimum": -100.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 2000,
+          "title": "Cycle",
+          "type": "array"
+        },
+        "gap": {
+          "description": "The gap in the last period the cycle covers",
+          "maximum": 1000000.0,
+          "minimum": -100.0,
+          "title": "Gap",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "smoothing": {
+          "description": "The lambda the filter used",
+          "exclusiveMinimum": 0,
+          "maximum": 100000000.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "start": {
+          "description": "The position in the series (from 0) of the first period the trend and cycle cover",
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "trend": {
+          "description": "The trend (potential output) in each period the cycle covers, in the series' units",
+          "items": {
+            "exclusiveMinimum": 0,
+            "maximum": 1e+18,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 2000,
+          "title": "Trend",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trend",
+        "cycle",
+        "gap",
+        "start",
+        "smoothing"
+      ],
+      "title": "HodrickPrescottOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.output_gap:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The output gap from a published potential output, or by the Hodrick-Prescott, Hamilton, Baxter-King and Christiano-Fitzgerald filters, with the trend, the cycle and the latest gap.",
+  "discriminator": {
+    "mapping": {
+      "baxter_king": "#/$defs/BaxterKingOutputs",
+      "christiano_fitzgerald": "#/$defs/ChristianoFitzgeraldOutputs",
+      "from_potential": "#/$defs/FromPotentialOutputs",
+      "hamilton": "#/$defs/HamiltonOutputs",
+      "hp": "#/$defs/HodrickPrescottOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/FromPotentialOutputs"
+    },
+    {
+      "$ref": "#/$defs/HodrickPrescottOutputs"
+    },
+    {
+      "$ref": "#/$defs/HamiltonOutputs"
+    },
+    {
+      "$ref": "#/$defs/BaxterKingOutputs"
+    },
+    {
+      "$ref": "#/$defs/ChristianoFitzgeraldOutputs"
+    }
+  ],
+  "title": "Output gap: outputs"
+}

@@ -1,0 +1,165 @@
+{
+  "$id": "urn:pyeconomics:model:equity.cape:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Shiller's CAPE: the price over the average of real earnings over a window, its earnings yield and the excess CAPE yield over a real 10-year rate.",
+  "examples": [
+    {
+      "cpi": [
+        220.0,
+        225.0,
+        230.0,
+        236.0,
+        241.0,
+        246.0,
+        252.0,
+        260.0,
+        275.0,
+        290.0
+      ],
+      "earnings": [
+        100.0,
+        105.0,
+        98.0,
+        120.0,
+        140.0,
+        150.0,
+        160.0,
+        170.0,
+        190.0,
+        210.0
+      ],
+      "inflation": null,
+      "nominal_yield": 0.042,
+      "periods_per_year": 1,
+      "price": 4000.0,
+      "price_cpi": 300.0,
+      "real_yield": null
+    },
+    {
+      "cpi": [
+        100.0,
+        105.0
+      ],
+      "earnings": [
+        4.0,
+        4.4
+      ],
+      "inflation": null,
+      "nominal_yield": null,
+      "periods_per_year": 1,
+      "price": 100.0,
+      "price_cpi": 110.0,
+      "real_yield": 0.018
+    }
+  ],
+  "properties": {
+    "cpi": {
+      "description": "The price index of each period of the window",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": 0.01,
+        "type": "number",
+        "x-unit": "index_level"
+      },
+      "maxItems": 480,
+      "minItems": 1,
+      "title": "Cpi",
+      "type": "array"
+    },
+    "earnings": {
+      "description": "Earnings of each period of the window before month t, oldest first (Shiller: the previous 120 months)",
+      "items": {
+        "maximum": 1000000000.0,
+        "minimum": -1000000000.0,
+        "type": "number",
+        "x-unit": "money"
+      },
+      "maxItems": 480,
+      "minItems": 1,
+      "title": "Earnings",
+      "type": "array"
+    },
+    "inflation": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": -0.5,
+          "type": "number",
+          "x-unit": "rate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Trailing annual inflation to take from the nominal yield; left out, (price_cpi / cpi[0]) ** (periods_per_year / n) - 1 over the window",
+      "title": "Inflation"
+    },
+    "nominal_yield": {
+      "anyOf": [
+        {
+          "maximum": 0.5,
+          "minimum": -0.05,
+          "type": "number",
+          "x-unit": "rate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A nominal 10-year yield, less trailing inflation for the real rate; give this or real_yield",
+      "title": "Nominal Yield"
+    },
+    "periods_per_year": {
+      "default": 12,
+      "description": "Periods a year of the window (12 for months)",
+      "maximum": 12,
+      "minimum": 1,
+      "title": "Periods Per Year",
+      "type": "integer",
+      "x-unit": "count"
+    },
+    "price": {
+      "description": "The index level in month t",
+      "maximum": 1000000000.0,
+      "minimum": 0.01,
+      "title": "Price",
+      "type": "number",
+      "x-unit": "index_level"
+    },
+    "price_cpi": {
+      "description": "The price index (CPI) of month t, the dollars results are in",
+      "maximum": 1000000000.0,
+      "minimum": 0.01,
+      "title": "Price Cpi",
+      "type": "number",
+      "x-unit": "index_level"
+    },
+    "real_yield": {
+      "anyOf": [
+        {
+          "maximum": 0.5,
+          "minimum": -0.05,
+          "type": "number",
+          "x-unit": "rate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A real 10-year yield (TIPS); give this or nominal_yield",
+      "title": "Real Yield"
+    }
+  },
+  "required": [
+    "price",
+    "price_cpi",
+    "earnings",
+    "cpi"
+  ],
+  "title": "Cyclically adjusted price-to-earnings ratio (CAPE): inputs",
+  "type": "object"
+}

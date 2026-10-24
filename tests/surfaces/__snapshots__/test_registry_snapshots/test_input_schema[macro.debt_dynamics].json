@@ -1,0 +1,89 @@
+{
+  "$id": "urn:pyeconomics:model:macro.debt_dynamics:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The path of debt to GDP from an initial ratio and paths of the effective interest rate, nominal growth and the primary balance, with r - g and the debt-stabilizing primary balance.",
+  "examples": [
+    {
+      "initial_ratio": 1.0,
+      "interest_rate": [
+        0.033,
+        0.034,
+        0.035,
+        0.036,
+        0.036
+      ],
+      "nominal_growth": [
+        0.045,
+        0.042,
+        0.04,
+        0.039,
+        0.039
+      ],
+      "primary_balance": [
+        -0.03,
+        -0.028,
+        -0.027,
+        -0.027,
+        -0.026
+      ]
+    }
+  ],
+  "properties": {
+    "initial_ratio": {
+      "description": "Debt over GDP at the start, d0 (1.0 is 100% of GDP)",
+      "maximum": 10.0,
+      "minimum": 0.0,
+      "title": "Initial Ratio",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "interest_rate": {
+      "description": "The effective nominal interest rate each period: interest paid over the debt at the end of the period before",
+      "items": {
+        "maximum": 0.5,
+        "minimum": -0.1,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Interest Rate",
+      "type": "array"
+    },
+    "nominal_growth": {
+      "description": "Nominal GDP growth each period",
+      "items": {
+        "maximum": 0.5,
+        "minimum": -0.5,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Nominal Growth",
+      "type": "array"
+    },
+    "primary_balance": {
+      "description": "The primary balance over GDP each period: revenue less non-interest spending, a deficit negative",
+      "items": {
+        "maximum": 0.5,
+        "minimum": -0.5,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Primary Balance",
+      "type": "array"
+    }
+  },
+  "required": [
+    "initial_ratio",
+    "interest_rate",
+    "nominal_growth",
+    "primary_balance"
+  ],
+  "title": "Public debt dynamics: inputs",
+  "type": "object"
+}

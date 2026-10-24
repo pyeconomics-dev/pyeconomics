@@ -1,0 +1,91 @@
+{
+  "$id": "urn:pyeconomics:model:equity.implied_risk_premium:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The expected return at which an index level equals the present value of its expected dividends and buybacks, and its premium over the risk-free rate.",
+  "examples": [
+    {
+      "cash_flow": 190.0,
+      "growth": 0.06,
+      "index_level": 6000.0,
+      "risk_free": 0.045,
+      "terminal_growth": null,
+      "years": 5
+    },
+    {
+      "cash_flow": 4.0,
+      "growth": 0.0,
+      "index_level": 100.0,
+      "risk_free": 0.03,
+      "terminal_growth": null,
+      "years": 0
+    }
+  ],
+  "properties": {
+    "cash_flow": {
+      "description": "Dividends plus buybacks over the last twelve months, in the index's own units (index points)",
+      "exclusiveMinimum": 0.0,
+      "maximum": 1000000000.0,
+      "title": "Cash Flow",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "growth": {
+      "description": "Expected annual growth of the cash for the growth years",
+      "maximum": 1.0,
+      "minimum": -0.5,
+      "title": "Growth",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "index_level": {
+      "description": "The index level: the price paid today",
+      "exclusiveMinimum": 0.0,
+      "maximum": 1000000000.0,
+      "title": "Index Level",
+      "type": "number",
+      "x-unit": "index_level"
+    },
+    "risk_free": {
+      "description": "The risk-free rate, a 10-year government yield",
+      "maximum": 0.5,
+      "minimum": -0.05,
+      "title": "Risk Free",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "terminal_growth": {
+      "anyOf": [
+        {
+          "maximum": 0.5,
+          "minimum": -0.05,
+          "type": "number",
+          "x-unit": "rate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Growth for ever after the growth years; the risk-free rate if omitted",
+      "title": "Terminal Growth"
+    },
+    "years": {
+      "default": 5,
+      "description": "Years of that growth before the terminal rate (Damodaran: 5)",
+      "maximum": 50,
+      "minimum": 0,
+      "title": "Years",
+      "type": "integer",
+      "x-unit": "count"
+    }
+  },
+  "required": [
+    "index_level",
+    "cash_flow",
+    "growth",
+    "risk_free"
+  ],
+  "title": "Implied equity risk premium: inputs",
+  "type": "object"
+}

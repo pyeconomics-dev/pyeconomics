@@ -1,0 +1,280 @@
+{
+  "$defs": {
+    "Black76ImpliedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "black_76_implied_volatility",
+          "default": "black_76_implied_volatility",
+          "description": "Volatility implied by a Black-76 price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "implied_volatility": {
+          "anyOf": [
+            {
+              "maximum": 5.0,
+              "minimum": 0.001,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Volatility whose price is the price given; null when the price is outside the no-arbitrage bounds or the solver's range",
+          "title": "Implied Volatility"
+        },
+        "lower_bound": {
+          "description": "No-arbitrage lower bound on the price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Lower Bound",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "upper_bound": {
+          "description": "No-arbitrage upper bound on the price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Upper Bound",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "implied_volatility",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "title": "Black76ImpliedOutputs",
+      "type": "object"
+    },
+    "Black76Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "black_76",
+          "default": "black_76",
+          "description": "Black-76 price and Greeks",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "delta": {
+          "description": "Change in price per unit of the futures price",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Delta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "gamma": {
+          "description": "Change in delta per unit of the futures price",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Gamma",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "price": {
+          "description": "Option price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "rho": {
+          "description": "Change in price per 1.00 of the risk-free rate, the futures price fixed",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Rho",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "theta": {
+          "description": "Change in price per year that passes",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Theta",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "vega": {
+          "description": "Change in price per 1.00 of volatility",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Vega",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "delta",
+        "gamma",
+        "vega",
+        "theta",
+        "rho"
+      ],
+      "title": "Black76Outputs",
+      "type": "object"
+    },
+    "GarmanKohlhagenImpliedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "garman_kohlhagen_implied_volatility",
+          "default": "garman_kohlhagen_implied_volatility",
+          "description": "Volatility implied by a Garman-Kohlhagen price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "implied_volatility": {
+          "anyOf": [
+            {
+              "maximum": 5.0,
+              "minimum": 0.001,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Volatility whose price is the price given; null when the price is outside the no-arbitrage bounds or the solver's range",
+          "title": "Implied Volatility"
+        },
+        "lower_bound": {
+          "description": "No-arbitrage lower bound on the price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Lower Bound",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "upper_bound": {
+          "description": "No-arbitrage upper bound on the price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Upper Bound",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "implied_volatility",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "title": "GarmanKohlhagenImpliedOutputs",
+      "type": "object"
+    },
+    "GarmanKohlhagenOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "garman_kohlhagen",
+          "default": "garman_kohlhagen",
+          "description": "Garman-Kohlhagen price and Greeks",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "delta": {
+          "description": "Change in price per unit of the spot rate",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Delta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "domestic_rho": {
+          "description": "Change in price per 1.00 of the domestic rate",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Domestic Rho",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "foreign_rho": {
+          "description": "Change in price per 1.00 of the foreign rate",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Foreign Rho",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "gamma": {
+          "description": "Change in delta per unit of the spot rate",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Gamma",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "price": {
+          "description": "Option price, in the quote currency per unit of base",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "theta": {
+          "description": "Change in price per year that passes",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Theta",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "vega": {
+          "description": "Change in price per 1.00 of volatility",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Vega",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "delta",
+        "gamma",
+        "vega",
+        "theta",
+        "domestic_rho",
+        "foreign_rho"
+      ],
+      "title": "GarmanKohlhagenOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.futures_fx_options:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Black-76 prices of options on futures and Garman-Kohlhagen prices of currency options, with Greeks and implied volatilities.",
+  "discriminator": {
+    "mapping": {
+      "black_76": "#/$defs/Black76Outputs",
+      "black_76_implied_volatility": "#/$defs/Black76ImpliedOutputs",
+      "garman_kohlhagen": "#/$defs/GarmanKohlhagenOutputs",
+      "garman_kohlhagen_implied_volatility": "#/$defs/GarmanKohlhagenImpliedOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Black76Outputs"
+    },
+    {
+      "$ref": "#/$defs/Black76ImpliedOutputs"
+    },
+    {
+      "$ref": "#/$defs/GarmanKohlhagenOutputs"
+    },
+    {
+      "$ref": "#/$defs/GarmanKohlhagenImpliedOutputs"
+    }
+  ],
+  "title": "Futures and currency options: outputs"
+}

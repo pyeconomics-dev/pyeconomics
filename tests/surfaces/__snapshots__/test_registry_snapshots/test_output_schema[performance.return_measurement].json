@@ -1,0 +1,204 @@
+{
+  "$defs": {
+    "ModifiedDietzOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annualized_return": {
+          "anyOf": [
+            {
+              "maximum": 1000000.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Return compounded to a year; null without periods_per_year",
+          "title": "Annualized Return"
+        },
+        "average_capital": {
+          "description": "Beginning value plus day-weighted flows: the denominator",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1001000000000000.0,
+          "title": "Average Capital",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "modified_dietz",
+          "default": "modified_dietz",
+          "description": "Modified Dietz return, day-weighted flows",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "modified_dietz_return": {
+          "description": "Gain over day-weighted capital",
+          "maximum": 100.0,
+          "minimum": -100.0,
+          "title": "Modified Dietz Return",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "modified_dietz_return",
+        "average_capital",
+        "annualized_return"
+      ],
+      "title": "ModifiedDietzOutputs",
+      "type": "object"
+    },
+    "MoneyWeightedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annualized_return": {
+          "anyOf": [
+            {
+              "maximum": 1000000.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rate compounded to a year: the rate itself for dated flows; null for periodic flows without periods_per_year",
+          "title": "Annualized Return"
+        },
+        "calculation": {
+          "const": "money_weighted",
+          "default": "money_weighted",
+          "description": "Money-weighted return, an IRR",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "flow_count": {
+          "description": "Number of flows",
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Flow Count",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "money_weighted_return": {
+          "anyOf": [
+            {
+              "maximum": 1000000.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The rate compounded over the whole span",
+          "title": "Money Weighted Return"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "maximum": 10.0,
+              "minimum": -0.99,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Money-weighted rate per period, or a year for dated flows; null when no rate in [-0.99, 10] solves it",
+          "title": "Rate"
+        }
+      },
+      "required": [
+        "rate",
+        "money_weighted_return",
+        "annualized_return",
+        "flow_count"
+      ],
+      "title": "MoneyWeightedOutputs",
+      "type": "object"
+    },
+    "TimeWeightedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annualized_return": {
+          "anyOf": [
+            {
+              "maximum": 1000000.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Return compounded to a year; null without periods_per_year",
+          "title": "Annualized Return"
+        },
+        "calculation": {
+          "const": "time_weighted",
+          "default": "time_weighted",
+          "description": "Time-weighted return, linked geometrically",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "sub_period_returns": {
+          "description": "Return of each sub-period, in order",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 10080,
+          "title": "Sub Period Returns",
+          "type": "array"
+        },
+        "time_weighted_return": {
+          "description": "Linked return over the whole span",
+          "maximum": 1000000.0,
+          "minimum": -1.0,
+          "title": "Time Weighted Return",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "sub_period_returns",
+        "time_weighted_return",
+        "annualized_return"
+      ],
+      "title": "TimeWeightedOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:performance.return_measurement:2:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Time-weighted, money-weighted and Modified Dietz returns of a portfolio with external cash flows, optionally annualized.",
+  "discriminator": {
+    "mapping": {
+      "modified_dietz": "#/$defs/ModifiedDietzOutputs",
+      "money_weighted": "#/$defs/MoneyWeightedOutputs",
+      "time_weighted": "#/$defs/TimeWeightedOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/TimeWeightedOutputs"
+    },
+    {
+      "$ref": "#/$defs/MoneyWeightedOutputs"
+    },
+    {
+      "$ref": "#/$defs/ModifiedDietzOutputs"
+    }
+  ],
+  "title": "Return measurement: outputs"
+}

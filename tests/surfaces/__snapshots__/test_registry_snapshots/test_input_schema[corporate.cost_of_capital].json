@@ -1,0 +1,332 @@
+{
+  "$defs": {
+    "CapmInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "beta": {
+          "description": "Equity beta to the market portfolio",
+          "maximum": 5,
+          "minimum": -5,
+          "title": "Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "capm",
+          "default": "capm",
+          "description": "Capital asset pricing model",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "equity_risk_premium": {
+          "description": "Expected market return less risk-free rate",
+          "maximum": 0.5,
+          "minimum": -0.5,
+          "title": "Equity Risk Premium",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "risk_free_rate": {
+          "description": "Annual risk-free rate",
+          "maximum": 0.5,
+          "minimum": -0.05,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "risk_free_rate",
+        "equity_risk_premium",
+        "beta"
+      ],
+      "title": "CapmInputs",
+      "type": "object"
+    },
+    "CountryInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "bond_volatility": {
+          "description": "Sovereign bond volatility over the common period",
+          "maximum": 5,
+          "minimum": 1e-06,
+          "title": "Bond Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "calculation": {
+          "const": "country_risk_premium",
+          "default": "country_risk_premium",
+          "description": "Volatility-scaled sovereign spread",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "equity_volatility": {
+          "description": "Equity volatility over the common period",
+          "maximum": 5,
+          "minimum": 1e-06,
+          "title": "Equity Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "sovereign_spread": {
+          "description": "Annual sovereign default spread",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Sovereign Spread",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "sovereign_spread",
+        "equity_volatility",
+        "bond_volatility"
+      ],
+      "title": "CountryInputs",
+      "type": "object"
+    },
+    "ReleverInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "beta": {
+          "description": "Levered beta to unlever, or unlevered beta to relever",
+          "maximum": 5,
+          "minimum": -5,
+          "title": "Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "relever_beta",
+          "default": "relever_beta",
+          "description": "Add financial leverage",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "debt_to_equity": {
+          "description": "Market debt/equity ratio",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Debt To Equity",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "tax_rate": {
+          "description": "Marginal tax rate",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Tax Rate",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "beta",
+        "debt_to_equity",
+        "tax_rate"
+      ],
+      "title": "ReleverInputs",
+      "type": "object"
+    },
+    "UnleverInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "beta": {
+          "description": "Levered beta to unlever, or unlevered beta to relever",
+          "maximum": 5,
+          "minimum": -5,
+          "title": "Beta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "unlever_beta",
+          "default": "unlever_beta",
+          "description": "Remove financial leverage",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "debt_to_equity": {
+          "description": "Market debt/equity ratio",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Debt To Equity",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "tax_rate": {
+          "description": "Marginal tax rate",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Tax Rate",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "beta",
+        "debt_to_equity",
+        "tax_rate"
+      ],
+      "title": "UnleverInputs",
+      "type": "object"
+    },
+    "WaccInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "wacc",
+          "default": "wacc",
+          "description": "Weighted average cost of capital",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cost_of_debt": {
+          "description": "Annual pretax cost of debt",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Cost Of Debt",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "cost_of_equity": {
+          "description": "Annual cost of common equity",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Cost Of Equity",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "cost_of_preferred": {
+          "default": 0,
+          "description": "Annual cost of preferred stock",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Cost Of Preferred",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "debt": {
+          "description": "Market value of debt",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Debt",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "equity": {
+          "description": "Market value of common equity",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Equity",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "preferred": {
+          "default": 0,
+          "description": "Market value of preferred stock",
+          "maximum": 1000000000000.0,
+          "minimum": 0,
+          "title": "Preferred",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "tax_rate": {
+          "description": "Marginal tax rate for debt shield",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Tax Rate",
+          "type": "number",
+          "x-unit": "probability"
+        }
+      },
+      "required": [
+        "equity",
+        "debt",
+        "cost_of_equity",
+        "cost_of_debt",
+        "tax_rate"
+      ],
+      "title": "WaccInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:corporate.cost_of_capital:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "CAPM, WACC with preferred equity, Hamada unlevering/relevering, and country risk premium.",
+  "discriminator": {
+    "mapping": {
+      "capm": "#/$defs/CapmInputs",
+      "country_risk_premium": "#/$defs/CountryInputs",
+      "relever_beta": "#/$defs/ReleverInputs",
+      "unlever_beta": "#/$defs/UnleverInputs",
+      "wacc": "#/$defs/WaccInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "beta": 1.2,
+      "calculation": "capm",
+      "equity_risk_premium": 0.05,
+      "risk_free_rate": 0.03
+    },
+    {
+      "calculation": "wacc",
+      "cost_of_debt": 0.06,
+      "cost_of_equity": 0.12,
+      "cost_of_preferred": 0.0,
+      "debt": 400.0,
+      "equity": 600.0,
+      "preferred": 0.0,
+      "tax_rate": 0.25
+    },
+    {
+      "beta": 1.2,
+      "calculation": "unlever_beta",
+      "debt_to_equity": 0.0,
+      "tax_rate": 0.25
+    },
+    {
+      "beta": 1.0,
+      "calculation": "relever_beta",
+      "debt_to_equity": 0.5,
+      "tax_rate": 0.2
+    },
+    {
+      "bond_volatility": 0.2,
+      "calculation": "country_risk_premium",
+      "equity_volatility": 0.3,
+      "sovereign_spread": 0.02
+    },
+    {
+      "calculation": "wacc",
+      "cost_of_debt": 0.06,
+      "cost_of_equity": 0.12,
+      "cost_of_preferred": 0.0,
+      "debt": 400.0,
+      "equity": 600.0,
+      "preferred": 0.0,
+      "tax_rate": 0.25
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CapmInputs"
+    },
+    {
+      "$ref": "#/$defs/WaccInputs"
+    },
+    {
+      "$ref": "#/$defs/UnleverInputs"
+    },
+    {
+      "$ref": "#/$defs/ReleverInputs"
+    },
+    {
+      "$ref": "#/$defs/CountryInputs"
+    }
+  ],
+  "title": "Cost of capital and beta: inputs"
+}

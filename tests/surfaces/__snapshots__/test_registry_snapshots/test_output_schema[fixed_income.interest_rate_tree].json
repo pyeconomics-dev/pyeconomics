@@ -1,0 +1,278 @@
+{
+  "$defs": {
+    "CalibrateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "calibrate",
+          "default": "calibrate",
+          "description": "Calibrate the tree to the par curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_factors": {
+          "description": "The tree's discount factor to the end of each period",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 120,
+          "title": "Discount Factors",
+          "type": "array"
+        },
+        "lowest_rates": {
+          "description": "Each period's lowest one-period rate",
+          "items": {
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 120,
+          "title": "Lowest Rates",
+          "type": "array"
+        },
+        "node_rates": {
+          "description": "Each period's one-period rates, lowest first, one row a period",
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            "maxItems": 120,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 120,
+          "title": "Node Rates",
+          "type": "array"
+        },
+        "par_yields": {
+          "description": "The par yield at the end of each period, read off the curve",
+          "items": {
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 120,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "rate_ratio": {
+          "description": "The ratio of adjacent rates in a period, e^(2 sigma sqrt(step))",
+          "maximum": 2.718281828459045,
+          "minimum": 1.0,
+          "title": "Rate Ratio",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "step_years": {
+          "description": "Years in one period",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Step Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "step_years",
+        "rate_ratio",
+        "par_yields",
+        "lowest_rates",
+        "node_rates",
+        "discount_factors"
+      ],
+      "title": "CalibrateOutputs",
+      "type": "object"
+    },
+    "EffectiveOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "effective",
+          "default": "effective",
+          "description": "Effective duration and convexity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "effective_convexity": {
+          "description": "(V_down + V_up - 2 V) / (V shift^2)",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "title": "Effective Convexity",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "effective_duration": {
+          "description": "(V_down - V_up) / (2 V shift)",
+          "maximum": 200.0,
+          "minimum": -200.0,
+          "title": "Effective Duration",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "value": {
+          "description": "The bond's value on the unshifted tree",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "value_down": {
+          "description": "The value with the par curve shifted down",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Value Down",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "value_up": {
+          "description": "The value with the par curve shifted up",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Value Up",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value",
+        "value_down",
+        "value_up",
+        "effective_duration",
+        "effective_convexity"
+      ],
+      "title": "EffectiveOutputs",
+      "type": "object"
+    },
+    "OasOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "oas",
+          "default": "oas",
+          "description": "The option-adjusted spread at a market price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "model_value": {
+          "description": "The bond's value with no spread, the tree's own",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Model Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "oas": {
+          "description": "The spread over every node rate that reprices the bond",
+          "maximum": 1.0,
+          "minimum": -0.5,
+          "title": "Oas",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option_free_value": {
+          "description": "The option-free bond's value at the OAS",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Free Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_value": {
+          "description": "The option's value to its holder at the OAS",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "oas",
+        "model_value",
+        "option_free_value",
+        "option_value"
+      ],
+      "title": "OasOutputs",
+      "type": "object"
+    },
+    "ValueOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "value",
+          "default": "value",
+          "description": "Value the bond and its option on the tree",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "option_free_value": {
+          "description": "The value of the same bond with no option",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Free Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "option_value": {
+          "description": "The option's value to its holder: option-free less callable, or putable less option-free",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Option Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "value": {
+          "description": "The bond's value, with its option",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value",
+        "option_free_value",
+        "option_value"
+      ],
+      "title": "ValueOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.interest_rate_tree:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "A lognormal binomial tree of rates calibrated to a par curve; values of option-free, callable and putable bonds, their options, the OAS and effective duration and convexity.",
+  "discriminator": {
+    "mapping": {
+      "calibrate": "#/$defs/CalibrateOutputs",
+      "effective": "#/$defs/EffectiveOutputs",
+      "oas": "#/$defs/OasOutputs",
+      "value": "#/$defs/ValueOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CalibrateOutputs"
+    },
+    {
+      "$ref": "#/$defs/ValueOutputs"
+    },
+    {
+      "$ref": "#/$defs/OasOutputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveOutputs"
+    }
+  ],
+  "title": "Binomial interest-rate tree: outputs"
+}

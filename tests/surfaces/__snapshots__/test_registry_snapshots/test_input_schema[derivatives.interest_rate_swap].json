@@ -1,0 +1,400 @@
+{
+  "$defs": {
+    "DatedInputs": {
+      "additionalProperties": false,
+      "description": "Payment dates on a day count, and a zero curve.",
+      "properties": {
+        "calculation": {
+          "const": "dated",
+          "default": "dated",
+          "description": "Swap value from payment dates and a zero curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "default": "continuous",
+          "description": "How the zero rates compound",
+          "enum": [
+            "simple",
+            "periodic",
+            "continuous"
+          ],
+          "title": "Compounding",
+          "type": "string"
+        },
+        "curve_rates": {
+          "description": "Zero rate at each node: linear between nodes, flat outside",
+          "items": {
+            "maximum": 1.0,
+            "minimum": -0.1,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Curve Rates",
+          "type": "array"
+        },
+        "curve_tenors": {
+          "description": "Tenors of the zero curve's nodes in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "day_count": {
+          "$ref": "#/$defs/SwapDayCount",
+          "default": "thirty_360_us",
+          "description": "Day count of the fixed leg's accruals"
+        },
+        "fixed_rate": {
+          "description": "Fixed rate per year of the fixed leg",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Fixed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "annual",
+          "description": "Compounding frequency of periodic zero rates"
+        },
+        "notional": {
+          "default": 1.0,
+          "description": "Notional principal",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Notional",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "payment_dates": {
+          "description": "Fixed payment dates, increasing, the last at maturity",
+          "items": {
+            "format": "date",
+            "type": "string",
+            "x-unit": "date"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Payment Dates",
+          "type": "array"
+        },
+        "start_date": {
+          "description": "Date the first period starts accruing",
+          "format": "date",
+          "title": "Start Date",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "valuation_date": {
+          "description": "Date the swap is valued on",
+          "format": "date",
+          "title": "Valuation Date",
+          "type": "string",
+          "x-unit": "date"
+        }
+      },
+      "required": [
+        "curve_tenors",
+        "curve_rates",
+        "fixed_rate",
+        "valuation_date",
+        "start_date",
+        "payment_dates"
+      ],
+      "title": "DatedInputs",
+      "type": "object"
+    },
+    "DiscountFactorInputs": {
+      "additionalProperties": false,
+      "description": "A schedule of accrual fractions and the discount factor at each payment.",
+      "properties": {
+        "accruals": {
+          "description": "Accrual fraction of each fixed period, in years",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Accruals",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "discount_factors",
+          "default": "discount_factors",
+          "description": "Swap value from discount factors",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_factors": {
+          "description": "Discount factor at each payment date",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 10.0,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Discount Factors",
+          "type": "array"
+        },
+        "fixed_rate": {
+          "description": "Fixed rate per year of the fixed leg",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Fixed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "notional": {
+          "default": 1.0,
+          "description": "Notional principal",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Notional",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "start_discount_factor": {
+          "default": 1.0,
+          "description": "Discount factor at the start date: 1 for a swap starting now",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Start Discount Factor",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "fixed_rate",
+        "accruals",
+        "discount_factors"
+      ],
+      "title": "DiscountFactorInputs",
+      "type": "object"
+    },
+    "FrequencyName": {
+      "enum": [
+        "annual",
+        "semiannual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "SwapDayCount": {
+      "enum": [
+        "act_360",
+        "act_365_fixed",
+        "act_act_isda",
+        "thirty_360_us",
+        "thirty_e_360"
+      ],
+      "type": "string"
+    },
+    "ZeroCurveInputs": {
+      "additionalProperties": false,
+      "description": "A schedule of accrual fractions and a zero curve.",
+      "properties": {
+        "accruals": {
+          "description": "Accrual fraction of each fixed period, in years",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Accruals",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "zero_curve",
+          "default": "zero_curve",
+          "description": "Swap value from a zero curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "compounding": {
+          "default": "continuous",
+          "description": "How the zero rates compound",
+          "enum": [
+            "simple",
+            "periodic",
+            "continuous"
+          ],
+          "title": "Compounding",
+          "type": "string"
+        },
+        "curve_rates": {
+          "description": "Zero rate at each node: linear between nodes, flat outside",
+          "items": {
+            "maximum": 1.0,
+            "minimum": -0.1,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Curve Rates",
+          "type": "array"
+        },
+        "curve_tenors": {
+          "description": "Tenors of the zero curve's nodes in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "fixed_rate": {
+          "description": "Fixed rate per year of the fixed leg",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Fixed Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "annual",
+          "description": "Compounding frequency of periodic zero rates"
+        },
+        "notional": {
+          "default": 1.0,
+          "description": "Notional principal",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Notional",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "start_years": {
+          "default": 0.0,
+          "description": "Years until the swap starts: 0 for now",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Start Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "curve_tenors",
+        "curve_rates",
+        "fixed_rate",
+        "accruals"
+      ],
+      "title": "ZeroCurveInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.interest_rate_swap:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Value to the fixed payer and receiver, par swap rate and annuity factor of a fixed-for-floating swap, from discount factors or a zero curve.",
+  "discriminator": {
+    "mapping": {
+      "dated": "#/$defs/DatedInputs",
+      "discount_factors": "#/$defs/DiscountFactorInputs",
+      "zero_curve": "#/$defs/ZeroCurveInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "accruals": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "calculation": "zero_curve",
+      "compounding": "continuous",
+      "curve_rates": [
+        0.05,
+        0.058,
+        0.064,
+        0.068
+      ],
+      "curve_tenors": [
+        0.5,
+        1.0,
+        1.5,
+        2.0
+      ],
+      "fixed_rate": 0.065,
+      "frequency": "annual",
+      "notional": 100000000.0,
+      "start_years": 0.0
+    },
+    {
+      "accruals": [
+        1.0,
+        1.0
+      ],
+      "calculation": "discount_factors",
+      "discount_factors": [
+        0.95,
+        0.9
+      ],
+      "fixed_rate": 0.05,
+      "notional": 1000000.0,
+      "start_discount_factor": 1.0
+    },
+    {
+      "calculation": "dated",
+      "compounding": "continuous",
+      "curve_rates": [
+        0.035,
+        0.04
+      ],
+      "curve_tenors": [
+        1.0,
+        5.0
+      ],
+      "day_count": "thirty_360_us",
+      "fixed_rate": 0.04,
+      "frequency": "annual",
+      "notional": 10000000.0,
+      "payment_dates": [
+        "2027-01-15",
+        "2028-01-15",
+        "2029-01-15",
+        "2030-01-15",
+        "2031-01-15"
+      ],
+      "start_date": "2026-01-15",
+      "valuation_date": "2026-01-15"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/DiscountFactorInputs"
+    },
+    {
+      "$ref": "#/$defs/ZeroCurveInputs"
+    },
+    {
+      "$ref": "#/$defs/DatedInputs"
+    }
+  ],
+  "title": "Interest rate swap: inputs"
+}

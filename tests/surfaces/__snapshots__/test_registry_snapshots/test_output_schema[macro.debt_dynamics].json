@@ -1,0 +1,69 @@
+{
+  "$id": "urn:pyeconomics:model:macro.debt_dynamics:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The path of debt to GDP from an initial ratio and paths of the effective interest rate, nominal growth and the primary balance, with r - g and the debt-stabilizing primary balance.",
+  "properties": {
+    "change_in_ratio": {
+      "description": "The final ratio less the initial one",
+      "maximum": 2000000.0,
+      "minimum": -2000000.0,
+      "title": "Change In Ratio",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "debt_ratio_path": {
+      "description": "Debt over GDP at the end of each period",
+      "items": {
+        "maximum": 1000000.0,
+        "minimum": -1000000.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "title": "Debt Ratio Path",
+      "type": "array"
+    },
+    "final_ratio": {
+      "description": "Debt over GDP at the end",
+      "maximum": 1000000.0,
+      "minimum": -1000000.0,
+      "title": "Final Ratio",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "interest_growth_differential": {
+      "description": "r - g each period: the interest rate less nominal growth",
+      "items": {
+        "maximum": 1.0,
+        "minimum": -1.0,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 100,
+      "title": "Interest Growth Differential",
+      "type": "array"
+    },
+    "stabilizing_balance": {
+      "description": "The primary balance over GDP that would hold each period's ratio at the ratio before it",
+      "items": {
+        "maximum": 2000000.0,
+        "minimum": -2000000.0,
+        "type": "number",
+        "x-unit": "ratio"
+      },
+      "maxItems": 100,
+      "title": "Stabilizing Balance",
+      "type": "array"
+    }
+  },
+  "required": [
+    "debt_ratio_path",
+    "final_ratio",
+    "change_in_ratio",
+    "interest_growth_differential",
+    "stabilizing_balance"
+  ],
+  "title": "Public debt dynamics: outputs",
+  "type": "object"
+}

@@ -1,0 +1,266 @@
+{
+  "$defs": {
+    "CovarianceName": {
+      "enum": [
+        "classical",
+        "hc1",
+        "newey_west"
+      ],
+      "type": "string"
+    },
+    "DifferenceInputs": {
+      "additionalProperties": false,
+      "description": "The difference form: the change in unemployment on output growth.",
+      "properties": {
+        "calculation": {
+          "const": "difference",
+          "default": "difference",
+          "description": "The change in unemployment on output growth",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "output": {
+          "description": "Real output each period, positive",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 1000,
+          "minItems": 4,
+          "title": "Output",
+          "type": "array"
+        },
+        "periods_per_year": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Periods in a year, to annualize growth by compounding (4 for quarterly data); left out, growth is over the span",
+          "title": "Periods Per Year"
+        },
+        "span": {
+          "default": 1,
+          "description": "Periods each growth rate and change spans (4 for over a year)",
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Span",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "unemployment": {
+          "description": "The unemployment rate each period",
+          "items": {
+            "maximum": 0.3,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 1000,
+          "minItems": 4,
+          "title": "Unemployment",
+          "type": "array"
+        }
+      },
+      "required": [
+        "output",
+        "unemployment"
+      ],
+      "title": "DifferenceInputs",
+      "type": "object"
+    },
+    "GapInputs": {
+      "additionalProperties": false,
+      "description": "The gap form: the output gap on the unemployment gap.",
+      "properties": {
+        "calculation": {
+          "const": "gap",
+          "default": "gap",
+          "description": "The output gap on the unemployment gap",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "covariance": {
+          "$ref": "#/$defs/CovarianceName",
+          "default": "newey_west",
+          "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+        },
+        "lags": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer",
+              "x-unit": "count"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+          "title": "Lags"
+        },
+        "natural_unemployment": {
+          "description": "The natural rate of unemployment each period",
+          "items": {
+            "maximum": 0.3,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 1000,
+          "minItems": 3,
+          "title": "Natural Unemployment",
+          "type": "array"
+        },
+        "output_gap": {
+          "description": "The output gap each period (real GDP over potential, less one)",
+          "items": {
+            "maximum": 0.3,
+            "minimum": -0.3,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 1000,
+          "minItems": 3,
+          "title": "Output Gap",
+          "type": "array"
+        },
+        "unemployment": {
+          "description": "The unemployment rate each period",
+          "items": {
+            "maximum": 0.3,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 1000,
+          "minItems": 3,
+          "title": "Unemployment",
+          "type": "array"
+        }
+      },
+      "required": [
+        "output_gap",
+        "unemployment",
+        "natural_unemployment"
+      ],
+      "title": "GapInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.okun_law:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Okun's law estimated in its gap form (the output gap on the unemployment gap) and its first-difference form (the change in unemployment on output growth, with the growth that holds unemployment constant).",
+  "discriminator": {
+    "mapping": {
+      "difference": "#/$defs/DifferenceInputs",
+      "gap": "#/$defs/GapInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "gap",
+      "covariance": "newey_west",
+      "lags": null,
+      "natural_unemployment": [
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.044
+      ],
+      "output_gap": [
+        0.004,
+        0.009,
+        0.012,
+        0.01,
+        0.002,
+        -0.006,
+        -0.008,
+        -0.005
+      ],
+      "unemployment": [
+        0.042,
+        0.04,
+        0.038,
+        0.039,
+        0.043,
+        0.047,
+        0.048,
+        0.046
+      ]
+    },
+    {
+      "calculation": "difference",
+      "covariance": "newey_west",
+      "lags": null,
+      "output": [
+        100.0,
+        100.8,
+        101.5,
+        101.4,
+        100.9,
+        101.6,
+        102.4,
+        103.1
+      ],
+      "periods_per_year": 4,
+      "span": 1,
+      "unemployment": [
+        0.04,
+        0.039,
+        0.039,
+        0.041,
+        0.045,
+        0.044,
+        0.042,
+        0.041
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GapInputs"
+    },
+    {
+      "$ref": "#/$defs/DifferenceInputs"
+    }
+  ],
+  "title": "Okun's law: inputs"
+}

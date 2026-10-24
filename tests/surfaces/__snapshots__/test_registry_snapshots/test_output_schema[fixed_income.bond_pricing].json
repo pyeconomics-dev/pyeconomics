@@ -1,0 +1,228 @@
+{
+  "$defs": {
+    "PriceFromYieldOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "accrued_interest": {
+          "description": "Interest accrued up to settlement",
+          "maximum": 2000000000.0,
+          "minimum": 0.0,
+          "title": "Accrued Interest",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "price_from_yield",
+          "default": "price_from_yield",
+          "description": "Full and flat price from a yield",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "flat_price": {
+          "description": "Flat (clean) price: the full price less accrued interest",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Flat Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "next_coupon_date": {
+          "description": "First payment after settlement",
+          "format": "date",
+          "title": "Next Coupon Date",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "payments": {
+          "description": "Payments remaining after settlement",
+          "maximum": 1201,
+          "minimum": 1,
+          "title": "Payments",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "full_price",
+        "flat_price",
+        "accrued_interest",
+        "next_coupon_date",
+        "payments"
+      ],
+      "title": "PriceFromYieldOutputs",
+      "type": "object"
+    },
+    "YieldFromPriceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "accrued_interest": {
+          "description": "Interest accrued up to settlement",
+          "maximum": 2000000000.0,
+          "minimum": 0.0,
+          "title": "Accrued Interest",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "calculation": {
+          "const": "yield_from_price",
+          "default": "yield_from_price",
+          "description": "Yield to maturity from a price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "flat_price": {
+          "description": "Flat (clean) price: the full price less accrued interest",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Flat Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "yield_to_maturity": {
+          "description": "Yield to maturity that gives the price",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Maturity",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "yield_to_maturity",
+        "full_price",
+        "flat_price",
+        "accrued_interest"
+      ],
+      "title": "YieldFromPriceOutputs",
+      "type": "object"
+    },
+    "YieldToCallOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "yield_to_call",
+          "default": "yield_to_call",
+          "description": "Yield to a call date",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "yield_to_call": {
+          "description": "Yield if the bond is called on the call date",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Call",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "yield_to_call",
+        "full_price"
+      ],
+      "title": "YieldToCallOutputs",
+      "type": "object"
+    },
+    "YieldToWorstOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "yield_to_worst",
+          "default": "yield_to_worst",
+          "description": "Lowest yield over the calls and maturity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "worst_date": {
+          "description": "Call or maturity date that gives it",
+          "format": "date",
+          "title": "Worst Date",
+          "type": "string",
+          "x-unit": "date"
+        },
+        "yield_to_maturity": {
+          "description": "Yield to maturity",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Maturity",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "yield_to_worst": {
+          "description": "Lowest of the yield to maturity and to each call",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Yield To Worst",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "yield_to_worst",
+        "worst_date",
+        "yield_to_maturity",
+        "full_price"
+      ],
+      "title": "YieldToWorstOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.bond_pricing:2:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Full and flat price and accrued interest of a fixed-coupon bond from its yield, and its yield to maturity, to a call and to worst from its price.",
+  "discriminator": {
+    "mapping": {
+      "price_from_yield": "#/$defs/PriceFromYieldOutputs",
+      "yield_from_price": "#/$defs/YieldFromPriceOutputs",
+      "yield_to_call": "#/$defs/YieldToCallOutputs",
+      "yield_to_worst": "#/$defs/YieldToWorstOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PriceFromYieldOutputs"
+    },
+    {
+      "$ref": "#/$defs/YieldFromPriceOutputs"
+    },
+    {
+      "$ref": "#/$defs/YieldToCallOutputs"
+    },
+    {
+      "$ref": "#/$defs/YieldToWorstOutputs"
+    }
+  ],
+  "title": "Bond price and yield: outputs"
+}

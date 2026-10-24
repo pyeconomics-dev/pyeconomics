@@ -1,0 +1,329 @@
+{
+  "$defs": {
+    "CostOfCarryInputs": {
+      "additionalProperties": false,
+      "description": "An asset's spot price and what it costs, or earns, to hold it.",
+      "properties": {
+        "calculation": {
+          "const": "cost_of_carry",
+          "default": "cost_of_carry",
+          "description": "Forward price by cost of carry",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "convenience_yield": {
+          "default": 0.0,
+          "description": "Convenience yield per year of holding the asset, continuously",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Convenience Yield",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "income_present_value": {
+          "default": 0.0,
+          "description": "Present value of known income paid before delivery",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Income Present Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "income_yield": {
+          "default": 0.0,
+          "description": "Income (dividend) yield per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Income Yield",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Price of the asset for delivery now",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000.0,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "storage_cost_present_value": {
+          "default": 0.0,
+          "description": "Present value of known storage costs paid before delivery",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Storage Cost Present Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "storage_cost_rate": {
+          "default": 0.0,
+          "description": "Storage costs per year as a yield on the price, continuously",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Storage Cost Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "years": {
+          "description": "Time to delivery, in years",
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "years",
+        "risk_free_rate"
+      ],
+      "title": "CostOfCarryInputs",
+      "type": "object"
+    },
+    "ForwardValueInputs": {
+      "additionalProperties": false,
+      "description": "A forward contract entered earlier, and the asset's carry now.",
+      "properties": {
+        "calculation": {
+          "const": "forward_value",
+          "default": "forward_value",
+          "description": "Value of an existing forward contract",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "convenience_yield": {
+          "default": 0.0,
+          "description": "Convenience yield per year of holding the asset, continuously",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Convenience Yield",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "delivery_price": {
+          "description": "Delivery price agreed in the contract",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Delivery Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "income_present_value": {
+          "default": 0.0,
+          "description": "Present value of known income paid before delivery",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Income Present Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "income_yield": {
+          "default": 0.0,
+          "description": "Income (dividend) yield per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Income Yield",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "position": {
+          "default": "long",
+          "description": "The side valued: long (buyer) or short (seller)",
+          "enum": [
+            "long",
+            "short"
+          ],
+          "title": "Position",
+          "type": "string"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate per year, continuously compounded",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Price of the asset for delivery now",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000.0,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "storage_cost_present_value": {
+          "default": 0.0,
+          "description": "Present value of known storage costs paid before delivery",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Storage Cost Present Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "storage_cost_rate": {
+          "default": 0.0,
+          "description": "Storage costs per year as a yield on the price, continuously",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Storage Cost Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "years": {
+          "description": "Time to delivery, in years",
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "spot",
+        "years",
+        "risk_free_rate",
+        "delivery_price"
+      ],
+      "title": "ForwardValueInputs",
+      "type": "object"
+    },
+    "FxForwardInputs": {
+      "additionalProperties": false,
+      "description": "A spot exchange rate and each currency's money-market rate.",
+      "properties": {
+        "base_day_count": {
+          "$ref": "#/$defs/MoneyMarketDayCount",
+          "default": "act_360",
+          "description": "Day count of the base currency's rate"
+        },
+        "base_rate": {
+          "description": "Money-market rate of the base currency per year, simple",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Base Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "calculation": {
+          "const": "fx_forward",
+          "default": "fx_forward",
+          "description": "Forward exchange rate by covered interest parity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "days": {
+          "description": "Actual days from spot to delivery",
+          "maximum": 3653,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "quote_day_count": {
+          "$ref": "#/$defs/MoneyMarketDayCount",
+          "default": "act_360",
+          "description": "Day count of the quote currency's rate"
+        },
+        "quote_rate": {
+          "description": "Money-market rate of the quote currency per year, simple",
+          "maximum": 1.0,
+          "minimum": -0.05,
+          "title": "Quote Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "spot": {
+          "description": "Spot exchange rate, in units of the quote currency per unit of the base currency",
+          "maximum": 1000000.0,
+          "minimum": 1e-06,
+          "title": "Spot",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "spot",
+        "days",
+        "quote_rate",
+        "base_rate"
+      ],
+      "title": "FxForwardInputs",
+      "type": "object"
+    },
+    "MoneyMarketDayCount": {
+      "enum": [
+        "act_360",
+        "act_365_fixed"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.forwards:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Forward prices by cost of carry, the value of an existing forward, and forward exchange rates by covered interest parity.",
+  "discriminator": {
+    "mapping": {
+      "cost_of_carry": "#/$defs/CostOfCarryInputs",
+      "forward_value": "#/$defs/ForwardValueInputs",
+      "fx_forward": "#/$defs/FxForwardInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "cost_of_carry",
+      "convenience_yield": 0.0,
+      "income_present_value": 2.162,
+      "income_yield": 0.0,
+      "risk_free_rate": 0.08,
+      "spot": 50.0,
+      "storage_cost_present_value": 0.0,
+      "storage_cost_rate": 0.0,
+      "years": 0.8333
+    },
+    {
+      "calculation": "forward_value",
+      "convenience_yield": 0.0,
+      "delivery_price": 24.0,
+      "income_present_value": 0.0,
+      "income_yield": 0.0,
+      "position": "long",
+      "risk_free_rate": 0.1,
+      "spot": 25.0,
+      "storage_cost_present_value": 0.0,
+      "storage_cost_rate": 0.0,
+      "years": 0.5
+    },
+    {
+      "base_day_count": "act_360",
+      "base_rate": 0.03,
+      "calculation": "fx_forward",
+      "days": 91,
+      "quote_day_count": "act_360",
+      "quote_rate": 0.045,
+      "spot": 1.08
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CostOfCarryInputs"
+    },
+    {
+      "$ref": "#/$defs/ForwardValueInputs"
+    },
+    {
+      "$ref": "#/$defs/FxForwardInputs"
+    }
+  ],
+  "title": "Forward prices and values: inputs"
+}

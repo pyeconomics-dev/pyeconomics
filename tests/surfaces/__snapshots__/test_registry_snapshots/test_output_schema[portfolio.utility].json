@@ -1,0 +1,222 @@
+{
+  "$defs": {
+    "CertaintyEquivalentOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "certainty_equivalent",
+          "default": "certainty_equivalent",
+          "description": "Certainty-equivalent return under CRRA",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "certainty_equivalent": {
+          "description": "Certain return with the gamble's expected utility",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Certainty Equivalent",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_return": {
+          "description": "Probability-weighted mean of the outcomes",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "risk_premium": {
+          "description": "Expected return less the certainty equivalent",
+          "maximum": 101.0,
+          "minimum": 0.0,
+          "title": "Risk Premium",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "certainty_equivalent",
+        "expected_return",
+        "risk_premium"
+      ],
+      "title": "CertaintyEquivalentOutputs",
+      "type": "object"
+    },
+    "KellyOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "kelly",
+          "default": "kelly",
+          "description": "Kelly fraction of a bet or an asset",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "form": {
+          "description": "Which Kelly formula applied",
+          "enum": [
+            "discrete",
+            "continuous"
+          ],
+          "title": "Form",
+          "type": "string"
+        },
+        "fraction": {
+          "description": "The multiplier times the full fraction; for a discrete bet never below zero, as a bet cannot be taken short",
+          "maximum": 20000.0,
+          "minimum": -20000.0,
+          "title": "Fraction",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "full_kelly": {
+          "description": "The growth-maximizing fraction; at or below zero there is no edge",
+          "maximum": 20000.0,
+          "minimum": -20000.0,
+          "title": "Full Kelly",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "growth_rate": {
+          "description": "Expected log growth at that fraction: per bet, or a year for a continuous asset",
+          "maximum": 21000.0,
+          "minimum": -0.99,
+          "title": "Growth Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "form",
+        "full_kelly",
+        "fraction",
+        "growth_rate"
+      ],
+      "title": "KellyOutputs",
+      "type": "object"
+    },
+    "MeanVarianceUtilityOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "mean_variance_utility",
+          "default": "mean_variance_utility",
+          "description": "Mean-variance utility, E - A sigma^2 / 2",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "risk_penalty": {
+          "description": "The penalty for risk, A sigma^2 / 2",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Risk Penalty",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "utility": {
+          "description": "Utility: the certainty-equivalent return a year",
+          "maximum": 10.0,
+          "minimum": -10000.0,
+          "title": "Utility",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "utility",
+        "risk_penalty"
+      ],
+      "title": "MeanVarianceUtilityOutputs",
+      "type": "object"
+    },
+    "OptimalRiskyShareOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "optimal_risky_share",
+          "default": "optimal_risky_share",
+          "description": "Utility-maximizing share in the risky asset",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_return": {
+          "description": "Combined portfolio's expected return",
+          "maximum": 410000.0,
+          "minimum": -1.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "optimal_share": {
+          "description": "Share of wealth in the risky portfolio; above 1 borrows, below 0 is short",
+          "maximum": 200000.0,
+          "minimum": -200000.0,
+          "title": "Optimal Share",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "sharpe_ratio": {
+          "description": "Sharpe ratio of the risky portfolio",
+          "maximum": 200.0,
+          "minimum": -200.0,
+          "title": "Sharpe Ratio",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "utility": {
+          "description": "Combined portfolio's utility",
+          "maximum": 410000.0,
+          "minimum": -1.0,
+          "title": "Utility",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "volatility": {
+          "description": "Combined portfolio's volatility",
+          "maximum": 2000.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "optimal_share",
+        "expected_return",
+        "volatility",
+        "utility",
+        "sharpe_ratio"
+      ],
+      "title": "OptimalRiskyShareOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:portfolio.utility:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Mean-variance utility, the utility-maximizing risky share, the CRRA certainty equivalent of a gamble, and the Kelly fraction.",
+  "discriminator": {
+    "mapping": {
+      "certainty_equivalent": "#/$defs/CertaintyEquivalentOutputs",
+      "kelly": "#/$defs/KellyOutputs",
+      "mean_variance_utility": "#/$defs/MeanVarianceUtilityOutputs",
+      "optimal_risky_share": "#/$defs/OptimalRiskyShareOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/MeanVarianceUtilityOutputs"
+    },
+    {
+      "$ref": "#/$defs/OptimalRiskyShareOutputs"
+    },
+    {
+      "$ref": "#/$defs/CertaintyEquivalentOutputs"
+    },
+    {
+      "$ref": "#/$defs/KellyOutputs"
+    }
+  ],
+  "title": "Utility, risky share and Kelly fraction: outputs"
+}

@@ -1,0 +1,380 @@
+{
+  "$id": "urn:pyeconomics:model:accounting.financial_ratios:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Liquidity, activity, solvency, profitability and three- and five-step DuPont ratios.",
+  "properties": {
+    "asset_turnover": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Revenue / average total assets",
+      "title": "Asset Turnover"
+    },
+    "cash_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "(Cash + marketable securities) / current liabilities",
+      "title": "Cash Ratio"
+    },
+    "current_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Current assets / current liabilities",
+      "title": "Current Ratio"
+    },
+    "debt_to_assets": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Period-end interest-bearing debt / total assets",
+      "title": "Debt To Assets"
+    },
+    "debt_to_equity": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Period-end interest-bearing debt / book equity",
+      "title": "Debt To Equity"
+    },
+    "dupont_five_step": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Tax burden * interest burden * operating margin * asset turnover * financial leverage",
+      "title": "Dupont Five Step"
+    },
+    "dupont_three_step": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Net margin * asset turnover * financial leverage",
+      "title": "Dupont Three Step"
+    },
+    "financial_leverage": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Average assets / average equity; DuPont equity multiplier",
+      "title": "Financial Leverage"
+    },
+    "gross_margin": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "(Revenue - COGS) / revenue",
+      "title": "Gross Margin"
+    },
+    "interest_burden": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pretax income / EBIT",
+      "title": "Interest Burden"
+    },
+    "interest_coverage": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "EBIT / interest expense",
+      "title": "Interest Coverage"
+    },
+    "inventory_days": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Days in period * average inventory / COGS",
+      "title": "Inventory Days"
+    },
+    "inventory_turnover": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "COGS / average inventory",
+      "title": "Inventory Turnover"
+    },
+    "net_margin": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Net income / revenue",
+      "title": "Net Margin"
+    },
+    "operating_margin": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "EBIT / revenue",
+      "title": "Operating Margin"
+    },
+    "payables_days": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Days in period * average payables / credit purchases",
+      "title": "Payables Days"
+    },
+    "payables_turnover": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Credit purchases / average payables",
+      "title": "Payables Turnover"
+    },
+    "quick_ratio": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "(Current assets - inventory - prepayments) / current liabilities",
+      "title": "Quick Ratio"
+    },
+    "receivables_days": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Days in period * average receivables / revenue",
+      "title": "Receivables Days"
+    },
+    "receivables_turnover": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Revenue / average receivables",
+      "title": "Receivables Turnover"
+    },
+    "roa": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Net income / average assets",
+      "title": "Roa"
+    },
+    "roe": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Net income / average common equity",
+      "title": "Roe"
+    },
+    "tax_burden": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Net income / pretax income",
+      "title": "Tax Burden"
+    }
+  },
+  "required": [
+    "current_ratio",
+    "quick_ratio",
+    "cash_ratio",
+    "receivables_turnover",
+    "inventory_turnover",
+    "payables_turnover",
+    "receivables_days",
+    "inventory_days",
+    "payables_days",
+    "asset_turnover",
+    "debt_to_equity",
+    "debt_to_assets",
+    "interest_coverage",
+    "financial_leverage",
+    "gross_margin",
+    "operating_margin",
+    "net_margin",
+    "roa",
+    "roe",
+    "tax_burden",
+    "interest_burden",
+    "dupont_three_step",
+    "dupont_five_step"
+  ],
+  "title": "Financial ratios and DuPont: outputs",
+  "type": "object"
+}

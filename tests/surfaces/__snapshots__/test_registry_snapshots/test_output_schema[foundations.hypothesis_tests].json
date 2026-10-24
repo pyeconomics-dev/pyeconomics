@@ -1,0 +1,615 @@
+{
+  "$defs": {
+    "ChiSquareVarianceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "chi_square_variance",
+          "default": "chi_square_variance",
+          "description": "Chi-square test of a variance",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ci_lower": {
+          "description": "Lower end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "ci_upper": {
+          "description": "Upper end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "critical_values": {
+          "description": "Bounds of the rejection region: lower and upper for a two-sided test, the one bound for a one-sided test",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": -1e+30,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "degrees_of_freedom": {
+          "description": "n - 1",
+          "maximum": 2000000.0,
+          "minimum": 0,
+          "title": "Degrees Of Freedom",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "estimate": {
+          "description": "Point estimate of the quantity tested",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "p_value": {
+          "description": "p-value for the chosen alternative",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether the null hypothesis is rejected at alpha",
+          "title": "Reject",
+          "type": "boolean"
+        },
+        "statistic": {
+          "description": "The test statistic",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "critical_values",
+        "reject",
+        "estimate",
+        "ci_lower",
+        "ci_upper",
+        "degrees_of_freedom"
+      ],
+      "title": "ChiSquareVarianceOutputs",
+      "type": "object"
+    },
+    "FVariancesOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "f_variances",
+          "default": "f_variances",
+          "description": "F test of the ratio of two variances",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ci_lower": {
+          "description": "Lower end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "ci_upper": {
+          "description": "Upper end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "critical_values": {
+          "description": "Bounds of the rejection region: lower and upper for a two-sided test, the one bound for a one-sided test",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": -1e+30,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "df_denominator": {
+          "description": "n2 - 1",
+          "maximum": 2000000.0,
+          "minimum": 0,
+          "title": "Df Denominator",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "df_numerator": {
+          "description": "n1 - 1",
+          "maximum": 2000000.0,
+          "minimum": 0,
+          "title": "Df Numerator",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "estimate": {
+          "description": "Point estimate of the quantity tested",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "p_value": {
+          "description": "p-value for the chosen alternative",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether the null hypothesis is rejected at alpha",
+          "title": "Reject",
+          "type": "boolean"
+        },
+        "statistic": {
+          "description": "The test statistic",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "critical_values",
+        "reject",
+        "estimate",
+        "ci_lower",
+        "ci_upper",
+        "df_numerator",
+        "df_denominator"
+      ],
+      "title": "FVariancesOutputs",
+      "type": "object"
+    },
+    "OneSampleTOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "one_sample_t",
+          "default": "one_sample_t",
+          "description": "One-sample t test of a mean",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ci_lower": {
+          "description": "Lower end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "ci_upper": {
+          "description": "Upper end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "critical_values": {
+          "description": "Bounds of the rejection region: lower and upper for a two-sided test, the one bound for a one-sided test",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": -1e+30,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "degrees_of_freedom": {
+          "description": "n - 1",
+          "maximum": 2000000.0,
+          "minimum": 0,
+          "title": "Degrees Of Freedom",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "estimate": {
+          "description": "Point estimate of the quantity tested",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "p_value": {
+          "description": "p-value for the chosen alternative",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether the null hypothesis is rejected at alpha",
+          "title": "Reject",
+          "type": "boolean"
+        },
+        "standard_error": {
+          "description": "Standard error of the estimate",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "statistic": {
+          "description": "The test statistic",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "critical_values",
+        "reject",
+        "estimate",
+        "ci_lower",
+        "ci_upper",
+        "standard_error",
+        "degrees_of_freedom"
+      ],
+      "title": "OneSampleTOutputs",
+      "type": "object"
+    },
+    "PairedTOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "paired_t",
+          "default": "paired_t",
+          "description": "Paired t test of a mean difference",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ci_lower": {
+          "description": "Lower end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "ci_upper": {
+          "description": "Upper end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "critical_values": {
+          "description": "Bounds of the rejection region: lower and upper for a two-sided test, the one bound for a one-sided test",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": -1e+30,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "degrees_of_freedom": {
+          "description": "n - 1",
+          "maximum": 2000000.0,
+          "minimum": 0,
+          "title": "Degrees Of Freedom",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "estimate": {
+          "description": "Point estimate of the quantity tested",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "p_value": {
+          "description": "p-value for the chosen alternative",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether the null hypothesis is rejected at alpha",
+          "title": "Reject",
+          "type": "boolean"
+        },
+        "standard_error": {
+          "description": "Standard error of the estimate",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "statistic": {
+          "description": "The test statistic",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "critical_values",
+        "reject",
+        "estimate",
+        "ci_lower",
+        "ci_upper",
+        "standard_error",
+        "degrees_of_freedom"
+      ],
+      "title": "PairedTOutputs",
+      "type": "object"
+    },
+    "TwoSampleTOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "two_sample_t",
+          "default": "two_sample_t",
+          "description": "Two-sample t test of a difference in means",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ci_lower": {
+          "description": "Lower end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "ci_upper": {
+          "description": "Upper end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "critical_values": {
+          "description": "Bounds of the rejection region: lower and upper for a two-sided test, the one bound for a one-sided test",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": -1e+30,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "degrees_of_freedom": {
+          "description": "n1 + n2 - 2 when pooled; Welch-Satterthwaite otherwise",
+          "maximum": 2000000.0,
+          "minimum": 0,
+          "title": "Degrees Of Freedom",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "estimate": {
+          "description": "Point estimate of the quantity tested",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "p_value": {
+          "description": "p-value for the chosen alternative",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether the null hypothesis is rejected at alpha",
+          "title": "Reject",
+          "type": "boolean"
+        },
+        "standard_error": {
+          "description": "Standard error of the estimate",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "statistic": {
+          "description": "The test statistic",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "critical_values",
+        "reject",
+        "estimate",
+        "ci_lower",
+        "ci_upper",
+        "standard_error",
+        "degrees_of_freedom"
+      ],
+      "title": "TwoSampleTOutputs",
+      "type": "object"
+    },
+    "ZMeanOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "z_mean",
+          "default": "z_mean",
+          "description": "z test of a mean with known sigma",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "ci_lower": {
+          "description": "Lower end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Lower",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "ci_upper": {
+          "description": "Upper end of the two-sided 1 - alpha confidence interval",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Ci Upper",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "critical_values": {
+          "description": "Bounds of the rejection region: lower and upper for a two-sided test, the one bound for a one-sided test",
+          "items": {
+            "maximum": 1e+30,
+            "minimum": -1e+30,
+            "type": "number",
+            "x-unit": "ratio"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Critical Values",
+          "type": "array"
+        },
+        "estimate": {
+          "description": "Point estimate of the quantity tested",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Estimate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "p_value": {
+          "description": "p-value for the chosen alternative",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "P Value",
+          "type": "number",
+          "x-unit": "probability"
+        },
+        "reject": {
+          "description": "Whether the null hypothesis is rejected at alpha",
+          "title": "Reject",
+          "type": "boolean"
+        },
+        "standard_error": {
+          "description": "Standard error of the estimate",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "statistic": {
+          "description": "The test statistic",
+          "maximum": 1e+30,
+          "minimum": -1e+30,
+          "title": "Statistic",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "statistic",
+        "p_value",
+        "critical_values",
+        "reject",
+        "estimate",
+        "ci_lower",
+        "ci_upper",
+        "standard_error"
+      ],
+      "title": "ZMeanOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:foundations.hypothesis_tests:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "One-sample, two-sample (pooled and Welch) and paired t tests, the z test, and chi-square and F tests of variances, with p-values, critical values and confidence intervals.",
+  "discriminator": {
+    "mapping": {
+      "chi_square_variance": "#/$defs/ChiSquareVarianceOutputs",
+      "f_variances": "#/$defs/FVariancesOutputs",
+      "one_sample_t": "#/$defs/OneSampleTOutputs",
+      "paired_t": "#/$defs/PairedTOutputs",
+      "two_sample_t": "#/$defs/TwoSampleTOutputs",
+      "z_mean": "#/$defs/ZMeanOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/OneSampleTOutputs"
+    },
+    {
+      "$ref": "#/$defs/TwoSampleTOutputs"
+    },
+    {
+      "$ref": "#/$defs/PairedTOutputs"
+    },
+    {
+      "$ref": "#/$defs/ZMeanOutputs"
+    },
+    {
+      "$ref": "#/$defs/ChiSquareVarianceOutputs"
+    },
+    {
+      "$ref": "#/$defs/FVariancesOutputs"
+    }
+  ],
+  "title": "Hypothesis tests from summary statistics: outputs"
+}

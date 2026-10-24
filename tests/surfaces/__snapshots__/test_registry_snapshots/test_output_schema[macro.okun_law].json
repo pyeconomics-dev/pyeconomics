@@ -1,0 +1,243 @@
+{
+  "$defs": {
+    "DifferenceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "difference",
+          "default": "difference",
+          "description": "The change in unemployment on output growth",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "constant_unemployment_growth": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The growth that holds unemployment constant, -intercept / slope, annualized as growth is; None when the slope is zero",
+          "title": "Constant Unemployment Growth"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "intercept": {
+          "description": "The constant",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Intercept",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "intercept_standard_error": {
+          "description": "The intercept's standard error",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Intercept Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Observations in the regression",
+          "maximum": 1000,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the dependent variable does not vary",
+          "title": "R Squared"
+        },
+        "slope": {
+          "description": "The coefficient on the gap",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Slope",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "slope_standard_error": {
+          "description": "The slope's standard error",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Slope Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "slope_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The slope over its standard error; None for a fit exact to rounding",
+          "title": "Slope T Statistic"
+        }
+      },
+      "required": [
+        "slope",
+        "intercept",
+        "slope_standard_error",
+        "intercept_standard_error",
+        "slope_t_statistic",
+        "r_squared",
+        "observations",
+        "hac_lags",
+        "constant_unemployment_growth"
+      ],
+      "title": "DifferenceOutputs",
+      "type": "object"
+    },
+    "GapOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "gap",
+          "default": "gap",
+          "description": "The output gap on the unemployment gap",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hac_lags": {
+          "description": "Newey-West lags used; 0 for the others",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Hac Lags",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "intercept": {
+          "description": "The constant",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Intercept",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "intercept_standard_error": {
+          "description": "The intercept's standard error",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Intercept Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "observations": {
+          "description": "Observations in the regression",
+          "maximum": 1000,
+          "minimum": 3,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "r_squared": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "R-squared; None when the dependent variable does not vary",
+          "title": "R Squared"
+        },
+        "slope": {
+          "description": "The coefficient on the gap",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Slope",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "slope_standard_error": {
+          "description": "The slope's standard error",
+          "maximum": 1000000000.0,
+          "minimum": 0.0,
+          "title": "Slope Standard Error",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "slope_t_statistic": {
+          "anyOf": [
+            {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The slope over its standard error; None for a fit exact to rounding",
+          "title": "Slope T Statistic"
+        }
+      },
+      "required": [
+        "slope",
+        "intercept",
+        "slope_standard_error",
+        "intercept_standard_error",
+        "slope_t_statistic",
+        "r_squared",
+        "observations",
+        "hac_lags"
+      ],
+      "title": "GapOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.okun_law:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Okun's law estimated in its gap form (the output gap on the unemployment gap) and its first-difference form (the change in unemployment on output growth, with the growth that holds unemployment constant).",
+  "discriminator": {
+    "mapping": {
+      "difference": "#/$defs/DifferenceOutputs",
+      "gap": "#/$defs/GapOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GapOutputs"
+    },
+    {
+      "$ref": "#/$defs/DifferenceOutputs"
+    }
+  ],
+  "title": "Okun's law: outputs"
+}

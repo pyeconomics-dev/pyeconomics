@@ -1,0 +1,621 @@
+{
+  "$defs": {
+    "CalibrateInputs": {
+      "additionalProperties": false,
+      "description": "A par curve, a volatility and the years the tree spans.",
+      "properties": {
+        "calculation": {
+          "const": "calibrate",
+          "default": "calibrate",
+          "description": "Calibrate the tree to the par curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "curve_tenors": {
+          "description": "Tenor of each par yield, in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Periods a year: the tree's step and the par bonds' coupons"
+        },
+        "par_yields": {
+          "description": "Par yield at each tenor: the coupon rate, paid each period, of a bond priced at par; linear between tenors and flat before the first",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "volatility": {
+          "description": "Volatility of the one-period rate a year (0.1 is 10%); zero gives the forward rates, so the bound is widened to include it",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        },
+        "years": {
+          "description": "How many years the tree spans",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Years",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "curve_tenors",
+        "par_yields",
+        "volatility",
+        "years"
+      ],
+      "title": "CalibrateInputs",
+      "type": "object"
+    },
+    "EffectiveInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "effective",
+          "default": "effective",
+          "description": "Effective duration and convexity",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid each period",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "curve_tenors": {
+          "description": "Tenor of each par yield, in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "exercise_prices": {
+          "default": [],
+          "description": "The exercise price at each of those dates, in the face value's units (100 for par on a face of 100)",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 120,
+          "title": "Exercise Prices",
+          "type": "array"
+        },
+        "exercise_years": {
+          "default": [],
+          "description": "When the option may be exercised, in years: coupon dates, after the coupon is paid, before maturity",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 120,
+          "title": "Exercise Years",
+          "type": "array"
+        },
+        "face": {
+          "default": 100.0,
+          "description": "Face value, repaid at maturity",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Periods a year: the tree's step and the par bonds' coupons"
+        },
+        "maturity_years": {
+          "description": "Years to maturity, a whole number of periods from a coupon date",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Maturity Years",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "oas": {
+          "default": 0.0,
+          "description": "The OAS held constant while the curve shifts",
+          "maximum": 1.0,
+          "minimum": -0.5,
+          "title": "Oas",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option": {
+          "$ref": "#/$defs/Option",
+          "default": "none",
+          "description": "'none', 'call' (the issuer may redeem at the exercise price) or 'put' (the holder may sell back at it)"
+        },
+        "par_yields": {
+          "description": "Par yield at each tenor: the coupon rate, paid each period, of a bond priced at par; linear between tenors and flat before the first",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "shift": {
+          "default": 0.001,
+          "description": "How far the par curve shifts down and up (0.001 is 10 bp); at least 0.01 bp, below which the second difference is rounding error",
+          "maximum": 0.01,
+          "minimum": 1e-06,
+          "title": "Shift",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "volatility": {
+          "description": "Volatility of the one-period rate a year (0.1 is 10%); zero gives the forward rates, so the bound is widened to include it",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "curve_tenors",
+        "par_yields",
+        "volatility",
+        "maturity_years",
+        "coupon_rate"
+      ],
+      "title": "EffectiveInputs",
+      "type": "object"
+    },
+    "FrequencyName": {
+      "enum": [
+        "annual",
+        "semiannual",
+        "quarterly",
+        "monthly"
+      ],
+      "type": "string"
+    },
+    "OasInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "oas",
+          "default": "oas",
+          "description": "The option-adjusted spread at a market price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid each period",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "curve_tenors": {
+          "description": "Tenor of each par yield, in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "exercise_prices": {
+          "default": [],
+          "description": "The exercise price at each of those dates, in the face value's units (100 for par on a face of 100)",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 120,
+          "title": "Exercise Prices",
+          "type": "array"
+        },
+        "exercise_years": {
+          "default": [],
+          "description": "When the option may be exercised, in years: coupon dates, after the coupon is paid, before maturity",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 120,
+          "title": "Exercise Years",
+          "type": "array"
+        },
+        "face": {
+          "default": 100.0,
+          "description": "Face value, repaid at maturity",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Periods a year: the tree's step and the par bonds' coupons"
+        },
+        "maturity_years": {
+          "description": "Years to maturity, a whole number of periods from a coupon date",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Maturity Years",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "option": {
+          "$ref": "#/$defs/Option",
+          "default": "none",
+          "description": "'none', 'call' (the issuer may redeem at the exercise price) or 'put' (the holder may sell back at it)"
+        },
+        "par_yields": {
+          "description": "Par yield at each tenor: the coupon rate, paid each period, of a bond priced at par; linear between tenors and flat before the first",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "price": {
+          "description": "The bond's market price, in the face value's units",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "volatility": {
+          "description": "Volatility of the one-period rate a year (0.1 is 10%); zero gives the forward rates, so the bound is widened to include it",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "curve_tenors",
+        "par_yields",
+        "volatility",
+        "maturity_years",
+        "coupon_rate",
+        "price"
+      ],
+      "title": "OasInputs",
+      "type": "object"
+    },
+    "Option": {
+      "enum": [
+        "none",
+        "call",
+        "put"
+      ],
+      "type": "string"
+    },
+    "ValueInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "value",
+          "default": "value",
+          "description": "Value the bond and its option on the tree",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "coupon_rate": {
+          "description": "Annual coupon rate, paid each period",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coupon Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "curve_tenors": {
+          "description": "Tenor of each par yield, in years, increasing",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Curve Tenors",
+          "type": "array"
+        },
+        "exercise_prices": {
+          "default": [],
+          "description": "The exercise price at each of those dates, in the face value's units (100 for par on a face of 100)",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000.0,
+            "type": "number",
+            "x-unit": "money"
+          },
+          "maxItems": 120,
+          "title": "Exercise Prices",
+          "type": "array"
+        },
+        "exercise_years": {
+          "default": [],
+          "description": "When the option may be exercised, in years: coupon dates, after the coupon is paid, before maturity",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 120,
+          "title": "Exercise Years",
+          "type": "array"
+        },
+        "face": {
+          "default": 100.0,
+          "description": "Face value, repaid at maturity",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Face",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "frequency": {
+          "$ref": "#/$defs/FrequencyName",
+          "default": "semiannual",
+          "description": "Periods a year: the tree's step and the par bonds' coupons"
+        },
+        "maturity_years": {
+          "description": "Years to maturity, a whole number of periods from a coupon date",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Maturity Years",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "oas": {
+          "default": 0.0,
+          "description": "A constant spread added to every node rate (the OAS)",
+          "maximum": 1.0,
+          "minimum": -0.5,
+          "title": "Oas",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "option": {
+          "$ref": "#/$defs/Option",
+          "default": "none",
+          "description": "'none', 'call' (the issuer may redeem at the exercise price) or 'put' (the holder may sell back at it)"
+        },
+        "par_yields": {
+          "description": "Par yield at each tenor: the coupon rate, paid each period, of a bond priced at par; linear between tenors and flat before the first",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 60,
+          "minItems": 1,
+          "title": "Par Yields",
+          "type": "array"
+        },
+        "volatility": {
+          "description": "Volatility of the one-period rate a year (0.1 is 10%); zero gives the forward rates, so the bound is widened to include it",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "curve_tenors",
+        "par_yields",
+        "volatility",
+        "maturity_years",
+        "coupon_rate"
+      ],
+      "title": "ValueInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.interest_rate_tree:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "A lognormal binomial tree of rates calibrated to a par curve; values of option-free, callable and putable bonds, their options, the OAS and effective duration and convexity.",
+  "discriminator": {
+    "mapping": {
+      "calibrate": "#/$defs/CalibrateInputs",
+      "effective": "#/$defs/EffectiveInputs",
+      "oas": "#/$defs/OasInputs",
+      "value": "#/$defs/ValueInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "value",
+      "coupon_rate": 0.0525,
+      "curve_tenors": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "exercise_prices": [
+        100.0,
+        100.0
+      ],
+      "exercise_years": [
+        1.0,
+        2.0
+      ],
+      "face": 100.0,
+      "frequency": "annual",
+      "maturity_years": 3.0,
+      "oas": 0.0,
+      "option": "call",
+      "par_yields": [
+        0.035,
+        0.04,
+        0.045
+      ],
+      "volatility": 0.1
+    },
+    {
+      "calculation": "calibrate",
+      "curve_tenors": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "frequency": "annual",
+      "par_yields": [
+        0.035,
+        0.04,
+        0.045
+      ],
+      "volatility": 0.1,
+      "years": 3.0
+    },
+    {
+      "calculation": "oas",
+      "coupon_rate": 0.0525,
+      "curve_tenors": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "exercise_prices": [
+        100.0,
+        100.0
+      ],
+      "exercise_years": [
+        1.0,
+        2.0
+      ],
+      "face": 100.0,
+      "frequency": "annual",
+      "maturity_years": 3.0,
+      "option": "call",
+      "par_yields": [
+        0.035,
+        0.04,
+        0.045
+      ],
+      "price": 101.0,
+      "volatility": 0.1
+    },
+    {
+      "calculation": "effective",
+      "coupon_rate": 0.045,
+      "curve_tenors": [
+        0.5,
+        1.0,
+        2.0,
+        3.0,
+        5.0,
+        7.0,
+        10.0
+      ],
+      "exercise_prices": [
+        101.0,
+        101.0,
+        100.5,
+        100.5,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "exercise_years": [
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0,
+        9.0
+      ],
+      "face": 100.0,
+      "frequency": "semiannual",
+      "maturity_years": 10.0,
+      "oas": 0.0,
+      "option": "call",
+      "par_yields": [
+        0.041,
+        0.04,
+        0.0385,
+        0.0378,
+        0.0381,
+        0.0392,
+        0.041
+      ],
+      "shift": 0.001,
+      "volatility": 0.15
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CalibrateInputs"
+    },
+    {
+      "$ref": "#/$defs/ValueInputs"
+    },
+    {
+      "$ref": "#/$defs/OasInputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveInputs"
+    }
+  ],
+  "title": "Binomial interest-rate tree: inputs"
+}

@@ -1,0 +1,1854 @@
+{
+  "$defs": {
+    "AdjustedTaylor1993Inputs": {
+      "additionalProperties": false,
+      "description": "Taylor (1993) less the shortfall left by the lower bound, floored at it.",
+      "properties": {
+        "calculation": {
+          "const": "adjusted_taylor_1993",
+          "default": "adjusted_taylor_1993",
+          "description": "The adjusted Taylor (1993) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cumulative_shortfall": {
+          "default": 0.0,
+          "description": "Z: the sum of the rate's past excesses over Taylor (1993) prescriptions below the lower bound, still to be made up",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Cumulative Shortfall",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the fields given"
+        },
+        "inflation": {
+          "description": "Inflation the rule answers: over the past four quarters, or a forecast",
+          "maximum": 0.5,
+          "minimum": -0.2,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "default": 0.00125,
+          "description": "The effective lower bound the rule is floored at; the Board's is 12.5 basis points",
+          "maximum": 0.1,
+          "minimum": -0.1,
+          "title": "Lower Bound",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "natural_unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural (longer-run) rate of unemployment",
+          "title": "Natural Unemployment"
+        },
+        "neutral_nominal_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.2,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The nominal neutral rate, r* plus the target (the SEP's longer-run rate)",
+          "title": "Neutral Nominal Rate"
+        },
+        "neutral_real_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The real neutral rate, r*",
+          "title": "Neutral Real Rate"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap: real GDP over potential, less one",
+          "title": "Output Gap"
+        },
+        "previous_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The policy rate before the rule's date, for smoothing",
+          "title": "Previous Rate"
+        },
+        "resource_weight": {
+          "default": 0.5,
+          "description": "Weight on the resource gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Resource Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate (the inertial form); 0 is none",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate",
+          "title": "Unemployment"
+        }
+      },
+      "required": [
+        "inflation"
+      ],
+      "title": "AdjustedTaylor1993Inputs",
+      "type": "object"
+    },
+    "BalancedApproachInputs": {
+      "additionalProperties": false,
+      "description": "The balanced approach: twice the Taylor (1993) weight on the gap.",
+      "properties": {
+        "calculation": {
+          "const": "balanced_approach",
+          "default": "balanced_approach",
+          "description": "The balanced-approach rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the fields given"
+        },
+        "inflation": {
+          "description": "Inflation the rule answers: over the past four quarters, or a forecast",
+          "maximum": 0.5,
+          "minimum": -0.2,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An effective lower bound that floors the prescription",
+          "title": "Lower Bound"
+        },
+        "natural_unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural (longer-run) rate of unemployment",
+          "title": "Natural Unemployment"
+        },
+        "neutral_nominal_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.2,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The nominal neutral rate, r* plus the target (the SEP's longer-run rate)",
+          "title": "Neutral Nominal Rate"
+        },
+        "neutral_real_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The real neutral rate, r*",
+          "title": "Neutral Real Rate"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap: real GDP over potential, less one",
+          "title": "Output Gap"
+        },
+        "previous_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The policy rate before the rule's date, for smoothing",
+          "title": "Previous Rate"
+        },
+        "resource_weight": {
+          "default": 1.0,
+          "description": "Weight on the resource gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Resource Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate (the inertial form); 0 is none",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate",
+          "title": "Unemployment"
+        }
+      },
+      "required": [
+        "inflation"
+      ],
+      "title": "BalancedApproachInputs",
+      "type": "object"
+    },
+    "FirstDifferenceInputs": {
+      "additionalProperties": false,
+      "description": "The first-difference rule: the previous rate plus the change it prescribes.",
+      "properties": {
+        "calculation": {
+          "const": "first_difference",
+          "default": "first_difference",
+          "description": "The first-difference rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the fields given"
+        },
+        "inflation": {
+          "description": "Inflation the rule answers: over the past four quarters, or a forecast",
+          "maximum": 0.5,
+          "minimum": -0.2,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An effective lower bound that floors the prescription",
+          "title": "Lower Bound"
+        },
+        "natural_unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural (longer-run) rate of unemployment",
+          "title": "Natural Unemployment"
+        },
+        "natural_unemployment_lagged": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural rate four quarters earlier; the current one when left out",
+          "title": "Natural Unemployment Lagged"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap: real GDP over potential, less one",
+          "title": "Output Gap"
+        },
+        "output_gap_lagged": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The output gap four quarters earlier",
+          "title": "Output Gap Lagged"
+        },
+        "previous_rate": {
+          "description": "The policy rate a quarter earlier",
+          "maximum": 1.0,
+          "minimum": -0.1,
+          "title": "Previous Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "resource_weight": {
+          "default": 0.5,
+          "description": "Weight on the change in the resource gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Resource Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate (the inertial form); 0 is none",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate",
+          "title": "Unemployment"
+        },
+        "unemployment_lagged": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate four quarters earlier",
+          "title": "Unemployment Lagged"
+        }
+      },
+      "required": [
+        "inflation",
+        "previous_rate"
+      ],
+      "title": "FirstDifferenceInputs",
+      "type": "object"
+    },
+    "GapMeasure": {
+      "enum": [
+        "unemployment",
+        "output"
+      ],
+      "type": "string"
+    },
+    "PathInputs": {
+      "additionalProperties": false,
+      "description": "One rule over forecast horizons: a path of inflation and of the gap.",
+      "properties": {
+        "calculation": {
+          "const": "path",
+          "default": "path",
+          "description": "A rule over a forecast",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "cumulative_shortfall": {
+          "default": 0.0,
+          "description": "For the adjusted rule: the shortfall Z, held over the path",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Cumulative Shortfall",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the paths given"
+        },
+        "inflation_high_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.5,
+                "minimum": -0.2,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A high inflation forecast (a 75th percentile) for the band's upper edge",
+          "title": "Inflation High Path"
+        },
+        "inflation_low_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.5,
+                "minimum": -0.2,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A low inflation forecast (a 25th percentile) for the band's lower edge",
+          "title": "Inflation Low Path"
+        },
+        "inflation_path": {
+          "description": "Inflation at each horizon",
+          "items": {
+            "maximum": 0.5,
+            "minimum": -0.2,
+            "type": "number",
+            "x-unit": "rate"
+          },
+          "maxItems": 40,
+          "minItems": 1,
+          "title": "Inflation Path",
+          "type": "array"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An effective lower bound; for the adjusted rule, 12.5 basis points when left out",
+          "title": "Lower Bound"
+        },
+        "natural_unemployment_lagged_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For the first-difference rule: the natural rate four quarters back; the horizon's own when left out",
+          "title": "Natural Unemployment Lagged Path"
+        },
+        "natural_unemployment_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural rate of unemployment at each horizon",
+          "title": "Natural Unemployment Path"
+        },
+        "neutral_nominal_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.2,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The nominal neutral rate, for a level rule",
+          "title": "Neutral Nominal Rate"
+        },
+        "neutral_real_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The real neutral rate, r*, for a level rule",
+          "title": "Neutral Real Rate"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap_high_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": -0.3,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A high output-gap forecast, for the band",
+          "title": "Output Gap High Path"
+        },
+        "output_gap_lagged_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": -0.3,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For the first-difference rule: each horizon's output gap four quarters back",
+          "title": "Output Gap Lagged Path"
+        },
+        "output_gap_low_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": -0.3,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A low output-gap forecast, for the band",
+          "title": "Output Gap Low Path"
+        },
+        "output_gap_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": -0.3,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap at each horizon",
+          "title": "Output Gap Path"
+        },
+        "previous_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The policy rate before the first horizon",
+          "title": "Previous Rate"
+        },
+        "resource_weight": {
+          "anyOf": [
+            {
+              "maximum": 4.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Weight on the resource gap; the rule's own when left out",
+          "title": "Resource Weight"
+        },
+        "rule": {
+          "$ref": "#/$defs/RuleName",
+          "description": "The rule to apply at each horizon"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate at each horizon",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment_high_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A high unemployment forecast, for the band's lower edge",
+          "title": "Unemployment High Path"
+        },
+        "unemployment_lagged_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For the first-difference rule: each horizon's unemployment four quarters back",
+          "title": "Unemployment Lagged Path"
+        },
+        "unemployment_low_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A low unemployment forecast, for the band's upper edge",
+          "title": "Unemployment Low Path"
+        },
+        "unemployment_path": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 0.3,
+                "minimum": 0.0,
+                "type": "number",
+                "x-unit": "rate"
+              },
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unemployment at each horizon",
+          "title": "Unemployment Path"
+        }
+      },
+      "required": [
+        "rule",
+        "inflation_path"
+      ],
+      "title": "PathInputs",
+      "type": "object"
+    },
+    "RuleName": {
+      "enum": [
+        "taylor_1993",
+        "taylor_1999",
+        "balanced_approach",
+        "balanced_approach_shortfalls",
+        "adjusted_taylor_1993",
+        "first_difference"
+      ],
+      "type": "string"
+    },
+    "ShortfallsInputs": {
+      "additionalProperties": false,
+      "description": "The balanced approach answering only a shortfall of activity.",
+      "properties": {
+        "calculation": {
+          "const": "balanced_approach_shortfalls",
+          "default": "balanced_approach_shortfalls",
+          "description": "The balanced-approach (shortfalls) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the fields given"
+        },
+        "inflation": {
+          "description": "Inflation the rule answers: over the past four quarters, or a forecast",
+          "maximum": 0.5,
+          "minimum": -0.2,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An effective lower bound that floors the prescription",
+          "title": "Lower Bound"
+        },
+        "natural_unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural (longer-run) rate of unemployment",
+          "title": "Natural Unemployment"
+        },
+        "neutral_nominal_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.2,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The nominal neutral rate, r* plus the target (the SEP's longer-run rate)",
+          "title": "Neutral Nominal Rate"
+        },
+        "neutral_real_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The real neutral rate, r*",
+          "title": "Neutral Real Rate"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap: real GDP over potential, less one",
+          "title": "Output Gap"
+        },
+        "previous_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The policy rate before the rule's date, for smoothing",
+          "title": "Previous Rate"
+        },
+        "resource_weight": {
+          "default": 1.0,
+          "description": "Weight on a negative resource gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Resource Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate (the inertial form); 0 is none",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate",
+          "title": "Unemployment"
+        }
+      },
+      "required": [
+        "inflation"
+      ],
+      "title": "ShortfallsInputs",
+      "type": "object"
+    },
+    "Taylor1993Inputs": {
+      "additionalProperties": false,
+      "description": "Taylor (1993): a weight of 0.5 on the inflation gap and on the output gap.",
+      "properties": {
+        "calculation": {
+          "const": "taylor_1993",
+          "default": "taylor_1993",
+          "description": "The Taylor (1993) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the fields given"
+        },
+        "inflation": {
+          "description": "Inflation the rule answers: over the past four quarters, or a forecast",
+          "maximum": 0.5,
+          "minimum": -0.2,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An effective lower bound that floors the prescription",
+          "title": "Lower Bound"
+        },
+        "natural_unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural (longer-run) rate of unemployment",
+          "title": "Natural Unemployment"
+        },
+        "neutral_nominal_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.2,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The nominal neutral rate, r* plus the target (the SEP's longer-run rate)",
+          "title": "Neutral Nominal Rate"
+        },
+        "neutral_real_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The real neutral rate, r*",
+          "title": "Neutral Real Rate"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap: real GDP over potential, less one",
+          "title": "Output Gap"
+        },
+        "previous_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The policy rate before the rule's date, for smoothing",
+          "title": "Previous Rate"
+        },
+        "resource_weight": {
+          "default": 0.5,
+          "description": "Weight on the resource gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Resource Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate (the inertial form); 0 is none",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate",
+          "title": "Unemployment"
+        }
+      },
+      "required": [
+        "inflation"
+      ],
+      "title": "Taylor1993Inputs",
+      "type": "object"
+    },
+    "Taylor1999Inputs": {
+      "additionalProperties": false,
+      "description": "Taylor (1999): a weight of 1.0 on the output gap.",
+      "properties": {
+        "calculation": {
+          "const": "taylor_1999",
+          "default": "taylor_1999",
+          "description": "The Taylor (1999) rule",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "gap_measure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapMeasure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the resource gap is measured; left out, it follows the fields given"
+        },
+        "inflation": {
+          "description": "Inflation the rule answers: over the past four quarters, or a forecast",
+          "maximum": 0.5,
+          "minimum": -0.2,
+          "title": "Inflation",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation_weight": {
+          "default": 0.5,
+          "description": "Weight on the inflation gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Inflation Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An effective lower bound that floors the prescription",
+          "title": "Lower Bound"
+        },
+        "natural_unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The natural (longer-run) rate of unemployment",
+          "title": "Natural Unemployment"
+        },
+        "neutral_nominal_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.2,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The nominal neutral rate, r* plus the target (the SEP's longer-run rate)",
+          "title": "Neutral Nominal Rate"
+        },
+        "neutral_real_rate": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The real neutral rate, r*",
+          "title": "Neutral Real Rate"
+        },
+        "okun_coefficient": {
+          "default": 2.0,
+          "description": "Output-gap points per point of unemployment gap (Okun's law)",
+          "maximum": 4.0,
+          "minimum": 0.1,
+          "title": "Okun Coefficient",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "output_gap": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": -0.3,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output gap: real GDP over potential, less one",
+          "title": "Output Gap"
+        },
+        "previous_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The policy rate before the rule's date, for smoothing",
+          "title": "Previous Rate"
+        },
+        "resource_weight": {
+          "default": 1.0,
+          "description": "Weight on the resource gap",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Resource Weight",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "smoothing": {
+          "default": 0.0,
+          "description": "Weight on the previous rate (the inertial form); 0 is none",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Smoothing",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "unemployment": {
+          "anyOf": [
+            {
+              "maximum": 0.3,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unemployment rate",
+          "title": "Unemployment"
+        }
+      },
+      "required": [
+        "inflation"
+      ],
+      "title": "Taylor1999Inputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.policy_rule:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Taylor (1993 and 1999), balanced-approach, shortfalls, adjusted and first-difference rules, smoothed and floored, on a gap measured in output or unemployment, and over forecast paths.",
+  "discriminator": {
+    "mapping": {
+      "adjusted_taylor_1993": "#/$defs/AdjustedTaylor1993Inputs",
+      "balanced_approach": "#/$defs/BalancedApproachInputs",
+      "balanced_approach_shortfalls": "#/$defs/ShortfallsInputs",
+      "first_difference": "#/$defs/FirstDifferenceInputs",
+      "path": "#/$defs/PathInputs",
+      "taylor_1993": "#/$defs/Taylor1993Inputs",
+      "taylor_1999": "#/$defs/Taylor1999Inputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "taylor_1993",
+      "gap_measure": null,
+      "inflation": 0.03,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": null,
+      "natural_unemployment": 0.042,
+      "neutral_nominal_rate": null,
+      "neutral_real_rate": 0.01,
+      "okun_coefficient": 2.0,
+      "output_gap": null,
+      "previous_rate": null,
+      "resource_weight": 0.5,
+      "smoothing": 0.0,
+      "unemployment": 0.043
+    },
+    {
+      "calculation": "taylor_1999",
+      "gap_measure": null,
+      "inflation": 0.025,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": null,
+      "natural_unemployment": null,
+      "neutral_nominal_rate": null,
+      "neutral_real_rate": 0.005,
+      "okun_coefficient": 2.0,
+      "output_gap": 0.01,
+      "previous_rate": null,
+      "resource_weight": 1.0,
+      "smoothing": 0.0,
+      "unemployment": null
+    },
+    {
+      "calculation": "balanced_approach",
+      "gap_measure": null,
+      "inflation": 0.026,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": null,
+      "natural_unemployment": 0.042,
+      "neutral_nominal_rate": 0.03,
+      "neutral_real_rate": null,
+      "okun_coefficient": 2.0,
+      "output_gap": null,
+      "previous_rate": null,
+      "resource_weight": 1.0,
+      "smoothing": 0.0,
+      "unemployment": 0.044
+    },
+    {
+      "calculation": "balanced_approach_shortfalls",
+      "gap_measure": null,
+      "inflation": 0.02,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": null,
+      "natural_unemployment": 0.042,
+      "neutral_nominal_rate": null,
+      "neutral_real_rate": 0.005,
+      "okun_coefficient": 2.0,
+      "output_gap": null,
+      "previous_rate": null,
+      "resource_weight": 1.0,
+      "smoothing": 0.0,
+      "unemployment": 0.035
+    },
+    {
+      "calculation": "adjusted_taylor_1993",
+      "cumulative_shortfall": 0.01,
+      "gap_measure": null,
+      "inflation": 0.02,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": 0.00125,
+      "natural_unemployment": 0.042,
+      "neutral_nominal_rate": null,
+      "neutral_real_rate": 0.005,
+      "okun_coefficient": 2.0,
+      "output_gap": null,
+      "previous_rate": null,
+      "resource_weight": 0.5,
+      "smoothing": 0.0,
+      "unemployment": 0.05
+    },
+    {
+      "calculation": "first_difference",
+      "gap_measure": null,
+      "inflation": 0.03,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": null,
+      "natural_unemployment": 0.042,
+      "natural_unemployment_lagged": null,
+      "okun_coefficient": 2.0,
+      "output_gap": null,
+      "output_gap_lagged": null,
+      "previous_rate": 0.0425,
+      "resource_weight": 0.5,
+      "smoothing": 0.0,
+      "unemployment": 0.042,
+      "unemployment_lagged": 0.04
+    },
+    {
+      "calculation": "taylor_1999",
+      "gap_measure": null,
+      "inflation": 0.03,
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": 0.00125,
+      "natural_unemployment": null,
+      "neutral_nominal_rate": null,
+      "neutral_real_rate": 0.01,
+      "okun_coefficient": 2.0,
+      "output_gap": 0.005,
+      "previous_rate": 0.0375,
+      "resource_weight": 1.0,
+      "smoothing": 0.85,
+      "unemployment": null
+    },
+    {
+      "calculation": "path",
+      "cumulative_shortfall": 0.0,
+      "gap_measure": null,
+      "inflation_high_path": [
+        0.033,
+        0.032,
+        0.03,
+        0.028,
+        0.026
+      ],
+      "inflation_low_path": [
+        0.027,
+        0.024,
+        0.022,
+        0.02,
+        0.019
+      ],
+      "inflation_path": [
+        0.03,
+        0.028,
+        0.026,
+        0.024,
+        0.022
+      ],
+      "inflation_target": 0.02,
+      "inflation_weight": 0.5,
+      "lower_bound": null,
+      "natural_unemployment_lagged_path": null,
+      "natural_unemployment_path": null,
+      "neutral_nominal_rate": null,
+      "neutral_real_rate": 0.01,
+      "okun_coefficient": 2.0,
+      "output_gap_high_path": [
+        0.015,
+        0.013,
+        0.011,
+        0.009,
+        0.007
+      ],
+      "output_gap_lagged_path": null,
+      "output_gap_low_path": [
+        0.005,
+        0.002,
+        0.0,
+        -0.002,
+        -0.003
+      ],
+      "output_gap_path": [
+        0.01,
+        0.008,
+        0.006,
+        0.004,
+        0.002
+      ],
+      "previous_rate": null,
+      "resource_weight": null,
+      "rule": "taylor_1993",
+      "smoothing": 0.0,
+      "unemployment_high_path": null,
+      "unemployment_lagged_path": null,
+      "unemployment_low_path": null,
+      "unemployment_path": null
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Taylor1993Inputs"
+    },
+    {
+      "$ref": "#/$defs/Taylor1999Inputs"
+    },
+    {
+      "$ref": "#/$defs/BalancedApproachInputs"
+    },
+    {
+      "$ref": "#/$defs/ShortfallsInputs"
+    },
+    {
+      "$ref": "#/$defs/AdjustedTaylor1993Inputs"
+    },
+    {
+      "$ref": "#/$defs/FirstDifferenceInputs"
+    },
+    {
+      "$ref": "#/$defs/PathInputs"
+    }
+  ],
+  "title": "Monetary-policy rules: inputs"
+}

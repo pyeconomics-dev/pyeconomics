@@ -1,0 +1,48 @@
+{
+  "$id": "urn:pyeconomics:model:equity.implied_risk_premium:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The expected return at which an index level equals the present value of its expected dividends and buybacks, and its premium over the risk-free rate.",
+  "properties": {
+    "cash_yield": {
+      "description": "The last twelve months' cash over the index level",
+      "exclusiveMinimum": 0.0,
+      "maximum": 1000000000.0,
+      "title": "Cash Yield",
+      "type": "number",
+      "x-unit": "ratio"
+    },
+    "equity_risk_premium": {
+      "description": "The implied return less the risk-free rate",
+      "maximum": 5.05,
+      "minimum": -0.55,
+      "title": "Equity Risk Premium",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "implied_return": {
+      "description": "The expected return at which the cash is worth the index level",
+      "maximum": 5.0,
+      "minimum": -0.05,
+      "title": "Implied Return",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "terminal_growth": {
+      "description": "The terminal growth rate used",
+      "maximum": 0.5,
+      "minimum": -0.05,
+      "title": "Terminal Growth",
+      "type": "number",
+      "x-unit": "rate"
+    }
+  },
+  "required": [
+    "implied_return",
+    "equity_risk_premium",
+    "cash_yield",
+    "terminal_growth"
+  ],
+  "title": "Implied equity risk premium: outputs",
+  "type": "object"
+}

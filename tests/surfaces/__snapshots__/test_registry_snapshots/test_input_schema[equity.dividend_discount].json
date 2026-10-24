@@ -1,0 +1,328 @@
+{
+  "$defs": {
+    "GordonInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "gordon",
+          "default": "gordon",
+          "description": "Constant growth",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "growth": {
+          "description": "Perpetual annual dividend growth",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "next_dividend": {
+          "description": "Dividend per share at t=1",
+          "maximum": 1000000000.0,
+          "minimum": 0,
+          "title": "Next Dividend",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "required_return": {
+          "description": "Annual cost of equity",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Required Return",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "next_dividend",
+        "required_return",
+        "growth"
+      ],
+      "title": "GordonInputs",
+      "type": "object"
+    },
+    "HModelInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "h_model",
+          "default": "h_model",
+          "description": "Linear-growth approximation",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "dividend": {
+          "description": "Dividend per share just paid, D0",
+          "maximum": 1000000000.0,
+          "minimum": 0,
+          "title": "Dividend",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "growth": {
+          "description": "Initial annual dividend growth",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "half_life": {
+          "description": "H, half the growth transition duration",
+          "maximum": 50,
+          "minimum": 0,
+          "title": "Half Life",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "required_return": {
+          "description": "Annual cost of equity",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Required Return",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "terminal_growth": {
+          "description": "Stable annual dividend growth",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Terminal Growth",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "dividend",
+        "required_return",
+        "growth",
+        "terminal_growth",
+        "half_life"
+      ],
+      "title": "HModelInputs",
+      "type": "object"
+    },
+    "ImpliedInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "implied_return",
+          "default": "implied_return",
+          "description": "Gordon implied return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "growth": {
+          "description": "Perpetual annual growth",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "next_dividend": {
+          "description": "Dividend per share at t=1",
+          "maximum": 1000000000.0,
+          "minimum": 0,
+          "title": "Next Dividend",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Observed price per share",
+          "maximum": 1000000000.0,
+          "minimum": 0.01,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "next_dividend",
+        "growth"
+      ],
+      "title": "ImpliedInputs",
+      "type": "object"
+    },
+    "PvgoInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "pvgo",
+          "default": "pvgo",
+          "description": "Value of growth opportunities",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "earnings": {
+          "description": "Next year's earnings per share",
+          "maximum": 1000000000.0,
+          "minimum": -1000000000.0,
+          "title": "Earnings",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Observed price per share",
+          "maximum": 1000000000.0,
+          "minimum": 0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "required_return": {
+          "description": "Annual cost of equity",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Required Return",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "price",
+        "earnings",
+        "required_return"
+      ],
+      "title": "PvgoInputs",
+      "type": "object"
+    },
+    "TwoStageInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "two_stage",
+          "default": "two_stage",
+          "description": "Two-stage DDM",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "growth": {
+          "description": "Growth within the first stage",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "next_dividend": {
+          "description": "Dividend per share at t=1",
+          "maximum": 1000000000.0,
+          "minimum": 0,
+          "title": "Next Dividend",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "required_return": {
+          "description": "Annual cost of equity",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Required Return",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "terminal_growth": {
+          "description": "Growth after the first stage",
+          "maximum": 1,
+          "minimum": -0.5,
+          "title": "Terminal Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "years": {
+          "description": "Number of first-stage dividends",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Years",
+          "type": "integer",
+          "x-unit": "count"
+        }
+      },
+      "required": [
+        "next_dividend",
+        "required_return",
+        "growth",
+        "years",
+        "terminal_growth"
+      ],
+      "title": "TwoStageInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:equity.dividend_discount:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Gordon, two-stage and H-model values, PVGO and the Gordon implied return.",
+  "discriminator": {
+    "mapping": {
+      "gordon": "#/$defs/GordonInputs",
+      "h_model": "#/$defs/HModelInputs",
+      "implied_return": "#/$defs/ImpliedInputs",
+      "pvgo": "#/$defs/PvgoInputs",
+      "two_stage": "#/$defs/TwoStageInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "gordon",
+      "growth": 0.0,
+      "next_dividend": 2.0,
+      "required_return": 0.1
+    },
+    {
+      "calculation": "h_model",
+      "dividend": 2.0,
+      "growth": 0.12,
+      "half_life": 5.0,
+      "required_return": 0.1,
+      "terminal_growth": 0.04
+    },
+    {
+      "calculation": "two_stage",
+      "growth": 0.02,
+      "next_dividend": 2.0,
+      "required_return": 0.1,
+      "terminal_growth": 0.02,
+      "years": 10
+    },
+    {
+      "calculation": "pvgo",
+      "earnings": 3.0,
+      "price": 50.0,
+      "required_return": 0.1
+    },
+    {
+      "calculation": "implied_return",
+      "growth": 0.02,
+      "next_dividend": 2.0,
+      "price": 50.0
+    },
+    {
+      "calculation": "gordon",
+      "growth": 0.02,
+      "next_dividend": 2.0,
+      "required_return": 0.1
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GordonInputs"
+    },
+    {
+      "$ref": "#/$defs/TwoStageInputs"
+    },
+    {
+      "$ref": "#/$defs/HModelInputs"
+    },
+    {
+      "$ref": "#/$defs/PvgoInputs"
+    },
+    {
+      "$ref": "#/$defs/ImpliedInputs"
+    }
+  ],
+  "title": "Dividend discount valuation: inputs"
+}

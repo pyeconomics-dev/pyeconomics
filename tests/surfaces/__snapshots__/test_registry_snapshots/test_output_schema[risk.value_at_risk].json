@@ -1,0 +1,367 @@
+{
+  "$defs": {
+    "CornishFisherOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "cornish_fisher",
+          "default": "cornish_fisher",
+          "description": "Modified VaR and ES from skewness and kurtosis",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_shortfall": {
+          "description": "Expected shortfall as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Expected Shortfall",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_shortfall_amount": {
+          "description": "Expected shortfall in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Expected Shortfall Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "quantile": {
+          "description": "Cornish-Fisher quantile of the standardized loss at the confidence level (the normal quantile without skewness or excess kurtosis)",
+          "maximum": 1000.0,
+          "minimum": -1000.0,
+          "title": "Quantile",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_at_risk": {
+          "description": "VaR as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Value At Risk",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "value_at_risk_amount": {
+          "description": "VaR in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value At Risk Amount",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value_at_risk",
+        "expected_shortfall",
+        "value_at_risk_amount",
+        "expected_shortfall_amount",
+        "quantile"
+      ],
+      "title": "CornishFisherOutputs",
+      "type": "object"
+    },
+    "EwmaOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "ewma",
+          "default": "ewma",
+          "description": "RiskMetrics EWMA volatility with normal VaR and ES",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_shortfall": {
+          "description": "Expected shortfall as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Expected Shortfall",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_shortfall_amount": {
+          "description": "Expected shortfall in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Expected Shortfall Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "value_at_risk": {
+          "description": "VaR as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Value At Risk",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "value_at_risk_amount": {
+          "description": "VaR in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value At Risk Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "volatility_forecast": {
+          "description": "Volatility forecast for the next period",
+          "maximum": 100.0,
+          "minimum": 0,
+          "title": "Volatility Forecast",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "value_at_risk",
+        "expected_shortfall",
+        "value_at_risk_amount",
+        "expected_shortfall_amount",
+        "volatility_forecast"
+      ],
+      "title": "EwmaOutputs",
+      "type": "object"
+    },
+    "HistoricalOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "historical",
+          "default": "historical",
+          "description": "Historical-simulation VaR and ES",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_shortfall": {
+          "description": "Expected shortfall as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Expected Shortfall",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_shortfall_amount": {
+          "description": "Expected shortfall in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Expected Shortfall Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "observations": {
+          "description": "Returns used",
+          "maximum": 10080,
+          "minimum": 2,
+          "title": "Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "tail_observations": {
+          "description": "Returns at or below the VaR quantile",
+          "maximum": 10080,
+          "minimum": 1,
+          "title": "Tail Observations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "value_at_risk": {
+          "description": "VaR as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Value At Risk",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "value_at_risk_amount": {
+          "description": "VaR in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value At Risk Amount",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value_at_risk",
+        "expected_shortfall",
+        "value_at_risk_amount",
+        "expected_shortfall_amount",
+        "observations",
+        "tail_observations"
+      ],
+      "title": "HistoricalOutputs",
+      "type": "object"
+    },
+    "MonteCarloOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "monte_carlo",
+          "default": "monte_carlo",
+          "description": "Monte Carlo VaR and ES with standard errors",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_shortfall": {
+          "description": "Expected shortfall as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Expected Shortfall",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_shortfall_amount": {
+          "description": "Expected shortfall in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Expected Shortfall Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "expected_shortfall_standard_error": {
+          "description": "Standard error of the simulated ES",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Expected Shortfall Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "simulations": {
+          "description": "Simulated returns",
+          "maximum": 1000000,
+          "minimum": 10000,
+          "title": "Simulations",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "value_at_risk": {
+          "description": "VaR as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Value At Risk",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "value_at_risk_amount": {
+          "description": "VaR in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value At Risk Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "value_at_risk_standard_error": {
+          "description": "Standard error of the simulated VaR",
+          "maximum": 100000.0,
+          "minimum": 0,
+          "title": "Value At Risk Standard Error",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "value_at_risk",
+        "expected_shortfall",
+        "value_at_risk_amount",
+        "expected_shortfall_amount",
+        "value_at_risk_standard_error",
+        "expected_shortfall_standard_error",
+        "simulations"
+      ],
+      "title": "MonteCarloOutputs",
+      "type": "object"
+    },
+    "ParametricOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "parametric",
+          "default": "parametric",
+          "description": "Normal VaR and ES",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_shortfall": {
+          "description": "Expected shortfall as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Expected Shortfall",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "expected_shortfall_amount": {
+          "description": "Expected shortfall in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Expected Shortfall Amount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "quantile": {
+          "description": "Standard normal quantile of the loss at confidence c",
+          "maximum": 4.0,
+          "minimum": 0,
+          "title": "Quantile",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "value_at_risk": {
+          "description": "VaR as a decimal of the position (a loss > 0)",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Value At Risk",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "value_at_risk_amount": {
+          "description": "VaR in money: the decimal times the position",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Value At Risk Amount",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "value_at_risk",
+        "expected_shortfall",
+        "value_at_risk_amount",
+        "expected_shortfall_amount",
+        "quantile"
+      ],
+      "title": "ParametricOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:risk.value_at_risk:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "VaR and expected shortfall as positive losses by the parametric normal, Cornish-Fisher, historical, Monte Carlo and RiskMetrics EWMA methods.",
+  "discriminator": {
+    "mapping": {
+      "cornish_fisher": "#/$defs/CornishFisherOutputs",
+      "ewma": "#/$defs/EwmaOutputs",
+      "historical": "#/$defs/HistoricalOutputs",
+      "monte_carlo": "#/$defs/MonteCarloOutputs",
+      "parametric": "#/$defs/ParametricOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ParametricOutputs"
+    },
+    {
+      "$ref": "#/$defs/CornishFisherOutputs"
+    },
+    {
+      "$ref": "#/$defs/HistoricalOutputs"
+    },
+    {
+      "$ref": "#/$defs/MonteCarloOutputs"
+    },
+    {
+      "$ref": "#/$defs/EwmaOutputs"
+    }
+  ],
+  "title": "Value-at-risk and expected shortfall: outputs"
+}

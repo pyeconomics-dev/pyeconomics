@@ -344,6 +344,8 @@ def test_main_creates_the_files_and_prints_what_to_do(
     assert "created tests/models/fixed_income/test_convexity.py" in out
     assert 'fixed_income = "pyeconomics.models.fixed_income"' in out
     assert "registry.validate()" in out
+    assert "uv run pytest tests/surfaces --snapshot-update" in out
+    assert "CHANGELOG.md" in out
     assert len(files_under(tmp_path)) == 4
 
 

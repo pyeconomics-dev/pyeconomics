@@ -1,0 +1,101 @@
+{
+  "$id": "urn:pyeconomics:model:corporate.leverage:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DOL, DFL, DTL and operating and total breakeven quantities for one product.",
+  "properties": {
+    "dfl": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Degree of financial leverage",
+      "title": "Dfl"
+    },
+    "dol": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Degree of operating leverage",
+      "title": "Dol"
+    },
+    "dtl": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Degree of total leverage, DOL times DFL",
+      "title": "Dtl"
+    },
+    "operating_breakeven": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Continuous units for zero EBIT, F/(P-v)",
+      "title": "Operating Breakeven"
+    },
+    "operating_income": {
+      "description": "EBIT = Q(P-v)-F",
+      "maximum": 1000000000000000.0,
+      "minimum": -1000000000000000.0,
+      "title": "Operating Income",
+      "type": "number",
+      "x-unit": "money"
+    },
+    "total_breakeven": {
+      "anyOf": [
+        {
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Continuous units for zero pretax income, (F+I)/(P-v)",
+      "title": "Total Breakeven"
+    }
+  },
+  "required": [
+    "operating_income",
+    "dol",
+    "dfl",
+    "dtl",
+    "operating_breakeven",
+    "total_breakeven"
+  ],
+  "title": "Operating and financial leverage: outputs",
+  "type": "object"
+}

@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "ImpliedVolatilityOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "implied_volatility",
+          "default": "implied_volatility",
+          "description": "Volatility implied by a price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "implied_volatility": {
+          "anyOf": [
+            {
+              "maximum": 5.0,
+              "minimum": 0.001,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Volatility whose price is the price given; null when the price is outside the no-arbitrage bounds or the solver's range",
+          "title": "Implied Volatility"
+        },
+        "lower_bound": {
+          "description": "No-arbitrage lower bound on the price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Lower Bound",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "upper_bound": {
+          "description": "No-arbitrage upper bound on the price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Upper Bound",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "implied_volatility",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "title": "ImpliedVolatilityOutputs",
+      "type": "object"
+    },
+    "PriceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "price",
+          "default": "price",
+          "description": "Price, Greeks and the put-call parity residual",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "delta": {
+          "description": "Change in price per unit of spot",
+          "maximum": 100000.0,
+          "minimum": -100000.0,
+          "title": "Delta",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "dividend_rho": {
+          "description": "Change in price per 1.00 of the dividend yield",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Dividend Rho",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "gamma": {
+          "description": "Change in delta per unit of spot",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Gamma",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "price": {
+          "description": "Option price",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "put_call_parity_residual": {
+          "description": "Call less put less (S e^-qT - K e^-rT): zero up to rounding",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Put Call Parity Residual",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "rho": {
+          "description": "Change in price per 1.00 of the risk-free rate",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Rho",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "theta": {
+          "description": "Change in price per year that passes",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Theta",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "vega": {
+          "description": "Change in price per 1.00 of volatility",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Vega",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "delta",
+        "gamma",
+        "vega",
+        "theta",
+        "rho",
+        "dividend_rho",
+        "put_call_parity_residual"
+      ],
+      "title": "PriceOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.black_scholes_merton:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Price, Greeks and implied volatility of European calls and puts on an asset with a continuous dividend yield.",
+  "discriminator": {
+    "mapping": {
+      "implied_volatility": "#/$defs/ImpliedVolatilityOutputs",
+      "price": "#/$defs/PriceOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PriceOutputs"
+    },
+    {
+      "$ref": "#/$defs/ImpliedVolatilityOutputs"
+    }
+  ],
+  "title": "Black-Scholes-Merton options: outputs"
+}

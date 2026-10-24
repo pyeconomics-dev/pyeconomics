@@ -1,0 +1,351 @@
+{
+  "$defs": {
+    "DiscountFromPriceInputs": {
+      "additionalProperties": false,
+      "description": "A price and the days to maturity.",
+      "properties": {
+        "calculation": {
+          "const": "discount_from_price",
+          "default": "discount_from_price",
+          "description": "Bank discount rate from a price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "days": {
+          "description": "Days from settlement to maturity",
+          "maximum": 730,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face value repaid at maturity",
+          "maximum": 1000000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Price paid for the face value",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "days"
+      ],
+      "title": "DiscountFromPriceInputs",
+      "type": "object"
+    },
+    "EffectiveAnnualYieldInputs": {
+      "additionalProperties": false,
+      "description": "A price and the days to maturity.",
+      "properties": {
+        "calculation": {
+          "const": "effective_annual_yield",
+          "default": "effective_annual_yield",
+          "description": "Return compounded to a 365-day year",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "days": {
+          "description": "Days from settlement to maturity",
+          "maximum": 730,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face value repaid at maturity",
+          "maximum": 1000000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Price paid for the face value",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "days"
+      ],
+      "title": "EffectiveAnnualYieldInputs",
+      "type": "object"
+    },
+    "HoldingPeriodYieldInputs": {
+      "additionalProperties": false,
+      "description": "What was paid, what was received, and any income.",
+      "properties": {
+        "calculation": {
+          "const": "holding_period_yield",
+          "default": "holding_period_yield",
+          "description": "Return over the holding period",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "income": {
+          "default": 0.0,
+          "description": "Interest or other income received",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Income",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "proceeds": {
+          "description": "Sale price, or the face value repaid at maturity",
+          "maximum": 1000000000000.0,
+          "minimum": 0.0,
+          "title": "Proceeds",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "purchase_price": {
+          "description": "Price paid at the start",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000.0,
+          "title": "Purchase Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "purchase_price",
+        "proceeds"
+      ],
+      "title": "HoldingPeriodYieldInputs",
+      "type": "object"
+    },
+    "InvestmentRateInputs": {
+      "additionalProperties": false,
+      "description": "A bill's price, its days to maturity, and the days in its year.",
+      "properties": {
+        "calculation": {
+          "const": "investment_rate",
+          "default": "investment_rate",
+          "description": "Treasury investment rate (bond-equivalent)",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "days": {
+          "description": "Days from settlement to maturity",
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "days_in_year": {
+          "default": 365,
+          "description": "Days in the year after the issue date: 366 when it holds a February 29",
+          "maximum": 366,
+          "minimum": 365,
+          "title": "Days In Year",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face value repaid at maturity",
+          "maximum": 1000000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Price paid for the face value",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "days"
+      ],
+      "title": "InvestmentRateInputs",
+      "type": "object"
+    },
+    "MoneyMarketYieldInputs": {
+      "additionalProperties": false,
+      "description": "A price and the days to maturity.",
+      "properties": {
+        "calculation": {
+          "const": "money_market_yield",
+          "default": "money_market_yield",
+          "description": "Money-market (CD-equivalent) yield",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "days": {
+          "description": "Days from settlement to maturity",
+          "maximum": 730,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face value repaid at maturity",
+          "maximum": 1000000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Price paid for the face value",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "days"
+      ],
+      "title": "MoneyMarketYieldInputs",
+      "type": "object"
+    },
+    "PriceFromDiscountInputs": {
+      "additionalProperties": false,
+      "description": "A bank discount rate and the days to maturity.",
+      "properties": {
+        "calculation": {
+          "const": "price_from_discount",
+          "default": "price_from_discount",
+          "description": "Price from a bank discount rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "days": {
+          "description": "Days from settlement to maturity",
+          "maximum": 730,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer",
+          "x-unit": "days"
+        },
+        "discount_rate": {
+          "description": "Bank discount rate, per 360 days",
+          "maximum": 1.0,
+          "minimum": -0.5,
+          "title": "Discount Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "face_value": {
+          "default": 100.0,
+          "description": "Face value repaid at maturity",
+          "maximum": 1000000000000.0,
+          "minimum": 0.01,
+          "title": "Face Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "discount_rate",
+        "days"
+      ],
+      "title": "PriceFromDiscountInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.money_market:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Bank discount rate to and from price, money-market (CD-equivalent) yield, Treasury investment rate, effective annual yield and holding-period yield of a discount instrument.",
+  "discriminator": {
+    "mapping": {
+      "discount_from_price": "#/$defs/DiscountFromPriceInputs",
+      "effective_annual_yield": "#/$defs/EffectiveAnnualYieldInputs",
+      "holding_period_yield": "#/$defs/HoldingPeriodYieldInputs",
+      "investment_rate": "#/$defs/InvestmentRateInputs",
+      "money_market_yield": "#/$defs/MoneyMarketYieldInputs",
+      "price_from_discount": "#/$defs/PriceFromDiscountInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "price_from_discount",
+      "days": 90,
+      "discount_rate": 0.0761,
+      "face_value": 100.0
+    },
+    {
+      "calculation": "discount_from_price",
+      "days": 182,
+      "face_value": 100.0,
+      "price": 95.934567
+    },
+    {
+      "calculation": "money_market_yield",
+      "days": 182,
+      "face_value": 100.0,
+      "price": 98.243194
+    },
+    {
+      "calculation": "investment_rate",
+      "days": 364,
+      "days_in_year": 365,
+      "face_value": 100.0,
+      "price": 92.265
+    },
+    {
+      "calculation": "effective_annual_yield",
+      "days": 182,
+      "face_value": 100.0,
+      "price": 98.243194
+    },
+    {
+      "calculation": "holding_period_yield",
+      "income": 0.0,
+      "proceeds": 100.0,
+      "purchase_price": 98.243194
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PriceFromDiscountInputs"
+    },
+    {
+      "$ref": "#/$defs/DiscountFromPriceInputs"
+    },
+    {
+      "$ref": "#/$defs/MoneyMarketYieldInputs"
+    },
+    {
+      "$ref": "#/$defs/InvestmentRateInputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveAnnualYieldInputs"
+    },
+    {
+      "$ref": "#/$defs/HoldingPeriodYieldInputs"
+    }
+  ],
+  "title": "Money-market yields: inputs"
+}

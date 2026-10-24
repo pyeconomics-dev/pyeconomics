@@ -1,0 +1,237 @@
+{
+  "$defs": {
+    "DatedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annuity_factor": {
+          "description": "Sum of accrual fraction times discount factor over payments",
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "title": "Annuity Factor",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "calculation": {
+          "const": "dated",
+          "default": "dated",
+          "description": "Swap value from payment dates and a zero curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "fixed_leg_value": {
+          "description": "Value of the fixed leg: c N A",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Fixed Leg Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "floating_leg_value": {
+          "description": "Value of the floating leg: N (d_0 - d_n)",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Floating Leg Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "par_swap_rate": {
+          "description": "Fixed rate at which the swap is worth zero",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Par Swap Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "payer_value": {
+          "description": "Value to the fixed payer: floating less fixed",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Payer Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "receiver_value": {
+          "description": "Value to the fixed receiver: fixed less floating",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Receiver Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "annuity_factor",
+        "par_swap_rate",
+        "fixed_leg_value",
+        "floating_leg_value",
+        "payer_value",
+        "receiver_value"
+      ],
+      "title": "DatedOutputs",
+      "type": "object"
+    },
+    "DiscountFactorOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annuity_factor": {
+          "description": "Sum of accrual fraction times discount factor over payments",
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "title": "Annuity Factor",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "calculation": {
+          "const": "discount_factors",
+          "default": "discount_factors",
+          "description": "Swap value from discount factors",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "fixed_leg_value": {
+          "description": "Value of the fixed leg: c N A",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Fixed Leg Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "floating_leg_value": {
+          "description": "Value of the floating leg: N (d_0 - d_n)",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Floating Leg Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "par_swap_rate": {
+          "description": "Fixed rate at which the swap is worth zero",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Par Swap Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "payer_value": {
+          "description": "Value to the fixed payer: floating less fixed",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Payer Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "receiver_value": {
+          "description": "Value to the fixed receiver: fixed less floating",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Receiver Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "annuity_factor",
+        "par_swap_rate",
+        "fixed_leg_value",
+        "floating_leg_value",
+        "payer_value",
+        "receiver_value"
+      ],
+      "title": "DiscountFactorOutputs",
+      "type": "object"
+    },
+    "ZeroCurveOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "annuity_factor": {
+          "description": "Sum of accrual fraction times discount factor over payments",
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "title": "Annuity Factor",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "calculation": {
+          "const": "zero_curve",
+          "default": "zero_curve",
+          "description": "Swap value from a zero curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "fixed_leg_value": {
+          "description": "Value of the fixed leg: c N A",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Fixed Leg Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "floating_leg_value": {
+          "description": "Value of the floating leg: N (d_0 - d_n)",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Floating Leg Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "par_swap_rate": {
+          "description": "Fixed rate at which the swap is worth zero",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Par Swap Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "payer_value": {
+          "description": "Value to the fixed payer: floating less fixed",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Payer Value",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "receiver_value": {
+          "description": "Value to the fixed receiver: fixed less floating",
+          "maximum": 1000000000000000.0,
+          "minimum": -1000000000000000.0,
+          "title": "Receiver Value",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "annuity_factor",
+        "par_swap_rate",
+        "fixed_leg_value",
+        "floating_leg_value",
+        "payer_value",
+        "receiver_value"
+      ],
+      "title": "ZeroCurveOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:derivatives.interest_rate_swap:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Value to the fixed payer and receiver, par swap rate and annuity factor of a fixed-for-floating swap, from discount factors or a zero curve.",
+  "discriminator": {
+    "mapping": {
+      "dated": "#/$defs/DatedOutputs",
+      "discount_factors": "#/$defs/DiscountFactorOutputs",
+      "zero_curve": "#/$defs/ZeroCurveOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/DiscountFactorOutputs"
+    },
+    {
+      "$ref": "#/$defs/ZeroCurveOutputs"
+    },
+    {
+      "$ref": "#/$defs/DatedOutputs"
+    }
+  ],
+  "title": "Interest rate swap: outputs"
+}

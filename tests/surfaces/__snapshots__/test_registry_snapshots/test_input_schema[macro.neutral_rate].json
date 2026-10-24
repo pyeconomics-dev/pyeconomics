@@ -1,0 +1,329 @@
+{
+  "$defs": {
+    "ConstantInputs": {
+      "additionalProperties": false,
+      "description": "A neutral rate the caller chooses.",
+      "properties": {
+        "calculation": {
+          "const": "constant",
+          "default": "constant",
+          "description": "A constant real neutral rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation": {
+          "anyOf": [
+            {
+              "maximum": 0.5,
+              "minimum": -0.2,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inflation, which makes the policy rate a real rate",
+          "title": "Inflation"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "policy_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A nominal policy rate, to measure how far it is from neutral",
+          "title": "Policy Rate"
+        },
+        "real_rate": {
+          "description": "The real neutral rate to use",
+          "maximum": 0.1,
+          "minimum": -0.1,
+          "title": "Real Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "real_rate"
+      ],
+      "title": "ConstantInputs",
+      "type": "object"
+    },
+    "HolstonLaubachWilliamsInputs": {
+      "additionalProperties": false,
+      "description": "A published Holston-Laubach-Williams (2017) estimate.",
+      "properties": {
+        "calculation": {
+          "const": "holston_laubach_williams",
+          "default": "holston_laubach_williams",
+          "description": "r* from the Holston-Laubach-Williams model",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "hlw_estimate": {
+          "description": "The New York Fed's published Holston-Laubach-Williams estimate of r* for the economy and quarter",
+          "maximum": 0.1,
+          "minimum": -0.1,
+          "title": "Hlw Estimate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "inflation": {
+          "anyOf": [
+            {
+              "maximum": 0.5,
+              "minimum": -0.2,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inflation, which makes the policy rate a real rate",
+          "title": "Inflation"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "policy_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A nominal policy rate, to measure how far it is from neutral",
+          "title": "Policy Rate"
+        }
+      },
+      "required": [
+        "hlw_estimate"
+      ],
+      "title": "HolstonLaubachWilliamsInputs",
+      "type": "object"
+    },
+    "LaubachWilliamsInputs": {
+      "additionalProperties": false,
+      "description": "A published Laubach-Williams (2003) estimate.",
+      "properties": {
+        "calculation": {
+          "const": "laubach_williams",
+          "default": "laubach_williams",
+          "description": "r* from the Laubach-Williams model",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation": {
+          "anyOf": [
+            {
+              "maximum": 0.5,
+              "minimum": -0.2,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inflation, which makes the policy rate a real rate",
+          "title": "Inflation"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "lw_estimate": {
+          "description": "The New York Fed's published Laubach-Williams estimate of r* for the economy and quarter",
+          "maximum": 0.1,
+          "minimum": -0.1,
+          "title": "Lw Estimate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "policy_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A nominal policy rate, to measure how far it is from neutral",
+          "title": "Policy Rate"
+        }
+      },
+      "required": [
+        "lw_estimate"
+      ],
+      "title": "LaubachWilliamsInputs",
+      "type": "object"
+    },
+    "SepLongerRunInputs": {
+      "additionalProperties": false,
+      "description": "The FOMC's median longer-run federal funds rate.",
+      "properties": {
+        "calculation": {
+          "const": "sep_longer_run",
+          "default": "sep_longer_run",
+          "description": "r* implied by the SEP's longer-run rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "inflation": {
+          "anyOf": [
+            {
+              "maximum": 0.5,
+              "minimum": -0.2,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inflation, which makes the policy rate a real rate",
+          "title": "Inflation"
+        },
+        "inflation_target": {
+          "default": 0.02,
+          "description": "The inflation objective",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Inflation Target",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "longer_run_policy_rate": {
+          "description": "The SEP's median longer-run federal funds rate (nominal)",
+          "maximum": 0.2,
+          "minimum": 0.0,
+          "title": "Longer Run Policy Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "policy_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.1,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A nominal policy rate, to measure how far it is from neutral",
+          "title": "Policy Rate"
+        }
+      },
+      "required": [
+        "longer_run_policy_rate"
+      ],
+      "title": "SepLongerRunInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.neutral_rate:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "r* from the New York Fed's Laubach-Williams and Holston-Laubach-Williams estimates, the SEP's longer-run rate or a constant, as real and nominal rates, with the real policy-rate gap.",
+  "discriminator": {
+    "mapping": {
+      "constant": "#/$defs/ConstantInputs",
+      "holston_laubach_williams": "#/$defs/HolstonLaubachWilliamsInputs",
+      "laubach_williams": "#/$defs/LaubachWilliamsInputs",
+      "sep_longer_run": "#/$defs/SepLongerRunInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "holston_laubach_williams",
+      "hlw_estimate": 0.0101,
+      "inflation": 0.03,
+      "inflation_target": 0.02,
+      "policy_rate": 0.0364
+    },
+    {
+      "calculation": "laubach_williams",
+      "inflation": null,
+      "inflation_target": 0.02,
+      "lw_estimate": 0.0165,
+      "policy_rate": null
+    },
+    {
+      "calculation": "sep_longer_run",
+      "inflation": null,
+      "inflation_target": 0.02,
+      "longer_run_policy_rate": 0.031,
+      "policy_rate": null
+    },
+    {
+      "calculation": "constant",
+      "inflation": null,
+      "inflation_target": 0.02,
+      "policy_rate": null,
+      "real_rate": 0.005
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/LaubachWilliamsInputs"
+    },
+    {
+      "$ref": "#/$defs/HolstonLaubachWilliamsInputs"
+    },
+    {
+      "$ref": "#/$defs/SepLongerRunInputs"
+    },
+    {
+      "$ref": "#/$defs/ConstantInputs"
+    }
+  ],
+  "title": "Neutral rate of interest: inputs"
+}

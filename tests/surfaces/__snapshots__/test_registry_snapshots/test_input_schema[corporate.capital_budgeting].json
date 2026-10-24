@@ -1,0 +1,65 @@
+{
+  "$id": "urn:pyeconomics:model:corporate.capital_budgeting:2:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Project NPV, IRR, MIRR, fractional payback, profitability index and equivalent annual annuity.",
+  "examples": [
+    {
+      "cash_flows": [
+        -100.0,
+        60.0,
+        60.0
+      ],
+      "finance_rate": 0.1,
+      "rate": 0.1,
+      "reinvestment_rate": 0.1
+    }
+  ],
+  "properties": {
+    "cash_flows": {
+      "description": "Signed project cash flows at t=0, 1, ...; negative means paid out",
+      "items": {
+        "maximum": 1000000000000.0,
+        "minimum": -1000000000000.0,
+        "type": "number",
+        "x-unit": "money"
+      },
+      "maxItems": 1201,
+      "minItems": 2,
+      "title": "Cash Flows",
+      "type": "array"
+    },
+    "finance_rate": {
+      "default": 0,
+      "description": "MIRR financing rate per period for negative flows",
+      "maximum": 1,
+      "minimum": -0.99,
+      "title": "Finance Rate",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "rate": {
+      "description": "Discount rate per period",
+      "maximum": 1,
+      "minimum": -0.99,
+      "title": "Rate",
+      "type": "number",
+      "x-unit": "rate"
+    },
+    "reinvestment_rate": {
+      "default": 0,
+      "description": "MIRR reinvestment rate per period for positive flows",
+      "maximum": 1,
+      "minimum": -0.99,
+      "title": "Reinvestment Rate",
+      "type": "number",
+      "x-unit": "rate"
+    }
+  },
+  "required": [
+    "cash_flows",
+    "rate"
+  ],
+  "title": "Capital budgeting: inputs",
+  "type": "object"
+}

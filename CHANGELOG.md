@@ -27,6 +27,19 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   text summary of a result; and the hosted time budgets and size limits. The
   problem types are listed on a new documentation page, `problems`. Importing
   `pyeconomics.surfaces` loads no framework and no data module.
+- `registry.json`, the description of every model the surfaces and the web app
+  are generated from (ADR-0012 decision 8):
+  `pyeconomics.surfaces.registry_export.registry_document()` and
+  `write_registry(path)` write each model's description, input and output
+  schemas, card, the canonical result of its first example and a Plotly figure
+  of that result, as canonical JSON with no clock, host, user or path in it.
+  Its JSON Schema is `pyeconomics.surfaces.registry_schema.REGISTRY_SCHEMA`
+  (`https://pyeconomics.dev/schemas/registry/1.json`), and the format is
+  documented on a new page, `registry`. `pyeconomics.core.plotting.applicable`
+  returns the charts that apply to a result.
+- Snapshot tests of every model's input and output schema, the registry schema
+  and the model index: from this release, a change to any of them is named
+  here, since schemas are public API at 1.0.0 (ADR-0003).
 
 ### Fixed
 

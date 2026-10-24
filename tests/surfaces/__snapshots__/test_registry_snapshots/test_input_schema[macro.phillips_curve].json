@@ -1,0 +1,172 @@
+{
+  "$defs": {
+    "CovarianceName": {
+      "enum": [
+        "classical",
+        "hc1",
+        "newey_west"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.phillips_curve:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Inflation less expected inflation regressed on the unemployment gap, with optional supply-shock controls and Newey-West errors: the slope, intercept, standard errors and R-squared.",
+  "examples": [
+    {
+      "covariance": "newey_west",
+      "expected_inflation": [
+        0.021,
+        0.021,
+        0.022,
+        0.022,
+        0.022,
+        0.021,
+        0.021,
+        0.021
+      ],
+      "inflation": [
+        0.031,
+        0.034,
+        0.038,
+        0.035,
+        0.029,
+        0.026,
+        0.024,
+        0.023
+      ],
+      "lags": null,
+      "natural_unemployment": [
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.044,
+        0.043,
+        0.043
+      ],
+      "supply_shocks": null,
+      "unemployment": [
+        0.041,
+        0.038,
+        0.036,
+        0.037,
+        0.039,
+        0.041,
+        0.042,
+        0.043
+      ]
+    }
+  ],
+  "properties": {
+    "covariance": {
+      "$ref": "#/$defs/CovarianceName",
+      "default": "newey_west",
+      "description": "Standard errors: 'newey_west' (heteroskedasticity and autocorrelation consistent), 'hc1' (heteroskedasticity consistent) or 'classical'"
+    },
+    "expected_inflation": {
+      "description": "Inflation expected for each period",
+      "items": {
+        "maximum": 0.5,
+        "minimum": -0.2,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 1000,
+      "minItems": 3,
+      "title": "Expected Inflation",
+      "type": "array"
+    },
+    "inflation": {
+      "description": "Inflation each period",
+      "items": {
+        "maximum": 0.5,
+        "minimum": -0.2,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 1000,
+      "minItems": 3,
+      "title": "Inflation",
+      "type": "array"
+    },
+    "lags": {
+      "anyOf": [
+        {
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer",
+          "x-unit": "count"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Newey-West lags; left out, Newey and West's rule floor(4 (n/100)^(2/9))",
+      "title": "Lags"
+    },
+    "natural_unemployment": {
+      "description": "The natural rate of unemployment each period",
+      "items": {
+        "maximum": 0.3,
+        "minimum": 0.0,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 1000,
+      "minItems": 3,
+      "title": "Natural Unemployment",
+      "type": "array"
+    },
+    "supply_shocks": {
+      "anyOf": [
+        {
+          "items": {
+            "items": {
+              "maximum": 10.0,
+              "minimum": -10.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 1000,
+            "minItems": 3,
+            "type": "array"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Up to four supply-shock controls, one series each (relative import price inflation, say), as extra regressors",
+      "title": "Supply Shocks"
+    },
+    "unemployment": {
+      "description": "The unemployment rate each period",
+      "items": {
+        "maximum": 0.3,
+        "minimum": 0.0,
+        "type": "number",
+        "x-unit": "rate"
+      },
+      "maxItems": 1000,
+      "minItems": 3,
+      "title": "Unemployment",
+      "type": "array"
+    }
+  },
+  "required": [
+    "inflation",
+    "expected_inflation",
+    "unemployment",
+    "natural_unemployment"
+  ],
+  "title": "Expectations-augmented Phillips curve: inputs",
+  "type": "object"
+}

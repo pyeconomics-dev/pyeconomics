@@ -1,0 +1,231 @@
+{
+  "$defs": {
+    "ConstantOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "constant",
+          "default": "constant",
+          "description": "A constant real neutral rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the inflation objective",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_neutral_rate": {
+          "description": "The real neutral rate, r*",
+          "maximum": 0.2,
+          "minimum": -0.2,
+          "title": "Real Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_policy_gap": {
+          "anyOf": [
+            {
+              "maximum": 2.0,
+              "minimum": -2.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The real policy rate (policy rate less inflation) less r*; None without a policy rate",
+          "title": "Real Policy Gap"
+        }
+      },
+      "required": [
+        "real_neutral_rate",
+        "nominal_neutral_rate",
+        "real_policy_gap"
+      ],
+      "title": "ConstantOutputs",
+      "type": "object"
+    },
+    "HolstonLaubachWilliamsOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "holston_laubach_williams",
+          "default": "holston_laubach_williams",
+          "description": "r* from the Holston-Laubach-Williams model",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the inflation objective",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_neutral_rate": {
+          "description": "The real neutral rate, r*",
+          "maximum": 0.2,
+          "minimum": -0.2,
+          "title": "Real Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_policy_gap": {
+          "anyOf": [
+            {
+              "maximum": 2.0,
+              "minimum": -2.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The real policy rate (policy rate less inflation) less r*; None without a policy rate",
+          "title": "Real Policy Gap"
+        }
+      },
+      "required": [
+        "real_neutral_rate",
+        "nominal_neutral_rate",
+        "real_policy_gap"
+      ],
+      "title": "HolstonLaubachWilliamsOutputs",
+      "type": "object"
+    },
+    "LaubachWilliamsOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "laubach_williams",
+          "default": "laubach_williams",
+          "description": "r* from the Laubach-Williams model",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the inflation objective",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_neutral_rate": {
+          "description": "The real neutral rate, r*",
+          "maximum": 0.2,
+          "minimum": -0.2,
+          "title": "Real Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_policy_gap": {
+          "anyOf": [
+            {
+              "maximum": 2.0,
+              "minimum": -2.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The real policy rate (policy rate less inflation) less r*; None without a policy rate",
+          "title": "Real Policy Gap"
+        }
+      },
+      "required": [
+        "real_neutral_rate",
+        "nominal_neutral_rate",
+        "real_policy_gap"
+      ],
+      "title": "LaubachWilliamsOutputs",
+      "type": "object"
+    },
+    "SepLongerRunOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "sep_longer_run",
+          "default": "sep_longer_run",
+          "description": "r* implied by the SEP's longer-run rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "nominal_neutral_rate": {
+          "description": "The real neutral rate plus the inflation objective",
+          "maximum": 0.2,
+          "minimum": -0.1,
+          "title": "Nominal Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_neutral_rate": {
+          "description": "The real neutral rate, r*",
+          "maximum": 0.2,
+          "minimum": -0.2,
+          "title": "Real Neutral Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "real_policy_gap": {
+          "anyOf": [
+            {
+              "maximum": 2.0,
+              "minimum": -2.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The real policy rate (policy rate less inflation) less r*; None without a policy rate",
+          "title": "Real Policy Gap"
+        }
+      },
+      "required": [
+        "real_neutral_rate",
+        "nominal_neutral_rate",
+        "real_policy_gap"
+      ],
+      "title": "SepLongerRunOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.neutral_rate:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "r* from the New York Fed's Laubach-Williams and Holston-Laubach-Williams estimates, the SEP's longer-run rate or a constant, as real and nominal rates, with the real policy-rate gap.",
+  "discriminator": {
+    "mapping": {
+      "constant": "#/$defs/ConstantOutputs",
+      "holston_laubach_williams": "#/$defs/HolstonLaubachWilliamsOutputs",
+      "laubach_williams": "#/$defs/LaubachWilliamsOutputs",
+      "sep_longer_run": "#/$defs/SepLongerRunOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/LaubachWilliamsOutputs"
+    },
+    {
+      "$ref": "#/$defs/HolstonLaubachWilliamsOutputs"
+    },
+    {
+      "$ref": "#/$defs/SepLongerRunOutputs"
+    },
+    {
+      "$ref": "#/$defs/ConstantOutputs"
+    }
+  ],
+  "title": "Neutral rate of interest: outputs"
+}

@@ -1,0 +1,216 @@
+{
+  "$defs": {
+    "Dv01Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "dv01",
+          "default": "dv01",
+          "description": "Price value of a basis point",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "dv01": {
+          "description": "Modified duration x full price x 0.0001: the price change per basis point",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Dv01",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "modified_duration": {
+          "description": "Modified duration",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Modified Duration",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "dv01",
+        "modified_duration",
+        "full_price"
+      ],
+      "title": "Dv01Outputs",
+      "type": "object"
+    },
+    "EffectiveOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "effective",
+          "default": "effective",
+          "description": "Effective duration off a spot curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "effective_duration": {
+          "description": "(P_down - P_up) / (2 P bump): relative price change per unit shift",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Effective Duration",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price_down": {
+          "description": "Full price with the curve shifted down",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Price Down",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price_up": {
+          "description": "Full price with the curve shifted up",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Price Up",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "effective_duration",
+        "full_price",
+        "price_down",
+        "price_up"
+      ],
+      "title": "EffectiveOutputs",
+      "type": "object"
+    },
+    "KeyRateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "key_rate",
+          "default": "key_rate",
+          "description": "Key-rate durations off a spot curve",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "effective_duration": {
+          "description": "Duration to a parallel shift",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Effective Duration",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "key_rate_durations": {
+          "description": "Duration to each key tenor's shift",
+          "items": {
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "years"
+          },
+          "maxItems": 30,
+          "title": "Key Rate Durations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key_rate_durations",
+        "effective_duration",
+        "full_price"
+      ],
+      "title": "KeyRateOutputs",
+      "type": "object"
+    },
+    "MacaulayModifiedOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "macaulay_modified",
+          "default": "macaulay_modified",
+          "description": "Macaulay and modified duration",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "full_price": {
+          "description": "Full (dirty) price at settlement",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Full Price",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "macaulay_duration": {
+          "description": "Present-value-weighted mean time to the payments",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Macaulay Duration",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "modified_duration": {
+          "description": "Macaulay duration over 1 + y/f: the relative price change per unit of yield",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Modified Duration",
+          "type": "number",
+          "x-unit": "years"
+        }
+      },
+      "required": [
+        "macaulay_duration",
+        "modified_duration",
+        "full_price"
+      ],
+      "title": "MacaulayModifiedOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.duration:2:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Macaulay and modified duration from a yield, effective and key-rate duration off a spot curve, and DV01 of a fixed-coupon bond.",
+  "discriminator": {
+    "mapping": {
+      "dv01": "#/$defs/Dv01Outputs",
+      "effective": "#/$defs/EffectiveOutputs",
+      "key_rate": "#/$defs/KeyRateOutputs",
+      "macaulay_modified": "#/$defs/MacaulayModifiedOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/MacaulayModifiedOutputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveOutputs"
+    },
+    {
+      "$ref": "#/$defs/KeyRateOutputs"
+    },
+    {
+      "$ref": "#/$defs/Dv01Outputs"
+    }
+  ],
+  "title": "Bond duration: outputs"
+}

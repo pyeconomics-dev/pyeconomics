@@ -1,0 +1,331 @@
+{
+  "$defs": {
+    "CertaintyEquivalentInputs": {
+      "additionalProperties": false,
+      "description": "A gamble over discrete returns, and constant relative risk aversion.",
+      "properties": {
+        "calculation": {
+          "const": "certainty_equivalent",
+          "default": "certainty_equivalent",
+          "description": "Certainty-equivalent return under CRRA",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "outcomes": {
+          "description": "Possible returns",
+          "items": {
+            "maximum": 100.0,
+            "minimum": -1.0,
+            "type": "number",
+            "x-unit": "return"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Outcomes",
+          "type": "array"
+        },
+        "probabilities": {
+          "description": "Probability of each outcome; they sum to one",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "x-unit": "probability"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Probabilities",
+          "type": "array"
+        },
+        "relative_risk_aversion": {
+          "description": "Relative risk aversion gamma; 1 is log utility, 0 risk neutral",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Relative Risk Aversion",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "outcomes",
+        "probabilities",
+        "relative_risk_aversion"
+      ],
+      "title": "CertaintyEquivalentInputs",
+      "type": "object"
+    },
+    "KellyInputs": {
+      "additionalProperties": false,
+      "description": "A discrete bet (probability and odds) or a continuous asset (drift and risk).",
+      "properties": {
+        "calculation": {
+          "const": "kelly",
+          "default": "kelly",
+          "description": "Kelly fraction of a bet or an asset",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "drift": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Continuous asset: expected (arithmetic) return a year",
+          "title": "Drift"
+        },
+        "multiplier": {
+          "default": 1.0,
+          "description": "Fraction of the full Kelly fraction to use; 0.5 is half Kelly",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Multiplier",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "odds": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 0.001,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Discrete bet: net odds, the profit per unit staked on a win",
+          "title": "Odds"
+        },
+        "risk_free_rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -0.99,
+              "type": "number",
+              "x-unit": "rate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Continuous asset: risk-free rate a year; zero if omitted",
+          "title": "Risk Free Rate"
+        },
+        "volatility": {
+          "anyOf": [
+            {
+              "maximum": 10.0,
+              "minimum": 0.01,
+              "type": "number",
+              "x-unit": "volatility"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Continuous asset: volatility a year",
+          "title": "Volatility"
+        },
+        "win_probability": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "probability"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Discrete bet: probability of winning",
+          "title": "Win Probability"
+        }
+      },
+      "title": "KellyInputs",
+      "type": "object"
+    },
+    "MeanVarianceUtilityInputs": {
+      "additionalProperties": false,
+      "description": "A portfolio's expected return and volatility, and the investor's aversion.",
+      "properties": {
+        "calculation": {
+          "const": "mean_variance_utility",
+          "default": "mean_variance_utility",
+          "description": "Mean-variance utility, E - A sigma^2 / 2",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_return": {
+          "description": "Expected return per year",
+          "maximum": 10.0,
+          "minimum": -1.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "risk_aversion": {
+          "description": "Risk aversion A; zero is risk neutral",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Risk Aversion",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "volatility": {
+          "description": "Volatility per year; zero for a risk-free asset",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "expected_return",
+        "volatility",
+        "risk_aversion"
+      ],
+      "title": "MeanVarianceUtilityInputs",
+      "type": "object"
+    },
+    "OptimalRiskyShareInputs": {
+      "additionalProperties": false,
+      "description": "A risky portfolio, a risk-free rate and the investor's aversion.",
+      "properties": {
+        "calculation": {
+          "const": "optimal_risky_share",
+          "default": "optimal_risky_share",
+          "description": "Utility-maximizing share in the risky asset",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "expected_return": {
+          "description": "Expected return of the risky portfolio a year",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Expected Return",
+          "type": "number",
+          "x-unit": "return"
+        },
+        "risk_aversion": {
+          "description": "Risk aversion A, above zero",
+          "maximum": 100.0,
+          "minimum": 0.1,
+          "title": "Risk Aversion",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "risk_free_rate": {
+          "description": "Risk-free rate a year",
+          "maximum": 1.0,
+          "minimum": -0.99,
+          "title": "Risk Free Rate",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "volatility": {
+          "description": "Volatility of the risky portfolio a year",
+          "maximum": 10.0,
+          "minimum": 0.01,
+          "title": "Volatility",
+          "type": "number",
+          "x-unit": "volatility"
+        }
+      },
+      "required": [
+        "expected_return",
+        "risk_free_rate",
+        "volatility",
+        "risk_aversion"
+      ],
+      "title": "OptimalRiskyShareInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:portfolio.utility:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Mean-variance utility, the utility-maximizing risky share, the CRRA certainty equivalent of a gamble, and the Kelly fraction.",
+  "discriminator": {
+    "mapping": {
+      "certainty_equivalent": "#/$defs/CertaintyEquivalentInputs",
+      "kelly": "#/$defs/KellyInputs",
+      "mean_variance_utility": "#/$defs/MeanVarianceUtilityInputs",
+      "optimal_risky_share": "#/$defs/OptimalRiskyShareInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "calculation": "mean_variance_utility",
+      "expected_return": 0.08,
+      "risk_aversion": 3.0,
+      "volatility": 0.2
+    },
+    {
+      "calculation": "optimal_risky_share",
+      "expected_return": 0.08,
+      "risk_aversion": 4.0,
+      "risk_free_rate": 0.03,
+      "volatility": 0.2
+    },
+    {
+      "calculation": "certainty_equivalent",
+      "outcomes": [
+        0.5,
+        -0.2
+      ],
+      "probabilities": [
+        0.5,
+        0.5
+      ],
+      "relative_risk_aversion": 2.0
+    },
+    {
+      "calculation": "kelly",
+      "drift": null,
+      "multiplier": 1.0,
+      "odds": 1.0,
+      "risk_free_rate": null,
+      "volatility": null,
+      "win_probability": 0.55
+    },
+    {
+      "calculation": "kelly",
+      "drift": 0.08,
+      "multiplier": 0.5,
+      "odds": null,
+      "risk_free_rate": 0.03,
+      "volatility": 0.2,
+      "win_probability": null
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/MeanVarianceUtilityInputs"
+    },
+    {
+      "$ref": "#/$defs/OptimalRiskyShareInputs"
+    },
+    {
+      "$ref": "#/$defs/CertaintyEquivalentInputs"
+    },
+    {
+      "$ref": "#/$defs/KellyInputs"
+    }
+  ],
+  "title": "Utility, risky share and Kelly fraction: inputs"
+}

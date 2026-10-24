@@ -1,0 +1,295 @@
+{
+  "$defs": {
+    "BhbInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_returns": {
+          "description": "Benchmark return in each sector, one row per period",
+          "items": {
+            "items": {
+              "maximum": 100.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Benchmark Returns",
+          "type": "array"
+        },
+        "benchmark_weights": {
+          "description": "Benchmark weight of each sector, one row per period; each row sums to one",
+          "items": {
+            "items": {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Benchmark Weights",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "bhb",
+          "default": "bhb",
+          "description": "Brinson-Hood-Beebower: allocation against zero",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "portfolio_returns": {
+          "description": "Portfolio return in each sector, one row per period",
+          "items": {
+            "items": {
+              "maximum": 100.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Portfolio Returns",
+          "type": "array"
+        },
+        "portfolio_weights": {
+          "description": "Portfolio weight of each sector, one row per period; each row sums to one",
+          "items": {
+            "items": {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Portfolio Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "portfolio_weights",
+        "benchmark_weights",
+        "portfolio_returns",
+        "benchmark_returns"
+      ],
+      "title": "BhbInputs",
+      "type": "object"
+    },
+    "BrinsonFachlerInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_returns": {
+          "description": "Benchmark return in each sector, one row per period",
+          "items": {
+            "items": {
+              "maximum": 100.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Benchmark Returns",
+          "type": "array"
+        },
+        "benchmark_weights": {
+          "description": "Benchmark weight of each sector, one row per period; each row sums to one",
+          "items": {
+            "items": {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Benchmark Weights",
+          "type": "array"
+        },
+        "calculation": {
+          "const": "brinson_fachler",
+          "default": "brinson_fachler",
+          "description": "Brinson-Fachler: allocation against the total benchmark return",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "portfolio_returns": {
+          "description": "Portfolio return in each sector, one row per period",
+          "items": {
+            "items": {
+              "maximum": 100.0,
+              "minimum": -1.0,
+              "type": "number",
+              "x-unit": "return"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Portfolio Returns",
+          "type": "array"
+        },
+        "portfolio_weights": {
+          "description": "Portfolio weight of each sector, one row per period; each row sums to one",
+          "items": {
+            "items": {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 600,
+          "minItems": 1,
+          "title": "Portfolio Weights",
+          "type": "array"
+        }
+      },
+      "required": [
+        "portfolio_weights",
+        "benchmark_weights",
+        "portfolio_returns",
+        "benchmark_returns"
+      ],
+      "title": "BrinsonFachlerInputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:performance.brinson_attribution:1:input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Brinson-Hood-Beebower and Brinson-Fachler allocation, selection and interaction effects, single-period and linked over periods with Carino's method.",
+  "discriminator": {
+    "mapping": {
+      "bhb": "#/$defs/BhbInputs",
+      "brinson_fachler": "#/$defs/BrinsonFachlerInputs"
+    },
+    "propertyName": "calculation"
+  },
+  "examples": [
+    {
+      "benchmark_returns": [
+        [
+          0.04,
+          0.025
+        ],
+        [
+          -0.02,
+          0.02
+        ]
+      ],
+      "benchmark_weights": [
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.4
+        ]
+      ],
+      "calculation": "bhb",
+      "portfolio_returns": [
+        [
+          0.05,
+          0.02
+        ],
+        [
+          -0.01,
+          0.03
+        ]
+      ],
+      "portfolio_weights": [
+        [
+          0.7,
+          0.3
+        ],
+        [
+          0.6,
+          0.4
+        ]
+      ]
+    },
+    {
+      "benchmark_returns": [
+        [
+          0.04,
+          0.025
+        ],
+        [
+          -0.02,
+          0.02
+        ]
+      ],
+      "benchmark_weights": [
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.4
+        ]
+      ],
+      "calculation": "brinson_fachler",
+      "portfolio_returns": [
+        [
+          0.05,
+          0.02
+        ],
+        [
+          -0.01,
+          0.03
+        ]
+      ],
+      "portfolio_weights": [
+        [
+          0.7,
+          0.3
+        ],
+        [
+          0.6,
+          0.4
+        ]
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/BhbInputs"
+    },
+    {
+      "$ref": "#/$defs/BrinsonFachlerInputs"
+    }
+  ],
+  "title": "Brinson attribution: inputs"
+}

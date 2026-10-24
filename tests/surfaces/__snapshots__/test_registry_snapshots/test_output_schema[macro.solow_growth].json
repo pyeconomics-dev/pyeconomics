@@ -1,0 +1,242 @@
+{
+  "$defs": {
+    "GrowthAccountingOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "average_capital_share": {
+          "description": "The capital share, averaged over the periods",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Average Capital Share",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "calculation": {
+          "const": "growth_accounting",
+          "default": "growth_accounting",
+          "description": "Growth accounting and the TFP residual",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capital_contribution": {
+          "description": "Capital's share times capital growth, the average per period",
+          "maximum": 100.0,
+          "minimum": -100.0,
+          "title": "Capital Contribution",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "human_capital_contribution": {
+          "description": "Labour's share times human capital growth, the average per period",
+          "maximum": 100.0,
+          "minimum": -100.0,
+          "title": "Human Capital Contribution",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "labour_contribution": {
+          "description": "Labour's share times labour growth, the average per period",
+          "maximum": 100.0,
+          "minimum": -100.0,
+          "title": "Labour Contribution",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "output_growth": {
+          "description": "Output growth, the average per period",
+          "maximum": 100.0,
+          "minimum": -100.0,
+          "title": "Output Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "periods": {
+          "description": "Periods accounted for",
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Periods",
+          "type": "integer",
+          "x-unit": "count"
+        },
+        "tfp_growth": {
+          "description": "The residual: output growth less the contributions",
+          "maximum": 100.0,
+          "minimum": -100.0,
+          "title": "Tfp Growth",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "tfp_index": {
+          "description": "TFP at the end of each period, relative to its start (1.0)",
+          "items": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000000000.0,
+            "type": "number",
+            "x-unit": "index_level"
+          },
+          "maxItems": 500,
+          "title": "Tfp Index",
+          "type": "array"
+        },
+        "tfp_share": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000000.0,
+              "minimum": -1000000000000000.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "TFP growth over output growth; None with no output growth",
+          "title": "Tfp Share"
+        }
+      },
+      "required": [
+        "output_growth",
+        "capital_contribution",
+        "labour_contribution",
+        "human_capital_contribution",
+        "tfp_growth",
+        "tfp_share",
+        "tfp_index",
+        "average_capital_share",
+        "periods"
+      ],
+      "title": "GrowthAccountingOutputs",
+      "type": "object"
+    },
+    "SteadyStateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "steady_state",
+          "default": "steady_state",
+          "description": "The steady state and convergence",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "capital_output_ratio": {
+          "description": "k* / y* = s / (n + g + delta)",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Capital Output Ratio",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "capital_per_effective_worker": {
+          "description": "k*",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Capital Per Effective Worker",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "consumption_per_effective_worker": {
+          "description": "c* = (1 - s) y*",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Consumption Per Effective Worker",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "convergence_speed": {
+          "description": "Lambda = (1 - alpha)(n + g + delta): the share of the gap to the steady state closed a year",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Convergence Speed",
+          "type": "number",
+          "x-unit": "rate"
+        },
+        "golden_rule_capital": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000000.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "k* at the golden-rule rate; None when it passes the bound",
+          "title": "Golden Rule Capital"
+        },
+        "golden_rule_consumption": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000000.0,
+              "minimum": 0.0,
+              "type": "number",
+              "x-unit": "ratio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "c* at the golden-rule rate; None when its capital does",
+          "title": "Golden Rule Consumption"
+        },
+        "golden_rule_saving_rate": {
+          "description": "The saving rate that maximizes c*: alpha",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Golden Rule Saving Rate",
+          "type": "number",
+          "x-unit": "ratio"
+        },
+        "half_life": {
+          "description": "Years to close half the gap to the steady state, ln 2 / lambda",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000.0,
+          "title": "Half Life",
+          "type": "number",
+          "x-unit": "years"
+        },
+        "output_per_effective_worker": {
+          "description": "y* = k* ** alpha",
+          "maximum": 1000000000000000.0,
+          "minimum": 0.0,
+          "title": "Output Per Effective Worker",
+          "type": "number",
+          "x-unit": "ratio"
+        }
+      },
+      "required": [
+        "capital_per_effective_worker",
+        "output_per_effective_worker",
+        "consumption_per_effective_worker",
+        "capital_output_ratio",
+        "golden_rule_saving_rate",
+        "golden_rule_capital",
+        "golden_rule_consumption",
+        "convergence_speed",
+        "half_life"
+      ],
+      "title": "SteadyStateOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:macro.solow_growth:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The Solow steady state with Cobb-Douglas technology, the golden rule and the speed of convergence, and growth accounting into capital, labour, human capital and the TFP residual.",
+  "discriminator": {
+    "mapping": {
+      "growth_accounting": "#/$defs/GrowthAccountingOutputs",
+      "steady_state": "#/$defs/SteadyStateOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SteadyStateOutputs"
+    },
+    {
+      "$ref": "#/$defs/GrowthAccountingOutputs"
+    }
+  ],
+  "title": "Solow growth model: outputs"
+}

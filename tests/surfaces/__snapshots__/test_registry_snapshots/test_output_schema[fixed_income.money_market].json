@@ -1,0 +1,198 @@
+{
+  "$defs": {
+    "DiscountFromPriceOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "discount_from_price",
+          "default": "discount_from_price",
+          "description": "Bank discount rate from a price",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount_rate": {
+          "description": "Bank discount rate, per 360 days",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Discount Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "discount_rate"
+      ],
+      "title": "DiscountFromPriceOutputs",
+      "type": "object"
+    },
+    "EffectiveAnnualYieldOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "effective_annual_yield",
+          "default": "effective_annual_yield",
+          "description": "Return compounded to a 365-day year",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "effective_annual_yield": {
+          "description": "Return compounded over 365 days",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Effective Annual Yield",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "effective_annual_yield"
+      ],
+      "title": "EffectiveAnnualYieldOutputs",
+      "type": "object"
+    },
+    "HoldingPeriodYieldOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "holding_period_yield",
+          "default": "holding_period_yield",
+          "description": "Return over the holding period",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "holding_period_yield": {
+          "description": "Gain and income over the price paid",
+          "maximum": 100.0,
+          "minimum": -1.0,
+          "title": "Holding Period Yield",
+          "type": "number",
+          "x-unit": "return"
+        }
+      },
+      "required": [
+        "holding_period_yield"
+      ],
+      "title": "HoldingPeriodYieldOutputs",
+      "type": "object"
+    },
+    "InvestmentRateOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "investment_rate",
+          "default": "investment_rate",
+          "description": "Treasury investment rate (bond-equivalent)",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "investment_rate": {
+          "description": "Bond-equivalent yield, per 365 or 366 days",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Investment Rate",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "investment_rate"
+      ],
+      "title": "InvestmentRateOutputs",
+      "type": "object"
+    },
+    "MoneyMarketYieldOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "money_market_yield",
+          "default": "money_market_yield",
+          "description": "Money-market (CD-equivalent) yield",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "money_market_yield": {
+          "description": "Return on the price, per 360 days",
+          "maximum": 10.0,
+          "minimum": -0.99,
+          "title": "Money Market Yield",
+          "type": "number",
+          "x-unit": "rate"
+        }
+      },
+      "required": [
+        "money_market_yield"
+      ],
+      "title": "MoneyMarketYieldOutputs",
+      "type": "object"
+    },
+    "PriceFromDiscountOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "const": "price_from_discount",
+          "default": "price_from_discount",
+          "description": "Price from a bank discount rate",
+          "title": "Calculation",
+          "type": "string"
+        },
+        "discount": {
+          "description": "Face value less price (negative at a negative rate)",
+          "maximum": 1000000000000.0,
+          "minimum": -2000000000000.0,
+          "title": "Discount",
+          "type": "number",
+          "x-unit": "money"
+        },
+        "price": {
+          "description": "Price for the face value",
+          "exclusiveMinimum": 0.0,
+          "maximum": 3000000000000.0,
+          "title": "Price",
+          "type": "number",
+          "x-unit": "money"
+        }
+      },
+      "required": [
+        "price",
+        "discount"
+      ],
+      "title": "PriceFromDiscountOutputs",
+      "type": "object"
+    }
+  },
+  "$id": "urn:pyeconomics:model:fixed_income.money_market:1:output",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Bank discount rate to and from price, money-market (CD-equivalent) yield, Treasury investment rate, effective annual yield and holding-period yield of a discount instrument.",
+  "discriminator": {
+    "mapping": {
+      "discount_from_price": "#/$defs/DiscountFromPriceOutputs",
+      "effective_annual_yield": "#/$defs/EffectiveAnnualYieldOutputs",
+      "holding_period_yield": "#/$defs/HoldingPeriodYieldOutputs",
+      "investment_rate": "#/$defs/InvestmentRateOutputs",
+      "money_market_yield": "#/$defs/MoneyMarketYieldOutputs",
+      "price_from_discount": "#/$defs/PriceFromDiscountOutputs"
+    },
+    "propertyName": "calculation"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PriceFromDiscountOutputs"
+    },
+    {
+      "$ref": "#/$defs/DiscountFromPriceOutputs"
+    },
+    {
+      "$ref": "#/$defs/MoneyMarketYieldOutputs"
+    },
+    {
+      "$ref": "#/$defs/InvestmentRateOutputs"
+    },
+    {
+      "$ref": "#/$defs/EffectiveAnnualYieldOutputs"
+    },
+    {
+      "$ref": "#/$defs/HoldingPeriodYieldOutputs"
+    }
+  ],
+  "title": "Money-market yields: outputs"
+}
