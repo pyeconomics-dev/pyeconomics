@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import sys
 from typing import TYPE_CHECKING
 
 import bound_support as bs
@@ -30,7 +31,7 @@ from pyeconomics.core import (
 )
 from pyeconomics.core import registry as core_registry
 from pyeconomics.data import Mode, cache
-from pyeconomics.surfaces import BindRequest, invoke
+from pyeconomics.surfaces import BindRequest, invoke, invoke_batch
 from pyeconomics.surfaces.codec import InputTooLargeError
 from pyeconomics.surfaces.envelope import canonical_bytes
 
@@ -218,3 +219,45 @@ def test_a_bind_request_normalizes_its_fields() -> None:
 def test_a_bad_bind_request_is_refused(fields: dict[str, object], message: str) -> None:
     with pytest.raises(InputError, match=message):
         BindRequest(**fields)  # type: ignore[arg-type] # ty: ignore[invalid-argument-type]
+
+
+# --- batches ------------------------------------------------------------------------
+
+
+@pytest.mark.usefixtures("toy_catalog")
+def test_a_batch_gives_run_batchs_results_whatever_the_row_forms() -> None:
+    rows = [
+        {"face_value": 100, "rate": 0.05, "years": 10},
+        '{"face_value": 100, "rate": 0.06, "years": 10}',
+        ["face_value=100", "rate=0.07", "years=10"],
+    ]
+    batch = invoke_batch(ZERO, rows)
+    expected = pyeconomics.run_batch(
+        ZERO, [{"face_value": 100, "rate": r, "years": 10} for r in (0.05, 0.06, 0.07)]
+    )
+    assert [r.to_json() for r in batch] == [r.to_json() for r in expected]
+    assert (batch.model_id, len(batch)) == (expected.model_id, 3)
+
+
+@pytest.mark.usefixtures("toy_catalog")
+def test_a_row_that_cannot_be_decoded_is_named() -> None:
+    rows = [{"face_value": 100, "rate": 0.05, "years": 10}, '{"rate": 1, "rate": 2}']
+    with pytest.raises(InputError, match=r"^row 1 of the batch: the inputs repeat"):
+        invoke_batch(ZERO, rows)
+
+
+@pytest.mark.usefixtures("toy_catalog")
+def test_a_row_too_large_is_refused_as_too_large() -> None:
+    with pytest.raises(InputTooLargeError):
+        invoke_batch(ZERO, ['{"face_value": 100}'], limit=4)
+
+
+@pytest.mark.usefixtures("toy_catalog")
+def test_a_batch_longer_than_the_limit_is_refused_before_any_row_runs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The package's invoke function hides its module: reach it by name.
+    monkeypatch.setattr(sys.modules["pyeconomics.surfaces.invoke"], "MAX_BATCH_ROWS", 2)
+    rows = ({"face_value": 100, "rate": 0.05, "years": 10} for _ in range(10))
+    with pytest.raises(InputError, match="at most 2 rows"):
+        invoke_batch(ZERO, rows)

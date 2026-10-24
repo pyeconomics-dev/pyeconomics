@@ -11,7 +11,9 @@ catalog concept id (``us.unemployment.rate``), a provider series
 ``data get --format json`` writes the frame's canonical JSON with its source
 records and the attributions and notices the data requires
 (:func:`~pyeconomics.surfaces.documents.data_document`); ``--format table``
-prints the observations with the same texts below them. The data layer is
+prints the observations with the same texts below them; ``--format csv``,
+``xlsx``, ``parquet`` and ``arrow`` write an export of the frame with the same
+texts and its source records (:mod:`pyeconomics.cli.exporting`). The data layer is
 imported when a data command runs, never when the command line starts.
 """
 
@@ -22,7 +24,12 @@ from typing import Annotated, Any
 from cyclopts import Parameter
 
 from pyeconomics.cli.context import ContextParameter
-from pyeconomics.cli.output import Block, Format, Grid, cell, emit_json, show
+from pyeconomics.cli.exporting import (
+    EXPORT_FORMATS,
+    refuse_binary_terminal,
+    write_export,
+)
+from pyeconomics.cli.output import Block, Format, Grid, RunFormat, cell, emit_json, show
 from pyeconomics.core import _fields as f
 from pyeconomics.surfaces.documents import attributions, data_document, jsonable
 
@@ -163,7 +170,7 @@ def get_data(  # noqa: PLR0913 - the data API's options
     as_of: Annotated[str | None, Parameter(metavar="DATE")] = None,
     vintage: str | None = None,
     provider: str | None = None,
-    output_format: FormatOption = "json",
+    output_format: Annotated[RunFormat, Parameter(name="--format")] = "json",
     out: OutOption = None,
     context: ContextParameter,
 ) -> None:
@@ -185,10 +192,12 @@ def get_data(  # noqa: PLR0913 - the data API's options
     provider
         For a concept, use only this provider's candidates.
     output_format
-        json for the frame, its source records and attributions; or table.
+        json for the frame, its source records and attributions; table; or an
+        export: csv, xlsx, parquet or arrow.
     """
     from pyeconomics.data import api  # noqa: PLC0415 - the data layer loads here
 
+    refuse_binary_terminal(context, output_format, out)
     resolved = api.get(
         target,
         start=_day(start, "start"),
@@ -199,6 +208,9 @@ def get_data(  # noqa: PLR0913 - the data API's options
     )
     if output_format == "json":
         emit_json(context.streams, data_document(resolved), out)
+        return
+    if output_format in EXPORT_FORMATS:
+        write_export(context, resolved, output_format, out)
         return
     blocks: list[Block] = [_frame_grid(resolved.frame), _sources_grid(resolved.sources)]
     if resolved.skipped:

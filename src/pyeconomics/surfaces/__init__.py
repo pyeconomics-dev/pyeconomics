@@ -7,7 +7,8 @@ The command line, the REST API, the MCP server and the exports are generated fro
 the registry on top of these modules, which import no framework:
 
 - :mod:`~pyeconomics.surfaces.invoke`: :func:`invoke`, the one way a surface runs
-  a model, and :class:`BindRequest`, a request to bind its data first;
+  a model, :func:`invoke_batch` for many rows of inputs, and
+  :class:`BindRequest`, a request to bind its data first;
 - :mod:`~pyeconomics.surfaces.problems`: the error table, :func:`problem_for` and
   :class:`Problem` (an RFC 9457 problem with an exit code), and :func:`report`;
 - :mod:`~pyeconomics.surfaces.codec`: input decoding with size and depth limits;
@@ -28,7 +29,15 @@ Examples
 (3, 422, 'https://pyeconomics.dev/problems/invalid-input')
 """
 
-from pyeconomics.surfaces.invoke import BindRequest, invoke
+from pyeconomics.surfaces.invoke import BindRequest, invoke, invoke_batch
 from pyeconomics.surfaces.problems import FieldError, Problem, problem_for, report
 
-__all__ = ["BindRequest", "FieldError", "Problem", "invoke", "problem_for", "report"]
+__all__ = [
+    "BindRequest",
+    "FieldError",
+    "Problem",
+    "invoke",
+    "invoke_batch",
+    "problem_for",
+    "report",
+]

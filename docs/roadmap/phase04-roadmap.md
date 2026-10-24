@@ -2946,9 +2946,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Exports and Reproducibility Bundles
+## Step 5 — Exports and Reproducibility Bundles ✅
 
-**Status:** Not started
+**Status:** Complete — PR #180 (2026-10-24)
 
 > **Goal:** Let any result or series flow into other software with its
 > provenance attached. Add `src/pyeconomics/exports/`: CSV (RFC 4180, UTF-8,
@@ -2988,6 +2988,8 @@ build (Steps 14 and 15); the Read the Docs `main` preview rebuilds with
 | AA Index     | 42.1                                     | 52.6                                 | 53.6                                       |
 | Thinking     | —                                        | On                                   | —                                          |
 | Conversation | **New**                                  | **New**                              | **New**                                    |
+
+> Ran 2026-10-24: the Balanced column's Backup, also the Quality column's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -3380,11 +3382,12 @@ conversation per phase-boundary hygiene.
 
     <requirement>
       Notices (ADR-0005 Confirmation): for every registered
-      provider, replay one recorded frame offline, export it
-      in each format, and assert its attribution and each
-      required notice appear verbatim (the CSV block, the
-      XLSX manifest sheet, the schema metadata, the JSON
-      manifest).
+      provider, replay one recorded frame offline (its
+      records, for a source that serves records only:
+      openfigi), export it in each format, and assert its
+      attribution and each required notice appear verbatim
+      (the CSV block, the XLSX manifest sheet, the schema
+      metadata, the JSON manifest).
     </requirement>
 
     <requirement>
@@ -3733,6 +3736,25 @@ phase-boundary hygiene.
     - surfaces/ holds invoke (and invoke_batch), the error
       table, the codec, the envelope, the budgets and
       registry_export; the CLI and pyeconomics.exports exist.
+    - Step 5's exports, where ?format= plugs in:
+      `exports.export_bytes(value, format)` returns the bytes
+      of csv, xlsx, parquet, arrow or json for a Result, a
+      BatchResult, a Series or Table, data.get's Resolved or
+      Records (`exports.BINARY_FORMATS` are xlsx, parquet,
+      arrow); a bundle is `exports.bundle.bundle_bytes(
+      bundle_members(result, request))`, which needs the
+      BindRequest of a bound run. Media types: text/csv;
+      charset=utf-8, application/vnd.openxmlformats-
+      officedocument.spreadsheetml.sheet,
+      application/vnd.apache.parquet,
+      application/vnd.apache.arrow.file, application/zip. An
+      XLSX text cell over 32,767 characters is an InputError
+      (422), never a cut value. `invoke_batch(model_id, rows,
+      limit=...)` decodes each row through the codec and
+      names a row that cannot be decoded ("row N of the
+      batch: ..."). openpyxl spools each sheet to a temporary
+      file, so the server's temporary directory must be
+      writable.
     - Step 4 added surfaces.listing (`list_models(domain)`,
       `search_models(text, limit)`: the entries `GET
       /v1/models` with `?domain=` and `?q=` returns; an
@@ -5652,6 +5674,15 @@ conversation per phase-boundary hygiene.
       runs; the providers' cassettes replay every source.
     - The full offline suite runs serially in about 16–19
       minutes on a cell; the parity suite must not double it.
+    - Step 5's read-back traps: pandas.read_csv reads every
+      number exactly only with float_precision="round_trip";
+      CSV and XLSX hold an array as canonical JSON text and a
+      text cell starting =, +, -, @, a tab or a carriage
+      return with a leading '; Parquet and Arrow keep arrays
+      as lists. tests/exports/export_support.py has the
+      readers. A replayed frame carries its series' own terms
+      (an access date, a dataset's source line), so compare
+      notices with frame.meta.terms, not test_notices' rows.
 
     Files to read (every file before drafting):
     - docs/adr/0012-programmatic-surfaces.md (decisions 2
@@ -6496,6 +6527,12 @@ phase-boundary hygiene.
     - pylock.toml and uv.lock pin the runtime set; release.yml
       builds the wheel; ci.yml has no container job; no
       Dockerfile exists.
+    - The XLSX export (Step 5) runs openpyxl's write-only
+      workbook, which spools each sheet to a temporary file
+      in tempfile.gettempdir() until the workbook is saved: a
+      read-only root filesystem needs a writable TMPDIR
+      (tmpfs) for ?format=xlsx, and the image smoke should
+      request one.
     - ADR-0012 decision 19 fixes the image: Python 3.14 (arch
       has wheels there; issue #154 gates it on 3.15), the five
       extras, non-root, hosted mode, the SHA for /version.
@@ -8794,7 +8831,7 @@ workflow above maps directly to the corresponding row below.
 | 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Complete — PR #177 |
 | 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #179 |
-| 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |

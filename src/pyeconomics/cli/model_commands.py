@@ -18,6 +18,10 @@ bytes as ``Result.to_json()``, followed by one newline.
 A run binds the model's data when any bind option is given (``--profile
 default`` alone binds the default profile at the latest data); the options then
 override the values bound, as ``pyeconomics.bind``'s overrides do.
+
+``--format csv|xlsx|parquet|arrow`` writes an export, ``--bundle PATH`` also
+writes the run's reproducibility bundle, and ``--batch FILE`` runs the model once
+per row of a CSV or JSON Lines file (:mod:`pyeconomics.cli.exporting`).
 """
 
 import inspect
@@ -30,11 +34,19 @@ from cyclopts import App, Group, Parameter
 
 from pyeconomics import registry
 from pyeconomics.cli.context import Context, ContextParameter, UsageError
+from pyeconomics.cli.exporting import (
+    batch_blocks,
+    read_batch,
+    refuse_binary_terminal,
+    write_bundle_file,
+    write_export,
+)
 from pyeconomics.cli.output import (
     Block,
     DescribeFormat,
     Format,
     Grid,
+    RunFormat,
     cell,
     emit,
     emit_json,
@@ -45,7 +57,7 @@ from pyeconomics.core.errors import InputError, RegistryError
 from pyeconomics.core.schema import input_schema, output_schema
 from pyeconomics.surfaces import codec, listing
 from pyeconomics.surfaces.envelope import canonical_bytes
-from pyeconomics.surfaces.invoke import BindRequest, invoke
+from pyeconomics.surfaces.invoke import BindRequest, invoke, invoke_batch
 
 __all__ = [
     "RESERVED_OPTIONS",
@@ -64,8 +76,10 @@ __all__ = [
 RESERVED_OPTIONS: Final = frozenset(
     {
         "--inputs",
+        "--batch",
         "--format",
         "--out",
+        "--bundle",
         "--as-of",
         "--vintage",
         "--profile",
@@ -408,13 +422,29 @@ def _fixed_parameters() -> list[inspect.Parameter]:
             None,
         ),
         _keyword(
+            "batch",
+            Annotated[
+                str | None,
+                Parameter(
+                    name="--batch",
+                    metavar="FILE",
+                    group=_RUN,
+                    allow_leading_hyphen=True,
+                    help="Run once per row of a CSV file (a header of field "
+                    "names) or a JSON Lines file, or - for standard input.",
+                ),
+            ],
+            None,
+        ),
+        _keyword(
             "output_format",
             Annotated[
-                Format,
+                RunFormat,
                 Parameter(
                     name="--format",
                     group=_RUN,
-                    help="json for the canonical result, or table.",
+                    help="json for the canonical result, table, or an export: "
+                    "csv, xlsx, parquet or arrow.",
                 ),
             ],
             "json",
@@ -425,6 +455,20 @@ def _fixed_parameters() -> list[inspect.Parameter]:
                 Path | None,
                 Parameter(
                     name="--out", group=_RUN, help="Write the output to this file."
+                ),
+            ],
+            None,
+        ),
+        _keyword(
+            "bundle",
+            Annotated[
+                Path | None,
+                Parameter(
+                    name="--bundle",
+                    metavar="PATH",
+                    group=_RUN,
+                    help="Also write the run's reproducibility bundle, a zip, "
+                    "to this file.",
                 ),
             ],
             None,
@@ -578,6 +622,22 @@ def _decode_options(
     return codec.decode_pairs(model, pairs)
 
 
+def _write_batch(
+    context: Context,
+    batch: Any,  # noqa: ANN401 - a BatchResult
+    output_format: str,
+    out: Path | None,
+) -> None:
+    if output_format == "table":
+        show(context.streams, batch_blocks(batch), out)
+    elif output_format == "json":
+        from pyeconomics.exports import export_bytes  # noqa: PLC0415 - loads exports
+
+        emit(context.streams, export_bytes(batch, "json") + b"\n", out)
+    else:
+        write_export(context, batch, output_format, out)
+
+
 def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: ANN401
     """Return the ``models run`` command of one model, its options generated.
 
@@ -602,8 +662,10 @@ def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: AN
         *,
         context: Context,
         inputs: str | None = None,
+        batch: str | None = None,
         output_format: str = "json",
         out: Path | None = None,
+        bundle: Path | None = None,
         as_of: str | None = None,
         vintage: str | None = None,
         profile: str | None = None,
@@ -611,21 +673,37 @@ def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: AN
         param: Sequence[str] = (),
         **values: str | None,
     ) -> None:
+        refuse_binary_terminal(context, output_format, out)
         pairs = [
             f"{name.removeprefix('field_')}={text}"
             for name, text in values.items()
             if text is not None
         ]
-        document = {} if inputs is None else _read_inputs(context, inputs)
-        merged = {**document, **_decode_options(model, root, pairs, document)}
         request = _bind_request(
             as_of=as_of, vintage=vintage, profile=profile, concept=concept, param=param
         )
+        if batch is not None:
+            if pairs or inputs is not None or bundle is not None or request:
+                msg = (
+                    "--batch takes every row's inputs from its file; it cannot be "
+                    "combined with field options, --inputs, --bundle or the data "
+                    "options"
+                )
+                raise UsageError(msg)
+            outcome = invoke_batch(typed_id, read_batch(context, batch))
+            _write_batch(context, outcome, output_format, out)
+            return
+        document = {} if inputs is None else _read_inputs(context, inputs)
+        merged = {**document, **_decode_options(model, root, pairs, document)}
         result = invoke(typed_id, merged, bind=request)
+        if bundle is not None:
+            write_bundle_file(result, bundle, request)
         if output_format == "json":
             emit(context.streams, canonical_bytes(result) + b"\n", out)
-        else:
+        elif output_format == "table":
             show(context.streams, result_blocks(result), out)
+        else:
+            write_export(context, result, output_format, out)
 
     spec = model.spec
     signature = inspect.Signature([*fields, *_fixed_parameters()])

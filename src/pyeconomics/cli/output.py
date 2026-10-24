@@ -8,7 +8,8 @@ standard error, always UTF-8 whatever the operating system's code page, and
 bytes from standard input. ``--format json`` writes canonical JSON followed by
 one newline; ``--format table`` builds :class:`Grid` blocks, which a terminal
 shows as rich tables and anything else (a pipe, a file, ``--out``) as plain
-text, with every attribution and notice the data requires below them.
+text, with every attribution and notice the data requires below them. A model
+run and data also take the export formats (:mod:`pyeconomics.cli.exporting`).
 
 A key never reaches this module: the key commands write only provider ids,
 variable names and kinds of source.
@@ -41,6 +42,7 @@ __all__ = [
     "DescribeFormat",
     "Format",
     "Grid",
+    "RunFormat",
     "Streams",
     "Utf8Text",
     "cell",
@@ -53,6 +55,9 @@ __all__ = [
 
 #: The output formats of the commands that print a table or a document.
 Format = Literal["table", "json"]
+#: The output formats of a model run and of data: a table, canonical JSON, or an
+#: export (:mod:`pyeconomics.exports`).
+RunFormat = Literal["json", "table", "csv", "xlsx", "parquet", "arrow"]
 #: The formats ``models describe`` writes: the card's Markdown, or JSON.
 DescribeFormat = Literal["markdown", "json"]
 

@@ -21,7 +21,10 @@ of the sinks the canary reached, never the canary itself:
   and its ``to_dict``, ``to_json``, ``to_pandas`` and ``to_parquet`` bytes
   (:meth:`LeakCheck.result`);
 - ``bound:to_dict`` and ``bound:repr``: the values and data records ``bind``
-  returns, before any run (:meth:`LeakCheck.bound`; Step 12).
+  returns, before any run (:meth:`LeakCheck.bound`; Step 12);
+- ``export:<format>`` and ``bundle:<member>``: every export format of a value
+  and every member of a result's bundle (:meth:`LeakCheck.exports`; Phase 4
+  Step 5).
 
 Step 4 adds the transport: :meth:`LeakCheck.run` runs a call collecting its logs
 and warnings, and either its result or its exception (tests/providers/
@@ -53,6 +56,7 @@ if TYPE_CHECKING:
 
     from pyeconomics.core.binding import Bound
     from pyeconomics.core.results import Result
+    from pyeconomics.surfaces.invoke import BindRequest
 
 __all__ = [
     "CANARY_LENGTH",
@@ -290,6 +294,51 @@ class LeakCheck:
         table = pq.read_table(path)
         self.add("result:to_parquet", repr(table.to_pylist()))
         self.add("result:to_parquet", repr(table.schema.metadata))
+
+    def exports(self, value: object, request: BindRequest | None = None) -> None:
+        """Collect every export format of a value and, for a result, its bundle.
+
+        A compressed format is collected as read back (every XLSX cell, Arrow's
+        rows and schema metadata) as well as its raw bytes; a bundle as each
+        member's bytes (Phase 4 Step 5).
+        """
+        import io  # noqa: PLC0415 - only exports need them
+        import zipfile  # noqa: PLC0415
+
+        from openpyxl import load_workbook  # noqa: PLC0415
+
+        from pyeconomics.core.results import Result  # noqa: PLC0415
+        from pyeconomics.exports import FORMATS, export_bytes  # noqa: PLC0415
+        from pyeconomics.exports.bundle import (  # noqa: PLC0415
+            bundle_bytes,
+            bundle_members,
+        )
+
+        ipc = importlib.import_module("pyarrow.ipc")
+        pq = importlib.import_module("pyarrow.parquet")
+        for export_format in FORMATS:
+            data = export_bytes(value, export_format)
+            sink = f"export:{export_format}"
+            self.add(sink, data)
+            if export_format == "xlsx":
+                book = load_workbook(io.BytesIO(data))
+                for sheet in book:
+                    for row in sheet.iter_rows(values_only=True):
+                        self.add(sink, repr(row))
+            elif export_format in {"parquet", "arrow"}:
+                table = (
+                    pq.read_table(io.BytesIO(data))
+                    if export_format == "parquet"
+                    else ipc.open_file(io.BytesIO(data)).read_all()
+                )
+                self.add(sink, repr(table.to_pylist()))
+                self.add(sink, repr(table.schema.metadata))
+        if isinstance(value, Result):
+            members = bundle_members(value, request)
+            for name, data in members.items():
+                self.add(f"bundle:{name}", data)
+            with zipfile.ZipFile(io.BytesIO(bundle_bytes(members))) as archive:
+                self.add("bundle:zip", repr(archive.namelist()))
 
 
 def log_urllib3_request(url: str, *, host: str = "api.example.org") -> None:

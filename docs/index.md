@@ -40,6 +40,7 @@ reference/concepts/index
 reference/sources
 problems
 registry
+exports
 autoapi/index
 errata
 notices
