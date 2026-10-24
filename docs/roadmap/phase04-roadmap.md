@@ -240,7 +240,7 @@ result = invoke(
 body = result.to_json().encode()  # the bytes every surface returns
 
 problem = problem_for(InputError("coupon_rate: 5 is above its bound 1"))
-problem.exit_code, problem.status, problem.type  # 3, 422, ".../invalid-input"
+problem.exit_code, problem.status, problem.type_uri  # 3, 422, ".../invalid-input"
 ```
 
 **ADR-0012's decisions (drafted defaults).** Step 2 writes these as the
@@ -1968,14 +1968,16 @@ it has no Thinking toggle. New conversation per phase-boundary hygiene.
 
     <requirement>
       src/pyeconomics/surfaces/codec.py: decode a mapping,
-      JSON text or bytes (limit 1 MiB, depth 32, duplicate
-      keys refused), or `field=value` pairs typed by the
+      JSON text or bytes (limit 16 MiB locally, as ADR-0012
+      accepts, because 1 MiB refuses valid full-length inputs;
+      hosted mode passes 1 MiB; depth 32, duplicate keys
+      refused), or `field=value` pairs typed by the
       model's input schema (numbers, strings, ISO dates, and
       arrays or objects as JSON literals; a boolean for a
       numeric field refused, as #75 fixed); validation is the
       model's own. envelope.py: the canonical bytes
-      (`Result.to_json().encode()`), the ETag value
-      (result_sha256) and a one-paragraph text summary.
+      (`Result.to_json().encode()`), the weak ETag value
+      (`W/"<result_sha256>"`) and a one-paragraph text summary.
       budgets.py: the hosted wall-clock budgets by CostClass
       (instant 2 s, light 10 s, heavy 30 s, as accepted), the
       hosted body limit and the 8 KiB limit for a run's GET
@@ -1983,7 +1985,8 @@ it has no Thinking toggle. New conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
-      Add tests/surfaces/test_layering.py (unique basename):
+      Add tests/surfaces/test_surface_layering.py (a unique
+      basename: tests/data/test_layering.py exists):
       no module under src/pyeconomics/core/ or data/ imports
       pyeconomics.surfaces, exports, cli, server, mcp or ai;
       surfaces/ imports no fastapi, starlette, uvicorn, mcp,
@@ -2854,8 +2857,10 @@ conversation per phase-boundary hygiene.
 
     <requirement>
       Exit codes come only from surfaces.problems; usage
-      errors exit 2; the problem's title and detail go to
-      stderr. A test drives one command into each code.
+      errors exit 2; the problem's `cli_message` (its slug and
+      scrubbed detail, ADR-0012 decision 5) goes to stderr,
+      and `problems.report` is the only logging of a failure.
+      A test drives one command into each code.
     </requirement>
 
     <requirement>
@@ -4264,12 +4269,18 @@ conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
-      Budgets and caching: bodies above the hosted limit 413;
-      inputs above a hosted budget 422 with a detail that
-      gives the local command; a run terminated at its budget
-      422 (run-timeout) with the same pointer. GET runs: an
-      in-process cache bounded by entries and bytes, keyed as
-      decision 12 says, with ETag, If-None-Match → 304 and
+      Budgets and caching: bodies above the hosted limit
+      (`surfaces.budgets.HOSTED_BODY_LIMIT`, 1 MiB) 413
+      (`input-too-large`, raised as the codec's
+      `InputTooLargeError`); inputs above a hosted budget 422
+      with a detail that gives the local command; a run
+      terminated at its budget 422 (`budget-exceeded`, raised
+      as `surfaces.budgets.BudgetExceededError`, which Step 2
+      added to the error table) with the same pointer. GET
+      runs: an in-process cache bounded by entries and bytes,
+      keyed as decision 12 says, with the weak ETag
+      `envelope.etag` writes (`W/"<result_sha256>"`, as
+      ADR-0012 accepts), If-None-Match → 304 and
       Cache-Control; POST runs and problems no-store and never
       cached.
     </requirement>
@@ -6953,17 +6964,15 @@ Thinking toggle. New conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
-      The edge (decision 20): if the Worker was chosen,
+      The edge (decision 20; the maintainer chose the Worker
+      when ADR-0012 was accepted on 2026-10-23):
       tools/node/edge/ holds it (forward method, path, query
       and body to ORIGIN_URL; add X-Pyeconomics-Edge from the
       EDGE_CREDENTIAL secret; pass CF-Connecting-IP; strip
       hop-by-hop headers; return the response) with a
       node:test suite over a stubbed fetch, a wrangler.toml
       with no workers.dev route, and the deploy command in
-      the runbook. If domain mapping was chosen, a Cloudflare
-      request-header rule adds the credential instead (its
-      availability on the free plan verified at kickoff), and
-      the runbook records the certificate caveat.
+      the runbook.
     </requirement>
 
     <requirement>

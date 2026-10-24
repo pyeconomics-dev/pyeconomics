@@ -933,7 +933,7 @@ backup.
 - Two modes from one app factory: `local` (every source the user can
   access, bound to 127.0.0.1) and `hosted` (hosted-safe sources only,
   anonymous access, per-IP limits with the `limits` library on Upstash
-  Valkey behind Cloudflare rate rules). API keys and plans wait for Phase
+  Redis behind Cloudflare rate rules). API keys and plans wait for Phase
   8.
 - Deterministic results are cached, keyed by model id and version,
   canonical inputs and data vintage, with `Cache-Control` headers so
@@ -972,11 +972,12 @@ backup.
 
 - A slim, non-root image with the `[server]` extra and hosted-safe
   providers only — no yfinance, no Bloomberg libraries in the image.
-- Cloud Run staging (minimum 0 instances, capped maximum) behind
-  Cloudflare, with Cloudflare Access on the staging hostname; deploys from
-  GitHub through OIDC and Workload Identity Federation, so no
-  service-account key exists; a budget alert; `/version` reports the
-  package version and git SHA.
+- Cloud Run staging (minimum 0 instances, capped maximum) behind a
+  Cloudflare Worker on the staging hostname, with Cloudflare Access, that
+  forwards to the Cloud Run origin with an origin credential the app
+  verifies (ADR-0012 decision 20); deploys from GitHub through OIDC and
+  Workload Identity Federation, so no service-account key exists; a budget
+  alert; `/version` reports the package version and git SHA.
 
 #### 4.8 Release `1.0.0b1`
 
@@ -1695,7 +1696,7 @@ billing add more in Phase 8. Every figure below is a list price checked on
 | Cloudflare (DNS, CDN, WAF, static site)   | $0                                   | $0–5                           | $5 + usage TBD                  |
 | Cloud Run (API + snapshot job)            | $0 inside the free tier              | TBD                            | TBD                             |
 | Cloudflare R2 (snapshots, exports)        | $0 (10 GB free)                      | ~$0                            | ~$1.35 per 100 GB + operations  |
-| Upstash Valkey (rate limits, cache)       | $0 (500K commands/month)             | TBD ($0.20 per 100K commands)  | from $10                        |
+| Upstash Redis (rate limits, cache)        | $0 (500K commands/month; read 2026-10-23) | TBD ($0.20 per 100K commands; read 2026-10-23) | from $10                        |
 | Neon Postgres (Phase 8)                   | —                                    | TBD (usage-based, no minimum)  | ≈ $81 if always on; else TBD    |
 | WorkOS AuthKit (Phase 8)                  | —                                    | $0                             | $0 (+$125 per enterprise SSO connection) |
 | Merchant of record (Phase 8)              | —                                    | Stripe Managed Payments: Stripe fees + 3.5%; or Paddle: 5% + $0.50 per transaction | Same                |
@@ -2135,7 +2136,7 @@ Rules for the gate:
 
 | Layer               | Control                                                       |
 |---------------------|--------------------------------------------------------------|
-| Identity / auth     | Phases 4–7: hosted API keys for rate limiting only, no accounts; staging behind Cloudflare Access. Phase 8: managed auth, MFA available, short-lived sessions, least-privilege admin roles. |
+| Identity / auth     | Phases 4–7: anonymous hosted access with per-IP limits, no accounts; staging behind Cloudflare Access. Phase 8: managed auth, MFA available, short-lived sessions, least-privilege admin roles. |
 | Transport           | TLS everywhere via Cloudflare; HSTS; strict CSP and security headers on the web app; local mode binds to 127.0.0.1 only. |
 | Data at rest        | Google-managed encryption for object storage and (Phase 8) Postgres; local caches in the user's cache directory with user-only permissions. |
 | Secrets             | Google Secret Manager for the service; OS keyring for users; never in source, images or `.env` files committed anywhere. |
