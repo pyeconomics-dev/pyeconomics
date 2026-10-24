@@ -202,7 +202,7 @@ def test_no_source_raises_naming_provider_variable_command_and_guide() -> None:
         f"no {PROVIDER} key was found",
         f"Set the {VARIABLE} environment variable",
         f"add {VARIABLE} to the .env file in the pyeconomics configuration directory",
-        f"`keyring set pyeconomics {PROVIDER}`",
+        f"`pyeconomics keys set {PROVIDER}`",
         GUIDE_URL,
     ):
         assert part in message

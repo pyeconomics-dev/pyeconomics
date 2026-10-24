@@ -368,7 +368,7 @@ step time are the authority:
 | Package | Latest | Licence metadata | Predicted `licences` result | CPython 3.15 wheel | Planned use |
 |---------|--------|------------------|-----------------------------|--------------------|-------------|
 | cyclopts | 5.3.0 (2026-10-22) | `Apache-2.0` | Passes | pure Python | runtime: the CLI (Step 4) |
-| rich, rich-rst, attrs, docstring-parser | 15.0.0, 2.2.0, 26.1.0, 0.18.0 | `MIT` (rich-rst by its License field only) | Passes; rich-rst no longer requires docutils, whose classifiers include the GPL | pure Python | runtime: Cyclopts' closure |
+| rich, rich-rst, attrs, docstring-parser | 15.0.0, 2.2.0, 26.1.0, 0.18.0 | `MIT` (rich-rst's License-Expression from 2.2.0; read 2026-10-24) | Passes; rich-rst no longer requires docutils, whose classifiers include the GPL | pure Python | runtime: Cyclopts' closure |
 | markdown-it-py, mdurl, pygments | 4.2.0, 0.1.2, 2.21.0 | classifier `MIT License`; `BSD-2-Clause` | Passes | pure Python | runtime: rich's closure |
 | fastapi | 0.162.0 (2026-10-23) | `MIT`; now requires `opentelemetry-api` | Passes | pure Python | `[server]` (Step 6) |
 | starlette, anyio, idna, annotated-doc, typing-inspection, opentelemetry-api | 1.9.0, 4.15.1, 3.20, 0.0.5, 0.4.4, 1.45.1 | `BSD-3-Clause`, `MIT`, `BSD-3-Clause`, `MIT`, `MIT`, `Apache-2.0` | Passes | pure Python | `[server]`: FastAPI's closure |
@@ -2831,9 +2831,10 @@ conversation per phase-boundary hygiene.
       Dependency (Dependency rule): `uv add --no-config
       "cyclopts>=5.3"` as a runtime dependency (floor, no
       upper bound); its closure passes the licences hook and
-      pip-audit; rich-rst's licence is read from its License
-      field. `[project.scripts]` gains `pyeconomics =
-      "pyeconomics.cli:main"`.
+      pip-audit; rich-rst's licence is read from its metadata
+      (2.2.0 declares License-Expression MIT, so its License
+      field is no longer needed). `[project.scripts]` gains
+      `pyeconomics = "pyeconomics.cli:main"`.
     </requirement>
 
     <requirement>
@@ -3246,6 +3247,20 @@ conversation per phase-boundary hygiene.
     - The CLI prints table and json formats through
       surfaces.invoke; the error table maps
       MissingOptionalDependencyError to exit 8.
+    - Step 4's CLI, where the formats plug in: `--format` is
+      `cli.output.Format` (`Literal["table", "json"]`);
+      `models run`'s run options are built in
+      `cli/model_commands._fixed_parameters` (Cyclopts reads a
+      generated command's own `__annotations__` over its
+      `__signature__`, so both are set); `data get` is
+      `cli/data_commands.get_data`; `--out` writes bytes
+      through `cli.output.emit`; `data get --format json`
+      prints `surfaces.documents.data_document`. Every
+      command writes UTF-8 bytes through `cli.output.Streams`
+      and takes `context: ContextParameter`. docs/cli.md's
+      `console` examples must exit 0 and its `shell` (live
+      data) examples exit 7 offline
+      (tests/cli/test_cli_docs.py).
     - Result.to_arrow() puts the manifest's canonical JSON in
       the schema metadata (pyeconomics.manifest);
       to_parquet(path) writes it; Result.attributions()
@@ -3716,6 +3731,17 @@ phase-boundary hygiene.
     - surfaces/ holds invoke (and invoke_batch), the error
       table, the codec, the envelope, the budgets and
       registry_export; the CLI and pyeconomics.exports exist.
+    - Step 4 added surfaces.listing (`list_models(domain)`,
+      `search_models(text, limit)`: the entries `GET
+      /v1/models` with `?domain=` and `?q=` returns; an
+      unknown domain is an InputError) and surfaces.documents
+      (`data_document(resolved)`, the frame with its source
+      records and attributions that `data get --format json`
+      prints, and `jsonable(value)` for SourceInfo and other
+      data-layer values), so the API returns what the CLI
+      prints. `data.credentials` gained `store_key`,
+      `delete_key` and `key_source`, which no route may call
+      (the Credential rule).
     - The server extra is an empty list. Facts read on
       2026-10-23: fastapi 0.162.0 (MIT) requires starlette,
       pydantic, typing-extensions, typing-inspection,
@@ -4679,6 +4705,10 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
     - surfaces.invoke serves the CLI and the REST API;
       server/ mounts routes, limits, the edge check and the
       pool; hosted mode refuses library-only data.
+    - The discovery tools' model entries are Step 4's
+      surfaces.listing (`list_models`, `search_models`), and a
+      data tool's document is surfaces.documents'
+      `data_document`, as the CLI and the API return them.
     - DataSource records carry llm_use; the resolver has no
       llm_use skip reason. FRED (and some SDMX series) is
       forbidden; BEA, BLS, CBO, Census, the Fed Board, the

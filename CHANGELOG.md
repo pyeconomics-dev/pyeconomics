@@ -40,6 +40,29 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - Snapshot tests of every model's input and output schema, the registry schema
   and the model index: from this release, a change to any of them is named
   here, since schemas are public API at 1.0.0 (ADR-0003).
+- The `pyeconomics` command line, installed with the core package (ADR-0012
+  decision 5; Cyclopts, which loads only when the command line runs): `models
+  list|search|describe|run`, where `models run ID` takes one `--<field>`
+  option per input field of the model, generated from its input schema, a JSON
+  object of inputs from `--inputs FILE` or standard input, and `--as-of`,
+  `--vintage`, `--profile`, `--concept FIELD=ID` and `--param NAME=VALUE` to
+  bind the model's data first; `data search|get|describe|vintages|sources`;
+  `keys set|list|delete`, which reads a key only from a hidden prompt or
+  standard input and stores it in the OS keyring; `cache ls|info|clear|path`;
+  `registry export --out DIR`; and shell completion. `--format json` prints the
+  canonical bytes `Result.to_json()` gives plus one newline, `--format table`
+  draws tables with every attribution and notice below them, `--out` writes to
+  a file, output is UTF-8 on every operating system, and every failure exits
+  with its code from the error table (0 to 8, 2 for a usage error), with
+  `--debug` adding a scrubbed traceback. Documented on a new page, `cli`.
+- `pyeconomics.data.credentials.store_key`, `delete_key` and `key_source`: the
+  keyring step written for `pyeconomics keys`, and the kind of source the key
+  chain would read a provider's key from, never its value. The message for a
+  missing key now suggests `pyeconomics keys set <provider>`.
+- `pyeconomics.surfaces.listing` (`list_models`, `search_models`) and
+  `pyeconomics.surfaces.documents` (`data_document`, `jsonable`): the model
+  entries and the data documents every surface returns, so the command line,
+  and next the REST API and the MCP server, find and show them the same way.
 
 ### Fixed
 
@@ -56,6 +79,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 ### Changed
 
 - The version is `1.0.0b1.dev1`, on the way to the first beta.
+- A new runtime dependency, Cyclopts (`cyclopts>=5.3`, Apache-2.0), with its
+  closure: attrs, docstring-parser, rich, rich-rst, markdown-it-py, mdurl and
+  Pygments, each pure Python under the licence allowlist (ADR-0004). `import
+  pyeconomics` and `import pyeconomics.cli` load none of them.
 - `data.configure` documents that its overrides are process-wide: a server
   configures once, at start, never per request.
 

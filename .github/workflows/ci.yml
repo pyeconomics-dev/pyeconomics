@@ -186,6 +186,18 @@ jobs:
           found=$("$RUNNER_TEMP/clean/bin/python" -c 'import pyeconomics; print(pyeconomics.__version__)')
           echo "installed ${found}, pyproject.toml says ${expected}"
           test "$found" = "$expected"
+      # The wheel's console script, from the same clean venv: its version, and
+      # one model run whose bytes must equal Result.to_json() plus one newline.
+      - name: Run the console script from the clean venv
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=$(uv version --short)
+          cd "$RUNNER_TEMP"
+          test "$("$RUNNER_TEMP/clean/bin/pyeconomics" --version)" = "pyeconomics ${expected}"
+          "$RUNNER_TEMP/clean/bin/pyeconomics" models run foundations.time_value \
+            --calculation present_value --rate 0.05 --periods 10 --future-value 100 > cli-run.json
+          "$RUNNER_TEMP/clean/bin/python" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode() + b"\n"; assert pathlib.Path("cli-run.json").read_bytes() == expected, "the console script printed other bytes"'
       # scripts/smoke.py exercises the installed wheel's core and refuses to
       # run against a checkout, so it runs from a copy outside it. It runs
       # every model's examples; with no extras, econometrics.ols must raise
@@ -285,8 +297,10 @@ jobs:
           holidays_version=$(uv run --no-project python -c 'import pathlib, tomllib; print(next(p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] == "holidays"))')
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url https://pypi.org/simple \
             --only-binary=:all: --no-deps "holidays==$holidays_version"
-          # These pure-Python readers are absent from the Pyodide package index.
-          readers=$(uv run --no-project python -c 'import pathlib, tomllib; print(" ".join(p["name"] + "==" + p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] in {"openpyxl", "et-xmlfile", "defusedxml", "xlrd"}))')
+          # These pure-Python readers, and the command line's Cyclopts with the
+          # parts of its closure Pyodide does not bundle (it has attrs, rich and
+          # Pygments), are absent from the Pyodide package index.
+          readers=$(uv run --no-project python -c 'import pathlib, tomllib; print(" ".join(p["name"] + "==" + p["version"] for p in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"] if p["name"] in {"openpyxl", "et-xmlfile", "defusedxml", "xlrd", "cyclopts", "docstring-parser", "rich-rst", "markdown-it-py", "mdurl"}))')
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url https://pypi.org/simple \
             --only-binary=:all: --no-deps $readers
           "$RUNNER_TEMP/pyodide-venv/bin/pip" install --index-url "file://$index" dist/*.whl
@@ -300,6 +314,15 @@ jobs:
           "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'import numpy, pandas, pydantic, scipy; print("numpy", numpy.__version__, "scipy", scipy.__version__, "pandas", pandas.__version__, "pydantic", pydantic.VERSION)'
           "$RUNNER_TEMP/pyodide-venv/bin/python" smoke.py --min-domains 11
           "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'from pyeconomics.data.transport.files import spreadsheet, workbook; assert spreadsheet(workbook({"data": ((1,),)}), "data", "smoke") == ((1,),)'
+      # ADR-0012 decision 1: pyeconomics.cli imports in Pyodide without
+      # Cyclopts, then builds the command line and runs it in-process.
+      - name: Build the command line in Pyodide
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/pyodide-smoke"
+          "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'import sys, pyeconomics.cli; assert "cyclopts" not in sys.modules, "importing the cli loaded Cyclopts"'
+          "$RUNNER_TEMP/pyodide-venv/bin/python" -c 'import io; from pyeconomics.cli import build_app, main; from pyeconomics.cli.output import Streams; streams = lambda out: Streams(stdin=io.BytesIO(), stdout=out, stderr=io.BytesIO()); app = build_app(streams(io.BytesIO())); assert {"models", "data", "keys", "cache", "registry"} <= set(app); out = io.BytesIO(); assert main(["models", "run", "foundations.time_value", "--calculation", "present_value", "--rate", "0.05", "--periods", "10", "--future-value", "100"], streams=streams(out)) == 0; print(out.getvalue().decode()[:120])'
 
   docs:
     name: docs

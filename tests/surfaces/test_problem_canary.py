@@ -5,9 +5,10 @@
 
 Every error the table maps is raised with a planted key, a planted file path (in
 Windows, POSIX and home forms) and a planted upstream URL in its message. The
-problem's detail, its JSON body, the command line's message and the record
-``report`` logs are searched for each of them. A failing assertion names the
-sinks, never the planted values (tests/data/leakcheck.py).
+problem's detail, its JSON body, the command line's message, the traceback the
+command line's ``--debug`` prints and the record ``report`` logs are searched
+for each of them. A failing assertion names the sinks, never the planted values
+(tests/data/leakcheck.py).
 """
 
 from __future__ import annotations
@@ -121,6 +122,30 @@ def _validation_error(plants: Plants) -> InputError:
         return error
     msg = "the inputs validated"
     raise AssertionError(msg)
+
+
+def _throw(error: BaseException) -> None:
+    raise error
+
+
+def _raised(error: BaseException) -> BaseException:
+    """Return the error after raising it, so its traceback has frames."""
+    try:
+        _throw(error)
+    except BaseException as caught:  # noqa: BLE001 - every planted error is caught
+        return caught
+    raise AssertionError  # pragma: no cover - _throw always raises
+
+
+def test_no_planted_value_reaches_a_debug_traceback(plants: Plants) -> None:
+    from pyeconomics.cli.app import debug_traceback  # noqa: PLC0415 - loads Cyclopts
+
+    check = LeakCheck(plants)
+    for error in [*_errors(plants.text), _validation_error(plants)]:
+        lines = debug_traceback(_raised(error))
+        assert any(line.startswith("Traceback") for line in lines)
+        check.add(f"debug:{problem_for(error).slug}", "\n".join(lines))
+    check.assert_clean()
 
 
 def test_every_row_is_planted() -> None:

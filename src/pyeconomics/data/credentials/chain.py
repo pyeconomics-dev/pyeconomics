@@ -22,8 +22,13 @@ process installs the redacting log-record factory
 (:func:`pyeconomics.data.redaction.install`). The chain logs, at DEBUG, only
 which kind of source answered. :func:`has_key` answers the same question
 without creating a secret, so a presence check prints only ``True`` or
-``False``. Inside :func:`withheld`, the chain finds no key for the named
-providers, so a source whose key is optional runs keyless.
+``False``, and :func:`key_source` names the kind of source that would answer.
+Inside :func:`withheld`, the chain finds no key for the named providers, so a
+source whose key is optional runs keyless.
+
+:func:`store_key` and :func:`delete_key` write the keyring step, the one
+source pyeconomics writes: ``pyeconomics keys set`` and ``keys delete`` call
+them (Phase 4 Step 4), and nothing else does.
 
 Examples
 --------
@@ -48,7 +53,7 @@ from typing import TYPE_CHECKING, Final
 
 from pyeconomics.core._fields import identifier
 from pyeconomics.core._optional import import_optional
-from pyeconomics.core.errors import MissingOptionalDependencyError
+from pyeconomics.core.errors import InputError, MissingOptionalDependencyError
 from pyeconomics.data import redaction
 from pyeconomics.data.config import DOTENV_FILE, GUIDE_URL, config_dir
 from pyeconomics.data.credentials.dotenv import (
@@ -66,9 +71,12 @@ if TYPE_CHECKING:
 __all__ = [
     "KEYRING_SERVICE",
     "KeySource",
+    "delete_key",
     "has_key",
+    "key_source",
     "key_variable",
     "resolve_key",
+    "store_key",
     "withheld",
 ]
 
@@ -241,7 +249,7 @@ def _missing(provider: str) -> str:
     return (
         f"no {provider} key was found. Set the {variable} environment variable, "
         f"add {variable} to {DOTENV_LOCATION}, store it in the OS keyring with "
-        f"`keyring set {KEYRING_SERVICE} {provider}` (pyeconomics[keyring]), or "
+        f"`pyeconomics keys set {provider}` (pyeconomics[keyring]), or "
         f"pass it as an argument; see {GUIDE_URL}"
     )
 
@@ -321,3 +329,111 @@ def has_key(provider_id: str, *, posix: bool | None = None) -> bool:
     """
     found = _first(identifier(provider_id, "provider_id"), posix=posix)
     return found is not None and key_problem(found[1]) is None
+
+
+def key_source(provider_id: str, *, posix: bool | None = None) -> KeySource | None:
+    """Return the kind of source the chain would read a provider's key from.
+
+    It reads the same sources as :func:`resolve_key`, after the argument, and
+    returns only the kind of the first that holds a value: never the value. A
+    value there that is not a usable key still names its source, and
+    :func:`resolve_key` then says what is wrong with it. ``None`` means no
+    source holds one.
+
+    Raises
+    ------
+    ConfigError
+        If the ``.env`` file cannot be read or breaks its format.
+
+    Examples
+    --------
+    >>> key_source("fred") is None
+    True
+
+    """
+    found = _first(identifier(provider_id, "provider_id"), posix=posix)
+    return None if found is None else found[0]
+
+
+def _keyring_failure(
+    keyring: ModuleType, action: str, provider: str, failure: str
+) -> CredentialError:
+    msg = (
+        f"the {_backend_name(keyring)} keyring backend could not {action} the "
+        f"{provider} key ({failure})"
+    )
+    return CredentialError(msg, provider=provider)
+
+
+def store_key(provider_id: str, secret: Secret) -> None:
+    """Store a provider's key in the OS keyring, the chain's last step.
+
+    The key goes under service ``pyeconomics`` and the provider id as the user,
+    where :func:`resolve_key` looks for it when no environment variable or
+    ``.env`` entry holds one. Only the type of a backend's failure is reported,
+    never its message.
+
+    Parameters
+    ----------
+    provider_id
+        The provider the key belongs to, such as ``"fred"``.
+    secret
+        The key, already checked by :class:`Secret`.
+
+    Raises
+    ------
+    MissingOptionalDependencyError
+        Without the keyring extra: ``pip install 'pyeconomics[keyring]'``.
+    CredentialError
+        If the secret is another provider's, or the keyring backend fails.
+    InputError
+        If the provider id is not snake_case, or ``secret`` is not a Secret.
+    """
+    provider = identifier(provider_id, "provider_id")
+    held: object = secret  # a caller may pass something that is no Secret
+    if not isinstance(held, Secret):
+        msg = f"a key is stored as a Secret, not {type(held).__name__}"
+        raise InputError(msg)
+    if secret.provider != provider:
+        msg = f"the key is for {secret.provider}, not {provider}"
+        raise CredentialError(msg, provider=provider)
+    keyring = import_optional("keyring", extra="keyring")
+    failure = ""
+    try:
+        keyring.set_password(KEYRING_SERVICE, provider, secret.reveal())
+    except Exception as error:  # noqa: BLE001 - any backend failure is reported by type
+        failure = type(error).__name__
+    if failure:
+        raise _keyring_failure(keyring, "store", provider, failure)
+    _logger.debug("%s key stored in the keyring", provider)
+
+
+def delete_key(provider_id: str) -> bool:
+    """Delete a provider's key from the OS keyring; return whether one was there.
+
+    Only the keyring step changes: a key in the environment or the ``.env``
+    file stays where it is, and :func:`key_source` still finds it.
+
+    Raises
+    ------
+    MissingOptionalDependencyError
+        Without the keyring extra: ``pip install 'pyeconomics[keyring]'``.
+    CredentialError
+        If the keyring backend fails.
+    InputError
+        If the provider id is not snake_case.
+    """
+    provider = identifier(provider_id, "provider_id")
+    keyring = import_optional("keyring", extra="keyring")
+    failure = ""
+    removed = False
+    try:
+        if keyring.get_password(KEYRING_SERVICE, provider) is not None:
+            keyring.delete_password(KEYRING_SERVICE, provider)
+            removed = True
+    except Exception as error:  # noqa: BLE001 - any backend failure is reported by type
+        failure = type(error).__name__
+    if failure:
+        raise _keyring_failure(keyring, "delete", provider, failure)
+    _logger.debug("%s key deleted from the keyring: %s", provider, removed)
+    return removed

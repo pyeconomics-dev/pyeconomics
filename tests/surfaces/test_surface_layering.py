@@ -10,6 +10,9 @@
 - A fresh interpreter's ``import pyeconomics`` loads no framework and no surface,
   and ``import pyeconomics.surfaces`` loads no data module, even after a run that
   reads no data: the data layer arrives with the first bind.
+- ``import pyeconomics.cli`` loads neither Cyclopts nor rich (they load when the
+  command line is built), and ``pyeconomics --version`` and ``--help`` discover
+  no model and load no data module, which keeps them fast (Step 4).
 - No surface module runs a model but through ``invoke``: none imports
   ``core.runner`` or calls ``run``, ``run_model``, ``bind`` or ``bind_model``.
   The scan covers each surface package as a later step adds it (Step 4's cli/
@@ -182,6 +185,30 @@ def test_importing_pyeconomics_loads_no_framework_and_no_surface(
         + f"print(loaded({tuple(f'pyeconomics.{p}' for p in SURFACE_PACKAGES)!r}))\n"
     )
     assert _fresh(script, tmp_path) == ["[]", "[]"]
+
+
+def test_importing_the_cli_loads_neither_cyclopts_nor_rich(tmp_path: Path) -> None:
+    script = (
+        "import sys\nimport pyeconomics\nimport pyeconomics.cli\n"
+        + _LOADED
+        + "print(loaded(('cyclopts', 'rich')))\n"
+    )
+    assert _fresh(script, tmp_path) == ["[]"]
+
+
+def test_version_and_help_discover_no_model_and_load_no_data(tmp_path: Path) -> None:
+    script = (
+        "import io, sys\nfrom pyeconomics.cli import main\n"
+        "from pyeconomics.cli.output import Streams\n"
+        + _LOADED
+        + "for argv in (['--version'], ['--help'], ['models', '--help']):\n"
+        "    out = io.BytesIO()\n"
+        "    streams = Streams(stdin=io.BytesIO(), stdout=out, stderr=io.BytesIO())\n"
+        "    print(main(argv, streams=streams), bool(out.getvalue()))\n"
+        "print(loaded(('pyeconomics.data', 'pyeconomics.models')))\n"
+        "print(loaded(('cyclopts',)) != [])\n"
+    )
+    assert _fresh(script, tmp_path) == ["0 True", "0 True", "0 True", "[]", "True"]
 
 
 def test_the_surfaces_load_no_data_module_until_a_bind(tmp_path: Path) -> None:

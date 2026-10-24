@@ -259,6 +259,20 @@ From Phase 4 Step 2, which builds the surface core (ADR-0012):
 - `pyeconomics.surfaces` exports the function `invoke`, which hides the module
   of that name: `import pyeconomics.surfaces.invoke as m` binds the function, so
   import from the module with `from pyeconomics.surfaces.invoke import ...`.
+- The command line (`pyeconomics.cli`, Phase 4 Step 4) loads Cyclopts and rich
+  only when it is built, and `--version` and `--help` discover no model
+  (`tests/surfaces/test_surface_layering.py`). A command takes `context:
+  ContextParameter`, writes UTF-8 bytes through `cli.output.Streams` (never
+  `print`), imports the data layer inside its body, and raises: the exit code
+  comes from the error table, and `cli.context.UsageError` (exit 2) is only for
+  a command line written wrongly. A generated command sets both its
+  `__signature__` and its `__annotations__`, because Cyclopts reads the latter.
+- A key reaches the command line only in `keys set`, from a hidden prompt or
+  `--stdin`, wrapped in a `Secret` at once and stored with
+  `data.credentials.store_key`; never as an argument or an option.
+  `docs/cli.md`'s `console` examples run in the tests and exit 0, its `shell`
+  examples read live data and must exit 7 offline, and `text` examples do not
+  run (`tests/cli/test_cli_docs.py`).
 
 ## Units
 

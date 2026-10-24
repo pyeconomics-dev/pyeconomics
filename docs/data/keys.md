@@ -59,12 +59,18 @@ Replace `<key>` below with the key the source issued you.
 ### The OS keyring (recommended)
 
 The keyring keeps the key out of files and shell history. Install the extra,
-then store each key. `keyring set` asks for the key without showing it:
+then store each key. `pyeconomics keys set` asks for the key without showing
+it, checks it and stores it (the [command line](../cli.md) guide has the
+details, including `--stdin` for a key piped from a secrets manager):
 
 ```console
 pip install "pyeconomics[keyring]"
-keyring set pyeconomics fred
+pyeconomics keys set fred
 ```
+
+`keyring set pyeconomics fred`, the keyring package's own command, stores the
+same entry. `pyeconomics keys list` shows where each key would be read from,
+never its value.
 
 The user name is the provider id: `fred`, `bls`, `bea`, `census` or
 `openfigi`. macOS uses the Keychain, Windows the Credential Manager, and
@@ -206,9 +212,9 @@ file as public:
    where the source allows it: FRED's
    [API keys page](https://fredaccount.stlouisfed.org/apikeys), or a new
    registration with BLS, BEA, the Census Bureau or OpenFIGI.
-2. **Update where you keep it.** Run `keyring set pyeconomics <provider>`
+2. **Update where you keep it.** Run `pyeconomics keys set <provider>`
    again, or edit the environment variable or the `.env` file. Run
-   `keyring del pyeconomics <provider>` to remove a stored key.
+   `pyeconomics keys delete <provider>` to remove a stored key.
 3. **Remove the copies.** Check shell history, notebook outputs, CI logs and
    commit history. A key pushed to a repository stays in its history until
    the history is rewritten, so replacing the key is what matters.
