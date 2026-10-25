@@ -251,7 +251,10 @@ elif n == 15: files(*(data + x for x in ("providers/base.py", "registry.py", "tr
 elif n == 16: assert providers
 elif n == 17:
     options = project["tool"]["pytest"]["ini_options"]
-    assert "--disable-socket" in options["addopts"] and "not live" in options["addopts"]
+    assert "--disable-socket" in options["addopts"]
+    # The -m expression deselects live tests (Phase 4 Step 7 adds "and not fuzz").
+    selection = options["addopts"][options["addopts"].index("-m") + 1]
+    assert re.fullmatch(r"not live( and not \w+)*", selection)
     assert any(m.startswith("live:") for m in options["markers"])
 elif n == 18: files("scripts/record_cassettes.py", "tests/providers/provider_contract.py", "tests/providers/test_provider_contract.py")
 elif n == 19:
