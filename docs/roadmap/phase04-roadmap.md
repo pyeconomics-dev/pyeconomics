@@ -5026,15 +5026,25 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 with the next build; `mcp-registry.yml` first runs at Step 15, after
 `1.0.0b1` is on PyPI.
 
-| Setting      | Cost                                     | Balanced                             | Quality                                    |
-| ------------ | ---------------------------------------- | ------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                              | Gemini 4 Argon                       | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | Opus 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                    | Antigravity                          | Claude Code                                |
-| Effort       | Intelligence Low                         | Effort High                          | Effort High                                |
-| AA Index     | 42.1                                     | 52.6                                 | 53.6                                       |
-| Thinking     | —                                        | On                                   | —                                          |
-| Conversation | **New**                                  | **New**                              | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low             | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1            | 52.6               | 53.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M        | $4.00/1M*          | $6.02/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M        | $6.02/1M           | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -5467,15 +5477,25 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-| Setting      | Cost                                    | Balanced                             | Quality                                    |
-| ------------ | --------------------------------------- | ------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                             | Gemini 4 Argon                       | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort XHigh | Opus 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                   | Antigravity                          | Claude Code                                |
-| Effort       | Intelligence High                       | Effort High                          | Effort XHigh                               |
-| AA Index     | 50.2                                    | 52.6                                 | 56                                         |
-| Thinking     | —                                       | On                                   | —                                          |
-| Conversation | **New**                                 | **New**                              | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2            | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M        | $4.00/1M*          | $8.46/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh           | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M        | $6.02/1M           | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -5899,15 +5919,25 @@ conversation per phase-boundary hygiene.
 package build and never runs in the hosted service (Phase 8 adds it there
 behind a ledger and a cap).
 
-| Setting      | Cost                                     | Balanced                             | Quality                                    |
-| ------------ | ---------------------------------------- | ------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                              | Gemini 4 Argon                       | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | Opus 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                    | Antigravity                          | Claude Code                                |
-| Effort       | Intelligence Low                         | Effort High                          | Effort High                                |
-| AA Index     | 42.1                                     | 52.6                                 | 53.6                                       |
-| Thinking     | —                                        | On                                   | —                                          |
-| Conversation | **New**                                  | **New**                              | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low             | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1            | 52.6               | 53.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M        | $4.00/1M*          | $6.02/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M        | $6.02/1M           | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -6327,15 +6357,25 @@ hygiene.
 **Deploys:** nothing beyond merge — the image is a CI artifact; Step 13
 pushes it to Artifact Registry and deploys it to staging.
 
-| Setting      | Cost                                     | Balanced                             | Quality                                    |
-| ------------ | ---------------------------------------- | ------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                              | Gemini 4 Argon                       | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | Opus 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                    | Antigravity                          | Claude Code                                |
-| Effort       | Intelligence Low                         | Effort High                          | Effort High                                |
-| AA Index     | 42.1                                     | 52.6                                 | 53.6                                       |
-| Thinking     | —                                        | On                                   | —                                          |
-| Conversation | **New**                                  | **New**                              | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low             | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1            | 52.6               | 53.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M        | $4.00/1M*          | $6.02/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M        | $6.02/1M           | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -6776,15 +6816,25 @@ the Deployed & verified check runs through the edge with the service token
 read from the maintainer's keyring, and `staging-health.yml` probes it
 hourly.
 
-| Setting      | Cost                                   | Balanced                                   | Quality                                    |
-| ------------ | -------------------------------------- | ------------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                            | Sonnet 5.5                                 | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                  | Claude Code                                | Claude Code                                |
-| Effort       | Intelligence Medium                    | Effort XHigh                               | Effort XHigh                               |
-| AA Index     | 47.8                                   | 51.9                                       | 56                                         |
-| Thinking     | —                                      | —                                          | —                                          |
-| Conversation | **New**                                | **New**                                    | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Sonnet 5.5**     | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 47.8            | 51.9               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M        | $3.56/1M           | $8.46/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Gemini 4 Argon** | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Antigravity        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M        | $4.00/1M*          | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -7287,15 +7337,25 @@ Thinking toggle. New conversation per phase-boundary hygiene.
 TestPyPI with attestations; staging redeploys on this step's merge, as on
 every merge.
 
-| Setting      | Cost                                   | Balanced                                   | Quality                                    |
-| ------------ | -------------------------------------- | ------------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                            | Sonnet 5.5                                 | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                  | Claude Code                                | Claude Code                                |
-| Effort       | Intelligence Medium                    | Effort XHigh                               | Effort XHigh                               |
-| AA Index     | 47.8                                   | 51.9                                       | 56                                         |
-| Thinking     | —                                      | —                                          | —                                          |
-| Conversation | **New**                                | **New**                                    | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Sonnet 5.5**     | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 47.8            | 51.9               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M        | $3.56/1M           | $8.46/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Gemini 4 Argon** | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Antigravity        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M        | $4.00/1M*          | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -7709,15 +7769,25 @@ environment), the GitHub pre-release, the MCP Registry (through
 Read the Docs `main` preview (the surface guides) and staging (redeployed
 by the merge); the Deployed & verified check covers each.
 
-| Setting      | Cost                                   | Balanced                               | Quality                                    |
-| ------------ | -------------------------------------- | -------------------------------------- | ------------------------------------------ |
-| Model        | Haiku 5.5                              | Gemini 4 Argon                         | Opus 5.5                                   |
-| Backup       | GPT-6.1 Sol — Codex · Intelligence Low | Opus 5.5 — Claude Code · Effort Medium | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Claude Code                            | Antigravity                            | Claude Code                                |
-| Effort       | Effort Medium                          | Effort High                            | Effort High                                |
-| AA Index     | 34.5                                   | 52.6                                   | 53.6                                       |
-| Thinking     | —                                      | On                                     | —                                          |
-| Conversation | **New**                                | **New**                                | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Haiku 5.5**   | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 34.5            | 52.6               | 53.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $0.16/1M*       | $4.00/1M*          | $6.02/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low             | Medium             | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M        | $5.42/1M           | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -8112,15 +8182,25 @@ hygiene.
 the required-check update and the synthetic alarms are part of the step,
 and staging redeploys on the merge as on every merge.
 
-| Setting      | Cost                                     | Balanced                             | Quality                                    |
-| ------------ | ---------------------------------------- | ------------------------------------ | ------------------------------------------ |
-| Model        | GPT-6.1 Sol                              | Gemini 4 Argon                       | Opus 5.5                                   |
-| Backup       | Sonnet 5.5 — Claude Code · Effort Medium | Opus 5.5 — Claude Code · Effort High | Gemini 4 Argon — Antigravity · Effort High |
-| Platform     | Codex                                    | Antigravity                          | Claude Code                                |
-| Effort       | Intelligence Low                         | Effort High                          | Effort High                                |
-| AA Index     | 42.1                                     | 52.6                                 | 53.6                                       |
-| Thinking     | —                                        | On                                   | —                                          |
-| Conversation | **New**                                  | **New**                              | **New**                                    |
+|                                  | Cost            | Balanced ✓         | Quality            |
+| -------------------------------- | --------------- | ------------------ | ------------------ |
+| **Pick**                         |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low             | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1            | 52.6               | 53.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M        | $4.00/1M*          | $6.02/1M           |
+| **Backup**                       |                 |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M        | $6.02/1M           | $4.00/1M*          |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
+
+**Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
