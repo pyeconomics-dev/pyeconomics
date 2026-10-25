@@ -3940,9 +3940,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 7 — Hosted Mode, API Fuzzing and Generated Clients
+## Step 7 — Hosted Mode, API Fuzzing and Generated Clients ✅
 
-**Status:** Not started
+**Status:** Complete — PR #183 (2026-10-25)
 
 > **Goal:** Make the API safe to host and prove its OpenAPI document is
 > honest. In hosted mode (`PYECONOMICS_MODE=hosted`): the data layer's
@@ -3981,6 +3981,8 @@ this phase.
 | AA Index     | 50.2                                    | 52.6                                 | 56                                         |
 | Thinking     | —                                       | On                                   | —                                          |
 | Conversation | **New**                                 | **New**                              | **New**                                    |
+
+> Ran 2026-10-24: the Balanced column's Backup, also the Quality column's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -8928,7 +8930,7 @@ workflow above maps directly to the corresponding row below.
 | 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #179 |
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
-| 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
