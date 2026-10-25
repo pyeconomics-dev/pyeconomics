@@ -91,6 +91,41 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   `method-not-allowed` (405), `host-not-allowed` (400) and `server-busy` (503).
   `pyeconomics.surfaces.problems.record` logs a problem already made, and
   `InputTooLargeError` takes the advice its message ends with.
+- Hosted mode for the REST API (ADR-0012 decisions 10 to 12 and 20). A series
+  or a bound run on a source not classed hosted-safe or user-supplied answers
+  `403 licence-refused` naming the class and the terms page, and the source is
+  never asked; a concept's refusal now carries its first candidate's terms page.
+  Per-client rate limits (`pyeconomics.server.limits`, with the `limits`
+  library: runs 60, series 30 and other routes 120 a minute, by client address,
+  an IPv6 address by its /64) answer `429 too-many-requests` with `Retry-After`;
+  their counts live in Redis at `PYECONOMICS_RATELIMIT_URL` (TLS required for a
+  remote host) or in memory, and an unreachable Redis refuses runs and series
+  with `503 limits-unavailable`. With `PYECONOMICS_EDGE_CREDENTIAL` set, every
+  route but `/healthz` and `/version` requires the `X-Pyeconomics-Edge` header
+  to match it (`403 edge-required`), and only then is `CF-Connecting-IP` read
+  (`pyeconomics.server.edge`). A body above 1 MiB (413) and a run past its
+  budget (422) each name the command that runs it locally.
+- `GET` runs are cached in memory and answered with `ETag: W/"<result_sha256>"`,
+  `Cache-Control` (a day for a run that reads no data, five minutes for a bound
+  run whose data may be stored, `no-store` otherwise) and `304 Not Modified` for
+  a matching `If-None-Match` (`pyeconomics.server.run_cache`); `POST` runs and
+  problems are `no-store` and never cached. `ServerSettings` gains
+  `rate_limits`, `cache_entries` and `cache_bytes`.
+- A `disabled_providers` setting (`PYECONOMICS_DISABLED_PROVIDERS`, a list in
+  `pyeconomics.toml`, or `configure(disabled_providers=...)`) that turns a
+  failing source off without a release (#162): the provider is refused before
+  any cache read or request with the new `SourceDisabledError`
+  (`source-disabled`, 503, exit code 7), the resolver passes over it as
+  `disabled`, `sources()` reports it, and `pyeconomics data sources` marks it.
+- Three more rows in the error table: `edge-required` (403),
+  `too-many-requests` (429) and `limits-unavailable` (503).
+- Generated API clients, as CI artifacts (ADR-0012 decision 18): the TypeScript
+  client from `openapi.json` with `@hey-api/openapi-ts` in the new `tools/node`
+  workspace, type-checked, and the Python client with `openapi-python-client`,
+  each called against a local server in a new `clients` job; Schemathesis runs
+  against `openapi.json` in local and hosted modes in a new `api-fuzz` job. The
+  OpenAPI document declares the `If-None-Match` header, the `304` answer and the
+  cache headers of a run, and `Source.disabled`.
 
 ### Fixed
 
@@ -119,6 +154,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   click and h11, each pure Python under the licence allowlist (ADR-0004). `all`
   includes them. `import pyeconomics` loads none of them, and a worker process
   loads no web framework.
+- The `server` extra (and `all`) adds `limits[redis]>=5.8`, with `deprecated`,
+  `wrapt` and `redis` (below 8, as `limits` requires), each pure Python under
+  the licence allowlist.
+- `budget-exceeded`'s detail gives the local command
+  (`pyeconomics models run <id> --inputs FILE`).
 
 ## [1.0.0a2] - 2026-10-22
 

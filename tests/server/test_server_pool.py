@@ -252,7 +252,11 @@ def test_the_app_answers_a_budget_kill_and_a_full_queue(
     assert refused.status_code == 503
     assert problem(refused)["type"].endswith("/server-busy")
     assert stopped.status_code == 422
-    assert problem(stopped)["type"].endswith("/budget-exceeded")
+    stopped_problem = problem(stopped)
+    assert stopped_problem["type"].endswith("/budget-exceeded")
+    assert stopped_problem["detail"].endswith(
+        "run it locally: pyeconomics models run foundations.toy_nap --inputs FILE"
+    )
     assert served.status_code == 200
 
 

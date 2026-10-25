@@ -7,7 +7,9 @@ The app builds a :class:`Task` from a request and hands it to the pool
 (:mod:`~pyeconomics.server.pool`). :func:`execute` runs it, in a worker process
 or, with no workers, in a thread of the app, and returns an :class:`Outcome`:
 the response body's bytes, or the problem the error became
-(:func:`~pyeconomics.surfaces.problems.problem_for`). A run goes through
+(:func:`~pyeconomics.surfaces.problems.problem_for`); a run's outcome also
+carries its entity tag and the ``Cache-Control`` its data allows
+(:mod:`~pyeconomics.server.run_cache`). A run goes through
 :func:`~pyeconomics.surfaces.invoke.invoke` and nothing else; a series through
 :func:`pyeconomics.data.get`. Either is then rendered in the task's format
 (:mod:`~pyeconomics.server.formats`).
@@ -41,10 +43,13 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 from pyeconomics.core.binding import DEFAULT_PROFILE
 from pyeconomics.core.canonical import canonical_json
 from pyeconomics.server import formats
+from pyeconomics.server.run_cache import BOUND_CONTROL, DATA_FREE_CONTROL, NO_STORE
 from pyeconomics.surfaces.problems import FieldError, Problem, problem_for
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    from pyeconomics.core.results import Result
 
 __all__ = [
     "SERIES_OPTIONS",
@@ -100,11 +105,17 @@ class Task:
 
 @dataclass(frozen=True, slots=True)
 class Outcome:
-    """What a task produced: a body, or a problem and the error's type name."""
+    """What a task produced: a body, or a problem and the error's type name.
+
+    A run's body comes with its entity tag (``W/"<result_sha256>"``) and the
+    ``Cache-Control`` its data allows; a series' and a problem's leave them empty.
+    """
 
     body: bytes = b""
     problem: Problem | None = None
     error_name: str = ""
+    etag: str = ""
+    control: str = ""
 
     @classmethod
     def failed(cls, error: BaseException) -> Outcome:
@@ -112,7 +123,37 @@ class Outcome:
         return cls(problem=problem_for(error), error_name=type(error).__qualname__)
 
 
-def _run(task: Task) -> bytes:
+def _control(result: Result[Any, Any]) -> str:
+    """Return the ``Cache-Control`` a run's data allows.
+
+    A run that read no data may be reused for a day. A bound run may be reused
+    for five minutes when every record is hosted-safe and its provider's terms
+    allow storage; anything else (FRED in local mode, an override, a provider
+    no longer installed) is stored nowhere.
+    """
+    records = result.manifest.data_sources
+    if not records:
+        return DATA_FREE_CONTROL
+    from pyeconomics.core.provenance import LicenceClass  # noqa: PLC0415
+    from pyeconomics.data import registry  # noqa: PLC0415 - loaded by the bind
+    from pyeconomics.data.cache.policy import may_store  # noqa: PLC0415
+    from pyeconomics.data.errors import ProviderNotFoundError  # noqa: PLC0415
+
+    providers = registry.installed()
+    for record in records:
+        if record.licence is not LicenceClass.HOSTED_SAFE:
+            return NO_STORE
+        try:
+            terms = providers.provider_class(record.provider).info.terms
+        except ProviderNotFoundError:
+            return NO_STORE
+        if not may_store(terms):
+            return NO_STORE
+    return BOUND_CONTROL
+
+
+def _run(task: Task) -> tuple[bytes, str, str]:
+    from pyeconomics.surfaces.envelope import etag  # noqa: PLC0415
     from pyeconomics.surfaces.invoke import BindRequest, invoke  # noqa: PLC0415
 
     request = None
@@ -126,7 +167,8 @@ def _run(task: Task) -> bytes:
             parameters=values.get("parameters") or {},
         )
     result = invoke(task.target, task.payload, bind=request)
-    return formats.render_result(result, task.export_format, request)
+    body = formats.render_result(result, task.export_format, request)
+    return body, etag(result), _control(result)
 
 
 def _series(task: Task) -> bytes:
@@ -151,10 +193,12 @@ def _series(task: Task) -> bytes:
 def execute(task: Task) -> Outcome:
     """Run a task and render its body; any error becomes the outcome's problem."""
     try:
-        body = _run(task) if task.kind == "run" else _series(task)
+        if task.kind == "run":
+            body, tag, control = _run(task)
+            return Outcome(body=body, etag=tag, control=control)
+        return Outcome(body=_series(task))
     except Exception as error:  # noqa: BLE001 - every failure becomes a problem
         return Outcome.failed(error)
-    return Outcome(body=body)
 
 
 # --- the messages between the app and a worker ---------------------------------
@@ -189,7 +233,12 @@ def decode_task(header: bytes, payload: bytes) -> Task:
 def encode_outcome(outcome: Outcome) -> tuple[bytes, bytes]:
     """Return an outcome as its two frames: a JSON header and the body's bytes."""
     problem = outcome.problem
-    header: dict[str, object] = {"error": outcome.error_name, "problem": None}
+    header: dict[str, object] = {
+        "control": outcome.control,
+        "error": outcome.error_name,
+        "etag": outcome.etag,
+        "problem": None,
+    }
     if problem is not None:
         header["problem"] = {
             "slug": problem.slug,
@@ -210,7 +259,7 @@ def decode_outcome(header: bytes, body: bytes) -> Outcome:
     values = json.loads(header)
     sent = values["problem"]
     if sent is None:
-        return Outcome(body=body)
+        return Outcome(body=body, etag=values["etag"], control=values["control"])
     problem = Problem(
         slug=sent["slug"],
         title=sent["title"],

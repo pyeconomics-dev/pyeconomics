@@ -1,7 +1,7 @@
 # src/pyeconomics/surfaces/service.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""What a served surface refuses: routes, methods, hosts and a full queue.
+"""What a served surface refuses: routes, methods, hosts, floods and a full queue.
 
 The REST API (Phase 4 Step 6) and the MCP server's HTTP app answer requests, and
 some failures belong to serving rather than to a model or the data. Each is an
@@ -13,7 +13,13 @@ gives it a row and every surface reports it as the same problem:
 - :class:`HostNotAllowedError`: a local server, which answers only requests
   addressed to a loopback name, received one addressed elsewhere (400), the
   defence against DNS rebinding;
-- :class:`ServerBusyError`: every worker is busy and the queue is full (503).
+- :class:`ServerBusyError`: every worker is busy and the queue is full (503);
+- :class:`EdgeRefusedError`: a hosted server that trusts only its edge received a
+  request without the edge's credential (403), with fixed text;
+- :class:`TooManyRequestsError`: the client reached one of its rate limits
+  (429), saying when to retry;
+- :class:`LimitsUnavailableError`: the limits' storage cannot be reached, so a
+  run or a series is refused rather than served unlimited (503).
 
 :func:`is_loopback` says whether a host names this machine's loopback
 interface: ``pyeconomics serve`` refuses to bind any other without
@@ -33,6 +39,7 @@ Examples
 from __future__ import annotations
 
 import ipaddress
+import math
 from typing import TYPE_CHECKING, Final
 
 from pyeconomics.core.errors import PyeconomicsError
@@ -42,10 +49,13 @@ if TYPE_CHECKING:
 
 __all__ = [
     "LOOPBACK_NAMES",
+    "EdgeRefusedError",
     "HostNotAllowedError",
+    "LimitsUnavailableError",
     "MethodNotAllowedError",
     "RouteNotFoundError",
     "ServerBusyError",
+    "TooManyRequestsError",
     "host_name",
     "is_loopback",
 ]
@@ -156,3 +166,63 @@ class ServerBusyError(PyeconomicsError):
             "try again shortly"
         )
         self.queued = queued
+
+
+class EdgeRefusedError(PyeconomicsError):
+    """A request reached a server that trusts only its edge, without the credential.
+
+    A hosted server configured with an edge credential answers its API only for
+    requests its edge forwarded; the text is fixed, so it says nothing about
+    what was sent or expected.
+
+    Examples
+    --------
+    >>> print(EdgeRefusedError())
+    this API answers only requests that come through its edge
+    """
+
+    def __init__(self) -> None:
+        super().__init__("this API answers only requests that come through its edge")
+
+
+class TooManyRequestsError(PyeconomicsError):
+    """A client reached one of its rate limits.
+
+    Parameters
+    ----------
+    limit
+        The limit, such as ``60 per 1 minute``.
+    retry_after
+        The seconds until the limit takes a request again.
+
+    Examples
+    --------
+    >>> error = TooManyRequestsError("60 per 1 minute", 12.2)
+    >>> print(error)
+    this client reached its limit of 60 per 1 minute; try again in 13 s
+    >>> error.retry_after
+    12.2
+    """
+
+    def __init__(self, limit: str, retry_after: float) -> None:
+        super().__init__(
+            f"this client reached its limit of {limit}; "
+            f"try again in {math.ceil(retry_after)} s"
+        )
+        self.limit = limit
+        self.retry_after = retry_after
+
+
+class LimitsUnavailableError(PyeconomicsError):
+    """The rate limits' storage cannot be reached, so a costly request is refused.
+
+    Examples
+    --------
+    >>> print(LimitsUnavailableError())
+    the server cannot check its rate limits just now; try again shortly
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "the server cannot check its rate limits just now; try again shortly"
+        )

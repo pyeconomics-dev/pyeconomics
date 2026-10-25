@@ -105,6 +105,7 @@ from pyeconomics.data.errors import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    SourceDisabledError,
     TransportError,
 )
 from pyeconomics.data.modes import Mode, current_mode, require_allowed
@@ -203,6 +204,7 @@ __all__ = [
     "SeriesNotFoundError",
     "Settings",
     "Skip",
+    "SourceDisabledError",
     "SourceInfo",
     "Table",
     "TableMeta",

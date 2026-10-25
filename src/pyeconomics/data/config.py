@@ -11,8 +11,9 @@ one before it, key by key:
    ``platformdirs.user_config_dir("pyeconomics")``);
 2. ``pyeconomics.toml`` in the working directory;
 3. the environment: ``PYECONOMICS_MODE``, ``PYECONOMICS_OFFLINE``,
-   ``PYECONOMICS_CACHE_DIR``, ``PYECONOMICS_SEC_CONTACT`` and
-   ``PYECONOMICS_TTL_<PROVIDER>``.
+   ``PYECONOMICS_CACHE_DIR``, ``PYECONOMICS_SEC_CONTACT``,
+   ``PYECONOMICS_DISABLED_PROVIDERS`` (provider ids separated by commas or
+   spaces) and ``PYECONOMICS_TTL_<PROVIDER>``.
 
 :func:`configure` then sets process-wide overrides on top, and
 :func:`settings` returns the result as a frozen :class:`Settings`.
@@ -22,7 +23,13 @@ The files hold settings only. Any key named like a credential (``key``,
 :class:`~pyeconomics.data.errors.ConfigError` naming the key, never its
 value; keys belong to the key chain
 (:mod:`pyeconomics.data.credentials`). No message names a path or repeats a
-value: an error says which layer and which setting.
+value: an error says which layer and which setting. The one exception is
+``PYECONOMICS_EDGE_CREDENTIAL``, the hosted server's own secret, which
+:mod:`pyeconomics.server.edge` reads and these settings ignore.
+
+``disabled_providers`` turns sources off (issue #162): each named provider is
+refused before any cache read or request, and a concept fails over to its next
+candidate, so rolling a failing source back is a setting, not a release.
 
 The SEC contact (``sec_contact``) is personal data. EDGAR's User-Agent
 carries it (Phase 3 Step 7), and nothing else: it is held as a pydantic
@@ -36,7 +43,9 @@ to :func:`settings`; :func:`reset` forgets them and every override.
 Examples
 --------
 >>> Settings(offline=True, ttl={"bls": 3600})
-Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600})
+Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600}, disabled_providers=())
+>>> Settings(disabled_providers=["fred", "bls", "fred"]).disabled_providers
+('bls', 'fred')
 
 """  # noqa: E501 - doctest representation cannot wrap
 
@@ -66,7 +75,7 @@ from pyeconomics.data import redaction
 from pyeconomics.data.errors import ConfigError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable, Mapping, Sequence
 
 __all__ = [
     "APP_NAME",
@@ -137,6 +146,9 @@ class Settings(BaseModel):
     ttl
         A time-to-live in seconds per provider id, overriding the provider's
         own for what the cache keeps.
+    disabled_providers
+        Provider ids turned off: each is refused before any cache read or
+        request, and the resolver passes over it. Sorted, each once.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
@@ -150,6 +162,7 @@ class Settings(BaseModel):
     ttl: dict[str, Annotated[StrictInt, Field(ge=0, le=MAX_TTL_SECONDS)]] = Field(
         default_factory=dict
     )
+    disabled_providers: tuple[str, ...] = ()
 
     @field_validator("cache_dir", mode="before")
     @classmethod
@@ -191,6 +204,23 @@ class Settings(BaseModel):
             except InputError as error:
                 raise ValueError(str(error)) from None
         return value
+
+    @field_validator("disabled_providers", mode="before")
+    @classmethod
+    def _disabled(cls, value: object) -> object:
+        if isinstance(value, str) or not isinstance(value, list | tuple | frozenset):
+            msg = "must be a list of provider ids"
+            raise ValueError(msg)  # noqa: TRY004 - pydantic reports a ValueError
+        names: set[str] = set()
+        for name in value:
+            if not isinstance(name, str):
+                msg = "must be a list of provider ids"
+                raise ValueError(msg)  # noqa: TRY004 - pydantic reports a ValueError
+            try:
+                names.add(identifier(name, "each provider id in disabled_providers"))
+            except InputError as error:
+                raise ValueError(str(error)) from None
+        return tuple(sorted(names))
 
 
 def config_dir() -> Path:
@@ -316,15 +346,24 @@ def _seconds(name: str, value: str) -> int:
     return int(value)
 
 
+def _names(_name: str, value: str) -> list[str]:
+    return value.replace(",", " ").split()
+
+
 # Each PYECONOMICS_* setting and how its text becomes a value. CONFIG_DIR
 # locates the files instead; other PYECONOMICS_* variables belong to the test
-# suite and tools, not to these settings.
+# suite, the server and tools, not to these settings.
 _ENVIRONMENT: Final[dict[str, tuple[str, Callable[[str, str], object]]]] = {
     "MODE": ("mode", lambda _name, value: value.lower()),
     "OFFLINE": ("offline", _flag),
     "CACHE_DIR": ("cache_dir", lambda _name, value: value),
     "SEC_CONTACT": ("sec_contact", lambda _name, value: value),
+    "DISABLED_PROVIDERS": ("disabled_providers", _names),
 }
+# The hosted server's own secrets, named like credentials on purpose: the server
+# reads them (pyeconomics.server.edge), and these settings neither read nor
+# refuse them. A provider's key never takes this prefix.
+_SERVER_SECRETS: Final = frozenset({"EDGE_CREDENTIAL"})
 
 
 def _environment_layer() -> dict[str, object]:
@@ -335,6 +374,8 @@ def _environment_layer() -> dict[str, object]:
         if not name.startswith(ENV_PREFIX):
             continue
         setting = name.removeprefix(ENV_PREFIX)
+        if setting in _SERVER_SECRETS:
+            continue
         if _CREDENTIAL_NAME.search(setting):
             msg = (
                 f"the environment variable {name} is named like a credential; "
@@ -435,6 +476,7 @@ def configure(
     mode: Literal["library", "hosted"] | None = None,
     offline: bool | None = None,
     enable_yfinance: bool | None = None,
+    disabled_providers: Sequence[str] | None = None,
 ) -> Settings:
     """Override settings for the rest of the process, and return the result.
 
@@ -450,6 +492,11 @@ def configure(
         ``"library"`` or ``"hosted"``; ``None`` leaves it as it is.
     offline
         Whether to serve only cached data; ``None`` leaves it as it is.
+    enable_yfinance
+        The yfinance personal-use opt-in; ``None`` leaves it as it is.
+    disabled_providers
+        The provider ids to turn off, replacing the configured list (``()``
+        turns none off); ``None`` leaves it as it is.
 
     Raises
     ------
@@ -462,12 +509,14 @@ def configure(
             ("mode", mode),
             ("offline", offline),
             ("enable_yfinance", enable_yfinance),
+            ("disabled_providers", disabled_providers),
         )
         if value is not None
     }
-    _validate(update, "configure()")
+    checked = _validate(update, "configure()")
     with _LOCK:
-        _OVERRIDES.update(update)
+        # The validated values: model_copy, which applies them, validates nothing.
+        _OVERRIDES.update({name: getattr(checked, name) for name in update})
     return settings()
 
 

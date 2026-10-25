@@ -36,6 +36,14 @@ as one scrubbed record, and each request as one line naming its route's template
 addressed to a loopback name unless ``allow_remote`` is set, which keeps a web
 page that rebinds its domain to 127.0.0.1 from reading the answers.
 
+Hosted mode adds what a public service needs (ADR-0012 decisions 10-12 and 20),
+in the outermost layer, before a route runs: the edge's credential when one is
+configured (:mod:`~pyeconomics.server.edge`), and each client's rate limits
+(:mod:`~pyeconomics.server.limits`). In either mode a run's ``GET`` form is
+cached in memory and answered with an entity tag, ``304`` for a matching
+``If-None-Match`` and ``Cache-Control`` (:mod:`~pyeconomics.server.run_cache`);
+a ``POST`` run and every problem are ``no-store``.
+
 Examples
 --------
 >>> app = create_app(settings=ServerSettings(workers=0))
@@ -68,7 +76,16 @@ from pyeconomics.core.canonical import canonical_json
 from pyeconomics.core.errors import InputError, PyeconomicsError
 from pyeconomics.core.spec import CostClass
 from pyeconomics.server import formats, logs, openapi
+from pyeconomics.server.edge import Edge, client_key
+from pyeconomics.server.limits import Limiter, route_kind
 from pyeconomics.server.pool import Pool, make_pool
+from pyeconomics.server.run_cache import (
+    NO_STORE,
+    Entry,
+    RunCache,
+    etag_matches,
+    run_key,
+)
 from pyeconomics.server.settings import (
     MODES,
     ServerMode,
@@ -76,11 +93,16 @@ from pyeconomics.server.settings import (
     budgets_for,
     data_mode,
     git_sha,
+    limits_for,
     worker_count,
 )
-from pyeconomics.server.work import SERIES_OPTIONS, Task
+from pyeconomics.server.work import SERIES_OPTIONS, Outcome, Task
 from pyeconomics.surfaces import codec, listing
-from pyeconomics.surfaces.budgets import GET_INPUTS_LIMIT, HOSTED_BODY_LIMIT
+from pyeconomics.surfaces.budgets import (
+    GET_INPUTS_LIMIT,
+    HOSTED_BODY_LIMIT,
+    local_command,
+)
 from pyeconomics.surfaces.invoke import BindRequest
 from pyeconomics.surfaces.problems import Problem, record, report
 from pyeconomics.surfaces.service import (
@@ -110,20 +132,22 @@ _RUN_QUERY: Final = frozenset(
 )
 _REPEATED: Final = frozenset({"concept", "param"})
 _SEARCH_LIMIT: Final = 20
-_BUSY_RETRY: Final = "1"
+#: The Retry-After of a problem that knows no wait of its own, in seconds.
+_RETRY: Final = {"server-busy": "1", "limits-unavailable": "5"}
 
 
 def problem_response(problem: Problem) -> Response:
     """Return a problem as an ``application/problem+json`` response.
 
-    A busy server and an upstream rate limit that said how long to wait add
-    ``Retry-After``.
+    It is never cached (``Cache-Control: no-store``). A rate limit that knows
+    how long to wait, the client's own or an upstream source's, a busy server
+    and an unreachable limiter add ``Retry-After``.
     """
-    headers: dict[str, str] = {}
+    headers = {"Cache-Control": NO_STORE}
     if problem.retry_after is not None:
         headers["Retry-After"] = str(math.ceil(problem.retry_after))
-    elif problem.slug == "server-busy":
-        headers["Retry-After"] = _BUSY_RETRY
+    elif problem.slug in _RETRY:
+        headers["Retry-After"] = _RETRY[problem.slug]
     return Response(
         problem.to_json(),
         status_code=problem.status,
@@ -136,7 +160,7 @@ def problem_response(problem: Problem) -> Response:
 
 
 class _Service:
-    """A server's mode, settings, worker pool and cached documents."""
+    """A server's mode, settings, pool, edge, limits and caches."""
 
     def __init__(self, mode: ServerMode, settings: ServerSettings) -> None:
         self.mode = mode
@@ -147,12 +171,13 @@ class _Service:
         self.pool: Pool | None = None
         self.documents: dict[str, bytes] = {}
         hosted = mode == "hosted"
-        self.body_limit = HOSTED_BODY_LIMIT if hosted else codec.MAX_INPUT_BYTES
-        self.too_large = (
-            "run large inputs locally"
-            if hosted
-            else "pass larger inputs to the Python API"
+        # Only the hosted service sits behind an edge; local mode checks Host.
+        self.edge = Edge.from_environment() if hosted else Edge(None)
+        self.limiter = Limiter.for_mode(limits_for(mode, settings), hosted=hosted)
+        self.cache = RunCache(
+            max_entries=settings.cache_entries, max_bytes=settings.cache_bytes
         )
+        self.body_limit = HOSTED_BODY_LIMIT if hosted else codec.MAX_INPUT_BYTES
 
     def start(self) -> None:
         """Configure the data layer once, then start the worker pool."""
@@ -180,24 +205,81 @@ class _Service:
             return None
         return self.budgets.get(cost or CostClass.HEAVY)
 
-    async def answer(self, task: Task, name: str) -> Response:
-        """Run a task in the pool and answer its body, or its problem."""
+    async def outcome(self, task: Task) -> Outcome:
+        """Run a task in the pool, logging the problem it became, if any."""
         if self.pool is None:
             msg = "the server's worker pool is not running"
             raise RuntimeError(msg)
         outcome = await self.pool.submit(task)
         if outcome.problem is not None:
             record(outcome.problem, outcome.error_name, logger=_LOGGER)
+        return outcome
+
+    async def answer(self, task: Task, name: str) -> Response:
+        """Run a task in the pool and answer its body, or its problem.
+
+        A run answered this way (a ``POST`` run) is ``no-store``.
+        """
+        outcome = await self.outcome(task)
+        if outcome.problem is not None:
             return problem_response(outcome.problem)
         headers: dict[str, str] = {}
         disposition = formats.disposition(task.export_format, name)
         if disposition is not None:
             headers["Content-Disposition"] = disposition
+        if task.kind == "run":
+            headers["Cache-Control"] = NO_STORE
         return Response(
             outcome.body,
             media_type=formats.MEDIA_TYPES[task.export_format],
             headers=headers,
         )
+
+    async def answer_cached(
+        self, task: Task, model: Model[Any, Any], if_none_match: str | None
+    ) -> Response:
+        """Answer a ``GET`` run from the cache, or run it and keep what may be kept."""
+        key = _cache_key(task, model)
+        entry = None if key is None else self.cache.get(key)
+        if entry is not None:
+            return self._cached_response(entry, if_none_match, hit=True)
+        outcome = await self.outcome(task)
+        if outcome.problem is not None:
+            return problem_response(outcome.problem)
+        entry = Entry(
+            body=outcome.body,
+            media_type=formats.MEDIA_TYPES[task.export_format],
+            disposition=formats.disposition(task.export_format, model.id),
+            etag=outcome.etag,
+            control=outcome.control or NO_STORE,
+            stored=self.cache.now(),
+        )
+        if key is not None and entry.etag and entry.control != NO_STORE:
+            self.cache.put(key, entry)
+        return self._cached_response(entry, if_none_match, hit=False)
+
+    def _cached_response(
+        self, entry: Entry, if_none_match: str | None, *, hit: bool
+    ) -> Response:
+        headers = {"Cache-Control": entry.control}
+        if entry.etag:
+            headers["ETag"] = entry.etag
+        if hit:
+            headers["Age"] = str(self.cache.age(entry))
+        if entry.etag and etag_matches(if_none_match, entry.etag):
+            return Response(status_code=304, headers=headers)
+        if entry.disposition is not None:
+            headers["Content-Disposition"] = entry.disposition
+        return Response(entry.body, media_type=entry.media_type, headers=headers)
+
+
+def _cache_key(task: Task, model: Model[Any, Any]) -> str | None:
+    """Return a ``GET`` run's cache key; ``None`` for inputs that do not decode."""
+    try:
+        inputs = codec.decode(task.payload, limit=codec.MAX_INPUT_BYTES)
+    except InputError:
+        return None  # the run answers the problem, which is never cached
+    return run_key(model.id, model.version, inputs, task.bind, task.export_format)
 
 
 class _Query:
@@ -282,18 +364,31 @@ def _get_inputs(text: str | None) -> bytes | None:
     return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
 
 
-async def _body(request: Request, service: _Service) -> bytes | None:
+def _too_large(service: _Service, model: Model[Any, Any]) -> str:
+    """Say what to do with inputs above the body limit: the local command."""
+    if service.mode == "hosted":
+        return f"run large inputs locally: {local_command(model.id)}"
+    return "pass larger inputs to the Python API"
+
+
+async def _body(
+    request: Request, service: _Service, model: Model[Any, Any]
+) -> bytes | None:
     """Read the body up to the mode's limit, refusing it before going past."""
     limit = service.body_limit
     declared = request.headers.get("content-length", "")
     if declared.isdigit() and int(declared) > limit:
-        raise codec.InputTooLargeError(int(declared), limit, advice=service.too_large)
+        raise codec.InputTooLargeError(
+            int(declared), limit, advice=_too_large(service, model)
+        )
     chunks: list[bytes] = []
     size = 0
     async for chunk in request.stream():
         size += len(chunk)
         if size > limit:
-            raise codec.InputTooLargeError(size, limit, advice=service.too_large)
+            raise codec.InputTooLargeError(
+                size, limit, advice=_too_large(service, model)
+            )
         chunks.append(chunk)
     return b"".join(chunks) or None
 
@@ -328,7 +423,7 @@ async def _run(
     export_format = formats.choose(query.one("format"), formats.RUN_FORMATS)
     bind = _bind(query)
     if method == "POST":
-        payload = await _body(request, service)
+        payload = await _body(request, service, model)
     else:
         payload = _get_inputs(query.one("inputs"))
     task = Task(
@@ -339,7 +434,11 @@ async def _run(
         payload=payload,
         budget=service.budget(model.spec.cost),
     )
-    return await service.answer(task, model.id)
+    if method == "POST":
+        return await service.answer(task, model.id)
+    return await service.answer_cached(
+        task, model, request.headers.get("if-none-match")
+    )
 
 
 def _add_runs(app: FastAPI, service: _Service, model: Model[Any, Any]) -> None:
@@ -625,16 +724,20 @@ async def _validation_error(_request: Request, error: Exception) -> Response:
 
 
 class _Guard:
-    """The outermost layer: the host check, one access line, and a last resort.
+    """The outermost layer: host, edge and limits, one access line, a last resort.
 
-    An exception that reaches it (anything not a ``PyeconomicsError``) answers
-    the ``internal-error`` problem with fixed text and is not raised further, so
-    no server logs its traceback.
+    Before a route runs, a local server checks the ``Host`` header, a hosted one
+    with an edge credential checks it (which also decides the client address),
+    and a server with limits counts the request against its client's. An
+    exception that reaches it (anything not a ``PyeconomicsError``) answers the
+    ``internal-error`` problem with fixed text and is not raised further, so no
+    server logs its traceback.
     """
 
-    def __init__(self, app: ASGIApp, *, check_host: bool) -> None:
+    def __init__(self, app: ASGIApp, *, check_host: bool, service: _Service) -> None:
         self.app = app
         self.check_host = check_host
+        self.service = service
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -656,6 +759,10 @@ class _Guard:
                 host_name(Headers(scope=scope).get("host", ""))
             ):
                 raise HostNotAllowedError  # noqa: TRY301 - answered just below
+            client = self.service.edge.check(scope)
+            limiter = self.service.limiter
+            if limiter is not None:
+                await limiter.check(route_kind(scope["path"]), client_key(client))
             await self.app(scope, receive, tracked)
         except Exception as error:  # noqa: BLE001 - every failure becomes a problem
             if not sent:
@@ -694,7 +801,9 @@ def create_app(
     InputError
         For a mode that is not one of the two.
     ConfigError
-        If ``PYECONOMICS_WORKERS`` is not a whole number.
+        If ``PYECONOMICS_WORKERS`` is not a whole number, or, in hosted mode,
+        ``PYECONOMICS_EDGE_CREDENTIAL`` is too short or
+        ``PYECONOMICS_RATELIMIT_URL`` is not a TLS Redis URL.
     """
     if mode not in MODES:
         msg = f"mode is one of {', '.join(MODES)}, not {mode!r}"
@@ -722,6 +831,7 @@ def create_app(
     app.add_middleware(
         _Guard,
         check_host=mode == "local" and not service.settings.allow_remote,
+        service=service,
     )
     app.add_exception_handler(PyeconomicsError, _pyeconomics_error)
     app.add_exception_handler(HTTPException, _http_error)

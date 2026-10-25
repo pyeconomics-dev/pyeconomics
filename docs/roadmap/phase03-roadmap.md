@@ -12686,6 +12686,17 @@ forward whatever is still open here.
     every query since May 2026. An entry-point module's `__all__` lists
     provider classes only.
 
+
+## Post-merge addendum (2026-10-25) — Phase 4 changes to verify-phase03.sh
+
+- Static check 17 (Phase 4 Step 7): pytest's `addopts` now selects
+  `-m "not live and not fuzz"`, so the API fuzz (marker `fuzz`, run only by
+  ci.yml's `api-fuzz` job) is deselected by default too. The check asserted an
+  `addopts` element equal to `not live`; it now asserts that the `-m`
+  expression is `not live`, optionally followed by more `and not <marker>`
+  terms, beside `--disable-socket` and the `live` marker, the invariant it
+  protected: live tests are deselected and sockets disabled by default.
+
 ---
 
 _This roadmap is the execution plan for Phase 3. Each step's

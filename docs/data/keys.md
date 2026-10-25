@@ -157,6 +157,7 @@ bls = 86400
 | `cache_dir` | `PYECONOMICS_CACHE_DIR` | Where the cache lives, as an absolute path |
 | `sec_contact` | `PYECONOMICS_SEC_CONTACT` | The name and email address SEC EDGAR requires in each request |
 | `[ttl]` *provider* | `PYECONOMICS_TTL_<PROVIDER>` | How long the cache serves a provider's open data, in seconds; `0` turns that provider's cache off ([the cache](cache.md)) |
+| `disabled_providers` | `PYECONOMICS_DISABLED_PROVIDERS` | Providers to turn off, a list in `pyeconomics.toml` or ids separated by commas or spaces in the variable (see below) |
 | | `PYECONOMICS_CONFIG_DIR` | Where `pyeconomics.toml` and `.env` are read from |
 
 The cache directory defaults to `~/.cache/pyeconomics` on Linux,
@@ -177,7 +178,30 @@ True
 `pyeconomics.toml` holds settings only. Any key whose name suggests a
 credential (`key`, `token`, `secret`, `password`, `credential` or `auth`) is
 refused with a `ConfigError` that names the key, never its value. Keys go in
-the keyring, an environment variable or the `.env` file.
+the keyring, an environment variable or the `.env` file. The one
+`PYECONOMICS_*` variable named like a credential is the hosted server's own,
+`PYECONOMICS_EDGE_CREDENTIAL` ({doc}`../api`), which these settings ignore.
+
+## Turning a source off
+
+When a source fails or starts answering wrong values, `disabled_providers`
+turns it off without a new release: the provider is refused before any cache
+read or request (`SourceDisabledError`, the `source-disabled` problem), a
+concept passes over it to its next candidate (the skip is recorded as
+`skipped_<provider>_disabled` in the data source's warnings), and
+`pyeconomics data sources` marks it in a Disabled column.
+
+```shell
+PYECONOMICS_DISABLED_PROVIDERS="bls, fred" pyeconomics data get us.unemployment.rate
+```
+
+```python
+>>> from pyeconomics.data import configure
+>>> configure(disabled_providers=["bls"]).disabled_providers
+('bls',)
+>>> configure(disabled_providers=()).disabled_providers
+()
+```
 
 ## What is never logged or stored
 

@@ -1,6 +1,6 @@
 # .github/dependabot.yml
-# Weekly version updates for the uv lock and the workflows' actions (ROADMAP
-# §5 "Security controls by layer"). Security updates are on in the repository
+# Weekly version updates for the uv lock, the workflows' actions and the
+# tools/node workspace's npm lockfile (ROADMAP §5 "Security controls by layer"). Security updates are on in the repository
 # settings. The prefixes keep Dependabot's pull request titles Conventional
 # Commits. When a pull request changes uv.lock but not pylock.toml,
 # regenerate pylock.toml on it with
@@ -23,3 +23,15 @@ updates:
       interval: weekly
     commit-message:
       prefix: chore(ci)
+
+  # The Node tooling (Phase 4 Step 7): @hey-api/openapi-ts and typescript,
+  # which generate and type-check the CI-only TypeScript client.
+  - package-ecosystem: npm
+    directory: "/tools/node"
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore(deps)

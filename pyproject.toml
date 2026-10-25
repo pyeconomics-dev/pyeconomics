@@ -117,10 +117,12 @@ fred = "pyeconomics.data.providers.fred"
 # added only when their packages exist (Phases 5 and 6). ADR-0011 decision 11
 # adds [keyring] (Phase 3 Step 3), [sdmx] and [yfinance]; [all] includes each.
 [project.optional-dependencies]
-# The REST API (ADR-0012 decisions 9-11): FastAPI and uvicorn without its
-# [standard] extra, so the closure stays pure Python.
+# The REST API (ADR-0012 decisions 9-12): FastAPI and uvicorn without its
+# [standard] extra, so the closure stays pure Python, and limits with its Redis
+# storage for hosted mode's per-client rate limits.
 server = [
     "fastapi>=0.162",
+    "limits[redis]>=5.8",
     "uvicorn>=0.54",
 ]
 mcp = []
@@ -138,6 +140,7 @@ keyring = [
 ]
 all = [
     "fastapi>=0.162",
+    "limits[redis]>=5.8",
     "uvicorn>=0.54",
     "yfinance>=1.7",
     "sdmx1>=2.27",
@@ -159,6 +162,7 @@ test = [
     "yfinance>=1.7",
     "sdmx1>=2.27",
     "fastapi>=0.162",
+    "limits[redis]>=5.8",
     "uvicorn>=0.54",
     # httpx2: Starlette's TestClient (tests/server); Starlette 1.10 deprecates
     # httpx there.
@@ -205,6 +209,18 @@ docs = [
     "pydata-sphinx-theme>=0.23.0",
     "sphinx>=9.1.0",
     "sphinx-autoapi>=3.8.1",
+]
+# Schemathesis against openapi.json (ci.yml's api-fuzz job, Python 3.14). The
+# Wheel rule gates it: PyYAML, which it requires, has no CPython 3.15 wheel yet
+# (approved in Phase 4 Step 7; issue #182; tests/server/test_fuzz_gap.py
+# asserts the gap).
+fuzz = [
+    "schemathesis>=4.32 ; python_full_version < '3.15'",
+]
+# The Python client generator (ci.yml's clients job); it brings httpx, which the
+# generated client uses.
+clients = [
+    "openapi-python-client>=0.29",
 ]
 
 [tool.uv.build-backend]
@@ -302,6 +318,18 @@ exclude = ['^\.semgrep/tests/', '^tests/fixtures/']
 module = ["plotly.*", "quantecon.*", "statsmodels.*", "jsonschema.*", "numpy_financial.*", "xlrd.*", "xlwt.*", "yfinance.*"]
 ignore_missing_imports = true
 
+# Schemathesis is in the fuzz group, which the types job does not install: the
+# API fuzz (tests/server/test_api_fuzz.py) is checked where it is, unchecked
+# against it where it is not.
+[[tool.mypy.overrides]]
+module = ["schemathesis.*"]
+ignore_missing_imports = true
+
+# There, Schemathesis' decorator is untyped (Any).
+[[tool.mypy.overrides]]
+module = ["test_api_fuzz"]
+disallow_untyped_decorators = false
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
@@ -345,6 +373,14 @@ no-matching-overload = "ignore"
 unresolved-attribute = "ignore"
 unresolved-reference = "ignore"
 
+# tests/server/test_api_fuzz.py imports Schemathesis, from the fuzz group, which
+# the default environment does not install.
+[[tool.ty.overrides]]
+include = ["tests/server/test_api_fuzz.py"]
+
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"
+
 [tool.pytest.ini_options]
 # --import-mode=importlib imports src/pyeconomics under its own name from the
 # installed (editable) distribution, so the doctests and the tests share one
@@ -358,7 +394,7 @@ addopts = [
     "--disable-socket",
     "--benchmark-disable",
     "-m",
-    "not live",
+    "not live and not fuzz",
 ]
 testpaths = ["tests", "src", "docs"]
 # tests/providers/toys.py holds the toy data providers the provider tests share;
@@ -379,6 +415,7 @@ markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",
     "live: runs the provider contract suite against the real API (uv run pytest -m live --force-enable-socket tests/providers); deselected by default",
+    "fuzz: Schemathesis against openapi.json (ci.yml's api-fuzz job: uv run --group fuzz pytest -m fuzz tests/server/test_api_fuzz.py); deselected by default",
 ]
 xfail_strict = true
 filterwarnings = ["error"]

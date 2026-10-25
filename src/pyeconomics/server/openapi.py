@@ -268,6 +268,7 @@ def components(models: Iterable[Model[Any, Any]]) -> dict[str, dict[str, Any]]:
                     "automated_collection": {"type": "boolean"},
                     "cache": _TEXT,
                     "capabilities": _TEXTS,
+                    "disabled": {"type": "boolean"},
                     "extra": _TEXT_OR_NULL,
                     "homepage": _TEXT,
                     "hosted_allowed": {"type": "boolean"},
@@ -319,10 +320,20 @@ def _path(name: str, description: str) -> dict[str, Any]:
 
 def _problems() -> dict[str, Any]:
     problem = {
-        "description": "A problem (RFC 9457) from the error table.",
+        "description": "A problem (RFC 9457) from the error table; never cached.",
+        "headers": {
+            "Cache-Control": _header("no-store."),
+            "Retry-After": _header(
+                "Seconds to wait, on a rate limit (429 or 503) or a busy server."
+            ),
+        },
         "content": {PROBLEM_MEDIA_TYPE: {"schema": ref("Problem")}},
     }
     return {"4XX": problem, "5XX": copy.deepcopy(problem)}
+
+
+def _header(description: str) -> dict[str, Any]:
+    return {"description": description, "schema": _TEXT}
 
 
 def _json(description: str, schema: dict[str, Any]) -> dict[str, Any]:
@@ -387,19 +398,26 @@ def _bind_parameters() -> list[dict[str, Any]]:
 
 
 def run_operation(model: Model[Any, Any], method: str) -> dict[str, Any]:
-    """Return a model's run operation, POST or GET, as ``openapi_extra``."""
+    """Return a model's run operation, POST or GET, as ``openapi_extra``.
+
+    The GET form is cacheable: it answers an entity tag and ``Cache-Control``,
+    and ``304`` when ``If-None-Match`` names the tag. The POST form is
+    ``no-store``.
+    """
     parameters = [_format_parameter(formats.RUN_FORMATS), *_bind_parameters()]
+    answered: dict[str, Any] = {
+        "description": "The result's canonical JSON, or a download of it.",
+        "headers": {
+            "Cache-Control": _header(
+                "no-store for a POST run, or a run whose data may not be "
+                "stored; public with a max-age otherwise."
+            ),
+        },
+        "content": _downloads(ref(f"{model.id}.result"), formats.RUN_FORMATS[1:]),
+    }
     operation: dict[str, Any] = {
         "parameters": parameters,
-        "responses": {
-            "200": {
-                "description": "The result's canonical JSON, or a download of it.",
-                "content": _downloads(
-                    ref(f"{model.id}.result"), formats.RUN_FORMATS[1:]
-                ),
-            },
-            **_problems(),
-        },
+        "responses": {"200": answered, **_problems()},
     }
     if method == "POST":
         operation["requestBody"] = {
@@ -422,6 +440,24 @@ def run_operation(model: Model[Any, Any], method: str) -> dict[str, Any]:
                 },
             ),
         )
+        parameters.append(
+            {
+                "name": "If-None-Match",
+                "in": "header",
+                "description": "Entity tags already held; a match answers 304.",
+                "schema": _TEXT,
+            }
+        )
+        answered["headers"]["ETag"] = _header(
+            'The weak entity tag W/"<result_sha256>".'
+        )
+        operation["responses"]["304"] = {
+            "description": "Not modified: the entity tag in If-None-Match matched.",
+            "headers": {
+                "ETag": _header('The weak entity tag W/"<result_sha256>".'),
+                "Cache-Control": _header("public, with a max-age."),
+            },
+        }
     return operation
 
 

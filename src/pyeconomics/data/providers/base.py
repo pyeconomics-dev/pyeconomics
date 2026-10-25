@@ -727,7 +727,8 @@ class DataProvider:
         """Check source-specific opt-in before a cache read or a request.
 
         This hook may impose an additional refusal; the final operations still
-        enforce platform, licence, offline and status checks themselves.
+        enforce the ``disabled_providers`` switch, platform, licence, offline
+        and status checks themselves, so an override cannot bypass them.
         """
 
     def build_requests(self, query: Query) -> Sequence[Request]:
@@ -1165,11 +1166,14 @@ class DataProvider:
     def _gate(self, operation: Capability) -> None:
         """Refuse what the provider cannot do here, before anything is requested.
 
-        That is an operation it lacks, a platform it does not run on, a source
-        hosted mode may not serve and, for any operation but a fetch (which the
-        cache answers or refuses), offline mode, which sends no request.
+        That is a provider the ``disabled_providers`` setting turns off, an
+        operation it lacks, a platform it does not run on, a source hosted mode
+        may not serve, its own configuration check and, for any operation but a
+        fetch (which the cache answers or refuses), offline mode, which sends no
+        request. A fetch's cache lookup comes after this gate.
         """
         info = self.info
+        modes.require_enabled(provider=info.id)
         if operation not in info.capabilities:
             msg = f"{info.id} does not support {operation.value}"
             raise DataError(msg, provider=info.id)

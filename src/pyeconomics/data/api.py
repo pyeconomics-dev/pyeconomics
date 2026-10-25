@@ -52,7 +52,7 @@ from pyeconomics.data import registry as provider_registry
 from pyeconomics.data.catalog.definitions import Candidate, Concept, Derived, Tier
 from pyeconomics.data.credentials import has_key
 from pyeconomics.data.errors import DataError, ProviderNotFoundError
-from pyeconomics.data.modes import Mode, current_mode, require_allowed
+from pyeconomics.data.modes import Mode, current_mode, is_disabled, require_allowed
 from pyeconomics.data.providers.base import (
     SERIES_ID_PATTERN,
     AuthKind,
@@ -124,6 +124,8 @@ class SourceInfo:
     platforms: tuple[str, ...]
     automated_collection: bool
     never_paid: bool
+    disabled: bool = False
+    """Whether the ``disabled_providers`` setting turns the provider off."""
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -217,6 +219,7 @@ def _info(info: ProviderInfo, *, check_keys: bool = True) -> SourceInfo:
         platforms=tuple(p.value for p in info.platforms),
         automated_collection=info.automated_collection,
         never_paid=info.never_paid,
+        disabled=is_disabled(info.id),
     )
 
 
@@ -496,7 +499,7 @@ def _vintage_provider(
         except ProviderNotFoundError:
             continue
         info = chosen.info
-        if Capability.VINTAGES not in info.capabilities:
+        if Capability.VINTAGES not in info.capabilities or is_disabled(info.id):
             continue
         if mode is Mode.HOSTED and not info.terms.licence.hosted_allowed:
             continue
@@ -639,6 +642,19 @@ def search(  # noqa: PLR0913 - the public contract's independent options
     return SearchResult(tuple(hits[:limit]), tuple(skipped))
 
 
+def _search_refusal(info: ProviderInfo, mode: Mode) -> str | None:
+    """Say why a provider is not asked to search, or ``None`` when it is."""
+    if Capability.SEARCH not in info.capabilities:
+        return "does not search"
+    if is_disabled(info.id):
+        return "disabled by the disabled_providers setting"
+    if mode is Mode.HOSTED and not info.terms.licence.hosted_allowed:
+        return f"{info.terms.licence.value}: hosted mode refuses it"
+    if _needs_key(info):
+        return f"no key: set {info.key_variable}"
+    return None
+
+
 def _ask(  # noqa: PLR0913, PLR0917 - one provider's search with its gates
     registry: ProviderRegistry,
     provider_id: str,
@@ -652,13 +668,9 @@ def _ask(  # noqa: PLR0913, PLR0917 - one provider's search with its gates
         chosen = registry.get(provider_id)
     except ProviderNotFoundError:
         return "not registered"
-    info = chosen.info
-    if Capability.SEARCH not in info.capabilities:
-        return "does not search"
-    if mode is Mode.HOSTED and not info.terms.licence.hosted_allowed:
-        return f"{info.terms.licence.value}: hosted mode refuses it"
-    if _needs_key(info):
-        return f"no key: set {info.key_variable}"
+    refusal = _search_refusal(chosen.info, mode)
+    if refusal is not None:
+        return refusal
     try:
         found = chosen.search(text, limit=room, transport=transport)
     except (DataError, MissingOptionalDependencyError) as error:

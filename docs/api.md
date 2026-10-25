@@ -137,8 +137,9 @@ its value), an unknown model (404, naming close matches), a licence refusal
 (403, with the source's licence class and terms page), an upstream failure (502
 or 503, naming only the provider), an unknown route (404) or method (405, with
 `Allow`), and anything unexpected (500, with fixed text). A problem never holds
-a key, a file path, a host or an upstream URL. A busy server, and an upstream
-rate limit that said how long to wait, add `Retry-After`.
+a key, a file path, a host or an upstream URL, and is never cached
+(`Cache-Control: no-store`). A busy server, a rate limit (the client's own or
+an upstream source's) and an unreachable limiter add `Retry-After`.
 
 ## Workers and budgets
 
@@ -150,7 +151,7 @@ server-busy` with `Retry-After`.
 
 Local mode gives a run all the time it takes. Hosted mode holds each run to its
 model's cost class, and a run past its budget is stopped, its worker replaced,
-and answered `422 budget-exceeded`:
+and answered `422 budget-exceeded`, naming the command that runs it locally:
 
 | Cost class | Hosted budget |
 |------------|---------------|
@@ -203,10 +204,143 @@ assert run["requestBody"]["content"]["application/json"]["schema"] == {
 `pyeconomics serve` runs it with uvicorn. The interactive documentation, which
 loads its scripts from a CDN, is served in local mode only.
 
+## Caching
+
+A run's `GET` form is cacheable. Its answer carries a weak entity tag,
+`ETag: W/"<result_sha256>"` (the result's own hash, so two answers with the
+same inputs and outputs share it), and `Cache-Control`:
+
+| Run | `Cache-Control` |
+|-----|-----------------|
+| Reads no data | `public, max-age=86400` |
+| Bound, every data record hosted-safe under terms that allow storage | `public, max-age=300` |
+| Bound to anything else (a library-only source such as FRED, in local mode) | `no-store` |
+| Any `POST` run | `no-store` |
+| Any problem | `no-store` |
+
+A request whose `If-None-Match` names the tag is answered `304 Not Modified`
+with no body. The server also keeps answered `GET` runs in memory, least
+recently used first out (1,024 runs and 64 MiB by default,
+`ServerSettings(cache_entries=..., cache_bytes=...)`), and serves a repeat with
+an `Age` header and without running the model again. The key is the model's id
+and version, the package's version, the inputs' canonical JSON, the bind
+request and the format; a bound run's entry lives five minutes at most, since
+its data can be revised. A `POST` run, which may carry values from your own
+file, is processed in memory for that one run and never kept.
+
 ## Hosted mode
 
-`create_app(mode="hosted")` is the public service's app: the data layer in
-hosted mode, so only sources classed hosted-safe or user-supplied, every run
-held to its budget, and a body above 1 MiB refused with `input-too-large`. The
-hosted service's rate limits, caching and edge, and its container, follow in
-the 1.0 beta; `pyeconomics serve` never starts hosted mode.
+`create_app(mode="hosted")` is the public service's app (the container runs
+it; `pyeconomics serve` never does). It differs from local mode in what it
+serves, whom it trusts and what a request may cost.
+
+**Only hosted-safe data.** The data layer runs in hosted mode, so a series or a
+bound run on a source whose licence class is not `hosted-safe` or
+`user-supplied` is refused before any request is made, with `403
+licence-refused` naming the class in `licence` and the source's terms page in
+`terms` ({doc}`notices`, {doc}`reference/sources`). A concept falls back only to
+another hosted-safe originator. No route accepts or reveals a key or reads the
+cache, and `/v1/sources` never says whether a key is configured.
+
+**The edge.** The hosted service sits behind a Cloudflare Worker that adds a
+shared secret to each request it forwards. When `PYECONOMICS_EDGE_CREDENTIAL`
+is set (from Secret Manager; at least 32 characters), every route but `/healthz`
+and `/version` requires the `X-Pyeconomics-Edge` header to match it, compared
+in constant time, and a request without it gets `403 edge-required` with fixed
+text. Only after a match is the client's address read from `CF-Connecting-IP`;
+a request sent straight to the origin can neither reach the API nor choose the
+address its limits count. The credential is never logged or echoed. Local mode
+never reads it.
+
+**Rate limits.** Each client, by address (an IPv6 address by its `/64`), has a
+limit per group of routes over a moving window:
+
+| Group | Routes | Hosted limit |
+|-------|--------|--------------|
+| Runs | `POST` and `GET /v1/models/{model_id}/run` | 60 a minute |
+| Series | `GET /v1/series/{target}` | 30 a minute |
+| Metadata | every other route | 120 a minute |
+| Probes | `/healthz`, `/version` | none |
+
+A request past its limit is answered `429 too-many-requests`, with
+`Retry-After` and the problem's `retry_after`, the seconds until the window
+takes a request again. The counts live in Redis at `PYECONOMICS_RATELIMIT_URL`
+(Upstash Redis; a `rediss://` URL, TLS being required for any host but a
+loopback one), shared by every instance; without it each process counts on its
+own, and says so once at start. If Redis cannot be reached, runs and series
+are refused with `503 limits-unavailable` rather than served unlimited, while
+metadata is still served. Cloudflare's own rate rule is the outer layer. Local
+mode has no limits unless `ServerSettings(rate_limits=RateLimits(...))` gives
+some.
+
+**Budgets.** A body above 1 MiB is refused with `413 input-too-large` before it
+is read, and a run past its model's budget (2, 10 or 30 seconds by cost class)
+is stopped with `422 budget-exceeded`; both details give the command that runs
+the same on your own machine, where neither limit applies:
+
+```text
+budget-exceeded: risk.var ran past its hosted budget of 30 s; run it locally: pyeconomics models run risk.var --inputs FILE
+```
+
+## Disabling a source
+
+An operator turns a failing source off with `PYECONOMICS_DISABLED_PROVIDERS`
+({doc}`data/keys`), in either mode and without a release: its series answer
+`503 source-disabled` before any cache read or request, a concept falls over
+to its next candidate, and `/v1/sources` marks it `"disabled": true`.
+
+## Clients
+
+The TypeScript and Python clients are generated from the same `openapi.json`,
+so every model's run, with its own input and result types, reaches them with no
+code of their own. Neither is published in this release; CI generates both on
+every change, type-checks the TypeScript one, and calls a model through each
+against a real `pyeconomics serve`, checking that the bytes equal the Python
+API's `Result.to_json()`.
+
+To generate the TypeScript client (with [@hey-api/openapi-ts](https://heyapi.dev),
+pinned in the repository's `tools/node` workspace; Node 22.18 or later):
+
+```shell
+pyeconomics registry export --out tools/node/generated
+cd tools/node
+npm ci --ignore-scripts
+npx openapi-ts      # writes generated/client
+npx tsc --noEmit    # type-checks it
+```
+
+```typescript
+import { client } from "./generated/client/client.gen.js";
+import { runFoundationsTimeValue } from "./generated/client/sdk.gen.js";
+
+client.setConfig({ baseUrl: "http://127.0.0.1:8000" });
+const { data } = await runFoundationsTimeValue({
+  body: { calculation: "present_value", rate: 0.05, periods: 10, future_value: 100 },
+});
+```
+
+To generate the Python client (with
+[openapi-python-client](https://github.com/openapi-generators/openapi-python-client)),
+retitle the components first, because that generator names each class after a
+schema's title and two models' definitions can share one:
+
+```shell
+pip install openapi-python-client
+python scripts/clients/retitle_openapi.py openapi.json openapi-titled.json
+openapi-python-client generate --path openapi-titled.json \
+  --output-path pyeconomics_client --meta none
+```
+
+```text
+from pyeconomics_client import Client
+from pyeconomics_client.api.foundations import run_foundations_time_value
+from pyeconomics_client.models.foundations_time_value_input_present_value_inputs import (
+    FoundationsTimeValueInputPresentValueInputs,
+)
+
+body = FoundationsTimeValueInputPresentValueInputs.from_dict(
+    {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}
+)
+with Client(base_url="http://127.0.0.1:8000") as client:
+    response = run_foundations_time_value.sync_detailed(client=client, body=body)
+```
