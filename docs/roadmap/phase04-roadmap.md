@@ -4457,9 +4457,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 8 — MCP Server
+## Step 8 — MCP Server ✅
 
-**Status:** Not started
+**Status:** Complete — PR #191 (2026-10-25)
 
 > **Goal:** Let AI assistants discover and run every model through the
 > Model Context Protocol without hundreds of tools, and keep restricted data
@@ -9180,7 +9180,7 @@ workflow above maps directly to the corresponding row below.
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
-| 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
