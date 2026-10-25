@@ -57,6 +57,12 @@ def test_every_row_reaches_a_run_as_its_problem(
         assert response.headers["retry-after"] == "3"
     if row.slug == "server-busy":
         assert response.headers["retry-after"] == "1"
+    if row.slug == "too-many-requests":
+        assert response.headers["retry-after"] == "1"
+        assert body["retry_after"] == 0.4
+    if row.slug == "limits-unavailable":
+        assert response.headers["retry-after"] == "5"
+    assert response.headers["cache-control"] == "no-store"
     if row.slug == "internal-error":
         assert body["detail"] == "An unexpected error stopped the request."
 

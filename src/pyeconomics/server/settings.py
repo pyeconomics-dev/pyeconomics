@@ -1,7 +1,7 @@
 # src/pyeconomics/server/settings.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""How a server runs: its mode, its workers, its queue and its budgets.
+"""How a server runs: its mode, workers, queue, budgets, limits and cache.
 
 A server runs in one of two modes (ADR-0012 decision 11):
 
@@ -9,8 +9,11 @@ A server runs in one of two modes (ADR-0012 decision 11):
   layer in library mode, no run budget unless one is configured, and answers
   only for loopback host names unless ``allow_remote`` is set;
 - ``hosted`` (the container, Step 12): the data layer in hosted mode, so only
-  hosted-safe and user-supplied data, and every run held to its cost class's
-  budget (:data:`~pyeconomics.surfaces.budgets.HOSTED_BUDGETS`).
+  hosted-safe and user-supplied data, every run held to its cost class's budget
+  (:data:`~pyeconomics.surfaces.budgets.HOSTED_BUDGETS`), every client to its
+  rate limits (:data:`~pyeconomics.server.limits.HOSTED_LIMITS`), and, when
+  ``PYECONOMICS_EDGE_CREDENTIAL`` is set, only requests from its edge
+  (:mod:`~pyeconomics.server.edge`).
 
 :class:`ServerSettings` holds the rest. Two values come from the environment
 when the settings leave them unset: ``PYECONOMICS_WORKERS``, the number of
@@ -25,6 +28,8 @@ Examples
 (0, True)
 >>> budgets_for("hosted", settings)[CostClass.HEAVY]
 30.0
+>>> limits_for("local", settings).enabled, limits_for("hosted", settings).runs
+(False, '60/minute')
 """
 
 from __future__ import annotations
@@ -43,7 +48,11 @@ from pyeconomics.surfaces.budgets import HOSTED_BUDGETS
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
+    from pyeconomics.server.limits import RateLimits
+
 __all__ = [
+    "DEFAULT_CACHE_BYTES",
+    "DEFAULT_CACHE_ENTRIES",
     "DEFAULT_QUEUE_LIMIT",
     "GIT_SHA_VARIABLE",
     "MODES",
@@ -53,6 +62,7 @@ __all__ = [
     "budgets_for",
     "data_mode",
     "git_sha",
+    "limits_for",
     "worker_count",
 ]
 
@@ -67,6 +77,10 @@ WORKERS_VARIABLE: Final = "PYECONOMICS_WORKERS"
 GIT_SHA_VARIABLE: Final = "PYECONOMICS_GIT_SHA"
 #: How many tasks may wait for a worker before the server answers 503.
 DEFAULT_QUEUE_LIMIT: Final = 32
+#: How many GET runs the run cache keeps by default.
+DEFAULT_CACHE_ENTRIES: Final = 1_024
+#: How many bytes of bodies the run cache keeps by default: 64 MiB.
+DEFAULT_CACHE_BYTES: Final = 64 * 1024 * 1024
 
 _GIT_SHA: Final = re.compile(r"[0-9a-f]{7,40}")
 _UNKNOWN: Final = "unknown"
@@ -100,12 +114,20 @@ class ServerSettings:
         A function each worker process calls once, before its first task. The
         workers are spawned, so it must be importable by its module and name;
         the tests install toy models with it.
+    rate_limits
+        Each client's limits (:class:`~pyeconomics.server.limits.RateLimits`).
+        ``None`` means the mode's default: the hosted limits in hosted mode,
+        none in local mode; ``RateLimits.off()`` turns them off.
+    cache_entries, cache_bytes
+        The GET run cache's bounds (:mod:`~pyeconomics.server.run_cache`): how
+        many runs and how many bytes of bodies it keeps. ``0`` keeps none.
 
     Raises
     ------
     InputError
-        For a negative worker count, a queue limit below 1, or a budget that is
-        not a positive finite number of seconds.
+        For a negative worker count, a queue limit below 1, a budget that is
+        not a positive finite number of seconds, a cache bound that is not a
+        whole number from 0, or limits that are not ``RateLimits``.
     """
 
     workers: int | None = None
@@ -115,15 +137,29 @@ class ServerSettings:
     allow_remote: bool = False
     git_sha: str | None = None
     worker_setup: Callable[[], object] | None = None
+    rate_limits: RateLimits | None = None
+    cache_entries: int = DEFAULT_CACHE_ENTRIES
+    cache_bytes: int = DEFAULT_CACHE_BYTES
 
     def __post_init__(self) -> None:
-        """Check the counts and the budgets, and hold the budgets read-only."""
+        """Check the counts, bounds, limits and budgets; hold the budgets read-only."""
         if self.workers is not None and not _whole(self.workers, 0):
             msg = f"workers is a whole number from 0, not {self.workers!r}"
             raise InputError(msg)
         if not _whole(self.queue_limit, 1):
             msg = f"queue_limit is a whole number from 1, not {self.queue_limit!r}"
             raise InputError(msg)
+        for name in ("cache_entries", "cache_bytes"):
+            if not _whole(getattr(self, name), 0):
+                msg = f"{name} is a whole number from 0, not {getattr(self, name)!r}"
+                raise InputError(msg)
+        if self.rate_limits is not None:
+            from pyeconomics.server.limits import RateLimits  # noqa: PLC0415
+
+            limits: object = self.rate_limits
+            if not isinstance(limits, RateLimits):
+                msg = f"rate_limits is a RateLimits, not {limits!r}"
+                raise InputError(msg)
         if self.budgets is not None:
             checked = {}
             for cost, seconds in self.budgets.items():
@@ -184,6 +220,15 @@ def budgets_for(
     if settings.budgets is not None:
         return settings.budgets
     return HOSTED_BUDGETS if mode == "hosted" else None
+
+
+def limits_for(mode: ServerMode, settings: ServerSettings) -> RateLimits:
+    """Return the rate limits: the settings' own, else the mode's default."""
+    from pyeconomics.server.limits import HOSTED_LIMITS, RateLimits  # noqa: PLC0415
+
+    if settings.rate_limits is not None:
+        return settings.rate_limits
+    return HOSTED_LIMITS if mode == "hosted" else RateLimits.off()
 
 
 def data_mode(mode: ServerMode) -> Literal["library", "hosted"]:

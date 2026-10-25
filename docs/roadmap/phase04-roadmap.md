@@ -384,10 +384,10 @@ step time are the authority:
 | httpx | 0.28.1 | `BSD-3-Clause`; requires certifi | outside the allowlist's scope (dev only) | pure Python | dev: openapi-python-client's client (Step 7); Starlette 1.10 deprecates it in `TestClient`, which Step 6 runs on httpx2 (read 2026-10-24) |
 | schemathesis | 4.32.4 (2026-10-22) | `MIT`; requires PyYAML | outside the allowlist's scope (test only) | PyYAML 6.0.3 has none | test: API fuzzing on Python 3.14, under the Wheel rule (Step 7) |
 | openapi-python-client | 0.29.1 | `MIT`; requires httpx<0.29, ruff, typer | outside the allowlist's scope (dev tool) | pure Python | dev: the Python client (Step 7) |
-| @hey-api/openapi-ts | 0.99.0 (npm) | `MIT`; Node 22.18 or later | npm audit only | — | dev: the TypeScript client (Step 7) |
+| @hey-api/openapi-ts | 0.99.0 (npm) | `MIT`; Node 22.18 or later; calls TypeScript's JS API; its ref parser's js-yaml 4.2.0 has three High advisories, so tools/node pins js-yaml 4.3.2 through `overrides` (Step 7, read 2026-10-24) | npm audit only | — | dev: the TypeScript client (Step 7) |
 | @modelcontextprotocol/inspector | 2.12.0 (npm, 2026-10-21) | its own licence file | npm audit only | — | dev: Inspector checks (Steps 8, 14) |
 | @modelcontextprotocol/ext-apps | 2.0.3 (npm) | `MIT` | npm audit only | — | the MCP Apps chart (Step 9), if it is used |
-| typescript | 7.0.2 (npm) | `Apache-2.0` | npm audit only | — | dev: type-checking the client |
+| typescript | 6.0.3 (npm); 7.0.2 is the native compiler, whose package has no JS API, so @hey-api/openapi-ts fails on it (Step 7, read 2026-10-24) | `Apache-2.0` | npm audit only | — | dev: type-checking the client |
 
 **Wheel rule.** CI runs every cell of Python 3.12–3.15 on Ubuntu, Windows
 and macOS, so a dependency must install from a wheel, or be pure Python, on
@@ -4759,6 +4759,25 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
     - surfaces.invoke serves the CLI and the REST API;
       server/ mounts routes, limits, the edge check and the
       pool; hosted mode refuses library-only data.
+    - From Step 7: `_Guard` runs `service.edge.check(scope)`
+      (every path but /healthz and /version needs the edge
+      credential when one is set, /mcp included) and then
+      `service.limiter.check(server.limits.route_kind(path),
+      edge.client_key(address))` before any route.
+      `route_kind` counts every path but the probes, runs and
+      series as `metadata`, so a /mcp request counts as
+      metadata until this step classes it: a tool call that
+      runs a model belongs under `runs` (and get_series under
+      `series`). `service.answer(Task)` answers a run
+      `no-store`; `service.outcome(Task)` returns the raw
+      Outcome (body, problem, etag, control). A /mcp result is
+      never put in the GET run cache (`service.cache`).
+    - From Step 7: tools/node exists (`npm ci
+      --ignore-scripts`, a committed package-lock.json, the
+      npm-audit hook at High, Dependabot's npm ecosystem);
+      typescript is pinned at 6.0.3 and js-yaml at 4.3.2
+      through `overrides`. dependency-review exempts npm
+      packages by purl, with a comment, as it does argparse.
     - From Step 6: a /mcp tool call reaches the same pool and
       budgets as /v1 through `app.state.service.answer(Task(kind=
       "run", target=model.id, payload=..., budget=service.budget(
@@ -6592,6 +6611,14 @@ phase-boundary hygiene.
       read-only root filesystem needs a writable TMPDIR
       (tmpfs) for ?format=xlsx, and the image smoke should
       request one.
+    - From Step 7: hosted mode reads PYECONOMICS_EDGE_CREDENTIAL
+      (32 to 512 printable characters, else a ConfigError when
+      the app is built) and PYECONOMICS_RATELIMIT_URL (a
+      `rediss://` URL for any host but a loopback one). With
+      neither set, the image starts with no edge and logs once
+      "PYECONOMICS_RATELIMIT_URL is not set: each process keeps
+      its own rate-limit counts", which the smoke test may
+      expect; /healthz and /version stay open behind an edge.
     - ADR-0012 decision 19 fixes the image: Python 3.14 (arch
       has wheels there; issue #154 gates it on 3.15), the five
       extras, non-root, hosted mode, the SHA for /version.
@@ -7031,6 +7058,13 @@ Thinking toggle. New conversation per phase-boundary hygiene.
       scans it and smoke-tests it; nothing is pushed or
       deployed. Hosted mode reads PYECONOMICS_RATELIMIT_URL
       and PYECONOMICS_EDGE_CREDENTIAL from the environment.
+    - From Step 7: the app compares X-Pyeconomics-Edge with the
+      credential exactly (32 to 512 printable characters, no
+      spaces), reads CF-Connecting-IP only after a match, and
+      keeps /healthz and /version open. The Upstash URL must
+      be `rediss://`; if Redis cannot be reached, runs and
+      series answer 503 limits-unavailable (logged once by the
+      error's type name) while metadata is served.
     - The four domains are on Cloudflare Registrar with
       Cloudflare DNS (ADR-0009); Cloudflare Zero Trust's free
       plan covers Access and service tokens (verify at
@@ -8383,7 +8417,9 @@ per phase-boundary hygiene.
     with its marker and the api-fuzz job in the aggregate;
     tools/node with its lockfile and the clients job; the
     npm-audit hook and the npm ecosystem; the disable switch
-    and SourceDisabledError.
+    and SourceDisabledError; the edge-required,
+    too-many-requests, limits-unavailable and source-disabled
+    rows of the error table; scripts/clients.
     Step 8 (30–34): [mcp] with mcp>=2.3, in [all]; mcp/ and
     its headline list; the tools/list snapshot test; the
     mcp-inspector job in the aggregate; the llm_use policy

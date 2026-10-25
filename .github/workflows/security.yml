@@ -85,6 +85,12 @@ jobs:
         run: uv run --locked prek run pip-audit --all-files --verbose
       - name: lock files name only PyPI
         run: uv run --locked prek run lock-index --all-files --verbose
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.23.3"
+      # tools/node's lockfile (Phase 4 Step 7); npm audit reads it, installs nothing.
+      - name: npm audit
+        run: uv run --locked prek run npm-audit --all-files --verbose
 
   gate-licences:
     name: gate-licences
@@ -221,8 +227,14 @@ jobs:
           # Step 10: maintainer-reviewed xlrd legacy BSD, peewee/protobuf
           # missing metadata, and multitasking Apache-2.0 exceptions. Exact
           # metadata and notices remain pinned by the local licences gate.
+          # - argparse (npm, Phase 4 Step 7) is js-yaml's command-line parser,
+          #   pulled in by @hey-api/openapi-ts in the tools/node workspace, a
+          #   development tool that generates the CI-only TypeScript client.
+          #   It is a port of CPython's argparse under the Python-2.0 licence
+          #   (permissive, PSF lineage); never shipped, linked or published.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
+            pkg:npm/argparse,
             pkg:pypi/astroid,
             pkg:pypi/defusedxml,
             pkg:pypi/xlrd,

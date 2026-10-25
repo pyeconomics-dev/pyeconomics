@@ -15,6 +15,10 @@ request, and so does every transport, so no route bypasses it; the catalog's
 resolver (Step 11) checks the same rule earlier, to choose another source
 instead of failing.
 
+:func:`require_enabled` is the operator's switch (issue #162): a provider named
+in the ``disabled_providers`` setting is refused the same way, before any cache
+read or request, and the resolver passes over it (:func:`is_disabled`).
+
 Examples
 --------
 >>> import datetime as dt
@@ -42,12 +46,19 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from pyeconomics.data.config import settings
-from pyeconomics.data.errors import LicenceError, OfflineError
+from pyeconomics.data.errors import LicenceError, OfflineError, SourceDisabledError
 
 if TYPE_CHECKING:
     from pyeconomics.data.terms import Terms
 
-__all__ = ["Mode", "current_mode", "require_allowed", "require_online"]
+__all__ = [
+    "Mode",
+    "current_mode",
+    "is_disabled",
+    "require_allowed",
+    "require_enabled",
+    "require_online",
+]
 
 
 class Mode(StrEnum):
@@ -93,6 +104,40 @@ def require_online(*, provider: str) -> None:
     if settings().offline:
         msg = f"offline mode sends no request: {provider} has no cached answer to this"
         raise OfflineError(msg, provider=provider)
+
+
+def is_disabled(provider: str) -> bool:
+    """Say whether the ``disabled_providers`` setting turns a provider off."""
+    return provider in settings().disabled_providers
+
+
+def require_enabled(*, provider: str) -> None:
+    """Refuse a provider the ``disabled_providers`` setting turns off.
+
+    Every public operation of
+    :class:`~pyeconomics.data.providers.base.DataProvider` calls this before
+    anything else, so a disabled source is never read from the cache or asked.
+
+    Raises
+    ------
+    SourceDisabledError
+        If ``PYECONOMICS_DISABLED_PROVIDERS``, ``pyeconomics.toml`` or
+        :func:`~pyeconomics.data.config.configure` names the provider.
+
+    Examples
+    --------
+    >>> from pyeconomics.data import configure
+    >>> require_enabled(provider="bls")
+    >>> _ = configure(disabled_providers=["bls"])
+    >>> try:
+    ...     require_enabled(provider="bls")
+    ... except ConnectionError as error:
+    ...     print(error)
+    bls is disabled by the disabled_providers setting (PYECONOMICS_DISABLED_PROVIDERS)
+    >>> _ = configure(disabled_providers=())
+    """
+    if is_disabled(provider):
+        raise SourceDisabledError(provider)
 
 
 def require_allowed(terms: Terms, *, provider: str, mode: Mode | None = None) -> None:

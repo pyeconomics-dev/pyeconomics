@@ -22,6 +22,7 @@ chain, and only the opt-in live run (``-m live``) selects it.
 from __future__ import annotations
 
 import os
+from importlib.util import find_spec
 from typing import TYPE_CHECKING
 
 import pytest
@@ -36,6 +37,12 @@ if TYPE_CHECKING:
 settings.register_profile("ci", derandomize=True, deadline=None, print_blob=True)
 settings.register_profile("dev")
 settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "dev"))
+
+# The API fuzz imports Schemathesis, from the fuzz dependency group that only
+# ci.yml's api-fuzz job installs (the Wheel rule keeps it off CPython 3.15, as
+# tests/server/test_fuzz_gap.py asserts); with the group installed, the fuzz
+# marker still deselects it unless -m fuzz asks for it.
+collect_ignore = [] if find_spec("schemathesis") else ["server/test_api_fuzz.py"]
 
 
 @pytest.fixture

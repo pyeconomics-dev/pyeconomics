@@ -1,0 +1,24 @@
+{
+  "name": "pyeconomics-node-tools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "pyeconomics' Node tooling: the generated TypeScript client of the REST API (Phase 4 Step 7).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "generate": "openapi-ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "smoke": "node dist/smoke.js"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "typescript": "6.0.3"
+  },
+  "overrides": {
+    "js-yaml": "4.3.2"
+  }
+}

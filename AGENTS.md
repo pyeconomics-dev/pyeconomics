@@ -30,7 +30,9 @@ tests/             unit · golden · property · contract · parity · e2e
                    cassettes under cassettes/<provider>/
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
+scripts/clients/   the clients job's helpers (retitle, smoke, compare)
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
+tools/node/        the one Node workspace: the TypeScript client's generator
 scripts/legacy/    the 0.2.x fixture recorder, byte-exact: never edit
 .semgrep/          project semgrep rules and their tests
 docs/adr/          architecture decision records
@@ -160,6 +162,14 @@ From Phase 3, which builds the data layer (ADR-0011):
   `Case(simulate=429)`, and a contact source's 403 is `Case(simulate=403)`. A provider module's `__all__` lists its provider
   classes only (the registry refuses anything else), and it joins
   `PURE_MODULES`.
+- The `disabled_providers` setting (issue #162; `PYECONOMICS_DISABLED_PROVIDERS`)
+  is enforced by `DataProvider._gate`, first, before `check_configuration` and
+  any cache read, so no provider can override it; the resolver skips a
+  disabled candidate as `disabled` before any request, and every candidate
+  disabled is `SourceDisabledError` (503). Never re-implement it in a provider.
+- `PYECONOMICS_EDGE_CREDENTIAL` is the one `PYECONOMICS_*` variable named like
+  a credential that the settings accept, because it is the hosted server's own
+  secret (`config._SERVER_SECRETS`); provider keys never take the prefix.
 
 ## Catalog rules
 
@@ -304,6 +314,28 @@ From Phase 4 Step 2, which builds the surface core (ADR-0012):
   (importable by name) and is installed through `ServerSettings.worker_setup`.
   The OpenAPI snapshot records each model's own schemas by digest; after an
   intended change, `uv run pytest tests/server --snapshot-update` and review.
+- Hosted mode (Phase 4 Step 7): `_Guard` runs the edge check
+  (`server.edge`) and the rate limits (`server.limits`) before any route.
+  The edge credential and the Redis URL come only from the environment, are
+  registered with redaction and never logged; the credential is held as its
+  digest and compared in constant time, and only a matched request's
+  `CF-Connecting-IP` is read (local mode never reads the credential). Limits
+  key by `edge.client_key`, keep counts in Redis only from
+  `PYECONOMICS_RATELIMIT_URL` (`rediss://` for a remote host), and fail closed
+  for runs and series. A hosted-mode test that is not about limits passes
+  `rate_limits=RateLimits.off()`, or the default limits answer its loop 429.
+- A GET run answers through `server.run_cache` (`ETag: W/"<result_sha256>"`,
+  `Cache-Control` from the worker's data records: a bound run is cacheable only
+  when every record is hosted-safe under terms that allow storage); a POST run
+  and every problem are `no-store` and never cached. A problem's text that
+  points to local mode gives the command (`budgets.local_command`).
+- The API fuzz (`tests/server/test_api_fuzz.py`, marker `fuzz`, the `fuzz`
+  group) runs only in ci.yml's `api-fuzz` job, with keys present and every data
+  request answered 404 by `server_support.install_fuzz_world`, so any 5xx it
+  finds is a bug. The generated clients run only in the `clients` job; Node
+  tooling lives in `tools/node` (`npm ci --ignore-scripts`, lockfile committed,
+  `npm audit --audit-level=high` in the gate, a patched transitive version
+  pinned through `overrides`).
 
 ## Units
 
@@ -349,8 +381,9 @@ Rates, returns, yields and percentages are decimals in every API (`0.05`, not
 
 The pre-commit hook (prek, `.pre-commit-config.yaml`) is the per-step security
 gate: secret scan (gitleaks), SAST (bandit, semgrep with project rules),
-dependency audit (`pip-audit`) and the runtime licence allowlist, beside the
-quality toolchain. CI re-runs the same hooks as required checks.
+dependency audits (`pip-audit`, and `npm audit` for `tools/node`) and the
+runtime licence allowlist, beside the quality toolchain. CI re-runs the same
+hooks as required checks.
 
 - It is fail-closed. A finding blocks the commit: fix it in the same step.
 - Never use `SKIP=` or `--no-verify` on your own judgement. A bypass is for a

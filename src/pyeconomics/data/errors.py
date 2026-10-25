@@ -18,6 +18,8 @@ exception a caller would expect:
 - :class:`TransportError` (``ConnectionError``): the request failed;
 - :class:`OfflineError` (``ConnectionError``): offline mode has no cached
   copy;
+- :class:`SourceDisabledError` (``ConnectionError``): the ``disabled_providers``
+  setting turns the source off;
 - :class:`ResponseError` (``ValueError``): the source's response is malformed;
 - :class:`ConfigError` (``ValueError``): a setting is invalid.
 
@@ -68,6 +70,7 @@ __all__ = [
     "RateLimitError",
     "ResponseError",
     "SeriesNotFoundError",
+    "SourceDisabledError",
     "TransportError",
     "scrub_urls",
 ]
@@ -208,6 +211,42 @@ class TransportError(DataError, ConnectionError):
 
 class OfflineError(DataError, ConnectionError):
     """Offline mode was asked for data it has no cached copy of."""
+
+
+class SourceDisabledError(DataError, ConnectionError):
+    """The ``disabled_providers`` setting turns the source off (issue #162).
+
+    An operator disables a source that fails or misparses, with
+    ``PYECONOMICS_DISABLED_PROVIDERS`` or ``pyeconomics.toml``, so it is refused
+    before any cache read or request and a concept fails over to its next
+    candidate.
+
+    Parameters
+    ----------
+    providers
+        The disabled provider ids: one for a provider's own refusal, every
+        candidate's for a concept none of whose candidates is enabled.
+    concept
+        That concept's id.
+
+    Examples
+    --------
+    >>> print(SourceDisabledError("bls"))
+    bls is disabled by the disabled_providers setting (PYECONOMICS_DISABLED_PROVIDERS)
+    >>> print(SourceDisabledError("bls", "fred", concept="us.unemployment.rate"))
+    us.unemployment.rate cannot be resolved: bls, fred are disabled by the disabled_providers setting (PYECONOMICS_DISABLED_PROVIDERS)
+    """  # noqa: E501 - doctest output lines cannot wrap
+
+    def __init__(self, *providers: str, concept: str | None = None) -> None:
+        names = ", ".join(providers)
+        what = f"{concept} cannot be resolved: {names}" if concept else names
+        verb = "are" if len(providers) > 1 else "is"
+        super().__init__(
+            f"{what} {verb} disabled by the disabled_providers setting "
+            "(PYECONOMICS_DISABLED_PROVIDERS)",
+            provider=providers[0] if providers else None,
+        )
+        self.providers = providers
 
 
 class ResponseError(DataError, ValueError):

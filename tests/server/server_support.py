@@ -20,14 +20,25 @@
   toys; :func:`use_toys` installs it for one test, and :func:`install_toys`, a
   pool's ``worker_setup``, in a spawned worker, where it also swaps the OS
   keyring for one that holds nothing.
+- Hosted mode (Phase 4 Step 7): :func:`use_providers` makes some providers the
+  installed ones for a test; :class:`RecordingPool` stands for urllib3 behind
+  the real HTTPS transport, answering every request 404 and recording its URL,
+  and :func:`use_recording_transport` installs it as the process's transport,
+  :func:`install_recording_transport` in a spawned worker, and
+  :func:`install_fuzz_world` there with a random key for every keyed source and
+  a random SEC contact (the API fuzz);
+  :class:`Plant` is a secret to look for with ``LeakCheck``.
 """
 
 from __future__ import annotations
 
 import base64
 import os
+import secrets
+import threading
 import time
 from contextlib import contextmanager
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
 import pytest
@@ -70,17 +81,23 @@ __all__ = [
     "ERRORS",
     "LOCAL",
     "LOOPBACK_ONLY",
+    "Plant",
+    "RecordingPool",
     "broken_setup",
     "client",
     "crash",
     "encode",
     "fail",
+    "install_fuzz_world",
+    "install_recording_transport",
     "install_toys",
     "nap",
     "openapi_of",
     "problem",
     "service_of",
     "toy_registry",
+    "use_providers",
+    "use_recording_transport",
     "use_toys",
 ]
 
@@ -102,15 +119,19 @@ def _errors() -> dict[str, Callable[[str], BaseException]]:
         RateLimitError,
         ResponseError,
         SeriesNotFoundError,
+        SourceDisabledError,
         TransportError,
     )
     from pyeconomics.surfaces.budgets import BudgetExceededError  # noqa: PLC0415
     from pyeconomics.surfaces.codec import InputTooLargeError  # noqa: PLC0415
     from pyeconomics.surfaces.service import (  # noqa: PLC0415
+        EdgeRefusedError,
         HostNotAllowedError,
+        LimitsUnavailableError,
         MethodNotAllowedError,
         RouteNotFoundError,
         ServerBusyError,
+        TooManyRequestsError,
     )
 
     library_only = LicenceClass.LIBRARY_ONLY
@@ -136,6 +157,7 @@ def _errors() -> dict[str, Callable[[str], BaseException]]:
             text, provider="toy", retry_after=2.5
         ),
         "OfflineError": lambda text: OfflineError(text, provider="toy"),
+        "SourceDisabledError": lambda _text: SourceDisabledError("toy"),
         "DataError": DataError,
         "MissingOptionalDependencyError": lambda text: MissingOptionalDependencyError(
             "toy_library", note=text
@@ -145,6 +167,11 @@ def _errors() -> dict[str, Callable[[str], BaseException]]:
         "MethodNotAllowedError": lambda _text: MethodNotAllowedError(["GET"]),
         "HostNotAllowedError": lambda _text: HostNotAllowedError(),
         "ServerBusyError": lambda _text: ServerBusyError(1),
+        "EdgeRefusedError": lambda _text: EdgeRefusedError(),
+        "TooManyRequestsError": lambda _text: TooManyRequestsError(
+            "2 per 1 second", 0.4
+        ),
+        "LimitsUnavailableError": lambda _text: LimitsUnavailableError(),
         "RegistryError": lambda text: RegistryError(text, problems=(text,)),
         "ConfigError": ConfigError,
         "PyeconomicsError": PyeconomicsError,
@@ -290,3 +317,110 @@ def problem(response: httpx2.Response) -> dict[str, Any]:
     body: dict[str, Any] = response.json()
     assert body["status"] == response.status_code
     return body
+
+
+# --- hosted mode (Phase 4 Step 7) ----------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Plant:
+    """A secret planted in a test, for ``LeakCheck``: never printed."""
+
+    value: str = field(repr=False)
+
+    def needles(self) -> tuple[str, ...]:
+        """The secret itself."""
+        return (self.value,)
+
+
+def use_providers(monkeypatch: pytest.MonkeyPatch, *providers: type[Any]) -> None:
+    """Make these data providers the installed ones for one test."""
+    from pyeconomics.data import registry as provider_registry  # noqa: PLC0415
+    from pyeconomics.data.registry import ProviderRegistry  # noqa: PLC0415
+
+    monkeypatch.setattr(
+        provider_registry._CACHE,  # noqa: SLF001
+        "registry",
+        ProviderRegistry.from_providers(*providers),
+    )
+
+
+class RecordingPool:
+    """A urllib3 pool that records each URL and answers every request 404.
+
+    It stands behind the real :class:`~pyeconomics.data.transport.http.
+    HttpTransport`, so a URL it records is one the transport built and would have
+    sent, after the transport's own host allowlist.
+    """
+
+    def __init__(self) -> None:
+        self.urls: list[str] = []
+        self._lock = threading.Lock()
+
+    def request(self, method: str, url: str, **_kwargs: Any) -> Any:  # noqa: ANN401
+        """Record the URL; answer 404 with an empty body."""
+        from fakes import FakeRaw  # noqa: PLC0415 - tests/providers' urllib3 fakes
+
+        with self._lock:
+            self.urls.append(url)
+        del method
+        return FakeRaw(status=404, body=b"")
+
+    def clear(self) -> None:
+        """Mirror ``PoolManager.clear``."""
+
+
+def _recording_transport(pool: RecordingPool) -> Any:  # noqa: ANN401 - the transport
+    from fakes import FakeClock  # noqa: PLC0415
+
+    from pyeconomics.data.transport.http import HttpTransport  # noqa: PLC0415
+
+    clock = FakeClock()  # a provider's rate limit waits on it, not on the wall
+    return HttpTransport(pool=pool, clock=clock.monotonic, sleep=clock.sleep)
+
+
+def use_recording_transport(monkeypatch: pytest.MonkeyPatch) -> RecordingPool:
+    """Send every data request of this test to a recording pool, and return it."""
+    from pyeconomics.data import transport  # noqa: PLC0415
+
+    pool = RecordingPool()
+    monkeypatch.setitem(
+        transport._DEFAULT,  # noqa: SLF001
+        "http",
+        _recording_transport(pool),
+    )
+    return pool
+
+
+def install_recording_transport() -> None:
+    """A spawned worker's setup: no request leaves, no key is found."""
+    from pyeconomics.data import transport  # noqa: PLC0415
+
+    transport._DEFAULT["http"] = _recording_transport(RecordingPool())  # noqa: SLF001
+    try:
+        import keyring  # noqa: PLC0415 - the keyring extra
+        from keyring.backends import fail as failing  # noqa: PLC0415
+    except ImportError:  # pragma: no cover - the test group installs keyring
+        return
+    keyring.set_keyring(failing.Keyring())  # type: ignore[no-untyped-call]
+
+
+def install_fuzz_world() -> None:
+    """A fuzzed worker's setup: the recording pool, and every credential present.
+
+    Each keyed source gets a random key and SEC EDGAR a random contact, in this
+    worker process only, so no source is passed over for a missing credential:
+    every data answer is the recording pool's 404, never a 503 a missing key
+    would rightly give.
+    """
+    from pyeconomics.data import config, registry  # noqa: PLC0415
+
+    install_recording_transport()
+    current = config.settings()
+    for info in registry.installed().infos():
+        if info.key_variable is not None:
+            os.environ[info.key_variable] = secrets.token_hex(16)
+    contact = f"pyeconomics fuzz {secrets.token_hex(4)}@example.org"
+    os.environ["PYECONOMICS_SEC_CONTACT"] = contact
+    config.reset()
+    config.configure(mode=current.mode, offline=current.offline)

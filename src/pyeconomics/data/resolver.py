@@ -7,6 +7,8 @@
 first that can answer, with the chain it tried. A candidate is skipped, with the
 reason recorded, when
 
+- the ``disabled_providers`` setting turns its provider off (``disabled``),
+  checked here before any request and again in the provider,
 - hosted mode refuses its licence class (``licence_refused``), checked here
   before any request and again in the provider and on the series' own terms,
 - the provider is not registered or does not run on this platform,
@@ -21,8 +23,10 @@ reason recorded, when
 
 ``strict=True`` tries the first candidate only. When none answers the error says
 why: :class:`~pyeconomics.data.errors.LicenceError` naming the classes found
-when hosted mode refused every candidate, ``CredentialError`` when keys were all
-that was missing, ``OfflineError`` when offline mode had nothing cached.
+(and the first candidate's terms page) when hosted mode refused every candidate,
+``CredentialError`` when keys were all that was missing, ``OfflineError`` when
+offline mode had nothing cached, ``SourceDisabledError`` when every candidate's
+provider is disabled.
 
 Every :class:`~pyeconomics.core.provenance.DataSource` the result carries names
 the concept, the transforms applied (as canonical text), the vintage, the window
@@ -32,7 +36,7 @@ request for a vintage prefers a candidate that keeps vintages simply because the
 others cannot honour it.
 
 The resolver reads no clock and does no I/O of its own: providers fetch, and the
-only settings it consults are the mode and the key chain.
+only settings it consults are the mode, the disabled providers and the key chain.
 
 Examples
 --------
@@ -76,9 +80,10 @@ from pyeconomics.data.errors import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    SourceDisabledError,
     TransportError,
 )
-from pyeconomics.data.modes import Mode, current_mode, require_allowed
+from pyeconomics.data.modes import Mode, current_mode, is_disabled, require_allowed
 from pyeconomics.data.providers.base import AuthKind, Capability, current_platform
 from pyeconomics.data.types import (
     DECIMAL_KINDS,
@@ -101,6 +106,7 @@ __all__ = ["REASONS", "Resolved", "Skip", "resolve", "trim"]
 
 #: Every reason a candidate may be passed over, with what it means.
 REASONS: Final = {
+    "disabled": "the disabled_providers setting turns the provider off",
     "licence_refused": "hosted mode refuses the candidate's licence class",
     "provider_unavailable": "the provider is not registered",
     "platform_unsupported": "the provider does not run on this platform",
@@ -141,6 +147,8 @@ class Skip:
     detail: str
     licence: LicenceClass | None = None
     """The candidate's licence class, when the reason concerns it."""
+    terms_url: str | None = None
+    """The candidate's terms page, when the reason concerns its licence."""
 
     def __post_init__(self) -> None:
         """Check the reason and the texts."""
@@ -461,6 +469,7 @@ def _skip_for(
 ) -> Skip:
     """Map an error from a candidate to the reason it is passed over."""
     reasons: tuple[tuple[type[Exception], str], ...] = (
+        (SourceDisabledError, "disabled"),
         (LicenceError, "licence_refused"),
         (MissingOptionalDependencyError, "extra_missing"),
         (CredentialError, "credential_refused"),
@@ -472,14 +481,16 @@ def _skip_for(
         (ProviderNotFoundError, "provider_unavailable"),
     )
     reason = next((r for kind, r in reasons if isinstance(error, kind)), "data_error")
+    terms_url = None
     if isinstance(error, LicenceError):
-        licence = error.licence
+        licence, terms_url = error.licence, error.terms_url
     return Skip(
         provider=provider,
         series=series,
         reason=reason,
         detail=_first_line(error),
         licence=licence,
+        terms_url=terms_url,
     )
 
 
@@ -493,15 +504,18 @@ def _refusal(
     """
     info = provider.info
 
-    def skip(reason: str, detail: str, licence: LicenceClass | None = None) -> Skip:
+    def skip(reason: str, detail: str, *, licensed: bool = False) -> Skip:
         return Skip(
             provider=info.id,
             series=series,
             reason=reason,
             detail=detail,
-            licence=licence,
+            licence=info.terms.licence if licensed else None,
+            terms_url=info.terms.terms_url if licensed else None,
         )
 
+    if is_disabled(info.id):
+        return skip("disabled", f"{info.id} is named in disabled_providers")
     platform = current_platform()
     if platform is None or not info.supports(platform):
         return skip("platform_unsupported", f"{info.id} does not run on this platform")
@@ -510,20 +524,18 @@ def _refusal(
             "licence_refused",
             f"{info.id} is {info.terms.licence.value}; hosted mode serves only "
             "hosted-safe and user-supplied data",
-            info.terms.licence,
+            licensed=True,
         )
-    if ask.selector.kind is not VintageKind.LATEST:
-        if Capability.VINTAGES not in info.capabilities:
-            return skip(
-                "vintage_unsupported",
-                f"{info.id} keeps no vintages, so {ask.selector.label} cannot be read",
-            )
-        if not keeps_vintages:
-            return skip(
-                "vintage_unsupported",
-                f"{info.id} keeps no vintages of {series}, so "
-                f"{ask.selector.label} cannot be read",
-            )
+    keeps_none = Capability.VINTAGES not in info.capabilities
+    if ask.selector.kind is not VintageKind.LATEST and (
+        keeps_none or not keeps_vintages
+    ):
+        whose = "" if keeps_none else f" of {series}"
+        return skip(
+            "vintage_unsupported",
+            f"{info.id} keeps no vintages{whose}, so {ask.selector.label} "
+            "cannot be read",
+        )
     if info.auth.kind is AuthKind.KEY and info.auth.required and not has_key(info.id):
         return skip("key_missing", f"set {info.key_variable}")
     return None
@@ -767,10 +779,14 @@ def _exhausted(
             f"{', '.join(classes)} ({providers})",
             provider=skipped[0].provider,
             licence=skipped[0].licence or LicenceClass.LIBRARY_ONLY,
+            terms_url=skipped[0].terms_url,
         )
     # A source that cannot read the vintage asked for is not why nothing answered:
     # the key or the cache of the one that could is.
     blocking = reasons - {"vintage_unsupported"}
+    if blocking == {"disabled"}:
+        disabled = sorted({s.provider for s in skipped if s.reason == "disabled"})
+        return SourceDisabledError(*disabled, concept=concept.id)
     if blocking == {"key_missing"}:
         return CredentialError(prefix + listing)
     if blocking == {"offline"}:

@@ -40,6 +40,7 @@ Examples
 from __future__ import annotations
 
 import logging
+import math
 import re
 import sys
 from dataclasses import dataclass, replace
@@ -190,6 +191,13 @@ ROWS: Final = (
         7,
     ),
     Row(
+        f"{_DATA}.SourceDisabledError",
+        "source-disabled",
+        "The data source is disabled",
+        503,
+        7,
+    ),
+    Row(
         f"{_DATA}.DataError",
         "data-unavailable",
         "The data cannot answer this request",
@@ -232,6 +240,27 @@ ROWS: Final = (
         1,
     ),
     Row(f"{_SERVICE}.ServerBusyError", "server-busy", "The server is busy", 503, 1),
+    Row(
+        f"{_SERVICE}.EdgeRefusedError",
+        "edge-required",
+        "The request did not come through the service's edge",
+        403,
+        1,
+    ),
+    Row(
+        f"{_SERVICE}.TooManyRequestsError",
+        "too-many-requests",
+        "This client sent too many requests",
+        429,
+        1,
+    ),
+    Row(
+        f"{_SERVICE}.LimitsUnavailableError",
+        "limits-unavailable",
+        "The rate limits cannot be checked",
+        503,
+        1,
+    ),
     Row(
         f"{_CORE}.RegistryError",
         "registry-error",
@@ -388,7 +417,8 @@ class Problem:
     licence, terms
         For a licence refusal, the source's licence class and terms page.
     retry_after
-        For a rate limit, the seconds the source asked to wait, when it said.
+        For a rate limit, the seconds to wait: what an upstream source asked
+        for, when it said, or when this client's own limit takes a request again.
     """
 
     slug: str
@@ -500,10 +530,9 @@ def problem_for(error: BaseException) -> Problem:
     upstream = _UPSTREAM.get(row.error)
     if upstream is not None:
         provider = getattr(error, "provider", None) or "the data source"
-        retry = getattr(error, "retry_after", None)
         return replace(
             _problem(row, scrub(upstream.format(provider=provider))),
-            retry_after=float(retry) if isinstance(retry, int | float) else None,
+            retry_after=_seconds(getattr(error, "retry_after", None)),
         )
     if isinstance(error, InputError) and error.validation_error is not None:
         errors = _field_errors(error)
@@ -518,7 +547,16 @@ def problem_for(error: BaseException) -> Problem:
         _problem(row, scrub(message) or row.title),
         licence=str(getattr(licence, "value", licence)) if licence else None,
         terms=terms,
+        retry_after=_seconds(getattr(error, "retry_after", None)),
     )
+
+
+def _seconds(value: object) -> float | None:
+    """Return a wait in seconds, or ``None`` for anything but a finite number."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    seconds = float(value)
+    return seconds if math.isfinite(seconds) and seconds >= 0 else None
 
 
 def _problem(row: Row, detail: str) -> Problem:

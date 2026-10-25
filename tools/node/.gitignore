@@ -1,0 +1,6 @@
+# tools/node/.gitignore
+# The generated client, its build and the installed tools: CI artifacts, never
+# committed (ADR-0012 decision 18).
+node_modules/
+generated/
+dist/

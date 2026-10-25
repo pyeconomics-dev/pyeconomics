@@ -41,16 +41,20 @@ from pyeconomics.data import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    SourceDisabledError,
     TransportError,
 )
 from pyeconomics.surfaces.budgets import BudgetExceededError
 from pyeconomics.surfaces.codec import InputTooLargeError
 from pyeconomics.surfaces.problems import ROWS, problem_for, report
 from pyeconomics.surfaces.service import (
+    EdgeRefusedError,
     HostNotAllowedError,
+    LimitsUnavailableError,
     MethodNotAllowedError,
     RouteNotFoundError,
     ServerBusyError,
+    TooManyRequestsError,
 )
 
 
@@ -108,6 +112,7 @@ def _errors(text: str) -> list[BaseException]:
         ResponseError(text, provider="toy"),
         RateLimitError(text, provider="toy", retry_after=1.0),
         OfflineError(text, provider="toy"),
+        SourceDisabledError(text, concept=text),
         DataError(text),
         MissingOptionalDependencyError("toy_library", note=text),
         BudgetExceededError(text, 2.0),
@@ -115,6 +120,9 @@ def _errors(text: str) -> list[BaseException]:
         MethodNotAllowedError([text]),
         HostNotAllowedError(),
         ServerBusyError(3),
+        EdgeRefusedError(),
+        TooManyRequestsError(text, 4.5),
+        LimitsUnavailableError(),
         RegistryError(text, problems=(text,)),
         ConfigError(text),
         PyeconomicsError(text),

@@ -330,7 +330,8 @@ def list_sources(
 ) -> None:
     """List the data providers with their licence classes, keys and extras.
 
-    It reads metadata only and makes no request.
+    It reads metadata only and makes no request. A provider the
+    ``disabled_providers`` setting turns off is marked in a Disabled column.
 
     Parameters
     ----------
@@ -347,6 +348,8 @@ def list_sources(
         emit_json(context.streams, jsonable(infos), out)
         return
     configured = ("Configured",) if check_keys else ()
+    # Only when the disabled_providers setting turns a source off (issue #162).
+    disabled = ("Disabled",) if any(info.disabled for info in infos) else ()
     rows = []
     for info in infos:
         key = ""
@@ -361,8 +364,12 @@ def list_sources(
                 else ("yes" if info.key_configured else "no")
             )
         row.append(cell(info.extra))
+        if disabled:
+            row.append("yes" if info.disabled else "")
         rows.append(tuple(row))
     grid = Grid(
-        "Sources", ("Id", "Name", "Licence", "Key", *configured, "Extra"), tuple(rows)
+        "Sources",
+        ("Id", "Name", "Licence", "Key", *configured, "Extra", *disabled),
+        tuple(rows),
     )
     show(context.streams, [grid], out)

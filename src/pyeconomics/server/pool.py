@@ -68,6 +68,7 @@ __all__ = [
     "Pool",
     "ProcessPool",
     "WorkerFailedError",
+    "budget_exceeded",
     "make_pool",
     "worker_main",
 ]
@@ -197,8 +198,7 @@ class _Worker:
             tasks.send_bytes(payload)
             if not results.poll(task.budget):
                 self.stop()
-                seconds = task.budget or 0.0
-                return Outcome.failed(BudgetExceededError(task.target, seconds))
+                return Outcome.failed(budget_exceeded(task))
             return decode_outcome(results.recv_bytes(), results.recv_bytes())
         except (EOFError, OSError, ValueError):
             self.stop()
@@ -354,6 +354,16 @@ class ProcessPool:
                 worker.interrupt()  # a task without a budget is still running
                 thread.join(GRACE)
         self._threads.clear()
+
+
+def budget_exceeded(task: Task) -> BudgetExceededError:
+    """Return the error of a task stopped at its budget, with the local command.
+
+    A run points to ``pyeconomics models run``, a series to ``pyeconomics data
+    get``.
+    """
+    command = None if task.kind == "run" else f"pyeconomics data get {task.target}"
+    return BudgetExceededError(task.target, task.budget or 0.0, command=command)
 
 
 def make_pool(
