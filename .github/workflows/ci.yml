@@ -516,8 +516,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      MCP_CATALOG_PATH: ${{ runner.temp }}/inspector-catalog.json
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
@@ -543,14 +541,19 @@ jobs:
       - name: Install the Node tools from their lockfile
         working-directory: tools/node
         run: npm ci --ignore-scripts --no-fund --no-audit
+      # The Inspector keeps its catalog in the runner's temporary directory.
       - name: Check the server over stdio
-        run: >-
-          uv run --locked python scripts/mcp/inspector_checks.py tools/node
-          "$PWD/.venv/bin/pyeconomics" mcp
+        shell: bash
+        run: |
+          set -euo pipefail
+          export MCP_CATALOG_PATH="$RUNNER_TEMP/inspector-catalog.json"
+          uv run --locked python scripts/mcp/inspector_checks.py tools/node \
+            "$PWD/.venv/bin/pyeconomics" mcp
       - name: Check a local server's /mcp and the local HTTP app
         shell: bash
         run: |
           set -euo pipefail
+          export MCP_CATALOG_PATH="$RUNNER_TEMP/inspector-catalog.json"
           wait_for() {
             for _ in $(seq 1 120); do
               curl --silent --output /dev/null "$1" && return 0
