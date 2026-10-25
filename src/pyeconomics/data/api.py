@@ -13,6 +13,9 @@ these functions unchanged.
   and its provenance records. A concept goes through the resolver (mode, keys,
   extras, vintage and series-level licence gates, fallback, transforms); a
   provider series goes straight to its provider, which applies the same gates.
+  Given an ``llm_use`` policy (the MCP server's), a concept passes over the
+  sources it does not permit, and a provider series it does not permit is
+  refused with :class:`~pyeconomics.data.errors.LlmUseError`.
 - :func:`search` finds concepts offline and, on the providers that can search,
   their series, recording the providers it could not ask and why.
 - :func:`describe` explains a concept (its candidates by mode), a provider
@@ -46,12 +49,13 @@ from pyeconomics.core.provenance import (
     DATA_DATE_BOUNDS,
     LicenceClass,
     LlmUse,
+    LlmUsePolicy,
 )
 from pyeconomics.data import catalog
 from pyeconomics.data import registry as provider_registry
 from pyeconomics.data.catalog.definitions import Candidate, Concept, Derived, Tier
 from pyeconomics.data.credentials import has_key
-from pyeconomics.data.errors import DataError, ProviderNotFoundError
+from pyeconomics.data.errors import DataError, LlmUseError, ProviderNotFoundError
 from pyeconomics.data.modes import Mode, current_mode, is_disabled, require_allowed
 from pyeconomics.data.providers.base import (
     SERIES_ID_PATTERN,
@@ -68,7 +72,7 @@ if TYPE_CHECKING:
 
     from pyeconomics.data.providers.base import DataProvider
     from pyeconomics.data.registry import ProviderRegistry
-    from pyeconomics.data.terms import CachePolicy
+    from pyeconomics.data.terms import CachePolicy, Terms
     from pyeconomics.data.transport.base import Transport
     from pyeconomics.data.types import ObservationFrequency, SeriesMeta
 
@@ -322,6 +326,25 @@ def _split(target: str) -> tuple[str, str | None]:
     raise f.fail(msg)
 
 
+def _require_llm_use(
+    terms: Terms, policy: LlmUsePolicy | None, target: str, *, provider: str
+) -> None:
+    """Refuse a provider series whose terms the ``llm_use`` policy does not permit."""
+    if policy is None or policy.permits(terms.llm_use):
+        return
+    msg = (
+        f"{target}'s terms make its data {terms.llm_use.value} for language "
+        f"models, which the {policy.value} policy does not permit"
+    )
+    raise LlmUseError(
+        msg,
+        provider=provider,
+        licence=terms.licence,
+        llm_use=terms.llm_use,
+        terms_url=terms.terms_url,
+    )
+
+
 def _vintage(as_of: dt.date | None, vintage: Vintage | str | None) -> Vintage:
     if as_of is not None and vintage is not None:
         msg = "ask for as_of or for a vintage, not both"
@@ -350,6 +373,7 @@ def get(  # noqa: PLR0913 - the public contract's independent options
     max_observations: int | None = None,
     transport: Transport | None = None,
     registry: ProviderRegistry | None = None,
+    llm_use: LlmUsePolicy | str | None = None,
 ) -> Resolved:
     """Get the data a concept or a provider series names.
 
@@ -376,6 +400,12 @@ def get(  # noqa: PLR0913 - the public contract's independent options
         At most this many (the most recent) observations per fetch.
     transport, registry
         Seams for tests: a replay transport and an isolated provider registry.
+    llm_use
+        The surface's :class:`~pyeconomics.core.provenance.LlmUsePolicy`, or its
+        value, for data about to reach a language model: a concept passes over the
+        sources it does not permit, and a provider series it does not permit is
+        refused, before the request when its provider's terms say so and after it
+        when the series' own terms do. ``None`` looks at no ``llm_use`` class.
 
     Returns
     -------
@@ -387,9 +417,12 @@ def get(  # noqa: PLR0913 - the public contract's independent options
     ------
     ConceptNotFoundError, ProviderNotFoundError
         For an unknown concept or provider.
+    LlmUseError
+        If the ``llm_use`` policy leaves no source.
     LicenceError, CredentialError, OfflineError, DataError
         As the resolver or the provider raises them.
     """
+    policy = None if llm_use is None else f.choice(LlmUsePolicy, llm_use, "llm_use")
     kind, series = _split(target)
     if kind == "provider":
         msg = f"{target!r} is a provider; name a series as {target}:<series>"
@@ -408,6 +441,7 @@ def get(  # noqa: PLR0913 - the public contract's independent options
             max_observations=max_observations,
             transport=transport,
             registry=registry,
+            llm_use=policy,
         )
     if provider is not None and provider != kind:
         msg = f"{target!r} names {kind}, not {provider}"
@@ -417,6 +451,7 @@ def get(  # noqa: PLR0913 - the public contract's independent options
         raise f.fail(msg)
     chosen = _registry(registry).get(kind)
     require_allowed(chosen.info.terms, provider=kind, mode=mode)
+    _require_llm_use(chosen.info.terms, policy, target, provider=kind)
     fields: dict[str, object] = {
         "series": (series,),
         "start": start,
@@ -428,6 +463,7 @@ def get(  # noqa: PLR0913 - the public contract's independent options
     fetched = chosen.fetch_with_origin(
         chosen.query_type.model_validate(fields), transport=transport
     )
+    _require_llm_use(fetched.frame.meta.terms, policy, target, provider=kind)
     frame = trim(fetched.frame, start, end)
     record = fetched.source()
     if frame.index:

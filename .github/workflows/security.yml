@@ -203,10 +203,18 @@ jobs:
           # - cffi (MIT-0, MIT No Attribution: MIT without the notice
           #   condition) is a runtime package since Phase 3 Step 3, reached
           #   only through the keyring extra on Linux (keyring ->
-          #   SecretStorage -> cryptography -> cffi). The licences hook allows
-          #   it only through the reviewed entry in
-          #   scripts/checks/licence_exceptions.toml, which the maintainer
-          #   approved in that step.
+          #   SecretStorage -> cryptography -> cffi), and from Phase 4 Step 8
+          #   through the mcp extra (mcp -> pyjwt[crypto] -> cryptography ->
+          #   cffi). The licences hook allows it only through the reviewed
+          #   entry in scripts/checks/licence_exceptions.toml, which the
+          #   maintainer approved in Phase 3 Step 3.
+          # - pywin32 (Windows only, through the mcp extra, Phase 4 Step 8)
+          #   names only "PSF" in its metadata. Its licence files are
+          #   BSD-3-Clause for win32, com and pythonwin, MIT, PSF-2.0 and a
+          #   permissive HPND-style licence for bundled parts, and LGPL-2.1 for
+          #   its separate adodbapi package, which nothing here imports. The
+          #   licences hook allows it only through the reviewed entry the
+          #   maintainer approved in that step.
           # - simplejson (MIT OR AFL-2.1; GitHub reads "(AFL-2.1 AND MIT AND
           #   Python-2.0) OR (AFL-2.1 AND MIT)") comes in only through vollib,
           #   the test group's implied-volatility oracle (Phase 2 Step 9). The
@@ -232,15 +240,36 @@ jobs:
           #   development tool that generates the CI-only TypeScript client.
           #   It is a port of CPython's argparse under the Python-2.0 licence
           #   (permissive, PSF lineage); never shipped, linked or published.
+          # - @modelcontextprotocol/inspector (npm, Phase 4 Step 8) runs only in
+          #   ci.yml's mcp-inspector job. Its metadata reads "SEE LICENSE IN
+          #   LICENSE": the file is Apache-2.0, with MIT for contributions not
+          #   yet relicensed, both allowed. Its web client brings Vite, whose CSS
+          #   tool lightningcss (with one prebuilt package per platform) is
+          #   MPL-2.0: a development tool, never shipped, linked or published.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:npm/argparse,
+            pkg:npm/%40modelcontextprotocol/inspector,
+            pkg:npm/@modelcontextprotocol/inspector,
+            pkg:npm/lightningcss,
+            pkg:npm/lightningcss-android-arm64,
+            pkg:npm/lightningcss-darwin-arm64,
+            pkg:npm/lightningcss-darwin-x64,
+            pkg:npm/lightningcss-freebsd-x64,
+            pkg:npm/lightningcss-linux-arm-gnueabihf,
+            pkg:npm/lightningcss-linux-arm64-gnu,
+            pkg:npm/lightningcss-linux-arm64-musl,
+            pkg:npm/lightningcss-linux-x64-gnu,
+            pkg:npm/lightningcss-linux-x64-musl,
+            pkg:npm/lightningcss-win32-arm64-msvc,
+            pkg:npm/lightningcss-win32-x64-msvc,
             pkg:pypi/astroid,
             pkg:pypi/defusedxml,
             pkg:pypi/xlrd,
             pkg:pypi/peewee,
             pkg:pypi/multitasking,
             pkg:pypi/protobuf,
+            pkg:pypi/pywin32,
             pkg:pypi/et-xmlfile,
             pkg:pypi/certifi,
             pkg:pypi/cffi,

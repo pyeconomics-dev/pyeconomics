@@ -2,11 +2,11 @@
   "name": "pyeconomics-node-tools",
   "version": "0.0.0",
   "private": true,
-  "description": "pyeconomics' Node tooling: the generated TypeScript client of the REST API (Phase 4 Step 7).",
+  "description": "pyeconomics' Node tooling: the generated TypeScript client of the REST API (Phase 4 Step 7) and the MCP Inspector's checks of the MCP server (Phase 4 Step 8).",
   "license": "Apache-2.0",
   "type": "module",
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "generate": "openapi-ts",
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
+    "@modelcontextprotocol/inspector": "2.12.0",
     "typescript": "6.0.3"
   },
   "overrides": {

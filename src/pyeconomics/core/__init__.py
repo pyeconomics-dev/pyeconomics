@@ -142,6 +142,7 @@ from pyeconomics.core.provenance import (
     DataSource,
     LicenceClass,
     LlmUse,
+    LlmUsePolicy,
     RealtimePeriod,
 )
 from pyeconomics.core.random import (
@@ -313,6 +314,7 @@ __all__ = [
     "LeastSquares",
     "LicenceClass",
     "LlmUse",
+    "LlmUsePolicy",
     "Manifest",
     "MissingOptionalDependencyError",
     "Model",

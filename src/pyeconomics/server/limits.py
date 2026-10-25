@@ -11,6 +11,15 @@ own limit over a moving window (:data:`HOSTED_LIMITS`):
 - ``metadata``: everything else but the health probes ``/healthz`` and
   ``/version``, which are never limited (120 a minute).
 
+An MCP request (``/mcp``) counts by what it asks for. Its ``Mcp-Method`` and
+``Mcp-Name`` headers name the method and the tool, and the 2026-07-28 revision's
+transport refuses a request whose headers differ from its body, so they are
+trusted only on a request that names that revision in ``MCP-Protocol-Version``:
+``tools/call`` of ``get_series`` counts as a series, of ``search_models``,
+``describe_model`` or ``list_sources`` as metadata, of any other tool as a run;
+any other method as metadata. A request of an earlier revision, whose headers
+nothing checks, counts as a run.
+
 A client is its address (:func:`~pyeconomics.server.edge.client_key`: IPv6 by
 its ``/64``), read from ``CF-Connecting-IP`` only when the edge's credential
 matched. A request past its limit is answered with
@@ -54,11 +63,14 @@ from pyeconomics.server.edge import OPEN_PATHS
 from pyeconomics.surfaces.service import LimitsUnavailableError, TooManyRequestsError
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from limits import RateLimitItem
     from limits.storage import Storage
 
 __all__ = [
     "HOSTED_LIMITS",
+    "MCP_PATH",
     "STORAGE_VARIABLE",
     "Kind",
     "Limiter",
@@ -77,6 +89,16 @@ STORAGE_TIMEOUT: Final = 2.0
 _LOGGER: Final = logging.getLogger(logs.LOGGER)
 _REDIS_SCHEMES: Final = frozenset({"redis", "rediss"})
 _LOOPBACK_HOSTS: Final = frozenset({"localhost", "127.0.0.1", "::1"})
+#: The path of the MCP server's Streamable HTTP endpoint.
+MCP_PATH: Final = "/mcp"
+#: The MCP revision whose transport refuses headers that differ from the body.
+_CHECKED_REVISION: Final = "2026-07-28"
+#: MCP tools that read nothing upstream and run no model.
+_MCP_METADATA_TOOLS: Final = frozenset(
+    {"search_models", "describe_model", "list_sources"}
+)
+#: The MCP tool that fetches a series.
+_MCP_SERIES_TOOL: Final = "get_series"
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -137,10 +159,28 @@ class RateLimits:
 HOSTED_LIMITS: Final = RateLimits()
 
 
-def route_kind(path: str) -> Kind | None:
-    """Return the group a request path counts against; ``None`` for the probes."""
+def _mcp_kind(headers: Mapping[str, str]) -> Kind:
+    """Return the group an MCP request counts against, from its checked headers."""
+    if headers.get("mcp-protocol-version") != _CHECKED_REVISION:
+        return "runs"
+    if headers.get("mcp-method") != "tools/call":
+        return "metadata"
+    name = headers.get("mcp-name", "")
+    if name in _MCP_METADATA_TOOLS:
+        return "metadata"
+    return "series" if name == _MCP_SERIES_TOOL else "runs"
+
+
+def route_kind(path: str, headers: Mapping[str, str] | None = None) -> Kind | None:
+    """Return the group a request counts against; ``None`` for the probes.
+
+    ``headers`` holds the request's headers by lower-case name; only an MCP
+    request needs them.
+    """
     if path in OPEN_PATHS:
         return None
+    if path.rstrip("/") == MCP_PATH:
+        return _mcp_kind(headers or {})
     if path.startswith("/v1/series/"):
         return "series"
     if path.startswith("/v1/models/") and path.endswith("/run"):

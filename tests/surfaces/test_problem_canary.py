@@ -29,13 +29,14 @@ from pyeconomics.core import (
     PyeconomicsError,
     RegistryError,
 )
-from pyeconomics.core.provenance import LicenceClass
+from pyeconomics.core.provenance import LicenceClass, LlmUse
 from pyeconomics.data import (
     ConceptNotFoundError,
     ConfigError,
     CredentialError,
     DataError,
     LicenceError,
+    LlmUseError,
     OfflineError,
     ProviderNotFoundError,
     RateLimitError,
@@ -106,6 +107,14 @@ def _errors(text: str) -> list[BaseException]:
             provider="toy",
             licence=library_only,
             terms_url="https://www.example.org/terms",
+        ),
+        LlmUseError(
+            text,
+            provider="toy",
+            licence=library_only,
+            llm_use=LlmUse.FORBIDDEN,
+            terms_url="https://www.example.org/terms",
+            concept="us.toy.value",
         ),
         CredentialError(text, provider="toy"),
         TransportError(text, provider="toy"),

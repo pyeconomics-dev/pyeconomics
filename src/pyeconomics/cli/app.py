@@ -4,9 +4,9 @@
 """The command tree, the launcher and the exit codes of ``pyeconomics``.
 
 :func:`build` assembles the Cyclopts application: ``models``, ``data``,
-``keys``, ``cache``, ``registry``, ``bundle``, ``serve`` and ``completion``,
-with ``--version``, ``--debug`` and ``--help`` everywhere. :func:`launch` runs
-one command line and returns its exit code (ADR-0012 decision 5):
+``keys``, ``cache``, ``registry``, ``bundle``, ``serve``, ``mcp`` and
+``completion``, with ``--version``, ``--debug`` and ``--help`` everywhere.
+:func:`launch` runs one command line and returns its exit code (ADR-0012 decision 5):
 
 - 0 when the command succeeded, and 2 for a command line that does not parse
   (an unknown command or option, a missing argument);
@@ -39,6 +39,7 @@ from pyeconomics.cli import (
     data_commands,
     exporting,
     key_commands,
+    mcp_command,
     model_commands,
     serve_command,
 )
@@ -149,6 +150,7 @@ def build(context: Context) -> App:
     app.command(bundle)
 
     app.command(serve_command.serve, name="serve")
+    app.command(mcp_command.mcp, name="mcp")
 
     app.command(completion, name="completion")
     app.register_install_completion_command(

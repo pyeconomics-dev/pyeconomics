@@ -12,7 +12,9 @@ carries its entity tag and the ``Cache-Control`` its data allows
 (:mod:`~pyeconomics.server.run_cache`). A run goes through
 :func:`~pyeconomics.surfaces.invoke.invoke` and nothing else; a series through
 :func:`pyeconomics.data.get`. Either is then rendered in the task's format
-(:mod:`~pyeconomics.server.formats`).
+(:mod:`~pyeconomics.server.formats`). A task from the MCP server also carries its
+``llm_use`` policy, which the run's bind and the series' resolution apply
+(ADR-0012 decision 14), and a series task its observation limit.
 
 Between the app and a worker, a task and an outcome each travel as two frames: a
 canonical JSON header built from plain values, and the raw bytes of the inputs
@@ -92,6 +94,11 @@ class Task:
         A run's inputs: the JSON bytes the caller sent, or ``None``.
     budget
         The wall-clock seconds the task may take in a worker, or ``None``.
+    llm_use
+        The :class:`~pyeconomics.core.provenance.LlmUsePolicy` value of a task
+        whose answer reaches a language model (the MCP server's), or ``None``.
+    max_observations
+        A series task's most observations per fetch, or ``None``.
     """
 
     kind: TaskKind
@@ -101,6 +108,8 @@ class Task:
     query: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
     payload: bytes | None = None
     budget: float | None = None
+    llm_use: str | None = None
+    max_observations: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,13 +175,14 @@ def _run(task: Task) -> tuple[bytes, str, str]:
             concepts=values.get("concepts") or {},
             parameters=values.get("parameters") or {},
         )
-    result = invoke(task.target, task.payload, bind=request)
+    result = invoke(task.target, task.payload, bind=request, llm_use=task.llm_use)
     body = formats.render_result(result, task.export_format, request)
     return body, etag(result), _control(result)
 
 
 def _series(task: Task) -> bytes:
     from pyeconomics.core import _fields as f  # noqa: PLC0415
+    from pyeconomics.core.provenance import LlmUsePolicy  # noqa: PLC0415
     from pyeconomics.data import api  # noqa: PLC0415 - the data layer loads here
 
     def day(name: str) -> Any:  # noqa: ANN401 - a date or None
@@ -186,7 +196,13 @@ def _series(task: Task) -> bytes:
         as_of=day("as_of"),
         vintage=task.query.get("vintage"),
         provider=task.query.get("provider"),
+        max_observations=task.max_observations,
+        llm_use=None if task.llm_use is None else LlmUsePolicy(task.llm_use),
     )
+    if task.llm_use is not None:
+        from pyeconomics.surfaces.gate import check_records  # noqa: PLC0415
+
+        check_records(resolved.sources, LlmUsePolicy(task.llm_use), subject=task.target)
     return formats.render_data(resolved, task.export_format)
 
 
@@ -213,6 +229,8 @@ def encode_task(task: Task) -> tuple[bytes, bytes]:
         "bind": None if task.bind is None else dict(task.bind),
         "query": dict(task.query),
         "inputs": task.payload is not None,
+        "llm_use": task.llm_use,
+        "max_observations": task.max_observations,
     }
     return canonical_json(header), task.payload or b""
 
@@ -227,6 +245,8 @@ def decode_task(header: bytes, payload: bytes) -> Task:
         bind=values["bind"],
         query=MappingProxyType(dict(values["query"])),
         payload=payload if values["inputs"] else None,
+        llm_use=values["llm_use"],
+        max_observations=values["max_observations"],
     )
 
 

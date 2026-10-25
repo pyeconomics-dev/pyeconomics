@@ -15,6 +15,7 @@ the registry on top of these modules, which import no framework:
 - :mod:`~pyeconomics.surfaces.envelope`: the canonical bytes, the entity tag and
   a text summary;
 - :mod:`~pyeconomics.surfaces.budgets`: the hosted time budgets and size limits;
+- :mod:`~pyeconomics.surfaces.gate`: the ``llm_use`` gate's final check;
 - :mod:`~pyeconomics.surfaces.service`: what a served surface refuses (a route,
   a method, a host, a full queue) and which hosts are loopback.
 

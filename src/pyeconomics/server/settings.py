@@ -121,13 +121,21 @@ class ServerSettings:
     cache_entries, cache_bytes
         The GET run cache's bounds (:mod:`~pyeconomics.server.run_cache`): how
         many runs and how many bytes of bodies it keeps. ``0`` keeps none.
+    mcp_result_limit
+        The largest canonical result, in bytes, a hosted MCP run returns whole
+        (larger ones answer a notice with the REST download); ``None`` keeps
+        the MCP server's default.
+    mcp_series_limit
+        The most observations the MCP ``get_series`` tool returns per fetch;
+        ``None`` keeps the MCP server's default.
 
     Raises
     ------
     InputError
         For a negative worker count, a queue limit below 1, a budget that is
         not a positive finite number of seconds, a cache bound that is not a
-        whole number from 0, or limits that are not ``RateLimits``.
+        whole number from 0, an MCP limit that is not a whole number from 1, or
+        limits that are not ``RateLimits``.
     """
 
     workers: int | None = None
@@ -140,18 +148,22 @@ class ServerSettings:
     rate_limits: RateLimits | None = None
     cache_entries: int = DEFAULT_CACHE_ENTRIES
     cache_bytes: int = DEFAULT_CACHE_BYTES
+    mcp_result_limit: int | None = None
+    mcp_series_limit: int | None = None
 
     def __post_init__(self) -> None:
         """Check the counts, bounds, limits and budgets; hold the budgets read-only."""
-        if self.workers is not None and not _whole(self.workers, 0):
-            msg = f"workers is a whole number from 0, not {self.workers!r}"
-            raise InputError(msg)
-        if not _whole(self.queue_limit, 1):
-            msg = f"queue_limit is a whole number from 1, not {self.queue_limit!r}"
-            raise InputError(msg)
-        for name in ("cache_entries", "cache_bytes"):
-            if not _whole(getattr(self, name), 0):
-                msg = f"{name} is a whole number from 0, not {getattr(self, name)!r}"
+        for name, floor, optional in (
+            ("workers", 0, True),
+            ("queue_limit", 1, False),
+            ("cache_entries", 0, False),
+            ("cache_bytes", 0, False),
+            ("mcp_result_limit", 1, True),
+            ("mcp_series_limit", 1, True),
+        ):
+            count = getattr(self, name)
+            if not (optional and count is None) and not _whole(count, floor):
+                msg = f"{name} is a whole number from {floor}, not {count!r}"
                 raise InputError(msg)
         if self.rate_limits is not None:
             from pyeconomics.server.limits import RateLimits  # noqa: PLC0415

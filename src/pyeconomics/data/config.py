@@ -13,7 +13,8 @@ one before it, key by key:
 3. the environment: ``PYECONOMICS_MODE``, ``PYECONOMICS_OFFLINE``,
    ``PYECONOMICS_CACHE_DIR``, ``PYECONOMICS_SEC_CONTACT``,
    ``PYECONOMICS_DISABLED_PROVIDERS`` (provider ids separated by commas or
-   spaces) and ``PYECONOMICS_TTL_<PROVIDER>``.
+   spaces), ``PYECONOMICS_ALLOW_UNCLEAR_LLM_USE`` and
+   ``PYECONOMICS_TTL_<PROVIDER>``.
 
 :func:`configure` then sets process-wide overrides on top, and
 :func:`settings` returns the result as a frozen :class:`Settings`.
@@ -31,6 +32,12 @@ value: an error says which layer and which setting. The one exception is
 refused before any cache read or request, and a concept fails over to its next
 candidate, so rolling a failing source back is a setting, not a release.
 
+``allow_unclear_llm_use`` is the user's opt-in to data whose terms are unclear
+about language models (ADR-0012 decision 14): the MCP server reads it once, at
+start, as its :attr:`Settings.llm_use_policy`. It comes from the files or the
+environment only; :func:`configure` does not take it, and nothing a language
+model sends can set it.
+
 The SEC contact (``sec_contact``) is personal data. EDGAR's User-Agent
 carries it (Phase 3 Step 7), and nothing else: it is held as a pydantic
 ``SecretStr``, which prints as asterisks, and registered with
@@ -43,7 +50,7 @@ to :func:`settings`; :func:`reset` forgets them and every override.
 Examples
 --------
 >>> Settings(offline=True, ttl={"bls": 3600})
-Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600}, disabled_providers=())
+Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600}, disabled_providers=(), allow_unclear_llm_use=False)
 >>> Settings(disabled_providers=["fred", "bls", "fred"]).disabled_providers
 ('bls', 'fred')
 
@@ -71,6 +78,7 @@ from pydantic import (
 
 from pyeconomics.core._fields import identifier
 from pyeconomics.core.errors import InputError
+from pyeconomics.core.provenance import LlmUsePolicy
 from pyeconomics.data import redaction
 from pyeconomics.data.errors import ConfigError
 
@@ -149,6 +157,9 @@ class Settings(BaseModel):
     disabled_providers
         Provider ids turned off: each is refused before any cache read or
         request, and the resolver passes over it. Sorted, each once.
+    allow_unclear_llm_use
+        The user's opt-in to data whose terms are unclear about language
+        models, for the MCP server (:attr:`llm_use_policy`).
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
@@ -163,6 +174,22 @@ class Settings(BaseModel):
         default_factory=dict
     )
     disabled_providers: tuple[str, ...] = ()
+    allow_unclear_llm_use: StrictBool = False
+
+    @property
+    def llm_use_policy(self) -> LlmUsePolicy:
+        """The ``llm_use`` policy the user's configuration chooses.
+
+        Examples
+        --------
+        >>> Settings().llm_use_policy.value
+        'allowed-only'
+        >>> Settings(allow_unclear_llm_use=True).llm_use_policy.value
+        'allow-unclear'
+        """
+        if self.allow_unclear_llm_use:
+            return LlmUsePolicy.ALLOW_UNCLEAR
+        return LlmUsePolicy.ALLOWED_ONLY
 
     @field_validator("cache_dir", mode="before")
     @classmethod
@@ -359,6 +386,7 @@ _ENVIRONMENT: Final[dict[str, tuple[str, Callable[[str, str], object]]]] = {
     "CACHE_DIR": ("cache_dir", lambda _name, value: value),
     "SEC_CONTACT": ("sec_contact", lambda _name, value: value),
     "DISABLED_PROVIDERS": ("disabled_providers", _names),
+    "ALLOW_UNCLEAR_LLM_USE": ("allow_unclear_llm_use", _flag),
 }
 # The hosted server's own secrets, named like credentials on purpose: the server
 # reads them (pyeconomics.server.edge), and these settings neither read nor

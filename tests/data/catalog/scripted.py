@@ -24,6 +24,7 @@ from pyeconomics.data import (
     DataProvider,
     KeyPlacement,
     LicenceClass,
+    LlmUse,
     ProviderInfo,
     Query,
     SearchHit,
@@ -50,6 +51,7 @@ def scripted(  # noqa: PLR0913, C901 - a provider with every optional capability
     script: Mapping[str, Series | Table | Exception],
     *,
     licence: LicenceClass = LicenceClass.HOSTED_SAFE,
+    llm_use: LlmUse = LlmUse.ALLOWED,
     capabilities: Sequence[Capability] = (Capability.FETCH,),
     keyed: bool = False,
     extra: str | None = None,
@@ -62,7 +64,7 @@ def scripted(  # noqa: PLR0913, C901 - a provider with every optional capability
     The script maps a series id to the frame to return or the exception to raise
     when the provider is asked for it. A series not in the script is unknown.
     """
-    terms = HOSTED_TERMS.with_overrides(licence=licence)
+    terms = HOSTED_TERMS.with_overrides(licence=licence, llm_use=llm_use)
     info = ProviderInfo(
         id=provider_id,
         name=f"Scripted {provider_id}",

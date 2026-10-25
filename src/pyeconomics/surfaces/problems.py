@@ -149,6 +149,13 @@ ROWS: Final = (
     ),
     Row(f"{_DATA}.SeriesNotFoundError", "series-not-found", "No such series", 404, 5),
     Row(
+        f"{_DATA}.LlmUseError",
+        "llm-use-forbidden",
+        "The source's terms do not let its data reach a language model",
+        403,
+        6,
+    ),
+    Row(
         f"{_DATA}.LicenceError",
         "licence-refused",
         "The source's licence does not permit this use",
