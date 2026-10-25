@@ -472,7 +472,8 @@ def test_without_the_extra_the_app_mounts_no_mcp(
 
     monkeypatch.setattr(importlib.util, "find_spec", find_spec)
     with client() as api:
-        paths = [getattr(route, "path", None) for route in api.app.routes]  # type: ignore[attr-defined]
+        routes = api.app.routes  # type: ignore[attr-defined] # ty: ignore[unresolved-attribute]
+        paths = [getattr(route, "path", None) for route in routes]
         response = post(api, modern("server/discover"))
     assert "/mcp" not in paths
     assert response.status_code == 404
