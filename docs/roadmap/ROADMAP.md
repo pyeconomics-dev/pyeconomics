@@ -1028,14 +1028,23 @@ service's secrets
 **Phase roadmap settings** — the session that writes
 `phase05-roadmap.md` (`/roadmap-phase 5`):
 
-| Setting      | Cost                                   | Balanced                                 | Quality                                  |
-| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
-| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
-| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
-| Thinking     | —                                      | On                                       | On                                       |
-| Conversation | **New**                                | **New**                                  | **New**                                  |
+|                                  | Cost            | Balanced        | Quality ✓       |
+| -------------------------------- | --------------- | --------------- | --------------- |
+| **Pick**                         |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Opus 5.5**    | **Opus 5.5**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code     | Claude Code     |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High            | Max             |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M        | $6.02/1M        | $67.58/1M       |
+| **Backup**                       |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **GPT-6.1 Sol** | **GPT-6.1 Sol** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Codex           | Codex           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | XHigh           | XHigh           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M        | $4.00/1M        | $4.00/1M        |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level.
+
+**Conversation:** New
 
 **Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -1197,14 +1206,23 @@ and licensed market data
 **Phase roadmap settings** — the session that writes
 `phase06-roadmap.md` (`/roadmap-phase 6`):
 
-| Setting      | Cost                                   | Balanced                                 | Quality                                  |
-| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
-| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
-| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
-| Thinking     | —                                      | On                                       | On                                       |
-| Conversation | **New**                                | **New**                                  | **New**                                  |
+|                                  | Cost            | Balanced        | Quality ✓       |
+| -------------------------------- | --------------- | --------------- | --------------- |
+| **Pick**                         |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Opus 5.5**    | **Opus 5.5**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code     | Claude Code     |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High            | Max             |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M        | $6.02/1M        | $67.58/1M       |
+| **Backup**                       |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **GPT-6.1 Sol** | **GPT-6.1 Sol** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Codex           | Codex           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | XHigh           | XHigh           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M        | $4.00/1M        | $4.00/1M        |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level.
+
+**Conversation:** New
 
 **Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -1395,14 +1413,23 @@ batches that surface everywhere automatically.
 **Phase roadmap settings** — the session that writes
 `phase07-roadmap.md` (`/roadmap-phase 7`):
 
-| Setting      | Cost                                   | Balanced                                 | Quality                                  |
-| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
-| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
-| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
-| Thinking     | —                                      | On                                       | On                                       |
-| Conversation | **New**                                | **New**                                  | **New**                                  |
+|                                  | Cost            | Balanced        | Quality ✓       |
+| -------------------------------- | --------------- | --------------- | --------------- |
+| **Pick**                         |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Opus 5.5**    | **Opus 5.5**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code     | Claude Code     |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High            | Max             |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M        | $6.02/1M        | $67.58/1M       |
+| **Backup**                       |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **GPT-6.1 Sol** | **GPT-6.1 Sol** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Codex           | Codex           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | XHigh           | XHigh           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M        | $4.00/1M        | $4.00/1M        |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level.
+
+**Conversation:** New
 
 **Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -1552,14 +1579,23 @@ Yes — account PII, authentication, billing metadata (never card data)
 **Phase roadmap settings** — the session that writes
 `phase08-roadmap.md` (`/roadmap-phase 8`):
 
-| Setting      | Cost                                   | Balanced                                 | Quality                                  |
-| ------------ | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| Model        | GPT-6.1 Sol                            | Opus 5.5                                 | Opus 5.5                                 |
-| Backup       | Sonnet 5.5 — Claude Code · Effort High | GPT-6.1 Sol — Codex · Intelligence XHigh | GPT-6.1 Sol — Codex · Intelligence XHigh |
-| Platform     | Codex                                  | Claude Code                              | Claude Code                              |
-| Effort       | Intelligence Medium                    | Effort High                              | Effort Max                               |
-| Thinking     | —                                      | On                                       | On                                       |
-| Conversation | **New**                                | **New**                                  | **New**                                  |
+|                                  | Cost            | Balanced        | Quality ✓       |
+| -------------------------------- | --------------- | --------------- | --------------- |
+| **Pick**                         |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol** | **Opus 5.5**    | **Opus 5.5**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex           | Claude Code     | Claude Code     |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium          | High            | Max             |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M        | $6.02/1M        | $67.58/1M       |
+| **Backup**                       |                 |                 |                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**  | **GPT-6.1 Sol** | **GPT-6.1 Sol** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code     | Codex           | Codex           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High            | XHigh           | XHigh           |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M        | $4.00/1M        | $4.00/1M        |
+
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level.
+
+**Conversation:** New
 
 **Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
