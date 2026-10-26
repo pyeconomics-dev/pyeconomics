@@ -26,6 +26,7 @@ quickstart
 cli
 api
 mcp
+mcp-evaluations
 tutorials/first-model
 conventions
 results

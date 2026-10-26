@@ -18,15 +18,22 @@ What a tool call returns:
   :class:`~pyeconomics.mcp.execution.Executor` with the server's ``llm_use``
   policy, and answers the canonical result as structured content, the same
   ``Result.to_json()`` text as a text block, and a one-line summary
-  (:func:`~pyeconomics.surfaces.envelope.summary_of`) as a second block; in
-  hosted mode a result larger than the server's limit answers a notice instead:
-  its summary, size and hash, and the REST API's download of it;
+  (:func:`~pyeconomics.surfaces.envelope.summary_of`) as a second block, with
+  the model's chart as a Plotly figure in its ``_meta`` when the ``plot`` extra
+  is installed (:mod:`~pyeconomics.mcp.apps`); in hosted mode a result larger
+  than the server's limit answers a notice instead: its summary, size and hash,
+  and the REST API's download of it;
 - ``get_series`` returns at most the server's limit of observations, with the
   attributions and notices the data must be shown with;
 - ``search_models``, ``describe_model`` and ``list_sources`` return the
   listing entries, ``registry.describe``'s document and the sources, as the
   command line and the REST API do; ``list_sources`` says, in local mode only,
   whether each key is configured (``has_key``), never its value.
+
+Every run tool names the chart page, ``ui://pyeconomics/chart``, in its
+``_meta.ui.resourceUri``, and the server lists and reads that one resource: a
+client that supports MCP Apps draws the figure beside the answer, and any other
+client ignores both.
 
 Every answer passes the final check before it is sent
 (:func:`~pyeconomics.surfaces.gate.check_document`): one still carrying a
@@ -60,6 +67,7 @@ from pyeconomics.core.binding import DEFAULT_PROFILE
 from pyeconomics.core.canonical import canonical_json
 from pyeconomics.core.errors import InputError
 from pyeconomics.core.provenance import LlmUsePolicy
+from pyeconomics.mcp import apps
 from pyeconomics.mcp.execution import Executor, LocalExecutor, Refused
 from pyeconomics.mcp.headline import HEADLINE
 from pyeconomics.mcp.schemas import DEFAULT_SEARCH_LIMIT
@@ -120,6 +128,7 @@ def _tool(spec: ToolSpec) -> types.Tool:
         input_schema=spec.input_schema,
         output_schema=spec.output_schema,
         annotations=_annotations(spec),
+        meta=apps.TOOL_META if spec.kind in {"run", "headline"} else None,
     )
 
 
@@ -306,9 +315,12 @@ class _Tools:
         gate.check_document(document, self.policy, subject=model.id)
         summary = summary_of(document, model.spec.title)
         if self.mode != "hosted" or len(body) <= self.result_limit:
+            # Plotly is imported, and the figure built, off the event loop.
+            meta = await asyncio.to_thread(apps.figure_meta, model, document)
             return types.CallToolResult(
                 content=_blocks(body.decode("utf-8"), summary),
                 structured_content=document,
+                meta=meta,
             )
         path = _download(model, canonical_json(decoded), bind)
         notice = {
@@ -499,6 +511,20 @@ def build_server(  # noqa: PLR0913 - the server's settings are independent
     ) -> types.CallToolResult:
         return await tools.call(params.name, params.arguments)
 
+    async def list_resources(
+        _ctx: ServerRequestContext[Any], _params: types.PaginatedRequestParams | None
+    ) -> types.ListResourcesResult:
+        return types.ListResourcesResult(resources=[apps.chart_resource()])
+
+    async def read_resource(
+        _ctx: ServerRequestContext[Any], params: types.ReadResourceRequestParams
+    ) -> types.ReadResourceResult:
+        if params.uri != apps.CHART_URI:
+            raise MCPError(
+                code=types.INVALID_PARAMS, message=f"Unknown resource: {params.uri}"
+            )
+        return types.ReadResourceResult(contents=[apps.chart_contents()])
+
     hint = CacheHint(ttl_ms=_LIST_TTL_MS, scope="public")
     server: Server[Any] = Server(
         SERVER_NAME,
@@ -510,9 +536,16 @@ def build_server(  # noqa: PLR0913 - the server's settings are independent
             "result, with the manifest of every source it read."
         ),
         website_url="https://pyeconomics.readthedocs.io",
-        cache_hints={"tools/list": hint, "server/discover": hint},
+        cache_hints={
+            "tools/list": hint,
+            "server/discover": hint,
+            "resources/list": hint,
+            "resources/read": hint,
+        },
         get_tool_input_schema=tools.input_schema,
         on_list_tools=list_tools,
         on_call_tool=call_tool,
+        on_list_resources=list_resources,
+        on_read_resource=read_resource,
     )
     return server

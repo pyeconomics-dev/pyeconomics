@@ -386,7 +386,7 @@ step time are the authority:
 | openapi-python-client | 0.29.1 | `MIT`; requires httpx<0.29, ruff, typer | outside the allowlist's scope (dev tool) | pure Python | dev: the Python client (Step 7) |
 | @hey-api/openapi-ts | 0.99.0 (npm) | `MIT`; Node 22.18 or later; calls TypeScript's JS API; its ref parser's js-yaml 4.2.0 has three High advisories, so tools/node pins js-yaml 4.3.2 through `overrides` (Step 7, read 2026-10-24) | npm audit only | — | dev: the TypeScript client (Step 7) |
 | @modelcontextprotocol/inspector | 2.12.0 (npm, 2026-10-21) | its own licence file | npm audit only | — | dev: Inspector checks (Steps 8, 14) |
-| @modelcontextprotocol/ext-apps | 2.0.3 (npm) | `MIT` | npm audit only | — | the MCP Apps chart (Step 9), if it is used |
+| @modelcontextprotocol/ext-apps | 2.0.3 (npm) | `MIT` | npm audit only | — | not used: the MCP Apps chart (Step 9) speaks the protocol in plain JavaScript |
 | typescript | 6.0.3 (npm); 7.0.2 is the native compiler, whose package has no JS API, so @hey-api/openapi-ts fails on it (Step 7, read 2026-10-24) | `Apache-2.0` | npm audit only | — | dev: type-checking the client |
 
 **Wheel rule.** CI runs every cell of Python 3.12–3.15 on Ubuntu, Windows
@@ -5008,9 +5008,9 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 9 — MCP Apps, the MCP Registry Entry and Agent Evaluations
+## Step 9 — MCP Apps, the MCP Registry Entry and Agent Evaluations ✅
 
-**Status:** Not started
+**Status:** Complete — PR #198 (2026-10-26)
 
 > **Goal:** Finish the MCP surface for real clients and real agents. Add a
 > chart rendered inside clients that support the MCP Apps extension
@@ -5071,6 +5071,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-26: Quality Pick, also the Balanced column's Runner-up model — Opus 5.5 · Effort High. The Runs rule selected the Balanced Pick (Antigravity pool headroom); the operator opened the step on Claude Code. The live evaluation's agent was Sonnet 5.5.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a small
 self-contained HTML page against the MCP Apps protocol, a registry manifest
@@ -5359,7 +5361,10 @@ conversation per phase-boundary hygiene.
       and publishes an organization namespace only through
       GitHub OIDC (`mcp-publisher login github-oidc`), not the
       device flow; its server.json schema is 2025-12-11 and
-      its latest release v1.8.2.
+      its latest release v1.8.2. (At kickoff on 2026-10-26
+      the latest was v1.8.4, which the workflow pins; the
+      ext-apps example host installs only outside its
+      monorepo, whose root scripts need bun.)
 
     Files to read (every file before drafting):
     - docs/adr/0012-programmatic-surfaces.md (decisions 13,
@@ -5798,6 +5803,11 @@ conversation per phase-boundary hygiene.
       (Step 5), the REST API (Steps 6–7) and the MCP server
       (Steps 8–9); each returns Result.to_json() bytes by
       ADR-0012 decision 3, and the CLI appends one newline.
+    - From Step 9: an MCP run of a model with a chart also
+      carries its Plotly figure in the result's `_meta`
+      (`pyeconomics/figure`, when the plot extra is
+      installed); parity compares the structured content and
+      the text blocks, which the figure never changes.
     - tests/golden/ holds one TOML file per model, read by
       tests/golden/_loader.py; tests/data/bindings/
       bound_support.py scripts providers for offline bound
@@ -7733,6 +7743,18 @@ per phase-boundary hygiene.
       2.12.0, Node 22) checks stdio, a local server's /mcp
       and the local HTTP app; tools/list is snapshotted in
       both modes.
+    - From Step 9: the live evaluation is `uv run python
+      scripts/mcp_agent_eval.py --model sonnet --markdown
+      docs/mcp-evaluations.md` (about three minutes, nine
+      tasks, Claude Code headless on the maintainer's
+      subscription); it withholds FRED's and ALFRED's keys and
+      refuses to write a record holding a path or a key. Its
+      bound task is dated 2025-06-30 because of #195 (CBO's
+      archive begins 2024-02) and #196 (NY Fed's EFFR history
+      breaks a full read); if either is fixed by then, a 2019
+      Taylor-rule task can join the set. Never run the
+      stand-in world (catalog_world) outside pytest: it now
+      refuses to answer without PYECONOMICS_CACHE_DIR.
     - Steps 1–13 are on main at 1.0.0b1.dev1: the CLI,
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every
@@ -8181,6 +8203,20 @@ hygiene.
       GitHub release behind the mcp-registry environment.
     - README.md carries the mcp-name marker; server.json's
       version follows pyproject.toml.
+    - From Step 9: server.json holds the version three times
+      (`version`, `packages[0].version` and the `--from
+      "pyeconomics[mcp]==<version>"` runtime argument), and
+      tests/mcp/test_mcp_registry_entry.py requires all three
+      to equal pyproject.toml's. release.yml creates no GitHub
+      release, so mcp-registry.yml first runs when this step
+      publishes the pre-release; to rerun it, dispatch it on
+      the tag (`gh workflow run mcp-registry.yml --ref
+      v1.0.0b1 -f version=1.0.0b1`): the mcp-registry
+      environment (the maintainer's review) admits `v*` tags
+      only. It pins mcp-publisher v1.8.4 by SHA-256, waits up
+      to 30 minutes for PyPI's JSON to show the version with
+      the marker, and audits (does not block) egress, so its
+      first run's endpoints can be read from harden-runner.
     - Phase 3 Step 19's lessons: PyPI's JSON lists a version
       before the simple index serves it (retry a fresh
       lookup before calling an install failed); plain pip on
@@ -9157,7 +9193,7 @@ workflow above maps directly to the corresponding row below.
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
-| 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
@@ -9488,6 +9524,17 @@ whatever is still open here.
   `MCPServer` ADR-0012 decision 13 names, the same SDK on the same
   revisions and transports (the maintainer agreed; recorded in the PR).
   Steps 9 to 14's task blocks note what they build on.
+- From Phase 4 Step 9, additive changes and deferred findings: `core.plotting`
+  gains `charts_for` and `figure_of` (a figure from a result's JSON document,
+  as a surface holds it; Phase 2's `figure` unchanged); the stand-in world
+  refuses to answer without `PYECONOMICS_CACHE_DIR` (its synthetic answers had
+  reached the maintainer's cache from a run outside pytest; the seven entries
+  were deleted). Deferred as issues: #195 (a gated as-of bind before 2024-02
+  cannot resolve CBO's noncyclical unemployment rate; the stand-in world gives
+  CBO vintages from 2000), #196 (NY Fed's EFFR history holds a Sunday, so a
+  full read fails and every live gated `macro_policy_rule` bind with it) and
+  #197 (the tool list costs an agent about 69k tokens of context). Steps 10,
+  14 and 15's task blocks note what they build on.
 
 ---
 

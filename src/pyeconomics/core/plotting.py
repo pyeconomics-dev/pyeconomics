@@ -24,18 +24,29 @@ from pyeconomics.core._optional import import_optional
 from pyeconomics.core.spec import ChartKind
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from pyeconomics.core.model import Model
     from pyeconomics.core.results import Result
     from pyeconomics.core.spec import ChartSpec
 
-__all__ = ["PLOTLY_EXTRA", "applicable", "figure"]
+__all__ = ["PLOTLY_EXTRA", "applicable", "charts_for", "figure", "figure_of"]
 
 #: The extra that installs Plotly.
 PLOTLY_EXTRA: Final = "plot"
 
 
-def _calculation(result: Result[Any, Any]) -> str | None:
-    value = getattr(result.inputs, "calculation", None)
-    return value if isinstance(value, str) else None
+def charts_for(model: Model[Any, Any], calculation: object) -> tuple[ChartSpec, ...]:
+    """Return a model's charts that apply to a calculation, in declared order.
+
+    ``calculation`` is a result's ``calculation`` input, ``None`` for a model
+    that is not a family. Reading the specification needs no Plotly.
+    """
+    return tuple(
+        chart
+        for chart in model.spec.charts
+        if chart.calculation is None or chart.calculation == calculation
+    )
 
 
 def applicable(result: Result[Any, Any]) -> tuple[ChartSpec, ...]:
@@ -44,31 +55,25 @@ def applicable(result: Result[Any, Any]) -> tuple[ChartSpec, ...]:
     A chart tied to one calculation of a family applies only to a result of that
     calculation. Reading the specification needs no Plotly.
     """
-    calculation = _calculation(result)
-    return tuple(
-        chart
-        for chart in result.model.spec.charts
-        if chart.calculation is None or chart.calculation == calculation
-    )
+    return charts_for(result.model, getattr(result.inputs, "calculation", None))
 
 
-def _pick(result: Result[Any, Any], chart_id: str | None) -> ChartSpec:
-    charts = applicable(result)
+def _pick(
+    model_id: str, charts: tuple[ChartSpec, ...], chart_id: str | None
+) -> ChartSpec:
     if chart_id is not None:
         for chart in charts:
             if chart.id == chart_id:
                 return chart
         known = ", ".join(chart.id for chart in charts) or "none"
-        msg = (
-            f"model {result.model_id!r} has no chart {chart_id!r}; its charts: {known}"
-        )
+        msg = f"model {model_id!r} has no chart {chart_id!r}; its charts: {known}"
         raise ValueError(msg)
     if not charts:
-        msg = f"model {result.model_id!r} declares no chart for this result"
+        msg = f"model {model_id!r} declares no chart for this result"
         raise ValueError(msg)
     if len(charts) > 1:
         known = ", ".join(chart.id for chart in charts)
-        msg = f"model {result.model_id!r} has several charts; name one of: {known}"
+        msg = f"model {model_id!r} has several charts; name one of: {known}"
         raise ValueError(msg)
     return charts[0]
 
@@ -91,8 +96,34 @@ def figure(result: Result[Any, Any], chart_id: str | None = None) -> Any:  # noq
         If no chart, or more than one, applies and none was named.
     """
     graph_objects = import_optional("plotly.graph_objects", extra=PLOTLY_EXTRA)
-    spec = _pick(result, chart_id)
-    outputs = result.outputs.model_dump(mode="python")
+    spec = _pick(result.model_id, applicable(result), chart_id)
+    return _draw(graph_objects, spec, result.outputs.model_dump(mode="python"))
+
+
+def figure_of(
+    model: Model[Any, Any], document: Mapping[str, Any], chart_id: str | None = None
+) -> Any:  # noqa: ANN401 - a Plotly figure
+    """Build the Plotly figure of one chart of a result's JSON document.
+
+    ``document`` is a result in the shape of
+    :meth:`~pyeconomics.core.results.Result.to_dict` (or its canonical JSON,
+    parsed), as a surface holds it after the run: the figure is the one
+    :func:`figure` builds from the result itself.
+
+    Raises
+    ------
+    MissingOptionalDependencyError
+        If Plotly is not installed; the message names ``pyeconomics[plot]``.
+    ValueError
+        If no chart, or more than one, applies and none was named.
+    """
+    graph_objects = import_optional("plotly.graph_objects", extra=PLOTLY_EXTRA)
+    calculation = document["inputs"].get("calculation")
+    spec = _pick(model.id, charts_for(model, calculation), chart_id)
+    return _draw(graph_objects, spec, document["outputs"])
+
+
+def _draw(graph_objects: Any, spec: ChartSpec, outputs: Mapping[str, Any]) -> Any:  # noqa: ANN401 - Plotly
     x = list(outputs[spec.x])
     fig = graph_objects.Figure()
     lines = spec.y

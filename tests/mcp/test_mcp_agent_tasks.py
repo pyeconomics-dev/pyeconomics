@@ -1,7 +1,16 @@
 # tests/mcp/test_mcp_agent_tasks.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""Two scripted agent tasks, as an assistant would run them (Phase 4 Step 8).
+"""Scripted agent tasks, as an assistant would run them (Phase 4 Steps 8 and 9).
+
+The task set is scripts/mcp/agent_tasks.py, which the live evaluation
+(scripts/mcp_agent_eval.py) also gives a real agent: discovery, three headline
+tools, a bound run, a series with its attribution, the sources and a refusal.
+:func:`test_scripted_task` runs each task's scripted calls against the server,
+over stand-ins for every real provider (tests/data/catalog/catalog_world.py),
+and checks the value they reach against the Python API's in the same world.
+
+Two tasks are also told in full:
 
 **Price a bond and report its duration.** The assistant searches the models,
 describes the duration model to read its inputs, prices the bond with the
@@ -10,21 +19,24 @@ the answers are the Python API's.
 
 **Run the Taylor rule for a past date.** ``run_model`` binds
 ``macro.policy_rule`` as of 2019-06-28 against stand-ins for every real
-provider, each answering canned responses under its real metadata
-(tests/data/catalog/catalog_world.py), since a cassette replays only its own
-recorded query. FRED, whose terms forbid language models, is passed over by
-the gate; every record of the result is allowed; and where no permitted source
-keeps vintages, the data is revised and labelled so.
+provider, each answering canned responses under its real metadata, since a
+cassette replays only its own recorded query. FRED, whose terms forbid language
+models, is passed over by the gate; every record of the result is allowed; and
+where no permitted source keeps vintages, the data is revised and labelled so.
 """
 
 from __future__ import annotations
 
 import datetime as dt
+import importlib.util
 import json
+import sys
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import pytest
 from leakcheck import canary
-from mcp_support import LOOPBACK_ONLY, call, run_with, stub_world, text_of
+from mcp_support import LOOPBACK_ONLY, call, problem_of, run_with, stub_world, text_of
 
 import pyeconomics
 from pyeconomics.core import LlmUsePolicy
@@ -33,11 +45,87 @@ from pyeconomics.mcp import build_server
 from pyeconomics.surfaces.invoke import BindRequest, invoke
 
 if TYPE_CHECKING:
-    import pytest
+    from collections.abc import Sequence
+    from types import ModuleType
+
     from config_isolation import Isolation
-    from mcp import Client
+    from mcp import Client, types
 
 pytestmark = LOOPBACK_ONLY
+
+
+def _load_tasks() -> ModuleType:
+    path = Path(__file__).resolve().parents[2] / "scripts" / "mcp" / "agent_tasks.py"
+    spec = importlib.util.spec_from_file_location("mcp_agent_tasks", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # dataclasses resolve annotations through it
+    spec.loader.exec_module(module)
+    return module
+
+
+agent_tasks = _load_tasks()
+TASKS = agent_tasks.TASKS
+#: Where the stand-ins' data starts for the task set, whose dates are in 2025.
+TASK_WORLD_START = dt.date(2024, 7, 1)
+
+
+def _in_order(wanted: Sequence[str], called: Sequence[str]) -> bool:
+    remaining = iter(called)
+    return all(name in remaining for name in wanted)
+
+
+def _plant_keys(isolated: Isolation) -> None:
+    # BEA's and FRED's APIs need keys: planted ones, which no stand-in sends.
+    for provider in ("bea", "fred"):
+        isolated.keyring.set_password("pyeconomics", provider, canary(provider).value)
+
+
+def test_the_task_set_covers_what_step_9_names() -> None:
+    assert len(TASKS) >= 8
+    assert len({task.id for task in TASKS}) == len(TASKS)
+    tools = [name for task in TASKS for name in task.tools]
+    assert {"search_models", "describe_model", "get_series", "list_sources"} <= set(
+        tools
+    )
+    assert len({name for name in tools if name not in agent_tasks.DISCOVERY}) >= 3
+    bound = [task for task in TASKS if any("as_of" in c.arguments for c in task.calls)]
+    assert bound
+    assert any(task.mentions for task in TASKS if "get_series" in task.tools)
+    assert [task.refusal for task in TASKS if task.refusal] == ["llm-use-forbidden"]
+
+
+@pytest.mark.parametrize("task", TASKS, ids=lambda task: task.id)
+def test_scripted_task(
+    task: Any,  # noqa: ANN401 - agent_tasks.AgentTask, loaded from its file
+    monkeypatch: pytest.MonkeyPatch,
+    isolated: Isolation,
+) -> None:
+    stub_world(monkeypatch, TASK_WORLD_START)
+    _plant_keys(isolated)
+    server = build_server(policy=LlmUsePolicy.ALLOWED_ONLY)
+
+    async def work(client: Client) -> list[types.CallToolResult]:
+        return [
+            await client.call_tool(step.tool, dict(step.arguments))
+            for step in task.calls
+        ]
+
+    results = run_with(server, work)
+    assert _in_order(task.tools, [step.tool for step in task.calls])
+    *before, last = results
+    assert not any(result.is_error for result in before)
+    if task.refusal is not None:
+        assert problem_of(last)["type"].endswith(f"/{task.refusal}")
+        return
+    assert not last.is_error, text_of(last)
+    document = last.structured_content
+    assert document is not None
+    assert task.answer(document) == pytest.approx(task.expected(), rel=1e-12, abs=0)
+    for text in task.mentions:
+        assert any(text in attribution for attribution in document["attributions"])
+
 
 BOND = {
     "settlement": "2026-01-15",

@@ -19,11 +19,17 @@ without a network, a key or a recorded response; the recorded-response tests
 (test_recorded_concepts.py) prove real parsers for the concepts whose originators
 have cassettes, and the live suite (tests/providers/test_live_concepts.py)
 proves every concept against the real sources.
+
+Its frames are synthetic, so a stand-in refuses to answer unless
+``PYECONOMICS_CACHE_DIR`` names a cache of its own, as the autouse ``isolated``
+fixture sets it: run outside pytest against the user's cache, the stand-ins'
+answers were stored there and later served as live data (Phase 4 Step 9).
 """
 
 from __future__ import annotations
 
 import datetime as dt
+import os
 from typing import TYPE_CHECKING, Final
 
 from catalog_support import month_end
@@ -221,7 +227,12 @@ def _specs() -> dict[tuple[str, str], list[tuple[Concept, Candidate]]]:
 
 
 def world_registry(fail: Fail | None = None) -> ProviderRegistry:
-    """Build a registry of stand-ins for every installed provider."""
+    """Build a registry of stand-ins for every installed provider.
+
+    A stand-in's request raises :class:`RuntimeError` when
+    ``PYECONOMICS_CACHE_DIR`` is not set: its synthetic frame would be stored in
+    the user's cache.
+    """
     real = registry.installed()
     specs = _specs()
     failures = fail.errors if fail is not None else {}
@@ -240,6 +251,13 @@ def world_registry(fail: Fail | None = None) -> ProviderRegistry:
             key: str | Secret | None,
             transport: Transport | None,
         ) -> Sequence[Response]:
+            if not os.environ.get("PYECONOMICS_CACHE_DIR"):
+                msg = (
+                    "the stand-in providers answer synthetic data: set "
+                    "PYECONOMICS_CACHE_DIR to a cache of their own (the isolated "
+                    "fixture does), never the user's"
+                )
+                raise RuntimeError(msg)
             error = failures.get(self.info.id)
             if error is not None:
                 raise error

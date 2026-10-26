@@ -15,6 +15,7 @@ server at ``/mcp``. :func:`build_server` builds it from the registry:
   own, which is data;
 - :mod:`~pyeconomics.mcp.schemas`: every tool's input and output schemas;
 - :mod:`~pyeconomics.mcp.execution`: where a run or a series executes;
+- :mod:`~pyeconomics.mcp.apps`: the chart page MCP Apps clients draw a run with;
 - :mod:`~pyeconomics.mcp.transport`: stdio and the Streamable HTTP endpoint.
 
 The names here are imported on first use, so reading the headline tuple loads

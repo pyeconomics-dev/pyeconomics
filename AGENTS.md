@@ -374,6 +374,31 @@ From Phase 4 Step 8, which builds the MCP server (ADR-0012 decisions 13 and 14):
   intended tool change, `uv run pytest tests/mcp --snapshot-update` and review.
   The Inspector checks run only in ci.yml's `mcp-inspector` job
   (`scripts/mcp/inspector_checks.py`).
+- MCP Apps (Phase 4 Step 9, ADR-0012 decision 15): `mcp/apps.py` holds the
+  chart page `ui://pyeconomics/chart` as a string constant. It loads one script,
+  Plotly.js pinned by version and Subresource Integrity from the one origin its
+  CSP metadata names, with no inline handler, no evaluation and no connection
+  (`tests/mcp/test_mcp_apps.py`). `PLOTLY_JS_VERSION` and `PLOTLY_JS_INTEGRITY`
+  follow the Plotly.js the `plot` extra's Plotly bundles: when a Plotly bump
+  fails that test, check the CDN file is byte for byte the bundled one and move
+  both. Every run tool carries `_meta.ui.resourceUri`; a run's figure travels
+  only in the result's `_meta` (`pyeconomics/figure`), never in its structured
+  content or text.
+- The MCP Registry entry is `server.json` (Step 9, decision 16): its versions and
+  its `--from "pyeconomics[mcp]==<version>"` follow pyproject.toml's version
+  (`tests/mcp/test_mcp_registry_entry.py`), so a version bump edits it too.
+  `.github/workflows/mcp-registry.yml` publishes it, through OIDC from the
+  protected `mcp-registry` environment, on a published release or a dispatch on
+  the release's tag; `mcp-publisher` moves only by version and SHA-256 together.
+- The agent tasks are `scripts/mcp/agent_tasks.py`, one table for CI (their
+  scripted calls, `tests/mcp/test_mcp_agent_tasks.py`) and the live evaluation
+  (`scripts/mcp_agent_eval.py`, the maintainer's machine only), which writes
+  `docs/mcp-evaluations.md`. After changing a tool's name, description or schema,
+  rerun the evaluation and commit its page.
+- The stand-in world (`tests/data/catalog/catalog_world.py`) answers synthetic
+  data and refuses to unless `PYECONOMICS_CACHE_DIR` is set: never run it outside
+  pytest, where its answers would land in the user's cache and be served later
+  as live data.
 
 ## Units
 

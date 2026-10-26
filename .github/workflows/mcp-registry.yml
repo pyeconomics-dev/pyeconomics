@@ -1,0 +1,159 @@
+# .github/workflows/mcp-registry.yml
+#
+# Publishes server.json to the official MCP Registry as
+# io.github.pyeconomics-dev/pyeconomics (ADR-0012 decision 16), once the
+# version it names is on PyPI. The registry verifies the PyPI package by the
+# `mcp-name:` marker that README.md, its description, carries.
+#
+# - Runs when a GitHub release is published, or by hand (workflow_dispatch)
+#   dispatched ON the release's tag (`gh workflow run mcp-registry.yml --ref
+#   v<version> -f version=<version>`): the mcp-registry environment admits
+#   `v*` tags only and waits for the maintainer's approval. Phase 4 Step 15
+#   runs it first, after 1.0.0b1 is on PyPI.
+# - No stored secret: `mcp-publisher login github-oidc` trades this job's OIDC
+#   token for a registry token, which can publish any io.github.pyeconomics-dev/*
+#   name, so only this one job holds `id-token: write`.
+# - mcp-publisher is downloaded at a pinned release and its SHA-256 checked
+#   against the value below before it runs. To move the pin, take the
+#   mcp-publisher_linux_amd64.tar.gz line of that release's
+#   registry_<version>_checksums.txt and its asset digest, which must agree.
+# - Egress is audited, as in release.yml: this job first runs at a release, and
+#   a blocked endpoint could only be fixed with a new tag.
+
+name: mcp-registry
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The released version to publish (1.0.0b1, not v1.0.0b1); dispatch on its tag
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: mcp-registry
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: publish to the MCP Registry
+    runs-on: ubuntu-latest
+    environment:
+      name: mcp-registry
+      url: https://registry.modelcontextprotocol.io/v0.1/servers/io.github.pyeconomics-dev%2Fpyeconomics/versions/latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SERVER_NAME: io.github.pyeconomics-dev/pyeconomics
+      MCP_PUBLISHER_VERSION: v1.8.4
+      MCP_PUBLISHER_SHA256: 5dc2fd415369c73551259f31cd33e2aacc9e0d1021e7f08fef1492d93b781628
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve the version and check the ref is its tag
+        id: version
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "release" ]; then
+            version="${RELEASE_TAG#v}"
+          else
+            version="$INPUT_VERSION"
+          fi
+          if ! [[ "$version" =~ ^[1-9][0-9]*\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.post[0-9]+)?$ ]]; then
+            echo "::error::'${version}' is not a released 1.x version."
+            exit 1
+          fi
+          if [ "$GITHUB_REF" != "refs/tags/v${version}" ]; then
+            echo "::error::This run is on ${GITHUB_REF}, not refs/tags/v${version}."
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Check server.json names this server at this version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          test "$(jq -r .name server.json)" = "$SERVER_NAME"
+          for field in .version '.packages[0].version'; do
+            found=$(jq -r "$field" server.json)
+            if [ "$found" != "$VERSION" ]; then
+              echo "::error::server.json ${field} is ${found}, not ${VERSION}."
+              exit 1
+            fi
+          done
+          from=$(jq -r '.packages[0].runtimeArguments[] | select(.name == "--from") | .value' server.json)
+          if [ "$from" != "pyeconomics[mcp]==${VERSION}" ]; then
+            echo "::error::server.json installs ${from}, not pyeconomics[mcp]==${VERSION}."
+            exit 1
+          fi
+
+      - name: Download mcp-publisher and verify its checksum
+        run: |
+          set -euo pipefail
+          archive=mcp-publisher_linux_amd64.tar.gz
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/${archive}"
+          echo "${MCP_PUBLISHER_SHA256}  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" mcp-publisher
+          "$RUNNER_TEMP/mcp-publisher" --help > /dev/null
+
+      - name: Wait for PyPI to show the version with the mcp-name marker
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          url="https://pypi.org/pypi/pyeconomics/${VERSION}/json"
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error --proto '=https' --output "$RUNNER_TEMP/pypi.json" "$url"; then
+              if jq -e --arg marker "mcp-name: ${SERVER_NAME}" \
+                '.info.description | contains($marker)' "$RUNNER_TEMP/pypi.json" > /dev/null; then
+                echo "PyPI shows pyeconomics ${VERSION} with the marker."
+                exit 0
+              fi
+              echo "::error::PyPI's description of ${VERSION} lacks the mcp-name marker."
+              exit 1
+            fi
+            echo "Attempt ${attempt}: ${VERSION} is not on PyPI yet."
+            sleep 30
+          done
+          echo "::error::pyeconomics ${VERSION} did not appear on PyPI in 30 minutes."
+          exit 1
+
+      - name: Log in through GitHub OIDC
+        run: '"$RUNNER_TEMP/mcp-publisher" login github-oidc'
+
+      - name: Publish server.json
+        run: '"$RUNNER_TEMP/mcp-publisher" publish'
+
+      - name: Read the entry back from the registry
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          encoded=$(jq -rn --arg name "$SERVER_NAME" '$name | @uri')
+          url="https://registry.modelcontextprotocol.io/v0.1/servers/${encoded}/versions/${VERSION}"
+          curl --fail --silent --show-error --proto '=https' --output "$RUNNER_TEMP/entry.json" "$url"
+          test "$(jq -r .server.name "$RUNNER_TEMP/entry.json")" = "$SERVER_NAME"
+          test "$(jq -r .server.version "$RUNNER_TEMP/entry.json")" = "$VERSION"
+          jq '{name: .server.name, version: .server.version, packages: [.server.packages[] | {registryType, identifier, version}], official: ._meta["io.modelcontextprotocol.registry/official"]}' "$RUNNER_TEMP/entry.json"

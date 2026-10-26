@@ -4,6 +4,8 @@
 
 # pyeconomics
 
+<!-- mcp-name: io.github.pyeconomics-dev/pyeconomics -->
+
 [![CI](https://github.com/pyeconomics-dev/pyeconomics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pyeconomics-dev/pyeconomics/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/pyeconomics)](https://pypi.org/project/pyeconomics/)
 [![Licence](https://img.shields.io/github/license/pyeconomics-dev/pyeconomics)](https://github.com/pyeconomics-dev/pyeconomics/blob/main/LICENSE)
