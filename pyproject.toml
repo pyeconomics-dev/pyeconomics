@@ -357,7 +357,7 @@ python-version = "3.12"
 # tests/registry holds the toy models the result and smoke tests import too;
 # tests itself holds the strategies and the contract check, tests/golden the
 # loader and tests/data the data layer's shared frames.
-extra-paths = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/providers", "tests/registry", "tests/server"]
+extra-paths = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/parity", "tests/providers", "tests/registry", "tests/server"]
 
 [tool.ty.src]
 include = ["src", "tests"]
@@ -415,10 +415,11 @@ testpaths = ["tests", "src", "docs"]
 # tests/cli/cli_support.py the in-process command line runner, and
 # tests/exports/export_support.py the exports' readers, and
 # tests/server/server_support.py the REST API's client and toys, and
-# tests/mcp/mcp_support.py the MCP server's in-memory clients. Only these
+# tests/mcp/mcp_support.py the MCP server's in-memory clients, and
+# tests/parity/parity_support.py one session of every surface. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
-pythonpath = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/providers", "tests/registry", "tests/server"]
+pythonpath = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/parity", "tests/providers", "tests/registry", "tests/server"]
 markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",

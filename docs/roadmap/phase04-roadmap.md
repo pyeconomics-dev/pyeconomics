@@ -5886,7 +5886,11 @@ conversation per phase-boundary hygiene.
       tests/parity/test_parity_bound.py: every model with
       bindings, its default profile at a fixed as-of date over
       scripted providers or replayed cassettes, through the
-      four surfaces: equal bytes, data records included.
+      four surfaces: equal bytes, data records included. MCP
+      binds under its llm_use policy (ADR-0012 decision 14),
+      so its bytes equal the Python API's bind under that same
+      policy; each surface starts from an empty cache, or a
+      stored series' record says cache_hit.
     </requirement>
 
     <requirement>
@@ -7755,6 +7759,17 @@ per phase-boundary hygiene.
       Taylor-rule task can join the set. Never run the
       stand-in world (catalog_world) outside pytest: it now
       refuses to answer without PYECONOMICS_CACHE_DIR.
+    - From Step 10: scripts/parity/check_installed.py is the
+      parity sample (the first golden case of each domain,
+      read from tests/golden/ with tomllib) against the Python
+      API, over the console script, a `pyeconomics serve` it
+      starts on 127.0.0.1 and `pyeconomics mcp` over stdio;
+      run from a clean venv with `python -I`. For staging,
+      give it a base URL (and the Access service token's
+      headers) in place of the server it starts, rather than
+      writing a second comparison. tests/parity/'s answers
+      compare the problem's slug, status, exit code and
+      detail for a failing case.
     - Steps 1–13 are on main at 1.0.0b1.dev1: the CLI,
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every

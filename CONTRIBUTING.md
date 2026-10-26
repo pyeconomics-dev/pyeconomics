@@ -172,6 +172,12 @@ until you complete it, and says what to register by hand. Then:
   are rewritten: run `uv run pytest tests/surfaces --snapshot-update`, review
   the diff, and name every changed schema in `CHANGELOG.md`, because model ids,
   field names, units and their schemas are public API at 1.0.0 (ADR-0003).
+- **The parity suite** (`tests/parity/`) runs each golden case through the
+  Python API, the command line, the REST API and MCP and requires the same
+  bytes from each; it needs no edit for a new model. A model with bindings is
+  also bound with its default profile over stand-ins for every provider
+  (`tests/parity/parity_world.py`): if its default profile needs an input that
+  is not data, add it to `GIVEN` there.
 - **The coverage floors.** CI's tests job runs
   `scripts/checks/coverage_floors.py`: 95% branch coverage on `src/pyeconomics/core/`
   and 90% on `src/pyeconomics/models/`, beside the overall 95%.

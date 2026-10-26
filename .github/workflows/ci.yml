@@ -578,6 +578,52 @@ jobs:
           wait "$alone"
           cat mcp.log
 
+  # ADR-0012 decision 3 out of process (Phase 4 Step 10): the built wheel with
+  # its server and mcp extras in a clean venv, and for the first golden case of
+  # each domain, the console script's output, a real `pyeconomics serve` with
+  # spawned workers over HTTP and `pyeconomics mcp` over stdio must each answer
+  # the Python API's canonical bytes, or its problem
+  # (scripts/parity/check_installed.py). tests/parity/ asks every case in-process.
+  parity:
+    name: parity
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: true
+      - name: Build the wheel
+        run: uv build --wheel
+      # The venv and the working directory are outside the checkout, so every
+      # surface runs the installed wheel and never the source tree.
+      - name: Install the wheel with its server and mcp extras in a clean venv
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls "$PWD"/dist/*.whl)
+          uv venv --python 3.14 "$RUNNER_TEMP/parity"
+          uv pip install --python "$RUNNER_TEMP/parity/bin/python" "${wheel}[server,mcp]"
+      - name: Compare every surface with the Python API, out of process
+        shell: bash
+        run: |
+          set -euo pipefail
+          golden="$PWD/tests/golden"
+          check="$PWD/scripts/parity/check_installed.py"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/parity/bin/python" -I "$check" "$golden" "$RUNNER_TEMP/parity/bin/pyeconomics"
+
   lockfile:
     name: lockfile
     runs-on: ubuntu-latest
@@ -678,7 +724,7 @@ jobs:
     # skipped by design (pr-title and dco on a push) passes; a failed or
     # cancelled one does not.
     if: always()
-    needs: [lint, types, tests, package, pyodide, docs, api-fuzz, clients, mcp-inspector, lockfile, pr-title, dco]
+    needs: [lint, types, tests, package, pyodide, docs, api-fuzz, clients, mcp-inspector, parity, lockfile, pr-title, dco]
     runs-on: ubuntu-latest
     permissions: {}
     steps:
