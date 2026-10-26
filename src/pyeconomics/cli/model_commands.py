@@ -739,7 +739,8 @@ def prepare_run(app: App, tokens: Sequence[str]) -> None:
 
     ``tokens`` are the command line without its global flags; the id must come
     straight after ``models run``. An alias is registered as written, so the
-    run warns that it is deprecated.
+    run warns that it is deprecated. An application that already has the
+    command, from an earlier command line it ran, keeps it.
 
     Raises
     ------
@@ -751,9 +752,12 @@ def prepare_run(app: App, tokens: Sequence[str]) -> None:
     from pyeconomics.core.registry import installed  # noqa: PLC0415 - discovers models
 
     typed = tokens[2]
+    run = app["models"]["run"]
+    if typed in run:
+        return
     found = installed()
     model = found.get(found.aliases().get(typed, typed))
-    app["models"]["run"].command(model_command(model, typed), name=typed)
+    run.command(model_command(model, typed), name=typed)
 
 
 # --- the result as a table ------------------------------------------------------

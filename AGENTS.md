@@ -29,9 +29,11 @@ tests/             unit · golden · property · contract · parity · e2e
   providers/       the provider contract suite, the toy providers and the
                    cassettes under cassettes/<provider>/
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
+  parity/          the cross-surface parity suite and its stand-in world
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
 scripts/clients/   the clients job's helpers (retitle, smoke, compare)
 scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
+scripts/parity/    the parity job's helper (the installed wheel's surfaces)
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
 tools/node/        the one Node workspace: the TypeScript client's generator and
                    the MCP Inspector
@@ -399,6 +401,33 @@ From Phase 4 Step 8, which builds the MCP server (ADR-0012 decisions 13 and 14):
   data and refuses to unless `PYECONOMICS_CACHE_DIR` is set: never run it outside
   pytest, where its answers would land in the user's cache and be served later
   as live data.
+
+## Parity rules
+
+From Phase 4 Step 10, which proves the surfaces generated (ADR-0012 decisions 2
+and 3):
+
+- `tests/parity/` asks every golden case of every model, and every bound
+  model's default profile, of the Python API, the CLI (`--format json`, one
+  newline removed), the REST API and MCP `run_model` (its text and the canonical
+  JSON of its structured content), and requires the same bytes, or the same
+  problem slug, status, exit code and detail. A parity failure is a bug in the
+  surface that changed the bytes: fix the surface, never loosen a comparison.
+- The harness (`tests/parity/parity_support.py`) keeps one CLI application
+  (`cli.app.run_line` with a prebuilt app), one REST app and one MCP client per
+  module; a new parity module reuses them rather than starting a surface per
+  case.
+- Bound runs use `parity_world.py`'s stand-ins at `AS_OF`, with canary keys and
+  `LeakCheck`, and empty the cache before each surface (a cached series would
+  record `cache_hit`). MCP binds under its `llm_use` policy, so its answers are
+  compared with the Python API's under the same policy. A new bound model whose
+  default profile needs inputs that are not data adds them to
+  `parity_world.GIVEN`; one the stand-ins cannot serve gets a frame there.
+- `test_generator_guard.py` fails on a string literal (docstrings aside) in
+  `cli/`, `server/` or `mcp/` that names a model id; `mcp/headline.py` is the
+  one declared list.
+- ci.yml's `parity` job repeats the comparison out of process on the built
+  wheel (`scripts/parity/check_installed.py`), for one golden case per domain.
 
 ## Units
 

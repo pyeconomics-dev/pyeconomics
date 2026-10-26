@@ -47,7 +47,7 @@ from pyeconomics.cli.context import Context, ContextParameter, UsageError
 from pyeconomics.cli.output import Streams, Utf8Text, plain_console
 from pyeconomics.surfaces.problems import report, scrub
 
-__all__ = ["USAGE_EXIT_CODE", "build", "launch"]
+__all__ = ["USAGE_EXIT_CODE", "build", "launch", "run_line"]
 
 #: The exit code of a command line that does not parse.
 USAGE_EXIT_CODE: Final = 2
@@ -311,9 +311,30 @@ def launch(argv: Sequence[str] | None = None, *, streams: Streams | None = None)
     context = Context(
         streams=streams or Streams.system(), debug=_debug_requested(tokens)
     )
+    return run_line(context, tokens)
+
+
+def run_line(context: Context, tokens: Sequence[str], *, app: App | None = None) -> int:
+    """Run one command line in a context and return its exit code.
+
+    :func:`launch` builds the application for each command line. A caller that
+    runs many in one process (the parity suite, Phase 4 Step 10) builds one with
+    :func:`build` and passes it, with the same context, every time: a model's
+    ``models run`` command is then generated once.
+
+    Parameters
+    ----------
+    context
+        The streams and the ``--debug`` flag; the context ``app`` was built with.
+    tokens
+        The arguments, without the program's name.
+    app
+        The application :func:`build` made for ``context``; built here if absent.
+    """
+    tokens = list(tokens)
     with _logging(context), _warnings(context.streams):
         try:
-            app = build(context)
+            app = app or build(context)
             model_commands.prepare_run(app, _flags(tokens))
             app.meta(
                 tokens,

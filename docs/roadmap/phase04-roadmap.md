@@ -5498,9 +5498,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 10 — Cross-Surface Parity
+## Step 10 — Cross-Surface Parity ✅
 
-**Status:** Not started
+**Status:** Complete — PR #199 (2026-10-26)
 
 > **Goal:** Prove that "generated" means "identical". Add `tests/parity/`:
 > every golden case of every registered model (354 cases across 50 files on
@@ -5554,6 +5554,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-26: Balanced Runner-up, also the Quality Pick's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected the Balanced Pick (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Model rationale:** Coding is PRIMARY and long-context SECONDARY: a suite
 that drives four surfaces in-process and out of process over every golden
@@ -5886,7 +5888,11 @@ conversation per phase-boundary hygiene.
       tests/parity/test_parity_bound.py: every model with
       bindings, its default profile at a fixed as-of date over
       scripted providers or replayed cassettes, through the
-      four surfaces: equal bytes, data records included.
+      four surfaces: equal bytes, data records included. MCP
+      binds under its llm_use policy (ADR-0012 decision 14),
+      so its bytes equal the Python API's bind under that same
+      policy; each surface starts from an empty cache, or a
+      stored series' record says cache_hit.
     </requirement>
 
     <requirement>
@@ -7755,6 +7761,17 @@ per phase-boundary hygiene.
       Taylor-rule task can join the set. Never run the
       stand-in world (catalog_world) outside pytest: it now
       refuses to answer without PYECONOMICS_CACHE_DIR.
+    - From Step 10: scripts/parity/check_installed.py is the
+      parity sample (the first golden case of each domain,
+      read from tests/golden/ with tomllib) against the Python
+      API, over the console script, a `pyeconomics serve` it
+      starts on 127.0.0.1 and `pyeconomics mcp` over stdio;
+      run from a clean venv with `python -I`. For staging,
+      give it a base URL (and the Access service token's
+      headers) in place of the server it starts, rather than
+      writing a second comparison. tests/parity/'s answers
+      compare the problem's slug, status, exit code and
+      detail for a failing case.
     - Steps 1–13 are on main at 1.0.0b1.dev1: the CLI,
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every
@@ -9194,7 +9211,7 @@ workflow above maps directly to the corresponding row below.
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
-| 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
