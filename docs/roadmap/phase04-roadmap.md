@@ -4457,14 +4457,15 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 8 — MCP Server
+## Step 8 — MCP Server ✅
 
-**Status:** Not started
+**Status:** Complete — PR #191 (2026-10-25)
 
 > **Goal:** Let AI assistants discover and run every model through the
 > Model Context Protocol without hundreds of tools, and keep restricted data
 > out of their context. Fill the `[mcp]` extra with the official SDK
-> (`mcp>=2.3`, `MCPServer`) and add `src/pyeconomics/mcp/`: a server built
+> (`mcp>=2.3`; its low-level `Server`, since every schema is generated) and
+> add `src/pyeconomics/mcp/`: a server built
 > from the registry on the 2026-07-28 specification, served over stdio by
 > `pyeconomics mcp` (runnable as `uvx --from "pyeconomics[mcp]" pyeconomics
 > mcp`) and as a stateless Streamable HTTP app the server factory mounts at
@@ -4499,6 +4500,8 @@ with the app in Step 13; the Read the Docs `main` preview rebuilds with
 | AA Index     | 51.9                                       | 52.6                                 | 56                                         |
 | Thinking     | —                                          | On                                   | —                                          |
 | Conversation | **New**                                    | **New**                              | **New**                                    |
+
+> Ran 2026-10-25: the Balanced column's Backup, also the Quality column's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected Balanced (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -4814,6 +4817,17 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
       python-multipart, mcp-types, opentelemetry-api and, on
       Windows, pywin32; each has CPython 3.15 wheels or is
       pure Python. The MCP Inspector is 2.12.0 on npm.
+    - Read at kickoff, 2026-10-25 (spec rot fixed in this
+      step): mcp 2.3.0 is still the latest. MCPServer
+      derives each tool's schemas from a Python signature,
+      and the SDK documents its low-level `Server` for
+      exact, generated schemas, so mcp/ is built on that
+      (the maintainer agreed; the PR records it). The
+      SDK's stateless Streamable HTTP still holds a GET
+      stream open, so the endpoint takes POST only. The
+      Inspector 2.12.0 needs Node 22.19 or later; pywin32
+      312 bundles BSD-3-Clause, MIT, PSF-2.0 and HPND-style
+      licences, and LGPL-2.1 for its unused adodbapi.
     - Since Step 1 (#157), two tools may run models on
       threads of one process: core.library_warnings' blocks
       take turns under a re-entrant lock and record only
@@ -5317,6 +5331,23 @@ conversation per phase-boundary hygiene.
     - mcp/ serves the discovery and headline tools over
       stdio and at /mcp, with the llm_use gate, a tools/list
       snapshot, the Inspector job and the scripted tasks.
+    - From Step 8: mcp/server.py builds the SDK's low-level
+      `Server` (not MCPServer), so the ui:// resource is an
+      `on_list_resources` / `on_read_resource` pair passed to
+      `Server(...)` in `build_server`, and a run tool's
+      `_meta.ui.resourceUri` is set where `_tool` builds its
+      `types.Tool`; the tools/list snapshot
+      (tests/mcp/__snapshots__) then changes
+      (`uv run pytest tests/mcp --snapshot-update`). The
+      server names itself `pyeconomics` (`SERVER_NAME`).
+    - From Step 8, for the evaluations: tools/list is about
+      390 KB (input schemas about 140 KB, macro_policy_rule's
+      alone 32 KB; output schemas about 250 KB), so measure
+      what it costs an assistant's context. The Inspector's
+      `--strict` reports 0 errors and 51 warnings, every one
+      a nullable `type` array in an output schema. The
+      Inspector runs in ci.yml's mcp-inspector job through
+      scripts/mcp/inspector_checks.py.
     - core/plotting.py builds a Plotly figure behind the plot
       extra; the wheel admits only .py files.
     - Facts read on 2026-10-23: the MCP Apps extension
@@ -5779,6 +5810,13 @@ conversation per phase-boundary hygiene.
       runs; the providers' cassettes replay every source.
     - The full offline suite runs serially in about 16–19
       minutes on a cell; the parity suite must not double it.
+    - From Step 8: an MCP tool's first text block is
+      Result.to_json() and its structured content the parsed
+      object; tests/mcp/mcp_support.py's `call` and `text_of`
+      reach the server in memory (no process, no port;
+      LOOPBACK_ONLY). tests/mcp/test_mcp_layering.py already
+      holds the Generator rule for mcp/ (only headline.py
+      names a model id): the guard can extend it.
     - REST through TestClient (Step 6): use
       tests/server/server_support.py's `client()` (inline pool,
       base_url http://127.0.0.1, which a local server requires)
@@ -6240,6 +6278,14 @@ hygiene.
       the llm_use policy exists in invoke, bind, data.get and
       the resolver (Step 8), and manifest records carry
       llm_use.
+    - From Step 8: `pyeconomics.core.LlmUsePolicy`
+      (`allowed-only`, `allow-unclear`) is passed as
+      `llm_use=`; `data.settings().llm_use_policy` is the
+      user's choice (`allow_unclear_llm_use`,
+      PYECONOMICS_ALLOW_UNCLEAR_LLM_USE); the final check is
+      `surfaces.gate.check_records` (or `check_document`),
+      and a refusal is `LlmUseError` (llm-use-forbidden, 403,
+      exit 6).
     - The ai extra is an empty list. The data layer's
       transport attaches a key from a provider's
       Authentication and refuses a Request that carries one;
@@ -6686,6 +6732,15 @@ phase-boundary hygiene.
       hosted mode limits, caches, checks the edge credential
       and refuses library-only data; the AI narrative never
       runs in hosted mode.
+    - From Step 8: with the mcp extra installed, create_app
+      mounts the MCP server at /mcp (stateless, JSON, POST
+      only; any Origin refused in hosted mode), its runs in
+      the same pool and budgets; ServerSettings gains
+      `mcp_result_limit` (256 KiB) and `mcp_series_limit`
+      (1,000). The extra brings mcp, mcp-types, httpx2 and
+      httpcore2 (truststore), pyjwt with cryptography and
+      cffi, jsonschema with rpds-py, sse-starlette and
+      python-multipart (pywin32 only on Windows).
     - From Step 6: `create_app(mode="hosted", settings=
       ServerSettings(...))` reads PYECONOMICS_WORKERS and
       PYECONOMICS_GIT_SHA (7–40 lowercase hex digits, else
@@ -7175,6 +7230,12 @@ Thinking toggle. New conversation per phase-boundary hygiene.
       scans it and smoke-tests it; nothing is pushed or
       deployed. Hosted mode reads PYECONOMICS_RATELIMIT_URL
       and PYECONOMICS_EDGE_CREDENTIAL from the environment.
+    - From Step 8: /mcp sits behind the same edge check and
+      limits. The Worker forwards its POSTs with
+      MCP-Protocol-Version, Mcp-Method and Mcp-Name intact:
+      `route_kind` counts a 2026-07-28 request by them (a
+      run, a series or metadata) and any other as a run. It
+      adds no Origin, which hosted /mcp refuses.
     - From Step 7: the app compares X-Pyeconomics-Edge with the
       credential exactly (32 to 512 printable characters, no
       spaces), reads CF-Connecting-IP only after a match, and
@@ -7686,6 +7747,10 @@ per phase-boundary hygiene.
 
     Current state (post-Phase-4 Step 13):
 
+    - From Step 8: ci.yml's mcp-inspector job (Inspector
+      2.12.0, Node 22) checks stdio, a local server's /mcp
+      and the local HTTP app; tools/list is snapshotted in
+      both modes.
     - Steps 1–13 are on main at 1.0.0b1.dev1: the CLI,
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every
@@ -9115,7 +9180,7 @@ workflow above maps directly to the corresponding row below.
 | 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
-| 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
@@ -9435,6 +9500,18 @@ whatever is still open here.
   `problems.record`, which logs a problem made in a worker process; and
   `InputTooLargeError(..., advice=...)`. Steps 7, 8, 10 and 12's task blocks
   note what they build on.
+- From Phase 4 Step 8, additions to earlier steps' contracts made in-step,
+  each additive (no decision changed): the server's `Task` carries
+  `llm_use` and `max_observations` to a worker (Step 6);
+  `limits.route_kind(path, headers)` counts an MCP request by its checked
+  headers (Step 7); `envelope.summary_of(document, title)` writes
+  `summary`'s text from canonical bytes (Step 2); the resolver's `Skip`
+  gains `llm_use` and a `to_dict` that keeps its JSON as it was (Phase 3
+  Step 11); `ServerSettings.mcp_result_limit` and `mcp_series_limit`. The
+  server is built on the SDK's low-level `Server` rather than the
+  `MCPServer` ADR-0012 decision 13 names, the same SDK on the same
+  revisions and transports (the maintainer agreed; recorded in the PR).
+  Steps 9 to 14's task blocks note what they build on.
 
 ---
 

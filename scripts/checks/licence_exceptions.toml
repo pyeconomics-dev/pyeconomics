@@ -58,7 +58,7 @@ reason = "Ambiguous classifier only; its License field reads '2-clause BSD'. pat
 [[exception]]
 package = "cffi"
 licence = "MIT-0"
-reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi), and from Phase 3 Step 10 through yfinance -> curl_cffi on all operating systems. Checked by Claude Opus 5.5, 2026-10-14."
+reason = "MIT No Attribution, outside the allowlist only by name: it is MIT without the condition to keep the notice, so it grants at least what MIT does. cffi 2.1.1 dist-info/licenses/LICENSE (cp313 manylinux2014_x86_64 wheel) applies MIT-0 to all software and documentation except where a file says otherwise; the one such file, cffi/_cffi_gen_src.py (integrated from cffi-buildtool), is MIT. Reached through the keyring extra on Linux (keyring -> SecretStorage -> cryptography -> cffi), from Phase 3 Step 10 through yfinance -> curl_cffi on all operating systems, and from Phase 4 Step 8 through the mcp extra (mcp -> pyjwt[crypto] -> cryptography -> cffi) on all operating systems. Checked by Claude Opus 5.5, 2026-10-14; the mcp path checked by Claude Opus 5.5, 2026-10-25."
 
 # Phase 3 Step 8: maintainer approved certifi in the session on 2026-10-16.
 [[exception]]
@@ -96,3 +96,12 @@ reason = "multitasking 0.0.13 wheel LICENSE.txt is Apache License Version 2.0; i
 package = "protobuf"
 licence = "<missing>"
 reason = "protobuf 7.36.2 Windows, macOS and Linux wheel LICENSE is BSD-3-Clause; the cp315/pure-Python wheel omits metadata, while older ABI wheels label it 3-Clause BSD License. Checked by GPT-6.1 Sol, 2026-10-17; maintainer approved in this session."
+
+# Phase 4 Step 8: the mcp extra on Windows. The licence files below were read in
+# the pywin32 312 cp313 win_amd64 wheel's dist-info/licenses on 2026-10-25; the
+# maintainer approved the entry in that step's session, recorded in its pull
+# request.
+[[exception]]
+package = "pywin32"
+licence = "PSF"
+reason = "Metadata names only 'PSF'. pywin32 312 dist-info/licenses (cp313 win_amd64 wheel): win32/License.txt, com/License.txt and pythonwin/License.txt are BSD-3-Clause (Mark Hammond; Greg Stein and Mark Hammond); com/win32comext/mapi/src/MAPIStubLibrary/LICENSE is MIT (Microsoft); pythonwin/pywin/idle/LICENSE.txt is the PSF licence (PSF-2.0 lineage); pythonwin/Scintilla/License.txt is a permissive HPND-style licence; isapi/README.txt states copyright only. Its separate top-level adodbapi package is LGPL-2.1 (adodbapi/license.txt): neither mcp nor pyeconomics imports it, and pyeconomics never redistributes pywin32. Reached only on Windows, through the mcp extra (mcp requires pywin32 on win32). Checked by Claude Opus 5.5, 2026-10-25; maintainer approved in that session."

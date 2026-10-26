@@ -11,6 +11,10 @@ reason recorded, when
   checked here before any request and again in the provider,
 - hosted mode refuses its licence class (``licence_refused``), checked here
   before any request and again in the provider and on the series' own terms,
+- an ``llm_use`` policy does not permit its source's terms or the series' own
+  (``llm_use``): the MCP server and the AI narrative pass one, so data whose
+  terms forbid language models, or leave them unclear without the user's
+  opt-in, is passed over (ADR-0012 decision 14),
 - the provider is not registered or does not run on this platform,
 - its key is absent (``key_missing``) or its extra is not installed
   (``extra_missing``),
@@ -26,7 +30,8 @@ why: :class:`~pyeconomics.data.errors.LicenceError` naming the classes found
 (and the first candidate's terms page) when hosted mode refused every candidate,
 ``CredentialError`` when keys were all that was missing, ``OfflineError`` when
 offline mode had nothing cached, ``SourceDisabledError`` when every candidate's
-provider is disabled.
+provider is disabled, and :class:`~pyeconomics.data.errors.LlmUseError` when the
+``llm_use`` policy (with hosted mode's licence refusals) left none.
 
 Every :class:`~pyeconomics.core.provenance.DataSource` the result carries names
 the concept, the transforms applied (as canonical text), the vintage, the window
@@ -37,6 +42,7 @@ others cannot honour it.
 
 The resolver reads no clock and does no I/O of its own: providers fetch, and the
 only settings it consults are the mode, the disabled providers and the key chain.
+Without an ``llm_use`` policy it never looks at a source's ``llm_use`` class.
 
 Examples
 --------
@@ -63,6 +69,8 @@ from pyeconomics.core.provenance import (
     MAX_WARNINGS,
     DataSource,
     LicenceClass,
+    LlmUse,
+    LlmUsePolicy,
     RealtimePeriod,
 )
 from pyeconomics.core.transforms import parse_transform
@@ -75,6 +83,7 @@ from pyeconomics.data.errors import (
     CredentialError,
     DataError,
     LicenceError,
+    LlmUseError,
     OfflineError,
     ProviderNotFoundError,
     RateLimitError,
@@ -100,6 +109,7 @@ if TYPE_CHECKING:
     from pyeconomics.data.cache.policy import Fetched
     from pyeconomics.data.providers.base import DataProvider, Query
     from pyeconomics.data.registry import ProviderRegistry
+    from pyeconomics.data.terms import Terms
     from pyeconomics.data.transport.base import Transport
 
 __all__ = ["REASONS", "Resolved", "Skip", "resolve", "trim"]
@@ -108,6 +118,7 @@ __all__ = ["REASONS", "Resolved", "Skip", "resolve", "trim"]
 REASONS: Final = {
     "disabled": "the disabled_providers setting turns the provider off",
     "licence_refused": "hosted mode refuses the candidate's licence class",
+    "llm_use": "the llm_use policy does not permit the source's terms",
     "provider_unavailable": "the provider is not registered",
     "platform_unsupported": "the provider does not run on this platform",
     "key_missing": "the provider needs an API key and none is configured",
@@ -149,6 +160,8 @@ class Skip:
     """The candidate's licence class, when the reason concerns it."""
     terms_url: str | None = None
     """The candidate's terms page, when the reason concerns its licence."""
+    llm_use: LlmUse | None = None
+    """The source's ``llm_use`` class, when the reason is ``llm_use``."""
 
     def __post_init__(self) -> None:
         """Check the reason and the texts."""
@@ -158,6 +171,21 @@ class Skip:
         f.text(self.provider, "provider")
         f.text(self.series, "series")
         f.text(self.detail, "detail", max_length=f.MAX_TEXT_LENGTH)
+
+    def to_dict(self) -> dict[str, object]:
+        """Return the skip as JSON-ready values, as documents and exports carry it.
+
+        ``llm_use`` stays out: the reason and the detail already say it, so a
+        resolution without a policy reads exactly as it did before there was one.
+        """
+        return {
+            "provider": self.provider,
+            "series": self.series,
+            "reason": self.reason,
+            "detail": self.detail,
+            "licence": None if self.licence is None else self.licence.value,
+            "terms_url": self.terms_url,
+        }
 
     @property
     def code(self) -> str:
@@ -205,6 +233,7 @@ class _Ask:
     transport: Transport | None
     registry: ProviderRegistry
     min_observations: int | None = None
+    llm_use: LlmUsePolicy | None = None
 
 
 def _selector(as_of: dt.date | None, vintage: Vintage | str | None) -> Vintage:
@@ -470,6 +499,7 @@ def _skip_for(
     """Map an error from a candidate to the reason it is passed over."""
     reasons: tuple[tuple[type[Exception], str], ...] = (
         (SourceDisabledError, "disabled"),
+        (LlmUseError, "llm_use"),
         (LicenceError, "licence_refused"),
         (MissingOptionalDependencyError, "extra_missing"),
         (CredentialError, "credential_refused"),
@@ -491,10 +521,29 @@ def _skip_for(
         detail=_first_line(error),
         licence=licence,
         terms_url=terms_url,
+        llm_use=error.llm_use if isinstance(error, LlmUseError) else None,
     )
 
 
-def _refusal(
+def _llm_skip(
+    provider: str, series: str, terms: Terms, policy: LlmUsePolicy, whose: str
+) -> Skip:
+    """Return the skip of a candidate whose terms the ``llm_use`` policy refuses."""
+    return Skip(
+        provider=provider,
+        series=series,
+        reason="llm_use",
+        detail=(
+            f"{whose} terms make its data {terms.llm_use.value} for language "
+            f"models, which the {policy.value} policy does not permit"
+        ),
+        licence=terms.licence,
+        terms_url=terms.terms_url,
+        llm_use=terms.llm_use,
+    )
+
+
+def _refusal(  # noqa: PLR0911 - one return per refusal, in the order checked
     provider: DataProvider, series: str, ask: _Ask, *, keeps_vintages: bool = True
 ) -> Skip | None:
     """Return the skip a candidate earns before any request, or ``None``.
@@ -526,6 +575,8 @@ def _refusal(
             "hosted-safe and user-supplied data",
             licensed=True,
         )
+    if ask.llm_use is not None and not ask.llm_use.permits(info.terms.llm_use):
+        return _llm_skip(info.id, series, info.terms, ask.llm_use, f"{info.id}'s")
     keeps_none = Capability.VINTAGES not in info.capabilities
     if ask.selector.kind is not VintageKind.LATEST and (
         keeps_none or not keeps_vintages
@@ -604,9 +655,8 @@ def _fetch(candidate: Candidate, series: str, ask: _Ask) -> Fetched | Skip:
         fetched = provider.fetch_with_origin(query, transport=ask.transport)
         # The provider judges a series' own terms by the configured mode; judge
         # them again by the mode this resolution was asked for.
-        require_allowed(
-            fetched.frame.meta.terms, provider=candidate.provider, mode=ask.mode
-        )
+        terms = fetched.frame.meta.terms
+        require_allowed(terms, provider=candidate.provider, mode=ask.mode)
     except ValidationError as error:
         return Skip(
             provider=candidate.provider,
@@ -619,6 +669,9 @@ def _fetch(candidate: Candidate, series: str, ask: _Ask) -> Fetched | Skip:
         )
     except (DataError, MissingOptionalDependencyError) as error:
         return _skip_for(error, candidate.provider, series, provider.info.terms.licence)
+    # A series' own terms can be stricter than its provider's (an SDMX series).
+    if ask.llm_use is not None and not ask.llm_use.permits(terms.llm_use):
+        return _llm_skip(candidate.provider, series, terms, ask.llm_use, "the series'")
     return fetched
 
 
@@ -696,6 +749,7 @@ def _operand(candidate: Derived, ask: _Ask, position: int) -> Resolved:
         transport=ask.transport,
         registry=ask.registry,
         min_observations=ask.min_observations,
+        llm_use=ask.llm_use,
     )
 
 
@@ -736,7 +790,7 @@ def _try_derived(
         parts = [_operand(candidate, ask, i) for i in range(len(candidate.operands))]
     except (DataError, MissingOptionalDependencyError) as error:
         failure = _skip_for(error, _DERIVED, where)
-        if failure.reason == "licence_refused":
+        if failure.reason in {"licence_refused", "llm_use"}:
             return failure
         return replace(failure, reason="operand_failed")
     try:
@@ -763,7 +817,12 @@ def _try_derived(
 
 
 def _exhausted(
-    concept: Concept, skipped: Sequence[Skip], mode: Mode, *, strict: bool
+    concept: Concept,
+    skipped: Sequence[Skip],
+    mode: Mode,
+    *,
+    strict: bool,
+    policy: LlmUsePolicy | None = None,
 ) -> DataError:
     """Build the error for a concept no candidate could answer."""
     reasons = {s.reason for s in skipped}
@@ -771,6 +830,21 @@ def _exhausted(
         f"{s.provider} {s.series}: {s.reason} ({s.detail})" for s in skipped
     )
     prefix = f"{concept.id} cannot be resolved{' strictly' if strict else ''}: "
+    # A source that cannot read the vintage asked for is not why nothing answered:
+    # the key or the cache of the one that could is.
+    blocking = reasons - {"vintage_unsupported"}
+    refused = [s for s in skipped if s.reason == "llm_use"]
+    if policy is not None and refused and blocking <= {"llm_use", "licence_refused"}:
+        first = refused[0]
+        return LlmUseError(
+            f"{concept.id} has no source whose terms let its data reach a language "
+            f"model under the {policy.value} policy: {listing}",
+            provider=first.provider,
+            licence=first.licence or LicenceClass.LIBRARY_ONLY,
+            llm_use=first.llm_use or LlmUse.FORBIDDEN,
+            terms_url=first.terms_url,
+            concept=concept.id,
+        )
     if reasons == {"licence_refused"} and mode is Mode.HOSTED:
         classes = sorted({s.licence.value for s in skipped if s.licence is not None})
         providers = ", ".join(sorted({s.provider for s in skipped}))
@@ -781,9 +855,6 @@ def _exhausted(
             licence=skipped[0].licence or LicenceClass.LIBRARY_ONLY,
             terms_url=skipped[0].terms_url,
         )
-    # A source that cannot read the vintage asked for is not why nothing answered:
-    # the key or the cache of the one that could is.
-    blocking = reasons - {"vintage_unsupported"}
     if blocking == {"disabled"}:
         disabled = sorted({s.provider for s in skipped if s.reason == "disabled"})
         return SourceDisabledError(*disabled, concept=concept.id)
@@ -809,6 +880,7 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
     transport: Transport | None = None,
     registry: ProviderRegistry | None = None,
     min_observations: int | None = None,
+    llm_use: LlmUsePolicy | str | None = None,
 ) -> Resolved:
     """Resolve a concept to data, trying its candidates in fallback order.
 
@@ -844,6 +916,11 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
         The transport providers send through (a test passes a replay).
     registry
         The provider registry; the installed one by default.
+    llm_use
+        An :class:`~pyeconomics.core.provenance.LlmUsePolicy`, or its value: pass
+        over every source whose terms, or whose series' own terms, it does not
+        permit (ADR-0012 decision 14). ``None``, the default, looks at no
+        ``llm_use`` class.
 
     Returns
     -------
@@ -855,9 +932,12 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
     ConceptNotFoundError
         If the id is not in the catalog.
     InputError
-        For a missing parameter or window, or ``as_of`` with ``vintage``.
+        For a missing parameter or window, ``as_of`` with ``vintage``, or an
+        ``llm_use`` that is not a policy.
     LicenceError
         If hosted mode refuses every candidate; it names the classes found.
+    LlmUseError
+        If the ``llm_use`` policy (with any hosted refusals) leaves no candidate.
     DataError
         If no candidate answers; the message lists why each was passed over.
     """
@@ -879,6 +959,7 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
         transport=transport,
         registry=registry or provider_registry.installed(),
         min_observations=min_observations,
+        llm_use=None if llm_use is None else f.choice(LlmUsePolicy, llm_use, "llm_use"),
     )
     candidates = [
         c
@@ -900,4 +981,4 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
         if isinstance(outcome, Resolved):
             return outcome
         skipped.append(outcome)
-    raise _exhausted(found, skipped, ask.mode, strict=strict)
+    raise _exhausted(found, skipped, ask.mode, strict=strict, policy=ask.llm_use)

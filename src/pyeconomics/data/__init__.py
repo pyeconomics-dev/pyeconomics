@@ -11,7 +11,7 @@ selector (:mod:`~pyeconomics.data.vintage`) and the error taxonomy
 (:mod:`~pyeconomics.data.errors`). It re-exports the provenance vocabulary that
 lives in :mod:`pyeconomics.core.provenance`, because core never imports this
 package: :class:`DataSource`, :class:`RealtimePeriod`, :class:`LicenceClass`
-and :class:`LlmUse`.
+and :class:`LlmUse`, with :class:`LlmUsePolicy`.
 
 Keys and settings (Phase 3 Step 3): :func:`resolve_key` reads a provider's
 key through the chain of ADR-0011 decision 12 and returns it as a
@@ -62,6 +62,7 @@ from pyeconomics.core.provenance import (
     DataSource,
     LicenceClass,
     LlmUse,
+    LlmUsePolicy,
     RealtimePeriod,
 )
 from pyeconomics.data import cache, catalog, registry
@@ -100,6 +101,7 @@ from pyeconomics.data.errors import (
     DataError,
     DataWarning,
     LicenceError,
+    LlmUseError,
     OfflineError,
     ProviderNotFoundError,
     RateLimitError,
@@ -179,6 +181,8 @@ __all__ = [
     "LicenceClass",
     "LicenceError",
     "LlmUse",
+    "LlmUseError",
+    "LlmUsePolicy",
     "Mode",
     "ObservationFrequency",
     "OfflineError",

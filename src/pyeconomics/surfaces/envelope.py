@@ -7,7 +7,9 @@ Every surface returns :func:`canonical_bytes`, the UTF-8 encoding of
 ``Result.to_json()``, unchanged: the REST API as its body, the command line
 followed by one newline, MCP as a tool's text content. A presentation goes beside
 those bytes, never in their place; :func:`summary` is the one-paragraph text every
-surface shares for it.
+surface shares for it, and :func:`summary_of` writes the same text from a result's
+canonical document, for a surface that holds the bytes rather than the result (the
+MCP server, whose hosted runs come back from a worker as bytes).
 
 :func:`etag` is the HTTP entity tag of a cacheable run: weak, because two runs
 with the same ``result_sha256`` (the same inputs, outputs and warnings) can still
@@ -23,6 +25,7 @@ True
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Final
 
 from pyeconomics.core.canonical import canonical_json
@@ -31,7 +34,7 @@ from pyeconomics.core.provenance import LicenceClass
 if TYPE_CHECKING:
     from pyeconomics.core.results import Result
 
-__all__ = ["MAX_SUMMARY_OUTPUTS", "canonical_bytes", "etag", "summary"]
+__all__ = ["MAX_SUMMARY_OUTPUTS", "canonical_bytes", "etag", "summary", "summary_of"]
 
 #: The most outputs a summary names; the rest are counted.
 MAX_SUMMARY_OUTPUTS: Final = 12
@@ -76,7 +79,39 @@ def summary(result: Result[Any, Any]) -> str:
     >>> print(summary(run("foundations.time_value", inputs)))  # doctest: +ELLIPSIS
     Time value of money (foundations.time_value, version 2): calculation = present_value, present_value = 61.39...
     """  # noqa: E501 - doctest output lines cannot wrap
-    outputs = result.outputs.model_dump(mode="json")
+    document = {
+        "model_id": result.model_id,
+        "model_version": result.model_version,
+        "outputs": result.outputs.model_dump(mode="json"),
+        "warnings": [{"code": warning.code} for warning in result.warnings],
+        "manifest": {
+            "data_sources": [r.to_dict() for r in result.manifest.data_sources]
+        },
+    }
+    return summary_of(document, result.model.spec.title)
+
+
+def _mapping(value: object) -> Mapping[str, Any]:
+    return value if isinstance(value, Mapping) else {}
+
+
+def summary_of(document: Mapping[str, Any], title: str) -> str:
+    """Return :func:`summary`'s text from a result's canonical document.
+
+    ``document`` is ``json.loads`` of a result's canonical bytes, and ``title``
+    its model's title. The outputs are named in the document's order, which is
+    alphabetical in canonical JSON.
+
+    Examples
+    --------
+    >>> summary_of(
+    ...     {"model_id": "foundations.toy", "model_version": 1,
+    ...      "outputs": {"value": 2.5}, "warnings": [], "manifest": {}},
+    ...     "A toy",
+    ... )
+    'A toy (foundations.toy, version 1): value = 2.5.'
+    """
+    outputs = _mapping(document.get("outputs"))
     named = [
         f"{name} = {_value(value)}"
         for name, value in list(outputs.items())[:MAX_SUMMARY_OUTPUTS]
@@ -85,17 +120,19 @@ def summary(result: Result[Any, Any]) -> str:
     if more:
         named.append(f"and {more} more")
     text = (
-        f"{result.model.spec.title} ({result.model_id}, version "
-        f"{result.model_version}): {', '.join(named)}."
+        f"{title} ({document.get('model_id')}, version "
+        f"{document.get('model_version')}): {', '.join(named)}."
     )
-    if result.warnings:
-        codes = ", ".join(dict.fromkeys(w.code for w in result.warnings))
+    warnings = [_mapping(w).get("code") for w in document.get("warnings") or ()]
+    codes = ", ".join(dict.fromkeys(str(code) for code in warnings if code))
+    if codes:
         text += f" Warnings: {codes}."
+    records = _mapping(document.get("manifest")).get("data_sources") or ()
     providers = sorted(
         {
-            record.provider
-            for record in result.manifest.data_sources
-            if record.licence is not LicenceClass.USER_SUPPLIED
+            str(_mapping(record).get("provider"))
+            for record in records
+            if _mapping(record).get("licence") != LicenceClass.USER_SUPPLIED.value
         }
     )
     if providers:

@@ -31,8 +31,10 @@ tests/             unit · golden · property · contract · parity · e2e
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
 scripts/clients/   the clients job's helpers (retitle, smoke, compare)
+scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
-tools/node/        the one Node workspace: the TypeScript client's generator
+tools/node/        the one Node workspace: the TypeScript client's generator and
+                   the MCP Inspector
 scripts/legacy/    the 0.2.x fixture recorder, byte-exact: never edit
 .semgrep/          project semgrep rules and their tests
 docs/adr/          architecture decision records
@@ -336,6 +338,42 @@ From Phase 4 Step 2, which builds the surface core (ADR-0012):
   tooling lives in `tools/node` (`npm ci --ignore-scripts`, lockfile committed,
   `npm audit --audit-level=high` in the gate, a patched transitive version
   pinned through `overrides`).
+
+## MCP rules
+
+From Phase 4 Step 8, which builds the MCP server (ADR-0012 decisions 13 and 14):
+
+- `pyeconomics.mcp` is built on the SDK's low-level `Server`, because every
+  schema is generated (MCPServer derives schemas from Python signatures). Tools
+  come from `mcp.tools.build_tools`, sorted by name; a model's own tool is named
+  from its id (`^[a-z0-9_]{1,64}$`) and only `mcp/headline.py` names a model id
+  (`tests/mcp/test_mcp_layering.py`). A tool's input schema is its model's own;
+  every output schema is a self-contained 2020-12 document with an object root.
+- A run answers `Result.to_json()` as text, its parsed object as structured
+  content and `envelope.summary_of` as a second block; a failure answers its
+  problem's JSON (`problems.report`); an unknown tool is a protocol error. No
+  title, description or template addresses the assistant
+  (`test_no_description_or_title_addresses_the_assistant` scans them).
+- The `llm_use` gate: a tool that reads data passes the server's
+  `LlmUsePolicy` (`llm_use=` on `invoke`, `bind`, `data.get`, `resolve`) and its
+  answer goes through `surfaces.gate.check_document` before it is sent. The
+  opt-in to unclear data is the `allow_unclear_llm_use` setting only, read when
+  the server is built: never a tool argument, never `configure()`. Without a
+  policy the data layer never reads `llm_use`, and `Skip.to_dict` keeps a skip's
+  JSON as it was.
+- `/mcp` in the REST server runs every run and series through
+  `service.outcome(Task(..., llm_use=...))` (the pool and its budgets), never
+  through the GET run cache; `route_kind` trusts `Mcp-Method` and `Mcp-Name`
+  only on a 2026-07-28 request (the SDK checks them against the body there) and
+  counts any other MCP request as a run. The endpoint takes POST only: a GET
+  would hold an SSE stream open.
+- Test through the SDK's `Client` in memory (`tests/mcp/mcp_support.py`, with
+  `LOOPBACK_ONLY`); a protocol error needs `raise_exceptions=False` and a
+  `try` inside the client's own work, or the task group wraps it. `stub_world`
+  gives every real provider's metadata over canned frames from 2018. After an
+  intended tool change, `uv run pytest tests/mcp --snapshot-update` and review.
+  The Inspector checks run only in ci.yml's `mcp-inspector` job
+  (`scripts/mcp/inspector_checks.py`).
 
 ## Units
 

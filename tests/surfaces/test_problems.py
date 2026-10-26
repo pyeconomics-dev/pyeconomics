@@ -72,6 +72,7 @@ ACCEPTED = {
     "ConceptNotFoundError": ("concept-not-found", 404, 5),
     "SeriesNotFoundError": ("series-not-found", 404, 5),
     "LicenceError": ("licence-refused", 403, 6),
+    "LlmUseError": ("llm-use-forbidden", 403, 6),
     "CredentialError": ("credential-unavailable", 503, 7),
     "TransportError": ("upstream-unavailable", 502, 7),
     "ResponseError": ("upstream-invalid-response", 502, 7),
@@ -97,7 +98,7 @@ ACCEPTED = {
 
 def _surface_modules() -> list[ModuleType]:
     package = pyeconomics.surfaces
-    names = ("budgets", "codec", "envelope", "invoke", "problems", "service")
+    names = ("budgets", "codec", "envelope", "gate", "invoke", "problems", "service")
     return [importlib.import_module(f"{package.__name__}.{name}") for name in names]
 
 

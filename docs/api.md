@@ -289,6 +289,17 @@ An operator turns a failing source off with `PYECONOMICS_DISABLED_PROVIDERS`
 `503 source-disabled` before any cache read or request, a concept falls over
 to its next candidate, and `/v1/sources` marks it `"disabled": true`.
 
+## The MCP server at `/mcp`
+
+With the `mcp` extra installed, the same server answers the Model Context
+Protocol at `/mcp`, beside `/v1`, as stateless Streamable HTTP (POST only): the
+tools {doc}`mcp` describes, for an AI assistant. A tool call that runs a model
+or reads a series goes to the same worker pool, under the same budgets, as a
+`/v1` request; it passes the host check, the edge check and the rate limits
+first, counting as a run, a series or metadata by what it asks for; and its
+answer is never kept in the run cache. A request from a browser origin other
+than this machine's is refused (any origin, in hosted mode).
+
 ## Clients
 
 The TypeScript and Python clients are generated from the same `openapi.json`,

@@ -13,6 +13,8 @@ exception a caller would expect:
 - :class:`CredentialError` (``PermissionError``): a key is missing or refused;
 - :class:`LicenceError` (``PermissionError``): a source's licence class bars
   the use, such as a library-only source in hosted mode;
+- :class:`LlmUseError`, a ``LicenceError``: a source's terms do not let its
+  data reach a language model (ADR-0012 decision 14);
 - :class:`RateLimitError` (``RuntimeError``): the source's limit held after
   retries;
 - :class:`TransportError` (``ConnectionError``): the request failed;
@@ -56,7 +58,7 @@ from pyeconomics.data.redaction import scrub_text, scrub_urls
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from pyeconomics.core.provenance import LicenceClass
+    from pyeconomics.core.provenance import LicenceClass, LlmUse
 
 __all__ = [
     "ConceptNotFoundError",
@@ -65,6 +67,7 @@ __all__ = [
     "DataError",
     "DataWarning",
     "LicenceError",
+    "LlmUseError",
     "OfflineError",
     "ProviderNotFoundError",
     "RateLimitError",
@@ -182,6 +185,62 @@ class LicenceError(DataError, PermissionError):
         )
         self.licence = licence
         self.terms_url = terms_url
+
+
+class LlmUseError(LicenceError):
+    """A source's terms do not let its data reach a language model.
+
+    The MCP server and the AI narrative resolve data under an
+    :class:`~pyeconomics.core.provenance.LlmUsePolicy`: the resolver passes over
+    each source the policy does not permit, and this is raised when none is left,
+    or when a result about to reach the model still carries such a source's
+    record. It carries the first refused source's licence class and terms page,
+    as any licence refusal does, and its ``llm_use`` class.
+
+    Parameters
+    ----------
+    message
+        What was refused, naming the concept or the series.
+    provider
+        The first refused source's provider id.
+    licence, terms_url
+        That source's licence class and terms page.
+    llm_use
+        That source's ``llm_use`` class: ``forbidden``, or ``unclear`` without
+        the opt-in.
+    concept
+        The concept that could not be resolved, if one.
+
+    Examples
+    --------
+    >>> from pyeconomics.core.provenance import LicenceClass, LlmUse
+    >>> print(LlmUseError(
+    ...     "us.unemployment.rate has no source whose terms let its data reach a "
+    ...     "language model",
+    ...     provider="fred",
+    ...     licence=LicenceClass.LIBRARY_ONLY,
+    ...     llm_use=LlmUse.FORBIDDEN,
+    ...     concept="us.unemployment.rate",
+    ... ))
+    us.unemployment.rate has no source whose terms let its data reach a language model
+
+    """
+
+    def __init__(  # noqa: PLR0913 - a licence refusal's facts and its concept
+        self,
+        message: str,
+        *,
+        provider: str,
+        licence: LicenceClass,
+        llm_use: LlmUse,
+        terms_url: str | None = None,
+        concept: str | None = None,
+    ) -> None:
+        DataError.__init__(self, message, provider=provider)
+        self.licence = licence
+        self.terms_url = terms_url
+        self.llm_use = llm_use
+        self.concept = concept
 
 
 class RateLimitError(DataError, RuntimeError):

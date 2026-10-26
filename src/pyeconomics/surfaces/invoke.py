@@ -11,6 +11,12 @@ result's manifest records every series, vintage and retrieval time exactly as
 ``pyeconomics.run(model_id, pyeconomics.bind(...))`` would. The data layer is
 imported only then: a run that reads no data loads no data module.
 
+A surface that feeds a language model passes an ``llm_use`` policy (ADR-0012
+decision 14): the bind passes over every source the policy does not permit, and
+the result is checked once more before it is returned
+(:func:`~pyeconomics.surfaces.gate.check_records`), so it never carries such a
+source's data.
+
 The command line, the REST API, the MCP server and the exports call this and
 nothing else; none of them calls the runner, ``pyeconomics.run`` or
 ``pyeconomics.bind`` itself.
@@ -39,8 +45,9 @@ from typing import TYPE_CHECKING, Any
 from pyeconomics.core import _fields as f
 from pyeconomics.core.binding import DEFAULT_PROFILE, VintagePolicy
 from pyeconomics.core.errors import InputError
+from pyeconomics.core.provenance import LlmUsePolicy
 from pyeconomics.core.runner import MAX_BATCH_ROWS, run_model, run_model_batch
-from pyeconomics.surfaces import codec
+from pyeconomics.surfaces import codec, gate
 
 if TYPE_CHECKING:
     from pyeconomics.core.results import BatchResult, Result
@@ -145,6 +152,7 @@ def invoke(
     *,
     bind: BindRequest | None = None,
     mode: str | None = None,
+    llm_use: LlmUsePolicy | str | None = None,
 ) -> Result[Any, Any]:
     """Run a registered model for a surface and return its result.
 
@@ -162,6 +170,11 @@ def invoke(
     mode
         ``library`` or ``hosted`` for the bind; the configured mode by default. A
         run that reads no data reads no source, so without ``bind`` it is unused.
+    llm_use
+        The :class:`~pyeconomics.core.provenance.LlmUsePolicy` of a surface
+        that feeds a language model, or its value: the bind passes over every
+        source it does not permit, and a result still carrying one is refused.
+        ``None`` looks at no ``llm_use`` class.
 
     Returns
     -------
@@ -180,15 +193,19 @@ def invoke(
         If JSON inputs are larger than the codec's limit.
     DataError, LicenceError, CredentialError, OfflineError
         As the bind raises them.
+    LlmUseError
+        If the ``llm_use`` policy leaves a bound concept no source, or the result
+        still carries a source it does not permit.
     DomainError, ConvergenceError
         As the model raises them.
     """
     from pyeconomics.core.registry import installed  # noqa: PLC0415 - as run() does
 
     model = installed().resolve(model_id, stacklevel=3)
+    policy = None if llm_use is None else f.choice(LlmUsePolicy, llm_use, "llm_use")
     decoded = codec.decode(inputs, model)
     if bind is None:
-        return run_model(model, decoded)
+        return run_model(model, decoded)  # reads no data: nothing to check
     # The data layer arrives with the first bind (ADR-0012 decision 1).
     from pyeconomics.data.bindings import bind_model  # noqa: PLC0415
     from pyeconomics.data.modes import Mode  # noqa: PLC0415
@@ -202,8 +219,12 @@ def invoke(
         concepts=bind.concepts,
         parameters=bind.parameters,
         overrides=decoded,
+        llm_use=policy,
     )
-    return run_model(model, bound)
+    result = run_model(model, bound)
+    if policy is not None:
+        gate.check_records(result.manifest.data_sources, policy, subject=model.id)
+    return result
 
 
 def invoke_batch(

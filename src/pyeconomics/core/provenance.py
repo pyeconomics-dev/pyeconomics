@@ -10,6 +10,8 @@ so the vocabulary a manifest needs to describe a run's data lives here and
 - :class:`LicenceClass`: ADR-0005's five licence classes (decision 7);
 - :class:`LlmUse`: whether a source's terms let its data reach a language
   model (decision 8);
+- :class:`LlmUsePolicy`: which of those classes a surface that feeds a
+  language model accepts (ADR-0012 decision 14);
 - :class:`RealtimePeriod`: the real-time period over which an observation was
   the published value, with ALFRED's semantics (decision 6);
 - :class:`DataSource`: one source a result read, its vintage, window,
@@ -60,6 +62,7 @@ __all__ = [
     "DataSource",
     "LicenceClass",
     "LlmUse",
+    "LlmUsePolicy",
     "RealtimePeriod",
 ]
 
@@ -127,6 +130,40 @@ class LlmUse(StrEnum):
     ALLOWED = "allowed"
     FORBIDDEN = "forbidden"
     UNCLEAR = "unclear"
+
+
+class LlmUsePolicy(StrEnum):
+    """Which data a surface that feeds a language model accepts (ADR-0012 14).
+
+    The MCP server and the AI narrative pass one to the resolver, which passes
+    over a source the policy does not permit, and they withhold any result still
+    carrying such a record. ``forbidden`` data is never permitted. ``unclear``
+    data is permitted only under :attr:`ALLOW_UNCLEAR`, the policy the user's own
+    configuration chooses (``allow_unclear_llm_use``); nothing a language model
+    sends can choose it.
+
+    Examples
+    --------
+    >>> LlmUsePolicy.ALLOWED_ONLY.permits(LlmUse.UNCLEAR)
+    False
+    >>> LlmUsePolicy.ALLOW_UNCLEAR.permits(LlmUse.UNCLEAR)
+    True
+    >>> LlmUsePolicy.ALLOW_UNCLEAR.permits(LlmUse.FORBIDDEN)
+    False
+
+    """
+
+    ALLOWED_ONLY = "allowed-only"
+    """Only data whose terms allow it."""
+    ALLOW_UNCLEAR = "allow-unclear"
+    """Also data whose terms are unclear, by the user's out-of-band opt-in."""
+
+    def permits(self, use: LlmUse | str) -> bool:
+        """Say whether data of this ``llm_use`` class may reach a language model."""
+        found = LlmUse(use)
+        return found is LlmUse.ALLOWED or (
+            found is LlmUse.UNCLEAR and self is LlmUsePolicy.ALLOW_UNCLEAR
+        )
 
 
 @dataclass(frozen=True, slots=True)

@@ -44,6 +44,13 @@ cached in memory and answered with an entity tag, ``304`` for a matching
 ``If-None-Match`` and ``Cache-Control`` (:mod:`~pyeconomics.server.run_cache`);
 a ``POST`` run and every problem are ``no-store``.
 
+With the ``mcp`` extra installed, the app also mounts the MCP server
+(:func:`pyeconomics.mcp.build_server`) at ``/mcp`` as stateless Streamable HTTP,
+in either mode, behind the same host check, edge check and rate limits: each tool
+call that runs a model or reads a series goes to the same worker pool, with the
+same budgets, as ``/v1``, carrying the server's ``llm_use`` policy, and its
+answer is never put in the GET run cache.
+
 Examples
 --------
 >>> app = create_app(settings=ServerSettings(workers=0))
@@ -55,6 +62,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
+import importlib.util
 import logging
 import math
 import re
@@ -68,7 +77,7 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from starlette.datastructures import Headers
 from starlette.exceptions import HTTPException
 from starlette.responses import HTMLResponse, RedirectResponse, Response
-from starlette.routing import Route
+from starlette.routing import Match, Route
 
 from pyeconomics import __version__, registry
 from pyeconomics.core.binding import DEFAULT_PROFILE
@@ -77,7 +86,7 @@ from pyeconomics.core.errors import InputError, PyeconomicsError
 from pyeconomics.core.spec import CostClass
 from pyeconomics.server import formats, logs, openapi
 from pyeconomics.server.edge import Edge, client_key
-from pyeconomics.server.limits import Limiter, route_kind
+from pyeconomics.server.limits import MCP_PATH, Limiter, route_kind
 from pyeconomics.server.pool import Pool, make_pool
 from pyeconomics.server.run_cache import (
     NO_STORE,
@@ -119,6 +128,9 @@ if TYPE_CHECKING:
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
     from pyeconomics.core.model import Model
+    from pyeconomics.core.provenance import LlmUsePolicy
+    from pyeconomics.mcp.transport import HttpEndpoint
+    from pyeconomics.surfaces.invoke import BindRequest as Bind
 
 __all__ = ["create_app", "problem_response"]
 
@@ -762,7 +774,8 @@ class _Guard:
             client = self.service.edge.check(scope)
             limiter = self.service.limiter
             if limiter is not None:
-                await limiter.check(route_kind(scope["path"]), client_key(client))
+                kind = route_kind(scope["path"], Headers(scope=scope))
+                await limiter.check(kind, client_key(client))
             await self.app(scope, receive, tracked)
         except Exception as error:  # noqa: BLE001 - every failure becomes a problem
             if not sent:
@@ -778,6 +791,92 @@ class _Guard:
                 status,
                 (time.perf_counter() - started) * 1000,
             )
+
+
+# --- the MCP mount ------------------------------------------------------------------
+
+
+class _PoolExecutor:
+    """Runs the MCP server's tasks in the app's worker pool, under its budgets."""
+
+    def __init__(self, service: _Service) -> None:
+        self.service = service
+
+    async def run(
+        self,
+        model: Model[Any, Any],
+        inputs: Mapping[str, Any],
+        bind: Bind | None,
+        policy: LlmUsePolicy,
+    ) -> bytes:
+        """Run a model in the pool; a worker's problem is raised as ``Refused``."""
+        task = Task(
+            kind="run",
+            target=model.id,
+            payload=canonical_json(dict(inputs)),
+            bind=None if bind is None else bind.to_dict(),
+            budget=self.service.budget(model.spec.cost),
+            llm_use=policy.value,
+        )
+        return self._body(await self.service.outcome(task))
+
+    async def series(
+        self,
+        target: str,
+        options: Mapping[str, str],
+        limit: int,
+        policy: LlmUsePolicy,
+    ) -> bytes:
+        """Read a series in the pool; a worker's problem is raised as ``Refused``."""
+        task = Task(
+            kind="series",
+            target=target,
+            query=dict(options),
+            budget=self.service.budget(CostClass.HEAVY),
+            llm_use=policy.value,
+            max_observations=limit,
+        )
+        return self._body(await self.service.outcome(task))
+
+    @staticmethod
+    def _body(outcome: Outcome) -> bytes:
+        from pyeconomics.mcp.execution import Refused  # noqa: PLC0415
+
+        if outcome.problem is not None:
+            raise Refused(outcome.problem, outcome.error_name)
+        return outcome.body
+
+
+class _McpRoute(Route):
+    """The MCP endpoint's route, which names itself in the scope as API routes do.
+
+    The access line then names ``/mcp``, the route's template, as it names every
+    other route's.
+    """
+
+    def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        """Match as a route does, and record the route in the child scope."""
+        match, child = super().matches(scope)
+        if match is not Match.NONE:
+            child["route"] = self
+        return match, child
+
+
+def _mcp_endpoint(service: _Service) -> HttpEndpoint | None:
+    """Return the MCP endpoint over the app's pool, or ``None`` without the extra."""
+    if importlib.util.find_spec("mcp") is None:
+        return None
+    from pyeconomics.mcp import server as mcp  # noqa: PLC0415 - the mcp extra
+    from pyeconomics.mcp.transport import HttpEndpoint  # noqa: PLC0415
+
+    settings = service.settings
+    server = mcp.build_server(
+        mode=service.mode,
+        executor=_PoolExecutor(service),
+        result_limit=settings.mcp_result_limit or mcp.DEFAULT_RESULT_LIMIT,
+        series_limit=settings.mcp_series_limit or mcp.DEFAULT_SERIES_LIMIT,
+    )
+    return HttpEndpoint(server, mode=service.mode)
 
 
 # --- the factory --------------------------------------------------------------------
@@ -803,19 +902,23 @@ def create_app(
     ConfigError
         If ``PYECONOMICS_WORKERS`` is not a whole number, or, in hosted mode,
         ``PYECONOMICS_EDGE_CREDENTIAL`` is too short or
-        ``PYECONOMICS_RATELIMIT_URL`` is not a TLS Redis URL.
+        ``PYECONOMICS_RATELIMIT_URL`` is not a TLS Redis URL, or a setting the MCP
+        server reads is invalid.
     """
     if mode not in MODES:
         msg = f"mode is one of {', '.join(MODES)}, not {mode!r}"
         raise InputError(msg)
     service = _Service(mode, settings or ServerSettings())
     models = registry.models()
+    endpoint = _mcp_endpoint(service)
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         service.start()
         try:
-            yield
+            mounted = endpoint.running() if endpoint else contextlib.nullcontext()
+            async with mounted:
+                yield
         finally:
             await asyncio.to_thread(service.close)
 
@@ -841,6 +944,8 @@ def create_app(
     _add_generic(app)
     if mode == "local":
         _add_docs(app)
+    if endpoint is not None:
+        app.router.routes.append(_McpRoute(MCP_PATH, endpoint=endpoint, name="mcp"))
 
     def build_openapi() -> dict[str, Any]:
         if app.openapi_schema is None:

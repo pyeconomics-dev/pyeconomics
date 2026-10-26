@@ -29,6 +29,10 @@ that ``Bound`` and puts the records in the result's manifest.
   theirs by position.
 - **An override replaces a bound value** and is recorded as user-supplied; the
   value itself is an input, fingerprinted with the rest.
+- **An ``llm_use`` policy** (the MCP server's, ADR-0012 decision 14) passes over
+  every source it does not permit, and a source it refuses does not count as
+  one that keeps vintages, so a real-time bind with only such a source reads
+  revised data and labels it.
 - **One fetch per series.** The fetches share an in-process memo
   (:func:`pyeconomics.data.cache.memo`), so a series two bindings read is asked
   for once even when its terms forbid storage. Offline mode serves the cache
@@ -76,6 +80,7 @@ from pyeconomics.core.provenance import (
     DATA_DATE_BOUNDS,
     MAX_WARNINGS,
     DataSource,
+    LlmUsePolicy,
 )
 from pyeconomics.core.spec import CALCULATION_FIELD
 from pyeconomics.core.transforms import (
@@ -179,6 +184,7 @@ def bind(  # noqa: PLR0913 - the public contract's independent options
     profile: str = DEFAULT_PROFILE,
     concepts: Mapping[str, str] | None = None,
     parameters: Mapping[str, object] | None = None,
+    llm_use: LlmUsePolicy | str | None = None,
     **overrides: object,
 ) -> Bound:
     """Bind a registered model's data as of a date; ``pyeconomics.bind``.
@@ -209,11 +215,16 @@ def bind(  # noqa: PLR0913 - the public contract's independent options
     parameters
         Values of concept parameters (an SEP ``meeting``), passed to each bound
         concept that declares them.
+    llm_use
+        For data about to reach a language model, an
+        :class:`~pyeconomics.core.provenance.LlmUsePolicy` or its value: pass
+        over every source whose terms it does not permit. ``None`` looks at no
+        ``llm_use`` class.
     **overrides
         Values the caller supplies. A bound field's value is replaced, not
         read, and recorded as user-supplied; any other field is carried as an
-        ordinary input. (A field named ``parameters`` cannot be supplied this
-        way; use :func:`bind_model`.)
+        ordinary input. (A field named ``parameters`` or ``llm_use`` cannot be
+        supplied this way; use :func:`bind_model`.)
 
     Returns
     -------
@@ -234,6 +245,8 @@ def bind(  # noqa: PLR0913 - the public contract's independent options
         As the catalog and the resolver raise them, and for a date the data
         cannot answer (nothing on or before it, a missing period, a short
         window); each names the concept.
+    LlmUseError
+        If the ``llm_use`` policy leaves a bound concept no source.
     """
     from pyeconomics.core.registry import installed  # noqa: PLC0415 - as run() does
 
@@ -247,6 +260,7 @@ def bind(  # noqa: PLR0913 - the public contract's independent options
         concepts=concepts,
         parameters=parameters,
         overrides=overrides,
+        llm_use=llm_use,
     )
 
 
@@ -262,6 +276,7 @@ class _Ask:
     shapes: Mapping[str, tuple[FieldShape, ...]]
     transport: Transport | None
     registry: ProviderRegistry
+    llm_use: LlmUsePolicy | None = None
 
 
 def bind_model(  # noqa: PLR0913 - the public contract's independent options
@@ -277,6 +292,7 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
     overrides: Mapping[str, object] | None = None,
     transport: Transport | None = None,
     registry: ProviderRegistry | None = None,
+    llm_use: LlmUsePolicy | str | None = None,
 ) -> Bound:
     """Bind a model object's data; see :func:`bind`.
 
@@ -318,6 +334,7 @@ def bind_model(  # noqa: PLR0913 - the public contract's independent options
         shapes=shapes,
         transport=transport,
         registry=registry or provider_registry.installed(),
+        llm_use=None if llm_use is None else f.choice(LlmUsePolicy, llm_use, "llm_use"),
     )
     values: dict[str, object] = dict(given)
     records: list[DataSource] = []
@@ -643,11 +660,12 @@ def _resolve(
         "transport": ask.transport,
         "registry": ask.registry,
         "min_observations": _needed(concept, binding),
+        "llm_use": ask.llm_use,
     }
     real_time = (
         policy is VintagePolicy.REAL_TIME
         and day is not None
-        and _serves_vintages(concept, ask.mode, ask.registry)
+        and _serves_vintages(concept, ask.mode, ask.registry, llm_use=ask.llm_use)
     )
     if real_time:
         return resolve(concept, as_of=day, **common), False
@@ -702,20 +720,27 @@ def _read_frequency(concept: Concept, binding: Binding) -> ObservationFrequency:
 
 
 def _serves_vintages(
-    concept: Concept, mode: Mode, registry: ProviderRegistry, depth: int = 0
+    concept: Concept,
+    mode: Mode,
+    registry: ProviderRegistry,
+    depth: int = 0,
+    *,
+    llm_use: LlmUsePolicy | None = None,
 ) -> bool:
     """Say whether some candidate usable in the mode can read a past vintage.
 
     From metadata alone: a registered provider that declares the ``vintages``
-    capability, keeps them for the candidate's series and that the mode allows,
-    or a derived candidate whose operands all can.
+    capability, keeps them for the candidate's series, and that the mode and the
+    ``llm_use`` policy allow, or a derived candidate whose operands all can.
     """
     if depth > _MAX_DEPTH:  # pragma: no cover - the catalog checks forbid loops
         return False
     for candidate in concept.candidates:
         if isinstance(candidate, Derived):
             if all(
-                _serves_vintages(catalog.get(o.concept), mode, registry, depth + 1)
+                _serves_vintages(
+                    catalog.get(o.concept), mode, registry, depth + 1, llm_use=llm_use
+                )
                 for o in candidate.operands
             ):
                 return True
@@ -726,8 +751,10 @@ def _serves_vintages(
             info = registry.provider_class(candidate.provider).info
         except ProviderNotFoundError:
             continue
-        if Capability.VINTAGES in info.capabilities and (
-            mode is Mode.LIBRARY or info.terms.licence.hosted_allowed
+        if (
+            Capability.VINTAGES in info.capabilities
+            and (mode is Mode.LIBRARY or info.terms.licence.hosted_allowed)
+            and (llm_use is None or llm_use.permits(info.terms.llm_use))
         ):
             return True
     return False

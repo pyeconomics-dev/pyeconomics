@@ -290,8 +290,9 @@ def test_exceptions_file_validation(tmp_path: Path) -> None:
 
 # The reviewed exceptions the maintainer approved (Phase 2 Step 1's pull
 # request; patsy, the econometrics extra's, in Step 12's; cffi, the keyring
-# extra's on Linux, in Phase 3 Step 3's). The file started empty (ADR-0004); a
-# new entry needs a new review, and this set changes with it.
+# extra's on Linux, in Phase 3 Step 3's; pywin32, the mcp extra's on Windows, in
+# Phase 4 Step 8's). The file started empty (ADR-0004); a new entry needs a new
+# review, and this set changes with it.
 REVIEWED_EXCEPTIONS = {
     "xlrd",
     "peewee",
@@ -305,6 +306,7 @@ REVIEWED_EXCEPTIONS = {
     "pandas",
     "patsy",
     "python-dateutil",
+    "pywin32",
     "scipy",
 }
 

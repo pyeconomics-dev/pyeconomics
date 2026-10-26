@@ -127,6 +127,39 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   OpenAPI document declares the `If-None-Match` header, the `304` answer and the
   cache headers of a run, and `Source.disabled`.
 
+- The MCP server, in the `mcp` extra (ADR-0012 decisions 13 and 14):
+  `pyeconomics mcp` serves every model and every data source to an AI assistant
+  over stdio (`uvx --from "pyeconomics[mcp]" pyeconomics mcp`), or, with
+  `--transport http`, as stateless Streamable HTTP at `/mcp` on 127.0.0.1 under
+  `pyeconomics serve`'s bind guard; the REST server mounts the same server at
+  `/mcp`, behind its host check, edge check and rate limits, and runs its tool
+  calls in its worker pool under the same budgets as `/v1`. It follows the MCP
+  specification of 2026-07-28 (`server/discover`, no handshake) and serves
+  clients of the earlier revisions (2024-11-05 to 2025-11-25). Five discovery
+  tools (`search_models`, `describe_model`, `run_model`, `get_series`,
+  `list_sources`) and sixteen headline tools, named `<domain>_<name>` from the
+  model's id with the model's own input schema, all sorted by name and each
+  with an output schema; a run answers `Result.to_json()`'s object as
+  structured content and its text, with a one-line summary
+  (`pyeconomics.surfaces.envelope.summary_of`). `pyeconomics.mcp.build_server`
+  builds it. Documented on a new page, `mcp`.
+- The `llm_use` gate (ADR-0012 decision 14): `LlmUsePolicy` (`allowed-only`,
+  `allow-unclear`) in `pyeconomics.core`, accepted as `llm_use=` by
+  `surfaces.invoke`, `pyeconomics.bind`, `data.get` and the resolver, which
+  passes over a source (or a series whose own terms say so) that the policy does
+  not permit, with the new skip reason `llm_use`, and fails over. With no source
+  left, a new `LlmUseError` (a `LicenceError`; the `llm-use-forbidden` problem,
+  403, exit code 6) names the concept. A source passed over does not count as
+  one that keeps vintages, so a past-date bind reads revised data and labels it.
+  `pyeconomics.surfaces.gate` withholds an answer that still carries a refused
+  record. The MCP server reads the opt-in to unclear data from the new
+  `allow_unclear_llm_use` setting (`PYECONOMICS_ALLOW_UNCLEAR_LLM_USE`), once,
+  at start; no tool argument can set it. Without a policy nothing changes.
+- `ServerSettings.mcp_result_limit` and `mcp_series_limit`: the largest result
+  a hosted MCP run returns whole (256 KiB by default; a larger one answers a
+  notice with the REST download of the same run) and the most observations
+  `get_series` returns (1,000 by default).
+
 ### Fixed
 
 - Models that wrap a library (`econometrics.garch`, `econometrics.time_series`)
@@ -159,6 +192,14 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   the licence allowlist.
 - `budget-exceeded`'s detail gives the local command
   (`pyeconomics models run <id> --inputs FILE`).
+- The `mcp` extra, empty until now, holds `mcp>=2.3`, the official MCP SDK, with
+  its closure (mcp-types, httpx2 and httpcore2 on truststore, pyjwt with
+  cryptography and cffi, jsonschema, sse-starlette, python-multipart and, on
+  Windows, pywin32); `all` includes it. pywin32 carries a reviewed licence
+  exception (its bundled licences are permissive but for its unused adodbapi
+  package's LGPL-2.1). `import pyeconomics` loads none of them.
+- `pyeconomics.server.limits.route_kind` takes the request's headers and counts
+  an MCP request as a run, a series or metadata by what it asks for.
 
 ## [1.0.0a2] - 2026-10-22
 
