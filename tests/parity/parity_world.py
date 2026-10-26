@@ -188,14 +188,22 @@ _original_frame = catalog_world._frame  # noqa: SLF001 - wrapped below
 def _wave(
     values: tuple[float | None, ...], key: str, *, rate: bool
 ) -> tuple[float | None, ...]:
-    """Give a series its own wave: additive for a rate, multiplicative otherwise."""
-    phase = zlib.crc32(key.encode()) % 628 / 100
+    """Give a series its own wave and noise: additive for a rate, else relative.
+
+    A line plus a sine is an exact autoregression, so a regression on it has
+    almost no residuals and whether its standard errors are defined comes down
+    to the platform's rounding; seeded noise, a tenth of the wave, keeps every
+    fit well posed on every platform.
+    """
+    seed = zlib.crc32(key.encode())
+    phase = seed % 628 / 100
+    noise = np.random.default_rng(seed).normal(0.0, 0.1, len(values))
     out: list[float | None] = []
     for i, value in enumerate(values):
         if value is None:
             out.append(None)
             continue
-        wave = math.sin(i / 4 + phase)
+        wave = math.sin(i / 4 + phase) + float(noise[i])
         out.append(value + 0.004 * wave if rate else value * (1 + 0.02 * wave))
     return tuple(out)
 

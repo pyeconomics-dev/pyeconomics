@@ -13,8 +13,8 @@ MCP's ``run_model`` must answer the same bytes, data records included.
 The MCP server binds under its ``llm_use`` policy (ADR-0012 decision 14), so its
 answers are compared with the Python API's under that same policy; where the
 policy refuses no source, that is the same answer. The server here has the
-user's opt-in to ``unclear`` sources, the widest policy it takes, so all but a
-few runs return bytes there too; tests/mcp/test_mcp_gate.py holds the refusals.
+user's opt-in to ``unclear`` sources, the widest policy it takes, so every run
+returns bytes there too; tests/mcp/test_mcp_gate.py holds the refusals.
 
 Every surface starts from an empty cache: a source whose terms allow storage
 would otherwise be read from the cache by the next surface, which its record
@@ -153,8 +153,11 @@ def test_a_bound_model_gives_the_same_bytes_everywhere(
     # The check records warnings to search them; the suite still allows none.
     assert [sink for sink in check.sinks if sink.startswith("warning:")] == []
     if excluded_gap(registry.get(run.model_id)) is None:
-        records = _records(answers["python"])
-        assert any(r["licence"] != LicenceClass.USER_SUPPLIED.value for r in records)
-        assert not any(r["cache_hit"] for r in records)
+        for answer in (answers["python"], *under_policy.values()):
+            records = _records(answer)
+            assert any(
+                r["licence"] != LicenceClass.USER_SUPPLIED.value for r in records
+            )
+            assert not any(r["cache_hit"] for r in records)
     assert_same(answers)
     assert_same({**under_policy, "mcp text": text, "mcp structured": structured})
