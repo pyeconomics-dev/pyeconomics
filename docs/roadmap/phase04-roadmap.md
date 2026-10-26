@@ -386,7 +386,7 @@ step time are the authority:
 | openapi-python-client | 0.29.1 | `MIT`; requires httpx<0.29, ruff, typer | outside the allowlist's scope (dev tool) | pure Python | dev: the Python client (Step 7) |
 | @hey-api/openapi-ts | 0.99.0 (npm) | `MIT`; Node 22.18 or later; calls TypeScript's JS API; its ref parser's js-yaml 4.2.0 has three High advisories, so tools/node pins js-yaml 4.3.2 through `overrides` (Step 7, read 2026-10-24) | npm audit only | — | dev: the TypeScript client (Step 7) |
 | @modelcontextprotocol/inspector | 2.12.0 (npm, 2026-10-21) | its own licence file | npm audit only | — | dev: Inspector checks (Steps 8, 14) |
-| @modelcontextprotocol/ext-apps | 2.0.3 (npm) | `MIT` | npm audit only | — | the MCP Apps chart (Step 9), if it is used |
+| @modelcontextprotocol/ext-apps | 2.0.3 (npm) | `MIT` | npm audit only | — | not used: the MCP Apps chart (Step 9) speaks the protocol in plain JavaScript |
 | typescript | 6.0.3 (npm); 7.0.2 is the native compiler, whose package has no JS API, so @hey-api/openapi-ts fails on it (Step 7, read 2026-10-24) | `Apache-2.0` | npm audit only | — | dev: type-checking the client |
 
 **Wheel rule.** CI runs every cell of Python 3.12–3.15 on Ubuntu, Windows
@@ -5008,9 +5008,9 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 9 — MCP Apps, the MCP Registry Entry and Agent Evaluations
+## Step 9 — MCP Apps, the MCP Registry Entry and Agent Evaluations ✅
 
-**Status:** Not started
+**Status:** Complete — PR #198 (2026-10-26)
 
 > **Goal:** Finish the MCP surface for real clients and real agents. Add a
 > chart rendered inside clients that support the MCP Apps extension
@@ -5071,6 +5071,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-26: Quality Pick, also the Balanced column's Runner-up model — Opus 5.5 · Effort High. The Runs rule selected the Balanced Pick (Antigravity pool headroom); the operator opened the step on Claude Code. The live evaluation's agent was Sonnet 5.5.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a small
 self-contained HTML page against the MCP Apps protocol, a registry manifest
@@ -9191,7 +9193,7 @@ workflow above maps directly to the corresponding row below.
 | 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
-| 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
