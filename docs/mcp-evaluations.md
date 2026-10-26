@@ -7,15 +7,15 @@ The MCP server's tool descriptions are tested by giving a real agent questions i
 - Date: 2026-10-26
 - Agent: Claude Code 2.1.284, headless (claude -p)
 - Model: `claude-sonnet-5-5`
-- Server: pyeconomics 1.0.0b1.dev1, from the working tree at commit `9901868`
+- Server: pyeconomics 1.0.0b1.dev1, from the working tree at commit `15c91bf`
 - Result: 9 of 9 tasks succeeded
-- Tool list: 21 tools, 369,901 bytes of names, descriptions and schemas; the agent's first request held 2,756 tokens without the server and 72,146 with it
+- Tool list: 21 tools, 369,901 bytes of names, descriptions and schemas; the agent's first request held 2,760 tokens without the server and 72,142 with it
 
 | Task | Result | Tool calls | Answer | Expected |
 |------|--------|------------|--------|----------|
-| `discover_convexity` | succeeded | `search_models`, `describe_model`, `describe_model`, `run_model` | 75.29958076997512 | 75.29958076997512 |
+| `discover_convexity` | succeeded | `search_models`, `describe_model`, `run_model` | 75.29958076997512 | 75.29958076997512 |
 | `bond_duration` | succeeded | `fixed_income_duration` | 7.919141259916497 | 7.919141259916497 |
-| `bond_price` | succeeded | `fixed_income_bond_pricing`, `fixed_income_bond_pricing` | 96.1027094285883 | 96.1027094285883 |
+| `bond_price` | succeeded | `fixed_income_bond_pricing` | 96.1027094285883 | 96.1027094285883 |
 | `option_price` | succeeded | `derivatives_black_scholes_merton` | 5.779936227686569 | 5.779936227686569 |
 | `mortgage_payment` | succeeded | `foundations_time_value` | 1498.876312881881 | 1498.876312881881 |
 | `recession_probability_bound` | succeeded | `search_models`, `run_model` | 0.30517900068803827 | 0.30517900068803827 |
@@ -29,20 +29,16 @@ The MCP server's tool descriptions are tested by giving a real agent questions i
 
 > Using the pyeconomics tools, find the model for bond convexity and compute the analytical convexity of a bond that settles on 2026-01-15 and matures on 2036-01-15, with a 4.5% coupon paid semiannually and a 5% yield to maturity.
 
-1. `search_models` {"query": "bond convexity"}
-2. `describe_model` {} → error
-3. `describe_model` {"model_id": "fixed_income.convexity"}
-4. `run_model` {"inputs": {"calculation": "analytical", "coupon_rate": 0.045, "frequency": "semiannual", "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}, "model_id": "fixed_income.convexity"}
+1. `search_models` {"query": "convexity"}
+2. `describe_model` {"model_id": "fixed_income.convexity"}
+3. `run_model` {"inputs": {"calculation": "analytical", "coupon_rate": 0.045, "frequency": "semiannual", "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}, "model_id": "fixed_income.convexity"}
 
 The agent's answer:
 
 ```text
-I used the `fixed_income.convexity` model (Bond convexity) with the `analytical` calculation. The inputs were:
-- Settlement 2026-01-15 and maturity 2036-01-15.
-- Coupon 4.5%, paid semiannually.
-- Yield to maturity 5%.
+I used the `fixed_income.convexity` model (Bond convexity) with the `analytical` calculation. The inputs were settlement 2026-01-15, maturity 2036-01-15, a 4.5% coupon paid semiannually and a 5% yield to maturity. The other inputs took the model's defaults: act/act ICMA day count, face value 100 and redemption 100.
 
-The analytical convexity is about 75.2996 years squared. The full price at settlement is about 96.1027.
+The convexity is about 75.2996 years squared, and the full price is about 96.1027.
 
 ANSWER: 75.29958076997512
 ```
@@ -56,7 +52,7 @@ ANSWER: 75.29958076997512
 The agent's answer:
 
 ```text
-The modified duration is about 7.92 years. The tool also returned a Macaulay duration of 8.117 years and a full price of 96.10 per 100 of face value.
+The modified duration is about 7.919 years. For this bond, the tool also returned a Macaulay duration of 8.117 years and a full price of 96.10.
 
 ANSWER: 7.919141259916497
 ```
@@ -65,13 +61,12 @@ ANSWER: 7.919141259916497
 
 > What is the full price, per 100 of face value, of a bond that settles on 2026-01-15 and matures on 2036-01-15, with a 4.5% coupon paid semiannually and a 5% yield to maturity?
 
-1. `fixed_income_bond_pricing` {"coupon_rate": 0.045, "frequency": "semiannual", "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05} → invalid-input
-2. `fixed_income_bond_pricing` {"calculation": "price_from_yield", "coupon_rate": 0.045, "frequency": "semiannual", "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}
+1. `fixed_income_bond_pricing` {"calculation": "price_from_yield", "coupon_rate": 0.045, "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}
 
 The agent's answer:
 
 ```text
-The full price is about 96.1027 per 100 of face value. Settlement falls on a coupon date, so accrued interest is zero and the full price equals the flat price. The bond has 20 semiannual payments.
+The full price is 96.1027 per 100 of face value. Settlement falls on a coupon date, so accrued interest is zero and the full price equals the flat price. The tool used its default street convention and act/act ICMA day count, with 20 semiannual payments.
 
 ANSWER: 96.1027094285883
 ```
@@ -80,12 +75,12 @@ ANSWER: 96.1027094285883
 
 > Price a European call option with the Black-Scholes-Merton model: spot 100, strike 105, six months to expiry, a 4% risk-free rate, 25% volatility and no dividends.
 
-1. `derivatives_black_scholes_merton` {"calculation": "price", "option_type": "call", "risk_free_rate": 0.04, "spot": 100, "strike": 105, "volatility": 0.25, "years": 0.5}
+1. `derivatives_black_scholes_merton` {"calculation": "price", "dividend_yield": 0, "option_type": "call", "risk_free_rate": 0.04, "spot": 100, "strike": 105, "volatility": 0.25, "years": 0.5}
 
 The agent's answer:
 
 ```text
-The Black-Scholes-Merton price of the European call is about 5.7799.
+The Black-Scholes-Merton price of the call is about 5.78. That is for spot 100, strike 105, 0.5 years, a 4% risk-free rate, 25% volatility and no dividends.
 
 The tool also returned these Greeks:
 - **Delta:** 0.4703
@@ -94,7 +89,7 @@ The tool also returned these Greeks:
 - **Theta:** -8.683
 - **Rho:** 20.63
 
-The put-call parity residual was about 7e-15, so the result is internally consistent.
+The put-call parity residual was effectively zero (about 7e-15).
 
 ANSWER: 5.779936227686569
 ```
@@ -103,12 +98,12 @@ ANSWER: 5.779936227686569
 
 > What is the monthly payment on a 250,000 mortgage over 30 years at 6% a year, compounded monthly? Give the payment as a positive amount.
 
-1. `foundations_time_value` {"calculation": "solve", "future_value": 0, "periods": 360, "present_value": 250000, "rate": 0.005}
+1. `foundations_time_value` {"calculation": "amortization", "periods": 360, "principal": 250000, "rate": 0.005}
 
 The agent's answer:
 
 ```text
-The monthly payment is about 1,498.88. The tool solved for the payment on a 250,000 loan at 0.5% per month (6% ÷ 12) over 360 months. It returned -1,498.876312881881, and the negative sign only means cash paid out, so the positive amount is 1,498.876312881881.
+The monthly payment is about 1,498.88. This is a 250,000 loan at 0.5% per month (6% a year, compounded monthly) over 360 payments. The tool returned a level payment of 1,498.876312881881.
 
 ANSWER: 1498.876312881881
 ```
@@ -117,19 +112,20 @@ ANSWER: 1498.876312881881
 
 > What probability of a US recession twelve months ahead did the New York Fed's yield-curve model give as of 2025-06-30, with its inputs bound to the data catalog as of that date?
 
-1. `search_models` {"query": "recession probability yield curve"}
+1. `search_models` {"query": "recession probability yield curve New York Fed"}
 2. `run_model` {"as_of": "2025-06-30", "model_id": "macro.recession_probability"}
 
 The agent's answer:
 
 ```text
-The New York Fed's yield-curve model, with its inputs bound to the data catalog as of 2025-06-30, gave a 12-month-ahead US recession probability of about 30.5%.
+The New York Fed's yield-curve model gave a recession probability of about 30.5% for twelve months ahead as of 2025-06-30. I ran the `macro.recession_probability` model with its inputs bound to the data catalog as of that date.
 
-- **10-year Treasury yield:** 4.3835%
-- **3-month bill yield (bond-equivalent):** 4.421%
-- **Spread (10-year minus 3-month):** about −0.04 percentage points, so the curve was slightly inverted.
+The bound inputs came from the US Treasury:
+- **10-year yield:** 4.3835%
+- **3-month yield:** 4.421% (bond-equivalent basis)
+- **Spread:** about -0.04 percentage points, so the curve was just barely inverted.
 
-The tool flagged the yields as revised data. They are the latest values, not the ones published on 2025-06-30.
+The tool warned that these yields are the latest revised values, not the ones published on 2025-06-30. A true real-time evaluation could differ slightly.
 
 ANSWER: 0.30517900068803827
 ```
@@ -143,11 +139,9 @@ ANSWER: 0.30517900068803827
 The agent's answer:
 
 ```text
-The catalog gives a US unemployment rate of 0.041 (4.1%) for June 2025. This is the seasonally adjusted rate, BLS series LNS14000000, from the Current Population Survey. The tool returned 0.040999999999999995, which is 0.041 with floating-point rounding.
+The catalog gives a US unemployment rate of 0.041 (4.1%) for June 2025. It is the seasonally adjusted rate, BLS series LNS14000000, from the Current Population Survey.
 
-**Credit line:** "Source: U.S. Bureau of Labor Statistics."
-
-The BLS terms also require this notice: "BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. Data accessed through the BLS Public Data API on 2026-10-26."
+Credit the figure as "Source: U.S. Bureau of Labor Statistics." The BLS terms also require this notice: "BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. Data accessed through the BLS Public Data API on 2026-10-26."
 
 ANSWER: 0.041
 ```
@@ -161,29 +155,26 @@ ANSWER: 0.041
 The agent's answer:
 
 ```text
-The server's policy keeps 16 of the 31 listed providers from reaching an AI assistant. I counted the providers whose `llm_permitted` flag is false in the `list_sources` result.
+16 of the 31 listed providers have `llm_permitted: false`, so the server's policy keeps their data from reaching an AI assistant. They are:
 
-The 16 blocked providers are:
-- aqr
-- atlanta_fed
-- cboe
-- cleveland_fed
-- coin_metrics
-- damodaran
-- dbnomics
-- fred
-- hou_xue_zhang
-- imf
-- jkp
-- ken_french
-- open_source_asset_pricing
-- philadelphia_fed
-- shiller
-- yfinance
+- AQR
+- Atlanta Fed
+- Cboe
+- Cleveland Fed
+- Coin Metrics
+- Damodaran
+- DBnomics
+- FRED
+- Hou-Xue-Zhang
+- IMF
+- JKP
+- Ken French
+- Open Source Asset Pricing
+- Philadelphia Fed
+- Shiller
+- Yahoo Finance
 
-Damodaran is a special case. Its licence class is hosted-safe, but its `llm_use` is "unclear", so `llm_permitted` is false. I counted it as blocked because the question is about the server's policy. Without it the count would be 15.
-
-The other 15 providers are permitted.
+Damodaran is the odd one out. Its licence is hosted-safe, but its `llm_use` is "unclear" and the policy still blocks it. I counted it as blocked because the question is about the policy, not the licence class.
 
 ANSWER: 16
 ```
@@ -197,7 +188,7 @@ ANSWER: 16
 The agent's answer:
 
 ```text
-I couldn't get the latest value of fred:GDP. The pyeconomics tool refused the request with a 403 error. FRED's terms (https://fred.stlouisfed.org/legal/) don't allow its data to be passed to a language model, and this server only permits sources that do. I didn't try other routes to the number.
+I couldn't fetch it. The pyeconomics server refused the request for `fred:GDP` with a 403. FRED's terms (https://fred.stlouisfed.org/legal/) don't allow its data to be passed to a language model, and the server's policy only permits sources that do allow it. I didn't try another route to get the number, so I have no GDP value to give you.
 
 ANSWER: unavailable
 ```
