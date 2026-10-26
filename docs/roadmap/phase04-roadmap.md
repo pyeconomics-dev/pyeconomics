@@ -5040,26 +5040,23 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 with the next build; `mcp-registry.yml` first runs at Step 15, after
 `1.0.0b1` is on PyPI.
 
-|                                  | Cost                 | Balanced ✓         | Quality            |
-| -------------------------------- | -------------------- | ------------------ | ------------------ |
-| **Pick**                         |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex                | Antigravity        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                  | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1                 | 52.6               | 53.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
-| **Runner‑up**                    |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity          | Claude Code        | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | Medium             | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
-| **Backup**                       |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Codex              | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.9               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
+|               |          | Cost                 | Balanced ✓         | Quality            |
+| ------------- | -------- | -------------------- | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
+|               | Platform | Codex                | Antigravity        | Claude Code        |
+|               | Level    | Low                  | High               | High               |
+|               | AA       | 42.1                 | 52.6               | 53.6               |
+|               | Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
+| **Runner‑up** | Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
+|               | Platform | Antigravity          | Claude Code        | Antigravity        |
+|               | Level    | Medium               | Medium             | High               |
+|               | AA       | 39.8                 | 51.2               | 52.6               |
+|               | Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+|               | Platform | Claude Code          | Codex              | Codex              |
+|               | Level    | Medium               | High               | High               |
+|               | AA       | 40.8                 | 50.2               | 50.9               |
+|               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
 Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -5521,26 +5518,23 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-|                                  | Cost               | Balanced ✓         | Quality            |
-| -------------------------------- | ------------------ | ------------------ | ------------------ |
-| **Pick**                         |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
-| **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
-| **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
+|               |          | Cost               | Balanced ✓         | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+|               | Platform | Codex              | Antigravity        | Claude Code        |
+|               | Level    | High               | High               | XHigh              |
+|               | AA       | 50.2               | 52.6               | 56                 |
+|               | Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Claude Code        | Antigravity        |
+|               | Level    | XHigh              | High               | High               |
+|               | AA       | 51.9               | 53.6               | 52.6               |
+|               | Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+|               | Platform | Antigravity        | Codex              | Codex              |
+|               | Level    | Low                | XHigh              | XHigh              |
+|               | AA       | not measured       | 51                 | 52.4               |
+|               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
 Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -5983,26 +5977,23 @@ conversation per phase-boundary hygiene.
 package build and never runs in the hosted service (Phase 8 adds it there
 behind a ledger and a cap).
 
-|                                  | Cost                 | Balanced ✓         | Quality            |
-| -------------------------------- | -------------------- | ------------------ | ------------------ |
-| **Pick**                         |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex                | Antigravity        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                  | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1                 | 52.6               | 53.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
-| **Runner‑up**                    |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity          | Claude Code        | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | Medium             | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
-| **Backup**                       |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Codex              | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.9               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
+|               |          | Cost                 | Balanced ✓         | Quality            |
+| ------------- | -------- | -------------------- | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
+|               | Platform | Codex                | Antigravity        | Claude Code        |
+|               | Level    | Low                  | High               | High               |
+|               | AA       | 42.1                 | 52.6               | 53.6               |
+|               | Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
+| **Runner‑up** | Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
+|               | Platform | Antigravity          | Claude Code        | Antigravity        |
+|               | Level    | Medium               | Medium             | High               |
+|               | AA       | 39.8                 | 51.2               | 52.6               |
+|               | Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+|               | Platform | Claude Code          | Codex              | Codex              |
+|               | Level    | Medium               | High               | High               |
+|               | AA       | 40.8                 | 50.2               | 50.9               |
+|               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
 Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -6442,26 +6433,23 @@ hygiene.
 **Deploys:** nothing beyond merge — the image is a CI artifact; Step 13
 pushes it to Artifact Registry and deploys it to staging.
 
-|                                  | Cost                 | Balanced ✓         | Quality            |
-| -------------------------------- | -------------------- | ------------------ | ------------------ |
-| **Pick**                         |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex                | Antigravity        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                  | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1                 | 52.6               | 53.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
-| **Runner‑up**                    |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity          | Claude Code        | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | Medium             | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
-| **Backup**                       |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Codex              | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.9               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
+|               |          | Cost                 | Balanced ✓         | Quality            |
+| ------------- | -------- | -------------------- | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
+|               | Platform | Codex                | Antigravity        | Claude Code        |
+|               | Level    | Low                  | High               | High               |
+|               | AA       | 42.1                 | 52.6               | 53.6               |
+|               | Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
+| **Runner‑up** | Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
+|               | Platform | Antigravity          | Claude Code        | Antigravity        |
+|               | Level    | Medium               | Medium             | High               |
+|               | AA       | 39.8                 | 51.2               | 52.6               |
+|               | Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+|               | Platform | Claude Code          | Codex              | Codex              |
+|               | Level    | Medium               | High               | High               |
+|               | AA       | 40.8                 | 50.2               | 50.9               |
+|               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
 Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -6923,26 +6911,23 @@ the Deployed & verified check runs through the edge with the service token
 read from the maintainer's keyring, and `staging-health.yml` probes it
 hourly.
 
-|                                  | Cost               | Balanced ✓         | Quality            |
-| -------------------------------- | ------------------ | ------------------ | ------------------ |
-| **Pick**                         |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium             | XHigh              | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 47.8               | 51.9               | 56                 |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M           | $3.56/1M           | $8.46/1M           |
-| **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 46.8               | 50.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M           | $2.18/1M           | $4.00/1M*          |
-| **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Antigravity        | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | Medium             | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | not measured       | 52.4               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $3.20/1M*          | $16.36/1M          |
+|               |          | Cost               | Balanced ✓         | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | XHigh              | XHigh              |
+|               | AA       | 47.8               | 51.9               | 56                 |
+|               | Price    | $1.61/1M           | $3.56/1M           | $8.46/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.03/1M           | $2.18/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | XHigh              |
+|               | AA       | not measured       | not measured       | 52.4               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $16.36/1M          |
 
 Ranked for agentic, high complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -7463,26 +7448,23 @@ Thinking toggle. New conversation per phase-boundary hygiene.
 TestPyPI with attestations; staging redeploys on this step's merge, as on
 every merge.
 
-|                                  | Cost               | Balanced ✓         | Quality            |
-| -------------------------------- | ------------------ | ------------------ | ------------------ |
-| **Pick**                         |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium             | XHigh              | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 47.8               | 51.9               | 56                 |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.61/1M           | $3.56/1M           | $8.46/1M           |
-| **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 46.8               | 50.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.03/1M           | $2.18/1M           | $4.00/1M*          |
-| **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Antigravity        | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | Medium             | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | not measured       | 52.4               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $3.20/1M*          | $16.36/1M          |
+|               |          | Cost               | Balanced ✓         | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | XHigh              | XHigh              |
+|               | AA       | 47.8               | 51.9               | 56                 |
+|               | Price    | $1.61/1M           | $3.56/1M           | $8.46/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.03/1M           | $2.18/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | XHigh              |
+|               | AA       | not measured       | not measured       | 52.4               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $16.36/1M          |
 
 Ranked for agentic, high complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -7912,26 +7894,23 @@ environment), the GitHub pre-release, the MCP Registry (through
 Read the Docs `main` preview (the surface guides) and staging (redeployed
 by the merge); the Deployed & verified check covers each.
 
-|                                  | Cost                 | Balanced ✓         | Quality            |
-| -------------------------------- | -------------------- | ------------------ | ------------------ |
-| **Pick**                         |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Haiku 5.5**        | **Gemini 4 Argon** | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Antigravity        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 34.5                 | 52.6               | 53.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $0.16/1M*            | $4.00/1M*          | $6.02/1M           |
-| **Runner‑up**                    |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**      | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex                | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                  | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1                 | 50.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M             | $2.18/1M           | $4.00/1M*          |
-| **Backup**                       |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity          | Claude Code        | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | Medium             | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 50.9               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $8.82/1M           |
+|               |          | Cost                 | Balanced ✓         | Quality            |
+| ------------- | -------- | -------------------- | ------------------ | ------------------ |
+| **Pick**      | Model    | **Haiku 5.5**        | **Gemini 4 Argon** | **Opus 5.5**       |
+|               | Platform | Claude Code          | Antigravity        | Claude Code        |
+|               | Level    | Medium               | High               | High               |
+|               | AA       | 34.5                 | 52.6               | 53.6               |
+|               | Price    | $0.16/1M*            | $4.00/1M*          | $6.02/1M           |
+| **Runner‑up** | Model    | **GPT-6.1 Sol**      | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Codex                | Codex              | Antigravity        |
+|               | Level    | Low                  | High               | High               |
+|               | AA       | 42.1                 | 50.2               | 52.6               |
+|               | Price    | $1.36/1M             | $2.18/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **GPT-6 Astra**    |
+|               | Platform | Antigravity          | Claude Code        | Codex              |
+|               | Level    | Medium               | Medium             | High               |
+|               | AA       | 39.8                 | 51.2               | 50.9               |
+|               | Price    | $2.19/1M             | $5.42/1M           | $8.82/1M           |
 
 Ranked for agentic, medium complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
@@ -8338,26 +8317,23 @@ hygiene.
 the required-check update and the synthetic alarms are part of the step,
 and staging redeploys on the merge as on every merge.
 
-|                                  | Cost                 | Balanced ✓         | Quality            |
-| -------------------------------- | -------------------- | ------------------ | ------------------ |
-| **Pick**                         |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex                | Antigravity        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                  | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1                 | 52.6               | 53.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
-| **Runner‑up**                    |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity          | Claude Code        | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | Medium             | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
-| **Backup**                       |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Codex              | Codex              |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.9               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
+|               |          | Cost                 | Balanced ✓         | Quality            |
+| ------------- | -------- | -------------------- | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
+|               | Platform | Codex                | Antigravity        | Claude Code        |
+|               | Level    | Low                  | High               | High               |
+|               | AA       | 42.1                 | 52.6               | 53.6               |
+|               | Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
+| **Runner‑up** | Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
+|               | Platform | Antigravity          | Claude Code        | Antigravity        |
+|               | Level    | Medium               | Medium             | High               |
+|               | AA       | 39.8                 | 51.2               | 52.6               |
+|               | Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
+| **Backup**    | Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+|               | Platform | Claude Code          | Codex              | Codex              |
+|               | Level    | Medium               | High               | High               |
+|               | AA       | 40.8                 | 50.2               | 50.9               |
+|               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
 Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
 tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
