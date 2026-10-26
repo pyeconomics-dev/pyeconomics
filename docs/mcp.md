@@ -135,6 +135,52 @@ A failure answers a tool error whose text is its problem from the same table the
 command line and the REST API use ({doc}`problems`): invalid inputs name the
 fields that failed, never their values, so the assistant can correct them.
 
+### Charts in clients that support MCP Apps
+
+A model that declares a chart (the amortization schedule of
+`foundations.time_value`, the fan chart of `macro.policy_rule`'s forecast path)
+draws it inside a client that supports the
+[MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) extension, when
+the server has the `plot` extra (`pip install --pre "pyeconomics[mcp,plot]"`):
+
+![The amortization chart of a foundations_time_value run, drawn by the MCP Apps example host](_static/mcp-apps-chart.png)
+
+Every run tool names the page `ui://pyeconomics/chart` in its
+`_meta.ui.resourceUri`, and a run with a chart carries its Plotly figure in the
+result's `_meta`, under `pyeconomics/figure`. The page draws that figure with
+Plotly.js, the one script it loads, pinned by version and Subresource Integrity
+from the one origin its content security policy names (`cdn.jsdelivr.net`); it
+opens no connection and renders the figure's data, never markup. A client
+without the extension ignores both, and the answer it gets is the same: the
+structured content and the text never change with the chart.
+
+## The MCP Registry
+
+The server is listed in the official [MCP Registry](https://registry.modelcontextprotocol.io)
+as `io.github.pyeconomics-dev/pyeconomics`, from 1.0.0b1, with the same
+`uvx` command as above. The registry's entry is the repository's `server.json`:
+
+```json
+{
+  "registryType": "pypi",
+  "identifier": "pyeconomics",
+  "runtimeHint": "uvx",
+  "runtimeArguments": [{"type": "named", "name": "--from", "value": "pyeconomics[mcp]==<version>"}],
+  "packageArguments": [{"type": "positional", "value": "mcp"}],
+  "transport": {"type": "stdio"}
+}
+```
+
+A release publishes it through `.github/workflows/mcp-registry.yml`, once PyPI
+shows the version: the registry checks that the package's description (the
+README) names the server with a hidden `mcp-name:` line.
+
+## How the tools are evaluated
+
+The tools' names, descriptions and schemas are tested with a real agent: it
+answers a set of questions through this server alone, and each answer is
+checked against the Python API's. {doc}`mcp-evaluations` records the latest run.
+
 ## Data and language models: the `llm_use` gate
 
 Every source declares whether its terms let its data reach a language model:

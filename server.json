@@ -1,0 +1,39 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.pyeconomics-dev/pyeconomics",
+  "title": "pyeconomics",
+  "description": "Tested, cited economics and finance models and data, with a provenance manifest per result.",
+  "version": "1.0.0b1.dev1",
+  "websiteUrl": "https://pyeconomics.readthedocs.io/en/main/mcp.html",
+  "repository": {
+    "url": "https://github.com/pyeconomics-dev/pyeconomics",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "pyeconomics",
+      "version": "1.0.0b1.dev1",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "--from",
+          "value": "pyeconomics[mcp]==1.0.0b1.dev1",
+          "description": "Install the package with its mcp extra, the MCP SDK."
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp",
+          "description": "Run the MCP server over stdio."
+        }
+      ]
+    }
+  ]
+}

@@ -118,9 +118,14 @@ def problem_of(result: types.CallToolResult) -> dict[str, Any]:
     return problem
 
 
-def stub_world(monkeypatch: pytest.MonkeyPatch) -> ProviderRegistry:
-    """Make stand-ins for every installed provider the installed registry."""
-    monkeypatch.setattr(catalog_world, "_FIRST_DAY", WORLD_START)
+def stub_world(
+    monkeypatch: pytest.MonkeyPatch, start: dt.date = WORLD_START
+) -> ProviderRegistry:
+    """Make stand-ins for every installed provider the installed registry.
+
+    Their daily data starts on ``start`` and runs for about 21 months.
+    """
+    monkeypatch.setattr(catalog_world, "_FIRST_DAY", start)
     world = catalog_world.world_registry()
     monkeypatch.setattr(data_registry._CACHE, "registry", world)  # noqa: SLF001
     return world

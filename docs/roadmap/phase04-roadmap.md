@@ -5359,7 +5359,10 @@ conversation per phase-boundary hygiene.
       and publishes an organization namespace only through
       GitHub OIDC (`mcp-publisher login github-oidc`), not the
       device flow; its server.json schema is 2025-12-11 and
-      its latest release v1.8.2.
+      its latest release v1.8.2. (At kickoff on 2026-10-26
+      the latest was v1.8.4, which the workflow pins; the
+      ext-apps example host installs only outside its
+      monorepo, whose root scripts need bun.)
 
     Files to read (every file before drafting):
     - docs/adr/0012-programmatic-surfaces.md (decisions 13,
@@ -5798,6 +5801,11 @@ conversation per phase-boundary hygiene.
       (Step 5), the REST API (Steps 6–7) and the MCP server
       (Steps 8–9); each returns Result.to_json() bytes by
       ADR-0012 decision 3, and the CLI appends one newline.
+    - From Step 9: an MCP run of a model with a chart also
+      carries its Plotly figure in the result's `_meta`
+      (`pyeconomics/figure`, when the plot extra is
+      installed); parity compares the structured content and
+      the text blocks, which the figure never changes.
     - tests/golden/ holds one TOML file per model, read by
       tests/golden/_loader.py; tests/data/bindings/
       bound_support.py scripts providers for offline bound
@@ -7733,6 +7741,18 @@ per phase-boundary hygiene.
       2.12.0, Node 22) checks stdio, a local server's /mcp
       and the local HTTP app; tools/list is snapshotted in
       both modes.
+    - From Step 9: the live evaluation is `uv run python
+      scripts/mcp_agent_eval.py --model sonnet --markdown
+      docs/mcp-evaluations.md` (about three minutes, nine
+      tasks, Claude Code headless on the maintainer's
+      subscription); it withholds FRED's and ALFRED's keys and
+      refuses to write a record holding a path or a key. Its
+      bound task is dated 2025-06-30 because of #195 (CBO's
+      archive begins 2024-02) and #196 (NY Fed's EFFR history
+      breaks a full read); if either is fixed by then, a 2019
+      Taylor-rule task can join the set. Never run the
+      stand-in world (catalog_world) outside pytest: it now
+      refuses to answer without PYECONOMICS_CACHE_DIR.
     - Steps 1–13 are on main at 1.0.0b1.dev1: the CLI,
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every
@@ -8181,6 +8201,20 @@ hygiene.
       GitHub release behind the mcp-registry environment.
     - README.md carries the mcp-name marker; server.json's
       version follows pyproject.toml.
+    - From Step 9: server.json holds the version three times
+      (`version`, `packages[0].version` and the `--from
+      "pyeconomics[mcp]==<version>"` runtime argument), and
+      tests/mcp/test_mcp_registry_entry.py requires all three
+      to equal pyproject.toml's. release.yml creates no GitHub
+      release, so mcp-registry.yml first runs when this step
+      publishes the pre-release; to rerun it, dispatch it on
+      the tag (`gh workflow run mcp-registry.yml --ref
+      v1.0.0b1 -f version=1.0.0b1`): the mcp-registry
+      environment (the maintainer's review) admits `v*` tags
+      only. It pins mcp-publisher v1.8.4 by SHA-256, waits up
+      to 30 minutes for PyPI's JSON to show the version with
+      the marker, and audits (does not block) egress, so its
+      first run's endpoints can be read from harden-runner.
     - Phase 3 Step 19's lessons: PyPI's JSON lists a version
       before the simple index serves it (retry a fresh
       lookup before calling an install failed); plain pip on
@@ -9488,6 +9522,17 @@ whatever is still open here.
   `MCPServer` ADR-0012 decision 13 names, the same SDK on the same
   revisions and transports (the maintainer agreed; recorded in the PR).
   Steps 9 to 14's task blocks note what they build on.
+- From Phase 4 Step 9, additive changes and deferred findings: `core.plotting`
+  gains `charts_for` and `figure_of` (a figure from a result's JSON document,
+  as a surface holds it; Phase 2's `figure` unchanged); the stand-in world
+  refuses to answer without `PYECONOMICS_CACHE_DIR` (its synthetic answers had
+  reached the maintainer's cache from a run outside pytest; the seven entries
+  were deleted). Deferred as issues: #195 (a gated as-of bind before 2024-02
+  cannot resolve CBO's noncyclical unemployment rate; the stand-in world gives
+  CBO vintages from 2000), #196 (NY Fed's EFFR history holds a Sunday, so a
+  full read fails and every live gated `macro_policy_rule` bind with it) and
+  #197 (the tool list costs an agent about 69k tokens of context). Steps 10,
+  14 and 15's task blocks note what they build on.
 
 ---
 

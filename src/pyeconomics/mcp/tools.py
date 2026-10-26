@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Final, Literal
 
 from pyeconomics import registry
+from pyeconomics.core.binding import calculations
 from pyeconomics.core.errors import RegistryError
 from pyeconomics.mcp import schemas
 from pyeconomics.mcp.headline import HEADLINE
@@ -174,14 +175,23 @@ def _discovery(hosted: bool) -> list[ToolSpec]:  # noqa: FBT001 - one mode switc
 def _headline(model: Model[Any, Any], hosted: bool) -> ToolSpec:  # noqa: FBT001
     spec = model.spec
     output = schemas.result_output(model)
+    family = sorted(calculations(spec.inputs))
+    # A family's inputs depend on the calculation, which has no default: the
+    # Phase 4 Step 9 evaluation's agent first called one without it.
+    selects = (
+        f" The required calculation field selects one of: {', '.join(family)}."
+        if family
+        else ""
+    )
     return ToolSpec(
         name=tool_name(model.id),
         title=spec.title,
         description=(
             f"{spec.summary} Runs {spec.title} ({model.id}, version {spec.version}) "
             "on the given inputs and returns its canonical result: the validated "
-            "inputs, the outputs, the warnings and the manifest. Every number "
-            "carries its unit in the input schema; rates are decimals."
+            "inputs, the outputs, the warnings and the manifest."
+            f"{selects} Every number carries its unit in the input schema; rates "
+            "are decimals."
         ),
         kind="headline",
         input_schema=schemas.tool_input(model),

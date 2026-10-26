@@ -1,5 +1,10 @@
 [
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -13,19 +18,29 @@
     "title": "Capital budgeting"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "CAPM, WACC with preferred equity, Hamada unlevering/relevering, and country risk premium. Runs Cost of capital and beta (corporate.cost_of_capital, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "CAPM, WACC with preferred equity, Hamada unlevering/relevering, and country risk premium. Runs Cost of capital and beta (corporate.cost_of_capital, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: capm, country_risk_premium, relever_beta, unlever_beta, wacc. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:8ff3bc1980c1cd5a5e7b54532616066311289d096cd29fec8a0c2c8ab5aa5afe",
     "name": "corporate_cost_of_capital",
     "outputSchema": "sha256:6a70040d9802d7c3d8996329a0f766d00ccff741e204e8d156900b5c7304448d",
     "title": "Cost of capital and beta"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -39,13 +54,18 @@
     "title": "Binomial option tree"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Price, Greeks and implied volatility of European calls and puts on an asset with a continuous dividend yield. Runs Black-Scholes-Merton options (derivatives.black_scholes_merton, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Price, Greeks and implied volatility of European calls and puts on an asset with a continuous dividend yield. Runs Black-Scholes-Merton options (derivatives.black_scholes_merton, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: implied_volatility, price. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:67c9fe6c32c7fcc0984f0afd1c2660595697b06cfeb563b3b0ed8c694cac12f9",
     "name": "derivatives_black_scholes_merton",
     "outputSchema": "sha256:f46f6d568a0a79123840f26f38091a1279eac79c45dfb111bcf2306d489f0e99",
@@ -484,91 +504,126 @@
     "title": "Model description"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Gordon, two-stage and H-model values, PVGO and the Gordon implied return. Runs Dividend discount valuation (equity.dividend_discount, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Gordon, two-stage and H-model values, PVGO and the Gordon implied return. Runs Dividend discount valuation (equity.dividend_discount, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: gordon, h_model, implied_return, pvgo, two_stage. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:6dd92beffb9806b5e759817c29b282c5f2ad368c0826b67ac0e0796f85a1a311",
     "name": "equity_dividend_discount",
     "outputSchema": "sha256:3b9cab80689c28eaeb95497a92bb667068f8460b3fa1fb53536b9070eac31a93",
     "title": "Dividend discount valuation"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "FCFF from EBIT, FCFE from net income, and one- or two-stage firm or equity valuation. Runs Free cash flow and DCF valuation (equity.free_cash_flow, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "FCFF from EBIT, FCFE from net income, and one- or two-stage firm or equity valuation. Runs Free cash flow and DCF valuation (equity.free_cash_flow, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: fcfe, fcff, valuation. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:49a1ea46500045e3fe7a609ee25a01b9b766d6b4562f358fe431aa66d6143133",
     "name": "equity_free_cash_flow",
     "outputSchema": "sha256:a416ec90579a1cf4873918ec874b1d68cea57d517ada4539ba44d2cd15f4fe27",
     "title": "Free cash flow and DCF valuation"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Full and flat price and accrued interest of a fixed-coupon bond from its yield, and its yield to maturity, to a call and to worst from its price. Runs Bond price and yield (fixed_income.bond_pricing, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Full and flat price and accrued interest of a fixed-coupon bond from its yield, and its yield to maturity, to a call and to worst from its price. Runs Bond price and yield (fixed_income.bond_pricing, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: price_from_yield, yield_from_price, yield_to_call, yield_to_worst. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:d217ca24ffb497eddc13a6081f4e102618d1d4d6ff507cbcbadfd8daf53b136d",
     "name": "fixed_income_bond_pricing",
     "outputSchema": "sha256:bff96fb8fd9c8e850f26d9029408d91bd705e4c0ff14683d1fe01ee5a6d7d887",
     "title": "Bond price and yield"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Bootstrap spot rates and discount factors from par yields, par yields from spot rates, and forward rates between maturities. Runs Spot, par and forward curves (fixed_income.curve_bootstrap, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Bootstrap spot rates and discount factors from par yields, par yields from spot rates, and forward rates between maturities. Runs Spot, par and forward curves (fixed_income.curve_bootstrap, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: forward_rate, from_par, from_spot. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:0f22a588bf9fad78a0d3c95981c1955ddff19a3e7acd0370f20c3fefb7979be6",
     "name": "fixed_income_curve_bootstrap",
     "outputSchema": "sha256:2d6d455b00af20505520c3f14429e579c5128429be7677d5622c2a076c0f0805",
     "title": "Spot, par and forward curves"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Macaulay and modified duration from a yield, effective and key-rate duration off a spot curve, and DV01 of a fixed-coupon bond. Runs Bond duration (fixed_income.duration, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Macaulay and modified duration from a yield, effective and key-rate duration off a spot curve, and DV01 of a fixed-coupon bond. Runs Bond duration (fixed_income.duration, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: dv01, effective, key_rate, macaulay_modified. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:072755153ac590d560cbde21d85eb48070a6c933d2dbbd5aa38bdcc2452b61fc",
     "name": "fixed_income_duration",
     "outputSchema": "sha256:bb7a50d4906baf13f11ee4f9998f3e0823a2f38155ae725137ff74fe7bd099b0",
     "title": "Bond duration"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Holding-period, arithmetic, geometric, harmonic, annualized, log and real returns. Runs Return toolkit (foundations.returns, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Holding-period, arithmetic, geometric, harmonic, annualized, log and real returns. Runs Return toolkit (foundations.returns, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: annualized, holding_period, log, means, real. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:80272bb4ac64fa9bc9f95476c7dd559ecf17138350468ed7303e728a5feb4e35",
     "name": "foundations_returns",
     "outputSchema": "sha256:a995111cf4d56297299e8fe6997d102964901b9fe61f9cc2c0e04095c2feae79",
     "title": "Return toolkit"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Present and future values of sums, annuities and perpetuities, the five-key solve, NPV, IRR, XNPV, XIRR and amortization schedules. Runs Time value of money (foundations.time_value, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Present and future values of sums, annuities and perpetuities, the five-key solve, NPV, IRR, XNPV, XIRR and amortization schedules. Runs Time value of money (foundations.time_value, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: amortization, future_value, irr, npv, present_value, solve, xirr, xnpv. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:0d165e72134b5973291783f30dfde303231abcf2c8199e19d7c4d3033fdf9ec9",
     "name": "foundations_time_value",
     "outputSchema": "sha256:ca2f322566ba75e45d81823b9fcf273d922ed86ebd5319e40baac20980874de1",
@@ -670,13 +725,18 @@
     "title": "Series"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Covered and uncovered interest parity, relative and absolute purchasing power parity, the international Fisher effect and real exchange rates. Runs International parity conditions (international.parity_conditions, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Covered and uncovered interest parity, relative and absolute purchasing power parity, the international Fisher effect and real exchange rates. Runs International parity conditions (international.parity_conditions, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: absolute_ppp, covered_interest_parity, international_fisher, real_exchange_rate, relative_ppp, uncovered_interest_parity. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:03841cdca1af463cab42c42152db930626007c142fd1b6072f9c91bf9e163b17",
     "name": "international_parity_conditions",
     "outputSchema": "sha256:0a4e3afd37da5daed770d661171a3eb128144ab6a5c6c5ec1bddec307dd99c95",
@@ -787,19 +847,29 @@
     "title": "Data sources"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Taylor (1993 and 1999), balanced-approach, shortfalls, adjusted and first-difference rules, smoothed and floored, on a gap measured in output or unemployment, and over forecast paths. Runs Monetary-policy rules (macro.policy_rule, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Taylor (1993 and 1999), balanced-approach, shortfalls, adjusted and first-difference rules, smoothed and floored, on a gap measured in output or unemployment, and over forecast paths. Runs Monetary-policy rules (macro.policy_rule, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: adjusted_taylor_1993, balanced_approach, balanced_approach_shortfalls, first_difference, path, taylor_1993, taylor_1999. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:2eb695ef41742846dfb35a6afce2572cfa01fa897a44291ad2c8bc3044000ee9",
     "name": "macro_policy_rule",
     "outputSchema": "sha256:e4ae56bf9bfcfaf1f91b4e95c93fd33313de7268f860e339e5d0dd0a3b214bd5",
     "title": "Monetary-policy rules"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -813,32 +883,47 @@
     "title": "Risk-adjusted performance"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "Portfolio expected return and risk, the minimum-variance frontier with short sales, and the minimum-variance and tangency portfolios. Runs Mean-variance portfolios (portfolio.mean_variance, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "Portfolio expected return and risk, the minimum-variance frontier with short sales, and the minimum-variance and tangency portfolios. Runs Mean-variance portfolios (portfolio.mean_variance, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: frontier, minimum_variance, portfolio, tangency. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:608647f5bd26e565e6e6df821269693a1a923f94c30965162facc692272d9bf8",
     "name": "portfolio_mean_variance",
     "outputSchema": "sha256:3e97ae0ccf4a1372fc8c86be5a36e4f19e9375e91e0939bfbadb787be2ded6f0",
     "title": "Mean-variance portfolios"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
     },
-    "description": "VaR and expected shortfall as positive losses by the parametric normal, Cornish-Fisher, historical, Monte Carlo and RiskMetrics EWMA methods. Runs Value-at-risk and expected shortfall (risk.value_at_risk, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. Every number carries its unit in the input schema; rates are decimals.",
+    "description": "VaR and expected shortfall as positive losses by the parametric normal, Cornish-Fisher, historical, Monte Carlo and RiskMetrics EWMA methods. Runs Value-at-risk and expected shortfall (risk.value_at_risk, version 1) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: cornish_fisher, ewma, historical, monte_carlo, parametric. Every number carries its unit in the input schema; rates are decimals.",
     "inputSchema": "sha256:c78bcb934fdf0389075b6104f0590869c3bd55ecf3804f79ab389a57864d44e6",
     "name": "risk_value_at_risk",
     "outputSchema": "sha256:9b0e0021e857301f4bd7c3b63c5b1e8a5a58591e638aa8ada8fc1f3a0e8f3e3f",
     "title": "Value-at-risk and expected shortfall"
   },
   {
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://pyeconomics/chart"
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
