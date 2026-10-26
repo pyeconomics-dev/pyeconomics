@@ -5498,9 +5498,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 10 — Cross-Surface Parity
+## Step 10 — Cross-Surface Parity ✅
 
-**Status:** Not started
+**Status:** Complete — PR #199 (2026-10-26)
 
 > **Goal:** Prove that "generated" means "identical". Add `tests/parity/`:
 > every golden case of every registered model (354 cases across 50 files on
@@ -5554,6 +5554,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-26: Balanced Runner-up, also the Quality Pick's model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected the Balanced Pick (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Model rationale:** Coding is PRIMARY and long-context SECONDARY: a suite
 that drives four surfaces in-process and out of process over every golden
@@ -9209,7 +9211,7 @@ workflow above maps directly to the corresponding row below.
 | 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
-| 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
