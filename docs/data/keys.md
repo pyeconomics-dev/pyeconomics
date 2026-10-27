@@ -158,7 +158,10 @@ bls = 86400
 | `sec_contact` | `PYECONOMICS_SEC_CONTACT` | The name and email address SEC EDGAR requires in each request |
 | `[ttl]` *provider* | `PYECONOMICS_TTL_<PROVIDER>` | How long the cache serves a provider's open data, in seconds; `0` turns that provider's cache off ([the cache](cache.md)) |
 | `disabled_providers` | `PYECONOMICS_DISABLED_PROVIDERS` | Providers to turn off, a list in `pyeconomics.toml` or ids separated by commas or spaces in the variable (see below) |
-| `allow_unclear_llm_use` | `PYECONOMICS_ALLOW_UNCLEAR_LLM_USE` | Let the MCP server pass data whose terms are unclear about language models to your assistant: `1`, `true`, `yes` or `on` ({doc}`../mcp`); data whose terms forbid it never is |
+| `allow_unclear_llm_use` | `PYECONOMICS_ALLOW_UNCLEAR_LLM_USE` | Let the MCP server and the AI narrative pass data whose terms are unclear about language models to a model: `1`, `true`, `yes` or `on` ({doc}`../mcp`, {doc}`../ai`); data whose terms forbid it never is |
+| `ai_enabled` | `PYECONOMICS_AI_ENABLED` | Turn the optional AI narrative on ({doc}`../ai`); off by default |
+| `ai_provider` | `PYECONOMICS_AI_PROVIDER` | The narrative's provider: `openai` (the default), `anthropic`, `gemini` or `openrouter` |
+| `ai_model` | `PYECONOMICS_AI_MODEL` | The narrative's model at that provider; its recorded default when unset |
 | | `PYECONOMICS_CONFIG_DIR` | Where `pyeconomics.toml` and `.env` are read from |
 
 The cache directory defaults to `~/.cache/pyeconomics` on Linux,

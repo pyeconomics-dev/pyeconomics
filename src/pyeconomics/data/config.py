@@ -13,7 +13,8 @@ one before it, key by key:
 3. the environment: ``PYECONOMICS_MODE``, ``PYECONOMICS_OFFLINE``,
    ``PYECONOMICS_CACHE_DIR``, ``PYECONOMICS_SEC_CONTACT``,
    ``PYECONOMICS_DISABLED_PROVIDERS`` (provider ids separated by commas or
-   spaces), ``PYECONOMICS_ALLOW_UNCLEAR_LLM_USE`` and
+   spaces), ``PYECONOMICS_ALLOW_UNCLEAR_LLM_USE``, ``PYECONOMICS_AI_ENABLED``,
+   ``PYECONOMICS_AI_PROVIDER``, ``PYECONOMICS_AI_MODEL`` and
    ``PYECONOMICS_TTL_<PROVIDER>``.
 
 :func:`configure` then sets process-wide overrides on top, and
@@ -38,6 +39,11 @@ start, as its :attr:`Settings.llm_use_policy`. It comes from the files or the
 environment only; :func:`configure` does not take it, and nothing a language
 model sends can set it.
 
+``ai_enabled``, ``ai_provider`` and ``ai_model`` configure the optional AI
+narrative (:mod:`pyeconomics.ai`, ADR-0012 decision 17): it is off until
+``ai_enabled`` is true, and the provider and model default to the choice
+recorded in :mod:`pyeconomics.ai.defaults`.
+
 The SEC contact (``sec_contact``) is personal data. EDGAR's User-Agent
 carries it (Phase 3 Step 7), and nothing else: it is held as a pydantic
 ``SecretStr``, which prints as asterisks, and registered with
@@ -50,7 +56,7 @@ to :func:`settings`; :func:`reset` forgets them and every override.
 Examples
 --------
 >>> Settings(offline=True, ttl={"bls": 3600})
-Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600}, disabled_providers=(), allow_unclear_llm_use=False)
+Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600}, disabled_providers=(), allow_unclear_llm_use=False, ai_enabled=False, ai_provider=None, ai_model=None)
 >>> Settings(disabled_providers=["fred", "bls", "fred"]).disabled_providers
 ('bls', 'fred')
 
@@ -131,6 +137,8 @@ _FLAGS: Final = {
     "no": False,
     "off": False,
 }
+# An AI model id, as pyeconomics.ai.providers.MODEL_PATTERN reads one.
+_AI_MODEL: Final = r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
 _MIN_CONTACT: Final = redaction.MIN_SECRET_LENGTH
 _MAX_CONTACT: Final = 256
 
@@ -159,7 +167,13 @@ class Settings(BaseModel):
         request, and the resolver passes over it. Sorted, each once.
     allow_unclear_llm_use
         The user's opt-in to data whose terms are unclear about language
-        models, for the MCP server (:attr:`llm_use_policy`).
+        models, for the MCP server and the AI narrative (:attr:`llm_use_policy`).
+    ai_enabled
+        Whether the AI narrative may run; off by default.
+    ai_provider
+        The narrative's provider id, or ``None`` for the recorded default.
+    ai_model
+        The narrative's model id at that provider, or ``None`` for its default.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
@@ -175,6 +189,9 @@ class Settings(BaseModel):
     )
     disabled_providers: tuple[str, ...] = ()
     allow_unclear_llm_use: StrictBool = False
+    ai_enabled: StrictBool = False
+    ai_provider: str | None = None
+    ai_model: Annotated[str, Field(pattern=_AI_MODEL)] | None = None
 
     @property
     def llm_use_policy(self) -> LlmUsePolicy:
@@ -231,6 +248,16 @@ class Settings(BaseModel):
             except InputError as error:
                 raise ValueError(str(error)) from None
         return value
+
+    @field_validator("ai_provider")
+    @classmethod
+    def _ai_provider(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        try:
+            return identifier(value, "ai_provider")
+        except InputError as error:
+            raise ValueError(str(error)) from None
 
     @field_validator("disabled_providers", mode="before")
     @classmethod
@@ -387,6 +414,9 @@ _ENVIRONMENT: Final[dict[str, tuple[str, Callable[[str, str], object]]]] = {
     "SEC_CONTACT": ("sec_contact", lambda _name, value: value),
     "DISABLED_PROVIDERS": ("disabled_providers", _names),
     "ALLOW_UNCLEAR_LLM_USE": ("allow_unclear_llm_use", _flag),
+    "AI_ENABLED": ("ai_enabled", _flag),
+    "AI_PROVIDER": ("ai_provider", lambda _name, value: value.lower()),
+    "AI_MODEL": ("ai_model", lambda _name, value: value),
 }
 # The hosted server's own secrets, named like credentials on purpose: the server
 # reads them (pyeconomics.server.edge), and these settings neither read nor
@@ -499,12 +529,15 @@ def settings() -> Settings:
     return loaded.model_copy(update=overrides) if overrides else loaded
 
 
-def configure(
+def configure(  # noqa: PLR0913 - one argument per setting
     *,
     mode: Literal["library", "hosted"] | None = None,
     offline: bool | None = None,
     enable_yfinance: bool | None = None,
     disabled_providers: Sequence[str] | None = None,
+    ai_enabled: bool | None = None,
+    ai_provider: str | None = None,
+    ai_model: str | None = None,
 ) -> Settings:
     """Override settings for the rest of the process, and return the result.
 
@@ -525,6 +558,10 @@ def configure(
     disabled_providers
         The provider ids to turn off, replacing the configured list (``()``
         turns none off); ``None`` leaves it as it is.
+    ai_enabled
+        Whether the AI narrative may run; ``None`` leaves it as it is.
+    ai_provider, ai_model
+        The narrative's provider and model; ``None`` leaves each as it is.
 
     Raises
     ------
@@ -538,6 +575,9 @@ def configure(
             ("offline", offline),
             ("enable_yfinance", enable_yfinance),
             ("disabled_providers", disabled_providers),
+            ("ai_enabled", ai_enabled),
+            ("ai_provider", ai_provider),
+            ("ai_model", ai_model),
         )
         if value is not None
     }

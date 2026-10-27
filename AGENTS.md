@@ -30,6 +30,7 @@ tests/             unit · golden · property · contract · parity · e2e
                    cassettes under cassettes/<provider>/
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
   parity/          the cross-surface parity suite and its stand-in world
+  ai/              the AI narrative's tests and synthetic cassettes
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
 scripts/clients/   the clients job's helpers (retitle, smoke, compare)
 scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
@@ -47,7 +48,8 @@ planning/          roadmodel's planning kit, re-exported by its updater: never e
 
 The target layout, as phases add it, is in ROADMAP §3: `core/`, `models/`,
 `data/`, `cli/`, `server/` and `mcp/` under `src/pyeconomics/`, with
-`surfaces/` (Phase 4 Step 2, ADR-0012) beneath the last three.
+`surfaces/` (Phase 4 Step 2, ADR-0012) beneath the last three, and `ai/`
+(Phase 4 Step 11), the optional narrative, beside them.
 
 ## Registry rules
 
@@ -428,6 +430,35 @@ and 3):
   one declared list.
 - ci.yml's `parity` job repeats the comparison out of process on the built
   wheel (`scripts/parity/check_installed.py`), for one golden case per domain.
+
+## AI narrative rules
+
+From Phase 4 Step 11, which builds the optional AI narrative (ADR-0012
+decision 17):
+
+- `pyeconomics.ai` imports the standard library and pyeconomics only: an AI
+  provider is an `AiProvider` with a `ProviderInfo` (one host, a header key
+  slot, library-only terms with storage forbidden) whose request goes through
+  the data layer's transport, never a client library; the `ai` extra stays
+  empty and nothing in `ai/` calls `.reveal()` (`tests/ai/test_ai_layering.py`).
+- `narrate` refuses hosted mode, the default `ai_enabled = false`, offline
+  mode, records `surfaces.gate.check_records` refuses, and a missing key, in
+  that order and before any request. No MCP tool and no REST route imports
+  `pyeconomics.ai`; the command line's `--narrate` binds under the user's
+  `llm_use` policy and keeps standard output the canonical bytes.
+- The prompt holds the result's own facts only (`ai/prompt.py`), never the
+  manifest; every string goes through `scrub_text` and `problems.scrub`. A
+  narrative is never written into a result, an export, a bundle or the cache.
+- The default provider and model live in `ai/defaults.py` with the selector run
+  that chose them; a new default is a new selector run, recorded there and in
+  the pull request. The price table (`ai/prices.py`) is read again within 180
+  days (`test_the_price_table_is_no_more_than_180_days_old`): reread every page
+  in `SOURCES`, move the dates, and add a dated row for a scheduled change.
+- Offline tests replay `tests/ai/cassettes/<provider>/narrate.json`, synthetic
+  answers in each API's shape, written by `tests/ai/build_ai_cassettes.py`;
+  after changing the prompt, a request or the narrated card, rebuild them. The
+  live run (`uv run pytest -m live --force-enable-socket tests/ai -s`) is the
+  maintainer's, with their own keys, and its cost goes in the pull request.
 
 ## Units
 

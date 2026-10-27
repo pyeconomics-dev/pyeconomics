@@ -419,7 +419,7 @@ testpaths = ["tests", "src", "docs"]
 # tests/parity/parity_support.py one session of every surface. Only these
 # directories join sys.path: the repository root must not, because a stale
 # pyeconomics/ checkout there would shadow the installed package.
-pythonpath = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/parity", "tests/providers", "tests/registry", "tests/server"]
+pythonpath = ["tests", "tests/ai", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/parity", "tests/providers", "tests/registry", "tests/server"]
 markers = [
     "invariant(model_id, invariant_id): a hypothesis property test of one invariant a model declares; tests/models/test_invariant_coverage.py needs one for each",
     "oracle(model_id): compares a model with an independent library; never skipped, so a missing oracle fails the suite",

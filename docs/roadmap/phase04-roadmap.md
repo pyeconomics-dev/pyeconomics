@@ -421,7 +421,7 @@ Phase 3 used. The ones this roadmap foresees:
 | Phase 1 V10.5 | no repository secret exists | unchanged: Phase 4's secrets are environment secrets |
 | Phase 1 checks 17 and 18 | at least the listed ADRs, each Accepted and indexed | unchanged: ADR-0012 joins the index Accepted |
 | Phase 2 check 4 | runtime floors only, no upper bound | unchanged: `cyclopts>=5.3` carries no upper bound |
-| Phase 2 checks 21 and 55, Phase 3 checks 11, 33 and 40 | each named extra is included in `[all]` | unchanged: `[server]`, `[mcp]` and `[ai]` join `[all]` |
+| Phase 2 checks 21 and 55, Phase 3 checks 11, 33 and 40 | each named extra is included in `[all]` | unchanged: `[server]` and `[mcp]` join `[all]`; `[ai]` stays empty, since the narrative adds no client library (Step 11), so it has nothing to add to `[all]` |
 | `docs/index.md` and `README.md` | "the command line, REST API, MCP server and web app follow in later phases" | Step 15 (no earlier check pins the sentence) |
 
 **Contract-change rule.** Steps 3–12 build on the contract ADR-0012 and
@@ -6736,6 +6736,12 @@ phase-boundary hygiene.
       hosted mode limits, caches, checks the edge credential
       and refuses library-only data; the AI narrative never
       runs in hosted mode.
+    - From Step 11: `pyeconomics.ai` refuses hosted mode first
+      (NarrativeHostedError, `narrative-not-hosted`), and its
+      providers are library-only, so the transport refuses them
+      there too; the image needs no AI key, and the `ai` extra
+      is empty (nothing to omit). No server/ or mcp/ module
+      imports `pyeconomics.ai` (tests/ai/test_ai_layering.py).
     - From Step 8: with the mcp extra installed, create_app
       mounts the MCP server at /mcp (stateless, JSON, POST
       only; any Origin refused in hosted mode), its runs in
@@ -7745,6 +7751,13 @@ per phase-boundary hygiene.
 
     Current state (post-Phase-4 Step 13):
 
+    - From Step 11: the AI narrative's price table
+      (`pyeconomics.ai.prices`, read 2026-10-26) fails its test
+      after 180 days; the readiness document records the date
+      it was read and the default model's selector run
+      (`ai/defaults.py`), and the live narrative run is the
+      maintainer's, with their own keys (`uv run pytest -m live
+      --force-enable-socket tests/ai -s`).
     - From Step 8: ci.yml's mcp-inspector job (Inspector
       2.12.0, Node 22) checks stdio, a local server's /mcp
       and the local HTTP app; tools/list is snapshotted in
@@ -8711,7 +8724,7 @@ per phase-boundary hygiene.
     Step 10 (39–41): tests/parity/; the generator guard; the
     parity job in the aggregate.
     Step 11 (42–44): ai/ with its providers and dated price
-    table; [ai] in [all] and docs/ai.md; no AI client library
+    table; the [ai] extra empty and docs/ai.md; no AI client library
     in the runtime closure.
     Step 12 (45–47): the Dockerfile (base pinned by digest,
     non-root user, hosted mode) and .dockerignore's
@@ -9552,6 +9565,18 @@ whatever is still open here.
   full read fails and every live gated `macro_policy_rule` bind with it) and
   #197 (the tool list costs an agent about 69k tokens of context). Steps 10,
   14 and 15's task blocks note what they build on.
+- From Phase 4 Step 11, additive changes to earlier steps' contracts (no
+  decision changed): the data layer's settings gain `ai_enabled`, `ai_provider`
+  and `ai_model` (`PYECONOMICS_AI_*`, and `configure`) beside Phase 3 Step 3's;
+  `pyeconomics keys set`, `keys list` and `keys delete` (Step 4) cover the AI
+  providers' keys; the error table (Step 2) gains `narrative-disabled` and
+  `narrative-not-hosted` (403, exit code 6) under ADR-0012 decision 4's rule.
+  Two judgement calls the maintainer saw at kickoff: OpenRouter joins Anthropic,
+  OpenAI and Google as a fourth provider (the maintainer approved its live run),
+  and Google's provider id is `gemini`, so its key is `GEMINI_API_KEY`, the
+  variable Google's own documentation uses. The `[ai]` extra stays empty, so it
+  does not join `[all]` (Step 16's check 42-44 and the Cross-phase table edited).
+  Steps 12 and 14's task blocks note what they build on.
 
 ---
 

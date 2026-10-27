@@ -14,6 +14,9 @@ touches a key: :func:`~pyeconomics.data.credentials.store_key`,
 :func:`~pyeconomics.data.credentials.delete_key` and
 :func:`~pyeconomics.data.credentials.key_source`.
 
+The AI narrative's providers (:mod:`pyeconomics.ai.providers`) take their keys
+the same way and are listed after the data providers.
+
 Storing and deleting need the keyring extra (``pyeconomics[keyring]``); without
 it the command exits with code 8 and says so.
 """
@@ -34,12 +37,29 @@ __all__ = ["delete_key", "list_keys", "set_key"]
 _MAX_READ: Final = 4 * 1024 + 2
 
 
+def _infos() -> list[Any]:
+    """Return every data provider's info, then every AI provider's."""
+    from pyeconomics.ai.providers import PROVIDERS  # noqa: PLC0415
+    from pyeconomics.data import registry as provider_registry  # noqa: PLC0415
+
+    return [
+        *provider_registry.installed().infos(),
+        *(PROVIDERS[name].info for name in sorted(PROVIDERS)),
+    ]
+
+
 def _keyed(provider: str) -> Any:  # noqa: ANN401 - a provider's info
-    """Return the info of a registered provider that uses a key."""
+    """Return the info of a data or AI provider that uses a key."""
+    from pyeconomics.ai.providers import PROVIDERS  # noqa: PLC0415
     from pyeconomics.data import registry as provider_registry  # noqa: PLC0415
     from pyeconomics.data.providers.base import AuthKind  # noqa: PLC0415
 
-    info = provider_registry.installed().provider_class(provider).info
+    model = PROVIDERS.get(provider)
+    info = (
+        model.info
+        if model is not None
+        else provider_registry.installed().provider_class(provider).info
+    )
     if info.auth.kind is not AuthKind.KEY:
         msg = f"{provider} takes no key"
         raise InputError(msg)
@@ -137,7 +157,7 @@ def list_keys(
     out: Annotated[Path | None, Parameter(name="--out")] = None,
     context: ContextParameter,
 ) -> None:
-    """List the providers that use a key, and where each key would be read from.
+    """List the data and AI providers that use a key, and where each is read from.
 
     The source is the kind of place the key chain would read the key from
     (environment, dotenv, keyring) or none; a key's value is never shown.
@@ -149,12 +169,11 @@ def list_keys(
     out
         Write the output to this file instead.
     """
-    from pyeconomics.data import registry as provider_registry  # noqa: PLC0415
     from pyeconomics.data.credentials import key_source  # noqa: PLC0415
     from pyeconomics.data.providers.base import AuthKind  # noqa: PLC0415
 
     entries = []
-    for info in provider_registry.installed().infos():
+    for info in _infos():
         if info.auth.kind is not AuthKind.KEY:
             continue
         source = key_source(info.id)

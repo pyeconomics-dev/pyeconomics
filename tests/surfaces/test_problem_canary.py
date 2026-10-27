@@ -20,6 +20,7 @@ import pytest
 import toy_models as toys
 from leakcheck import Canary, LeakCheck, canary
 
+from pyeconomics.ai.errors import NarrativeDisabledError, NarrativeHostedError
 from pyeconomics.core import (
     ConvergenceError,
     DomainError,
@@ -116,6 +117,8 @@ def _errors(text: str) -> list[BaseException]:
             terms_url="https://www.example.org/terms",
             concept="us.toy.value",
         ),
+        NarrativeDisabledError(),
+        NarrativeHostedError(),
         CredentialError(text, provider="toy"),
         TransportError(text, provider="toy"),
         ResponseError(text, provider="toy"),

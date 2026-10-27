@@ -22,6 +22,12 @@ override the values bound, as ``pyeconomics.bind``'s overrides do.
 ``--format csv|xlsx|parquet|arrow`` writes an export, ``--bundle PATH`` also
 writes the run's reproducibility bundle, and ``--batch FILE`` runs the model once
 per row of a CSV or JSON Lines file (:mod:`pyeconomics.cli.exporting`).
+
+``--narrate`` also asks the optional AI narrative (:func:`pyeconomics.ai.narrate`)
+to explain the result, binding any data under the user's ``llm_use`` policy. The
+narrative and its cost follow a table on standard output; with any other format,
+or ``--out``, they go to standard error, so standard output stays the canonical
+bytes. A narrative is never written into an export, a bundle or a cache.
 """
 
 import inspect
@@ -84,6 +90,7 @@ RESERVED_OPTIONS: Final = frozenset(
         "--format",
         "--out",
         "--bundle",
+        "--narrate",
         "--as-of",
         "--vintage",
         "--profile",
@@ -490,6 +497,21 @@ def _fixed_parameters() -> list[inspect.Parameter]:
             None,
         ),
         _keyword(
+            "narrate",
+            Annotated[
+                bool,
+                Parameter(
+                    name="--narrate",
+                    negative="",
+                    group=_RUN,
+                    help="Also explain the result with the optional AI narrative "
+                    "(ai_enabled must be on); it prints after a table, or to "
+                    "standard error.",
+                ),
+            ],
+            False,  # noqa: FBT003 - a flag's default
+        ),
+        _keyword(
             "as_of",
             Annotated[
                 str | None,
@@ -654,6 +676,20 @@ def _write_batch(
         write_export(context, batch, output_format, out)
 
 
+def _narrative_policy() -> Any:  # noqa: ANN401 - an LlmUsePolicy
+    """Return the user's ``llm_use`` policy, which a narrated run binds under."""
+    from pyeconomics.data.config import settings  # noqa: PLC0415 - the data layer
+
+    return settings().llm_use_policy
+
+
+def _narrate(result: Any) -> str:  # noqa: ANN401 - a model's result
+    """Return a result's narrative, its notice and its cost, as text."""
+    from pyeconomics.ai import narrate  # noqa: PLC0415 - loads the AI narrative
+
+    return narrate(result).render()
+
+
 def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: ANN401
     """Return the ``models run`` command of one model, its options generated.
 
@@ -682,6 +718,7 @@ def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: AN
         output_format: str = "json",
         out: Path | None = None,
         bundle: Path | None = None,
+        narrate: bool = False,
         as_of: str | None = None,
         vintage: str | None = None,
         profile: str | None = None,
@@ -699,11 +736,11 @@ def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: AN
             as_of=as_of, vintage=vintage, profile=profile, concept=concept, param=param
         )
         if batch is not None:
-            if pairs or inputs is not None or bundle is not None or request:
+            if pairs or inputs is not None or bundle is not None or request or narrate:
                 msg = (
                     "--batch takes every row's inputs from its file; it cannot be "
-                    "combined with field options, --inputs, --bundle or the data "
-                    "options"
+                    "combined with field options, --inputs, --bundle, --narrate or "
+                    "the data options"
                 )
                 raise UsageError(msg)
             outcome = invoke_batch(typed_id, read_batch(context, batch))
@@ -711,15 +748,23 @@ def model_command(model: Any, typed_id: str) -> Callable[..., None]:  # noqa: AN
             return
         document = {} if inputs is None else _read_inputs(context, inputs)
         merged = {**document, **_decode_options(model, root, pairs, document)}
-        result = invoke(typed_id, merged, bind=request)
+        policy = _narrative_policy() if narrate else None
+        result = invoke(typed_id, merged, bind=request, llm_use=policy)
+        narrative = _narrate(result) if narrate else None
         if bundle is not None:
             write_bundle_file(result, bundle, request)
         if output_format == "json":
             emit(context.streams, canonical_bytes(result) + b"\n", out)
         elif output_format == "table":
-            show(context.streams, result_blocks(result), out)
+            blocks = result_blocks(result)
+            if narrative is not None and out is None:
+                blocks.append(f"Narrative\n\n{narrative}")
+                narrative = None
+            show(context.streams, blocks, out)
         else:
             write_export(context, result, output_format, out)
+        if narrative is not None:
+            context.streams.error(narrative)
 
     spec = model.spec
     signature = inspect.Signature([*fields, *_fixed_parameters()])
