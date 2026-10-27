@@ -1,0 +1,105 @@
+# .dockerignore
+
+# Version control and CI
+.git
+.git/
+.gitignore
+.gitattributes
+.github/
+.pre-commit-config.yaml
+.semgrep/
+
+# Secrets and local environment files (never enter the build context)
+.env
+.env.*
+**/.env
+**/.env.*
+secrets.py
+**/secrets.py
+*.pem
+*.key
+
+# Private agent context, memory and personal posture
+.agents/
+.claude/
+**/.claude/
+.codex/
+.cursor/
+.gemini/
+.roadmodel/
+AGENTS.md
+AGENTS.override.md
+CLAUDE.md
+CLAUDE.local.md
+CONTRIBUTING.md
+CHANGELOG.md
+SECURITY.md
+planning/
+planning/user-context.md
+
+# Local working directories and caches (anchored so src/pyeconomics/data/cache/ stays)
+dev/
+/cache/
+!src/pyeconomics/data/cache/
+.worktrees/
+
+# Python bytecode, virtual environments and build artefacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+*.egg-info/
+**/*.egg-info/
+.eggs/
+.venv/
+venv/
+dist/
+build/
+
+# Tool caches and coverage reports
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+.benchmarks/
+htmlcov/
+.coverage*
+coverage.xml
+coverage.json
+
+# Documentation, tests, scripts, Node tooling and web placeholder
+docs/
+docs/_build/
+docs/reference/models/
+docs/reference/providers/
+docs/reference/concepts/
+docs/reference/sources.md
+docs/problems.md
+docs/autoapi/
+docs/.jupyter_cache/
+/site/
+site/
+tests/
+scripts/
+tools/
+web/
+Dockerfile
+.dockerignore
+pylock.toml
+
+# Local maintainer scripts
+generate_tests.py
+render_readme.py
+output.html
+
+# Editors, notebooks and operating systems
+.idea/
+.vscode/
+*.swp
+**/*.swp
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db

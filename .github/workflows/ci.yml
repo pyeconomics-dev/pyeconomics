@@ -624,6 +624,130 @@ jobs:
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/parity/bin/python" -I "$check" "$golden" "$RUNNER_TEMP/parity/bin/pyeconomics"
 
+  container:
+    name: container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the hosted-service image
+        env:
+          GIT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --build-arg "GIT_SHA=${GIT_SHA}" -t pyeconomics:ci .
+          size_bytes=$(docker image inspect pyeconomics:ci --format '{{.Size}}')
+          size_mib=$(awk "BEGIN { printf \"%.1f\", ${size_bytes} / 1048576 }")
+          echo "Container image size: ${size_mib} MiB (${size_bytes} bytes)"
+          echo "### Service container" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Image size:** ${size_mib} MiB (\`${size_bytes}\` bytes)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Git SHA:** \`${GIT_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+      - name: Generate CycloneDX SBOM and scan for vulnerabilities with Trivy
+        shell: bash
+        run: |
+          set -euo pipefail
+          trivy_image="ghcr.io/aquasecurity/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${RUNNER_TEMP}:/out" \
+            "$trivy_image" \
+            image --skip-version-check --format cyclonedx --output /out/container-sbom.cdx.json pyeconomics:ci
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            "$trivy_image" \
+            image --skip-version-check --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 pyeconomics:ci
+      - name: Upload container SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: container-sbom
+          path: ${{ runner.temp }}/container-sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Smoke-test the running image
+        env:
+          GIT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'docker logs pyeconomics-smoke || true; docker rm -f pyeconomics-smoke || true' EXIT
+          docker run -d \
+            --name pyeconomics-smoke \
+            --read-only \
+            --tmpfs /tmp \
+            -p 127.0.0.1:8080:8080 \
+            -e PYECONOMICS_WORKERS=2 \
+            pyeconomics:ci
+
+          uid=$(docker exec pyeconomics-smoke id -u)
+          if [ "$uid" != "10001" ]; then
+            echo "::error::Expected non-root UID 10001, got ${uid}"
+            exit 1
+          fi
+
+          docker exec pyeconomics-smoke python -c "
+          import importlib.metadata as md
+          names = {d.metadata['Name'].lower() for d in md.distributions() if d.metadata['Name']}
+          for banned in ('yfinance', 'keyring', 'blpapi'):
+              assert not any(banned in n for n in names), f'forbidden distribution installed: {banned}'
+          assert 'pyarrow' in names, 'expected pyarrow in container image'
+          "
+
+          docker exec pyeconomics-smoke python -c "
+          import pyeconomics, sys
+          res = pyeconomics.run(
+              'foundations.time_value',
+              calculation='future_value',
+              present_value=1000.0,
+              rate=0.05,
+              periods=10,
+          )
+          sys.stdout.buffer.write(res.to_json().encode('utf-8'))
+          " > "$RUNNER_TEMP/expected_run.json"
+
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/healthz > "$RUNNER_TEMP/healthz.json" 2>/dev/null; then
+              break
+            fi
+            sleep 0.5
+          done
+          jq -e '.status == "ok"' "$RUNNER_TEMP/healthz.json" > /dev/null
+
+          curl -fsS http://127.0.0.1:8080/version > "$RUNNER_TEMP/version.json"
+          jq -e --arg sha "$GIT_SHA" '.git_sha == $sha and .mode == "hosted"' "$RUNNER_TEMP/version.json" > /dev/null
+
+          curl -fsS \
+            -H 'Content-Type: application/json' \
+            -d '{"calculation":"future_value","present_value":1000.0,"rate":0.05,"periods":10}' \
+            http://127.0.0.1:8080/v1/models/foundations.time_value/run \
+            > "$RUNNER_TEMP/actual_run.json"
+          cmp -s "$RUNNER_TEMP/expected_run.json" "$RUNNER_TEMP/actual_run.json"
+
+          for fmt in xlsx parquet arrow; do
+            curl -fsS \
+              -H 'Content-Type: application/json' \
+              -d '{"calculation":"future_value","present_value":1000.0,"rate":0.05,"periods":10}' \
+              "http://127.0.0.1:8080/v1/models/foundations.time_value/run?format=${fmt}" \
+              > "$RUNNER_TEMP/run.${fmt}"
+            test -s "$RUNNER_TEMP/run.${fmt}"
+          done
+
+          status=$(curl -sS -o "$RUNNER_TEMP/fred.json" -w '%{http_code}' http://127.0.0.1:8080/v1/series/fred:UNRATE)
+          if [ "$status" != "403" ]; then
+            echo "::error::Expected 403 for library-only series in hosted mode, got ${status}"
+            cat "$RUNNER_TEMP/fred.json"
+            exit 1
+          fi
+          jq -e '.type == "https://pyeconomics.dev/problems/licence-refused" and (.terms | length > 0)' "$RUNNER_TEMP/fred.json" > /dev/null
+
   lockfile:
     name: lockfile
     runs-on: ubuntu-latest
@@ -724,7 +848,7 @@ jobs:
     # skipped by design (pr-title and dco on a push) passes; a failed or
     # cancelled one does not.
     if: always()
-    needs: [lint, types, tests, package, pyodide, docs, api-fuzz, clients, mcp-inspector, parity, lockfile, pr-title, dco]
+    needs: [lint, types, tests, package, pyodide, docs, api-fuzz, clients, mcp-inspector, parity, container, lockfile, pr-title, dco]
     runs-on: ubuntu-latest
     permissions: {}
     steps:

@@ -372,7 +372,7 @@ c18() {
 c19() {
   local p bad=""
   for p in setup.py requirements.txt __version__.py pytest.ini MANIFEST.in \
-    .coveragerc .readthedocs.yml Dockerfile .dockerignore start.sh \
+    .coveragerc .readthedocs.yml start.sh \
     test_import.py pyeconomics/ examples/ media/ markdown/; do
     tracked "$p" && bad="$bad $p"
   done
@@ -383,6 +383,20 @@ c19() {
       grep -qF "$p" docs/conf.py || bad="$bad docs/conf.py:$p"
     done
     grep -qF '../src/pyeconomics' docs/conf.py || bad="$bad docs/conf.py:src-layout"
+  fi
+  # Phase 4 Step 12 adds the hosted-service container (ADR-0012 decision 19).
+  # Reject the 0.2.x JupyterLab Dockerfile and .dockerignore while requiring
+  # the new non-root hosted-mode container markers.
+  if tracked Dockerfile; then
+    for p in PYECONOMICS_MODE=hosted pyeconomics.server --require-hashes; do
+      grep -qF -- "$p" Dockerfile || bad="$bad Dockerfile:$p"
+    done
+    grep -qi 'jupyter' Dockerfile && bad="$bad Dockerfile:jupyter"
+  fi
+  if tracked .dockerignore; then
+    for p in .roadmodel/ CLAUDE.local.md planning/user-context.md; do
+      grep -qF -- "$p" .dockerignore || bad="$bad .dockerignore:$p"
+    done
   fi
   [ -z "$(git ls-files 'docs/roadmap*.rst')" ] || bad="$bad docs/roadmap*.rst"
   [ -z "$bad" ] || fail "tracked:$bad"

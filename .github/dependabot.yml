@@ -1,6 +1,7 @@
 # .github/dependabot.yml
-# Weekly version updates for the uv lock, the workflows' actions and the
-# tools/node workspace's npm lockfile (ROADMAP §5 "Security controls by layer"). Security updates are on in the repository
+# Weekly version updates for the uv lock, the workflows' actions, the
+# tools/node workspace's npm lockfile and the service container's base images
+# (ROADMAP §5 "Security controls by layer"). Security updates are on in the repository
 # settings. The prefixes keep Dependabot's pull request titles Conventional
 # Commits. When a pull request changes uv.lock but not pylock.toml,
 # regenerate pylock.toml on it with
@@ -33,5 +34,14 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    commit-message:
+      prefix: chore(deps)
+
+  # The service container's base images (Phase 4 Step 12): python:3.14-slim
+  # and ghcr.io/astral-sh/uv pinned by digest in Dockerfile.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
     commit-message:
       prefix: chore(deps)
