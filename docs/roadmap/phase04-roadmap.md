@@ -5962,9 +5962,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 11 — Optional AI Narrative
+## Step 11 — Optional AI Narrative ✅
 
-**Status:** Not started
+**Status:** Complete — PR #200 (2026-10-26)
 
 > **Goal:** Bring back 0.2.x's commentary as an optional, honest feature.
 > Add `src/pyeconomics/ai/` behind the `[ai]` extra: `narrate(result, *,
@@ -6024,6 +6024,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-26: Quality Pick, also the Balanced column's Runner-up model — Opus 5.5 on Claude Code (its effort dial is not readable from the session). The Runs rule selected the Balanced Pick (Antigravity pool headroom); the operator opened the step on Claude Code.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY: three
 provider declarations over an existing transport, a prompt, a cost
@@ -9225,7 +9227,7 @@ workflow above maps directly to the corresponding row below.
 | 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
-| 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #200 |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
 | 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
