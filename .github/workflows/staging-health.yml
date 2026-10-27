@@ -99,12 +99,12 @@ jobs:
           status, payload = call(
               "/v1/models/foundations.time_value/run",
               method="POST",
-              body=b'{"calculation":"present_value","rate":0.05,"periods":10,"future_value":100.0}',
+              body=b'{"calculation":"future_value","present_value":1000.0,"rate":0.05,"periods":10}',
           )
           assert status == 200, f"model run returned {status}"
           run_doc = json.loads(payload)
-          assert run_doc.get("model") == "foundations.time_value", run_doc.get("model")
-          assert math.isclose(float(run_doc["outputs"]["value"]), 100.0 / (1.05**10), rel_tol=1e-12)
+          assert run_doc.get("model_id") == "foundations.time_value", run_doc.get("model_id")
+          assert math.isclose(float(run_doc["outputs"]["future_value"]), 1000.0 * (1.05**10), rel_tol=1e-12)
 
           if os.environ.get("SIMULATE_FAILURE") == "1":
               print("::error::Simulated staging-health probe failure requested via workflow_dispatch.", file=sys.stderr)

@@ -192,6 +192,34 @@ describe("edge worker", () => {
     assert.equal(parsedTarget.origin, TEST_ORIGIN);
   });
 
+  it("probes origin /version for GET /healthz because Google Frontend reserves /healthz on *.run.app", async () => {
+    const { calls, fetchStub } = makeStubFetch({
+      status: 200,
+      body: '{"git_sha":"deadbeef","mode":"hosted","pyeconomics":"1.0.0b1.dev1"}',
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+    });
+    const request = new Request("https://staging-api.pyeconomics.dev/healthz", {
+      method: "GET",
+      headers: { "CF-Connecting-IP": "198.51.100.12" },
+    });
+
+    const response = await forwardRequest(
+      request,
+      { ORIGIN_URL: TEST_ORIGIN, EDGE_CREDENTIAL: TEST_CREDENTIAL },
+      fetchStub,
+    );
+
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), '{"status":"ok"}');
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal(response.headers.get("content-type"), "application/json");
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, "https://pyeconomics-api-staging-uc.a.run.app/version");
+  });
+
   it("returns 503 problem+json without calling fetch when misconfigured", async () => {
     const { calls, fetchStub } = makeStubFetch();
     const request = new Request("https://staging-api.pyeconomics.dev/healthz");

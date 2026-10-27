@@ -55,7 +55,13 @@ gate (`src/pyeconomics/server/edge.py`):
   (`https://pyeconomics.dev/problems/edge-required`) before touching Redis or
   any route handler, and without trusting `CF-Connecting-IP`.
 - Only `/healthz` and `/version` are open on the origin for container health
-  probes.
+  probes. Because Google Frontend (GFE) reserves paths ending in `z` such as
+  `/healthz` on `*.run.app` external URLs and returns a static 404 before
+  reaching the container, Cloud Run's own HTTP startup probe is configured on
+  container `/healthz:8080` directly, while the Cloudflare Worker (`worker.mjs`)
+  probes the origin's open `/version` endpoint for incoming `GET /healthz` and
+  `HEAD /healthz` requests and translates a `200` response into
+  `{"status":"ok"}`.
 
 ### Least-privilege identities and secrets
 
@@ -100,13 +106,16 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
    with secrets pinned by version (`ratelimit-url:$RATELIMIT_SECRET_VERSION`,
    `edge-credential:$EDGE_SECRET_VERSION`).
 5. Verifies the deployment:
-   - Origin `/healthz` returns `200` (`{"status": "ok"}`).
+   - Cloud Run's `startupProbe.httpGet.path` is `/healthz` (`:8080`) and origin
+     `/version` returns `200` with `git_sha == $GITHUB_SHA` and
+     `mode == "hosted"`.
    - Direct origin `/v1/models` and `POST /mcp` without `X-Pyeconomics-Edge`
      return `403` (`edge-required`).
    - Unauthenticated `https://staging-api.pyeconomics.dev/version` without the
      Cloudflare Access service token is refused.
-   - Authenticated `https://staging-api.pyeconomics.dev/version` returns `200`
-     with `git_sha == $GITHUB_SHA` and `mode == "hosted"`.
+   - Authenticated `https://staging-api.pyeconomics.dev/healthz` returns `200`
+     (`{"status": "ok"}`) and `/version` returns `200` with
+     `git_sha == $GITHUB_SHA` and `mode == "hosted"`.
    - Authenticated `POST /v1/models/foundations.time_value/run` returns bytes
      identical to the wheel's `Result.to_json()`.
    - Authenticated `GET /v1/series/treasury:debt?start=2025-01-01&end=2025-01-31`
