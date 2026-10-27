@@ -7362,9 +7362,13 @@ Thinking toggle. New conversation per phase-boundary hygiene.
       google-github-actions/auth (v3, by SHA) with the
       environment's variables and no key input; build with
       GIT_SHA, scan (fixable Critical or High fails), push by
-      SHA, deploy by digest with secrets by pinned version;
-      then verify: the origin's /healthz; through the edge
-      with the service token, /version equals this commit,
+      SHA, deploy by digest with secrets by pinned version and
+      an HTTP startup probe on /healthz:8080; then verify: the
+      origin's /healthz startup probe and open /version (Google
+      Frontend reserves /healthz on *.run.app external URLs, so
+      the Worker probes origin /version for edge /healthz);
+      through the edge with the service token, /healthz answers
+      200 and /version equals this commit,
       a data-free run equals the wheel's bytes computed in
       the job, a hosted-safe series answers 200 with its
       attribution, a library-only series 403; a direct /v1
@@ -7818,7 +7822,12 @@ per phase-boundary hygiene.
       `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`); read
       it from `keyring` in Python and attach `CF-Access-Client-Id`
       and `CF-Access-Client-Secret` headers without ever printing
-      values. `docs/operations/staging.md` is excluded in
+      values. Google Frontend reserves `/healthz` on `*.run.app`
+      external URLs, so Cloud Run's HTTP startup probe checks
+      container `/healthz:8080` directly while `worker.mjs`
+      probes origin `/version` (`{"pyeconomics": ..., "git_sha":
+      ..., "mode": "hosted"}`) for edge `/healthz`.
+      `docs/operations/staging.md` is excluded in
       `docs/conf.py` (`exclude_patterns`) and `docs/conftest.py`
       (`collect_ignore_glob`) because it is an internal runbook
       outside the public toctree.
@@ -8701,7 +8710,16 @@ per phase-boundary hygiene.
 
     Steps 1 through 15 have been implemented: 1.0.0b1 is on
     PyPI and the MCP Registry; staging deploys on every merge
-    and staging-health.yml probes it hourly.
+    and staging-health.yml probes it hourly. From Step 13:
+    Google Frontend reserves `/healthz` on `*.run.app` external
+    URLs, so Cloud Run's HTTP startup probe checks container
+    `/healthz:8080` directly while `worker.mjs` probes origin
+    `/version` (`{"pyeconomics": ..., "git_sha": ..., "mode":
+    "hosted"}`) for edge `/healthz`; in `--live`, probe
+    `/healthz` through `https://staging-api.pyeconomics.dev`
+    (with `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`
+    from `keyring` under `service="pyeconomics"`) and `/version`
+    on the `.run.app` origin.
 
     Reference scripts (pattern templates):
     - scripts/verify-phase03.sh (the structural template:
@@ -9643,8 +9661,11 @@ whatever is still open here.
   `staging-health.yml` alongside `providers-live.yml` (recorded in
   `docs/roadmap/phase03-roadmap.md` and the Cross-phase table above), and
   `docs/operations/staging.md` is excluded from Sphinx's public toctree check in
-  `docs/conf.py` and Sybil collection in `docs/conftest.py`. Step 14's task
-  block notes what it builds on.
+  `docs/conf.py` and Sybil collection in `docs/conftest.py`. Because Google
+  Frontend reserves `/healthz` on `*.run.app` external URLs, Cloud Run's HTTP
+  startup probe checks container `/healthz:8080` directly while `worker.mjs`
+  probes origin `/version` for edge `/healthz` (spec rot fixed in Step 13's
+  task block). Steps 14 and 16's task blocks note what they build on.
 
 ---
 

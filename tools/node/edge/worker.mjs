@@ -106,6 +106,16 @@ export async function forwardRequest(request, env, fetchImpl = globalThis.fetch)
   }
 
   const method = request.method.toUpperCase();
+  const isHealthProbe =
+    targetUrl.pathname === "/healthz" && (method === "GET" || method === "HEAD");
+  if (isHealthProbe) {
+    // Google Frontend reserves /healthz on *.run.app origin URLs and returns a
+    // static 404 before reaching Cloud Run; Cloud Run's own HTTP startup probe
+    // checks container /healthz:8080 directly. Probe the container's open
+    // /version endpoint and translate a 200 response into {"status":"ok"}.
+    targetUrl.pathname = "/version";
+    targetUrl.search = "";
+  }
   const hasBody = method !== "GET" && method !== "HEAD" && request.body !== null;
   const init = {
     method,
@@ -118,6 +128,16 @@ export async function forwardRequest(request, env, fetchImpl = globalThis.fetch)
   }
 
   const upstream = await fetchImpl(targetUrl.toString(), init);
+  if (isHealthProbe && upstream.status === 200) {
+    const headers = buildResponseHeaders(upstream.headers);
+    headers.set("Cache-Control", "no-store");
+    headers.set("Content-Type", "application/json");
+    return new Response(method === "HEAD" ? null : '{"status":"ok"}', {
+      status: 200,
+      statusText: upstream.statusText,
+      headers,
+    });
+  }
   return new Response(upstream.body, {
     status: upstream.status,
     statusText: upstream.statusText,
