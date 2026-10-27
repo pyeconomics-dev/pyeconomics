@@ -62,6 +62,7 @@ build/
 .pytest_cache/
 .hypothesis/
 .benchmarks/
+.wrangler/
 htmlcov/
 .coverage*
 coverage.xml

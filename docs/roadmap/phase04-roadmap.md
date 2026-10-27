@@ -6898,9 +6898,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 13 — Staging on Cloud Run
+## Step 13 — Staging on Cloud Run ✅
 
-**Status:** Not started
+**Status:** Complete — PR #204 (2026-10-27)
 
 > **Goal:** Run the hosted API where it will live, privately, at $0. With
 > the maintainer's approvals batched at kickoff, provision a Google Cloud
@@ -6967,6 +6967,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-27: Balanced Backup — Gemini 4 Argon · High. Selected by the user on Antigravity (Antigravity pool headroom).
 
 **Model rationale:** Agentic is PRIMARY and coding SECONDARY: a long,
 multi-step provisioning run across Google Cloud, Cloudflare, Upstash and
@@ -7803,6 +7805,23 @@ per phase-boundary hygiene.
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every
       merge and staging-health.yml probes it hourly.
+    - From Step 13: staging is live at
+      `https://staging-api.pyeconomics.dev` behind Cloudflare
+      Access (`pyeconomics-staging-api`) and the edge Worker
+      `pyeconomics-api-staging` (`tools/node/edge/`), forwarding
+      with `X-Pyeconomics-Edge` to Cloud Run service
+      `pyeconomics-api-staging` in `pyeconomics-staging` (`129496897969`,
+      `us-central1`, `https://pyeconomics-api-staging-129496897969.us-central1.run.app`).
+      The Access service token (`pyeconomics-staging-ci`) is in
+      the `staging` GitHub environment secrets and in the
+      maintainer's OS keyring (`service="pyeconomics"`,
+      `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`); read
+      it from `keyring` in Python and attach `CF-Access-Client-Id`
+      and `CF-Access-Client-Secret` headers without ever printing
+      values. `docs/operations/staging.md` is excluded in
+      `docs/conf.py` (`exclude_patterns`) and `docs/conftest.py`
+      (`collect_ignore_glob`) because it is an internal runbook
+      outside the public toctree.
     - release.yml routes a .devN tag to TestPyPI with PEP 740
       attestations and calls release-smoke.yml.
       docs/releases/1.0.0a2-readiness.md is the fourteen-
@@ -9241,7 +9260,7 @@ workflow above maps directly to the corresponding row below.
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #200 |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #201 |
-| 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
+| 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #204 |
 | 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
 | 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 16      | QA + verify-phase04.sh           | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
@@ -9603,6 +9622,29 @@ whatever is still open here.
   `start.sh` and all other 0.2.x legacy paths forbidden (recorded in
   `docs/roadmap/phase01-roadmap.md` and the Cross-phase table above). Step 13's
   task block notes what it builds on.
+- From Phase 4 Step 13, staging provisioning and cross-phase narrowing (no
+  decision changed): provisioned GCP project `pyeconomics-staging` (`129496897969`,
+  linked to billing account `010548-2423B0-E0B624` after `015F79-A7FDE9-C7C865`
+  was at its 5-project quota), Artifact Registry `pyeconomics` in `us-central1`
+  (cleanup policy keeping the 2 most recent versions and deleting older than 1
+  day), runtime and deploy service accounts with zero user-managed keys,
+  Workload Identity Federation pool `github` / provider `pyeconomics` bound to
+  `assertion.repository_id == '796473097' && assertion.ref == 'refs/heads/main'`,
+  Secret Manager secrets `ratelimit-url` (Upstash Redis `rediss://` in
+  `us-central1`) and `edge-credential`, billing budget `pyeconomics-staging-monthly`
+  ($1/month, 50/90/100% alerts to Pub/Sub `staging-budget-alerts`), Cloudflare
+  Worker `pyeconomics-api-staging` on custom domain `staging-api.pyeconomics.dev`
+  (`tools/node/edge/`), Cloudflare Access application `pyeconomics-staging-api`
+  (`Service Auth` token `pyeconomics-staging-ci` + maintainer `Allow` policy),
+  Cloudflare free-plan rate rule `staging-api-rate-limit` (50 req / 10s per IP),
+  and GitHub `staging` environment (`main` only) + `.github/workflows/deploy-staging.yml`
+  and `.github/workflows/staging-health.yml`. Phase 3 static check 78 in
+  `scripts/verify-phase03.sh` is narrowed to admit `deploy-staging.yml` and
+  `staging-health.yml` alongside `providers-live.yml` (recorded in
+  `docs/roadmap/phase03-roadmap.md` and the Cross-phase table above), and
+  `docs/operations/staging.md` is excluded from Sphinx's public toctree check in
+  `docs/conf.py` and Sybil collection in `docs/conftest.py`. Step 14's task
+  block notes what it builds on.
 
 ---
 

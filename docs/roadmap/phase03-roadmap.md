@@ -12696,6 +12696,15 @@ forward whatever is still open here.
   expression is `not live`, optionally followed by more `and not <marker>`
   terms, beside `--disable-socket` and the `live` marker, the invariant it
   protected: live tests are deselected and sockets disabled by default.
+- Static check 78 (Phase 4 Step 13): `deploy-staging.yml` and
+  `staging-health.yml` read the Cloudflare Access service token
+  (`CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`) from the protected
+  `staging` environment to verify and probe the staging API through the edge.
+  The check now asserts that no workflow other than `providers-live.yml`,
+  `deploy-staging.yml` and `staging-health.yml` reads a secret other than
+  `GITHUB_TOKEN`, and that `deploy-staging.yml` and `staging-health.yml`
+  declare the `staging` environment and read only those `staging` environment
+  secrets.
 
 ---
 

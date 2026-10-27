@@ -1,0 +1,13 @@
+# tools/node/edge/wrangler.toml
+name = "pyeconomics-api-staging"
+main = "worker.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = false
+preview_urls = false
+
+routes = [
+  { pattern = "staging-api.pyeconomics.dev", custom_domain = true }
+]
+
+[vars]
+ORIGIN_URL = "https://pyeconomics-api-staging-129496897969.us-central1.run.app"

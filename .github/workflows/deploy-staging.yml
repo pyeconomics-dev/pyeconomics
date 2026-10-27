@@ -1,0 +1,335 @@
+# .github/workflows/deploy-staging.yml
+#
+# Builds, scans, pushes and deploys the hosted-mode container image to Cloud Run
+# staging (`pyeconomics-api-staging` in `us-central1`) on every push to `main`
+# (and on `workflow_dispatch` from `main`), then verifies the deployment through
+# the Cloudflare Worker edge (`staging-api.pyeconomics.dev`) using the
+# Cloudflare Access service token, and rolls traffic back to the previous
+# revision on any failure (Phase 4 Step 13; ADR-0012 decisions 11, 12, 19, 20).
+#
+# - Authenticates to Google Cloud via GitHub OIDC and Workload Identity
+#   Federation (`google-github-actions/auth` v3 pinned by SHA, no service
+#   account key input).
+# - Runs in the protected `staging` environment (`main` only), where
+#   `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` are stored as
+#   environment secrets (never repository secrets).
+
+name: deploy-staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy and verify staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://${{ vars.STAGING_HOST }}
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_SERVICE: ${{ vars.GCP_SERVICE }}
+      GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
+      GCP_RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+      STAGING_HOST: ${{ vars.STAGING_HOST }}
+      RATELIMIT_SECRET_VERSION: ${{ vars.RATELIMIT_SECRET_VERSION }}
+      EDGE_SECRET_VERSION: ${{ vars.EDGE_SECRET_VERSION }}
+      TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: true
+
+      - name: Build the wheel and compute expected run bytes in a clean venv
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv build --wheel
+          uv venv "$RUNNER_TEMP/wheel-venv"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" dist/*.whl
+          "$RUNNER_TEMP/wheel-venv/bin/python" - <<'PY' > "$RUNNER_TEMP/expected-run.json"
+          import sys
+          import pyeconomics
+
+          res = pyeconomics.run(
+              "foundations.time_value",
+              {
+                  "calculation": "present_value",
+                  "rate": 0.05,
+                  "periods": 10,
+                  "future_value": 100.0,
+              },
+          )
+          sys.stdout.buffer.write(res.to_json().encode("utf-8"))
+          PY
+          "$RUNNER_TEMP/wheel-venv/bin/python" -c 'import pyeconomics; print(pyeconomics.__version__)' > "$RUNNER_TEMP/expected-version.txt"
+
+      - name: Authenticate to Google Cloud via Workload Identity Federation
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker for Artifact Registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Build the hosted container image with GIT_SHA
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/${GCP_SERVICE}"
+          tag="${repo}:${GITHUB_SHA}"
+          docker build --build-arg GIT_SHA="$GITHUB_SHA" -t "$tag" .
+          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Scan the image for fixable Critical or High vulnerabilities
+        env:
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            "$TRIVY_IMAGE" image \
+            --scanners vuln \
+            --pkg-types os,library \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --exit-code 1 \
+            "$IMAGE_TAG"
+
+      - name: Record the currently serving Cloud Run revision
+        id: previous
+        shell: bash
+        run: |
+          set -euo pipefail
+          prev=$(gcloud run services describe "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(status.traffic[0].revisionName)' 2>/dev/null || true)
+          echo "previous_revision=${prev}" >> "$GITHUB_OUTPUT"
+          if [ -n "$prev" ]; then
+            echo "Current serving revision before deploy: ${prev}"
+          else
+            echo "No prior serving revision found (initial deploy)."
+          fi
+
+      - name: Push the image by SHA and resolve its digest
+        id: push
+        env:
+          IMAGE_REPO: ${{ steps.image.outputs.repo }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE_TAG"
+          digest=$(docker image inspect "$IMAGE_TAG" --format '{{index .RepoDigests 0}}')
+          if [[ ! "$digest" =~ ^${IMAGE_REPO}@sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::Resolved digest '${digest}' is not a pinned @sha256 reference."
+            exit 1
+          fi
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy the image by digest to Cloud Run with pinned secret versions
+        id: deploy
+        env:
+          IMAGE_DIGEST: ${{ steps.push.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ratelimit_ver="${RATELIMIT_SECRET_VERSION:-1}"
+          edge_ver="${EDGE_SECRET_VERSION:-1}"
+          gcloud run deploy "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$IMAGE_DIGEST" \
+            --service-account="$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --min-instances=0 \
+            --max-instances=2 \
+            --cpu=1 \
+            --memory=1Gi \
+            --cpu-throttling \
+            --timeout=60s \
+            --concurrency=8 \
+            --ingress=all \
+            --allow-unauthenticated \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
+            --set-secrets="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${ratelimit_ver},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${edge_ver}" \
+            --quiet
+          origin_url=$(gcloud run services describe "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(status.url)')
+          echo "origin_url=${origin_url}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the origin and the edge deployment
+        env:
+          ORIGIN_URL: ${{ steps.deploy.outputs.origin_url }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import urllib.error
+          import urllib.request
+
+          origin_url = os.environ["ORIGIN_URL"].rstrip("/")
+          staging_host = os.environ["STAGING_HOST"].strip()
+          edge_base = f"https://{staging_host}"
+          git_sha = os.environ["GITHUB_SHA"].strip()
+          client_id = os.environ["CF_ACCESS_CLIENT_ID"].strip()
+          client_secret = os.environ["CF_ACCESS_CLIENT_SECRET"].strip()
+          expected_run = pathlib.Path(os.environ["RUNNER_TEMP"], "expected-run.json").read_bytes()
+          expected_version = (
+              pathlib.Path(os.environ["RUNNER_TEMP"], "expected-version.txt")
+              .read_text(encoding="utf-8")
+              .strip()
+          )
+
+          def request(url: str, *, method: str = "GET", headers: dict[str, str] | None = None, body: bytes | None = None):
+              req = urllib.request.Request(url, data=body, headers=headers or {}, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=45) as resp:
+                      return resp.status, dict(resp.headers.items()), resp.read()
+              except urllib.error.HTTPError as exc:
+                  return exc.code, dict(exc.headers.items()), exc.read()
+
+          # 1. Origin /healthz is open (200).
+          status, _, body = request(f"{origin_url}/healthz")
+          assert status == 200, f"origin /healthz returned {status}"
+          assert json.loads(body) == {"status": "ok"}, f"unexpected /healthz payload: {body!r}"
+
+          # 2. Direct /v1 and /mcp requests to the origin without the edge credential answer 403.
+          status, _, body = request(f"{origin_url}/v1/models")
+          assert status == 403, f"direct origin /v1/models returned {status}, expected 403"
+          problem = json.loads(body)
+          assert problem["type"].endswith("/problems/edge-required"), problem
+
+          status, _, body = request(
+              f"{origin_url}/mcp",
+              method="POST",
+              headers={"Content-Type": "application/json"},
+              body=b'{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+          )
+          assert status == 403, f"direct origin /mcp returned {status}, expected 403"
+
+          # 3. Without the Cloudflare Access service token, the staging hostname refuses.
+          no_redirect = urllib.request.build_opener(
+              type(
+                  "_NoRedirect",
+                  (urllib.request.HTTPRedirectHandler,),
+                  {"redirect_request": lambda self, req, fp, code, msg, hdrs, newurl: None},
+              )
+          )
+          unauth_req = urllib.request.Request(
+              f"{edge_base}/version",
+              headers={"User-Agent": "pyeconomics-deploy-check/1.0"},
+          )
+          try:
+              with no_redirect.open(unauth_req, timeout=30) as resp:
+                  unauth_status = resp.status
+          except urllib.error.HTTPError as exc:
+              unauth_status = exc.code
+          assert unauth_status in {302, 303, 401, 403}, (
+              f"unauthenticated staging hostname returned {unauth_status}, expected Access refusal"
+          )
+
+          access_headers = {
+              "CF-Access-Client-Id": client_id,
+              "CF-Access-Client-Secret": client_secret,
+              "User-Agent": "pyeconomics-deploy-check/1.0",
+          }
+
+          # 4. Through the edge with the service token, /version matches this commit and hosted mode.
+          status, _, body = request(f"{edge_base}/version", headers=access_headers)
+          assert status == 200, f"edge /version returned {status}"
+          version_doc = json.loads(body)
+          assert version_doc == {
+              "version": expected_version,
+              "git_sha": git_sha,
+              "mode": "hosted",
+          }, f"unexpected /version payload: {version_doc}"
+
+          # 5. Through the edge, a data-free run equals the wheel's bytes computed in this job.
+          status, _, body = request(
+              f"{edge_base}/v1/models/foundations.time_value/run",
+              method="POST",
+              headers={**access_headers, "Content-Type": "application/json"},
+              body=b'{"calculation":"present_value","rate":0.05,"periods":10,"future_value":100.0}',
+          )
+          assert status == 200, f"edge run returned {status}"
+          assert body == expected_run, "edge run bytes differed from wheel Result.to_json() bytes"
+
+          # 6. A hosted-safe series answers 200 with its attribution.
+          status, _, body = request(
+              f"{edge_base}/v1/series/treasury:debt?start=2025-01-01&end=2025-01-31",
+              headers=access_headers,
+          )
+          assert status == 200, f"edge hosted-safe series returned {status}"
+          series_doc = json.loads(body)
+          assert series_doc["sources"][0]["provider"] == "treasury", series_doc["sources"]
+          assert series_doc["sources"][0]["licence"] == "hosted-safe", series_doc["sources"]
+          assert any("Treasury" in a for a in series_doc["attributions"]), series_doc["attributions"]
+
+          # 7. A library-only series answers 403 licence-refused with its terms URL.
+          status, _, body = request(
+              f"{edge_base}/v1/series/fred:UNRATE",
+              headers=access_headers,
+          )
+          assert status == 403, f"edge library-only series returned {status}, expected 403"
+          refusal = json.loads(body)
+          assert refusal["type"].endswith("/problems/licence-refused"), refusal
+          assert refusal.get("terms"), refusal
+          print("All origin and edge staging checks passed.")
+          PY
+
+      - name: Route traffic back to the previous revision on failure
+        if: failure() && steps.previous.outputs.previous_revision != ''
+        env:
+          PREVIOUS_REVISION: ${{ steps.previous.outputs.previous_revision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Staging deploy or verification failed; routing 100% of traffic back to ${PREVIOUS_REVISION}."
+          gcloud run services update-traffic "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --to-revisions="${PREVIOUS_REVISION}=100" \
+            --quiet

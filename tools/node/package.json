@@ -12,7 +12,8 @@
     "generate": "openapi-ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "smoke": "node dist/smoke.js"
+    "smoke": "node dist/smoke.js",
+    "test:edge": "node --test edge/worker.test.mjs"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
