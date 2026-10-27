@@ -7467,3 +7467,12 @@ invariant it protected, never deletes it, and adds one line here.
   pipefail. The dated 0.2.6 changelog and GHSA inside the Release record
   remain required; large-output positives and missing-evidence negatives
   verify the unchanged acceptance invariant.
+
+## Post-merge addendum (2026-10-26) — Phase 4 changes to verify-phase01.sh
+
+- Static check 19 (Phase 4 Step 12): permits the new `Dockerfile` and
+  `.dockerignore` only with the hosted-mode service container markers
+  (`PYECONOMICS_MODE=hosted`, `pyeconomics.server`, `--require-hashes`, no
+  `jupyter` in `Dockerfile`; `.roadmodel/`, `CLAUDE.local.md` and
+  `planning/user-context.md` in `.dockerignore`), while keeping `start.sh` and
+  all other 0.2.x legacy paths forbidden (ADR-0012 decision 19).

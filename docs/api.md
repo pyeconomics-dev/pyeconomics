@@ -289,6 +289,54 @@ An operator turns a failing source off with `PYECONOMICS_DISABLED_PROVIDERS`
 `503 source-disabled` before any cache read or request, a concept falls over
 to its next candidate, and `/v1/sources` marks it `"disabled": true`.
 
+## Running the container
+
+The repository's `Dockerfile` builds a multi-stage, non-root image for
+self-hosting the API in hosted mode (the project's own staging and production
+images are built and pushed by CI). It installs the wheel on Python 3.14 with
+the `server`, `mcp`, `econometrics`, `plot` and `sdmx` extras plus `pyarrow`
+(for `?format=parquet` and `?format=arrow`), all verified against `uv.lock`
+hashes, and omits library-only provider packages (`yfinance`), `keyring`, AI
+clients and Bloomberg libraries.
+
+Build and run the image from a checkout:
+
+```shell
+docker build --build-arg GIT_SHA="$(git rev-parse HEAD)" -t pyeconomics:local .
+docker run --rm --read-only --tmpfs /tmp -p 8080:8080 pyeconomics:local
+```
+
+The entry point is `python -m pyeconomics.server`, which binds `0.0.0.0` only
+when `PYECONOMICS_MODE=hosted` (local mode keeps `pyeconomics serve`'s loopback
+guard) and trusts no forwarded headers unless the edge check matches. The
+image sets `PYECONOMICS_MODE=hosted` and `PYECONOMICS_CACHE_DIR=/tmp/pyeconomics-cache`
+(so `--read-only --tmpfs /tmp` gives both the cache and `openpyxl`'s XLSX
+temporary files a writable tmpfs). Configure the container through environment
+variables injected at run time — never baked into the image:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `8080` | TCP port Uvicorn listens on (Cloud Run sets this). |
+| `PYECONOMICS_MODE` | `hosted` (in the image) | `hosted` or `local`; `0.0.0.0` is bound only when `hosted`. |
+| `PYECONOMICS_WORKERS` | CPU count | Worker processes in the isolated pool (`1`–`16` in production; `0` runs inline for tests). |
+| `PYECONOMICS_GIT_SHA` | build-arg `GIT_SHA` | 7–40 lowercase hex digits reported at `GET /version` (`unknown` otherwise). |
+| `PYECONOMICS_CACHE_DIR` | `/tmp/pyeconomics-cache` | Ephemeral cache directory for sources whose terms permit caching. |
+| `PYECONOMICS_EDGE_CREDENTIAL` | unset | Shared secret (`32`–`512` printable characters) required in `X-Pyeconomics-Edge` before any route but `/healthz` and `/version` runs. |
+| `PYECONOMICS_RATELIMIT_URL` | unset | `rediss://` URL for shared rate-limit counts (in-memory per process when unset). |
+| `PYECONOMICS_DISABLED_PROVIDERS` | unset | Comma-separated provider IDs to disable immediately (`503 source-disabled`). |
+
+In hosted mode the container serves every model run (within `HOSTED_BUDGETS`
+and `HOSTED_BODY_LIMIT`) and every `hosted-safe` or `user-supplied` data
+source, and refuses what hosted mode may not do:
+
+- any source whose `LicenceClass` is not `hosted-safe` or `user-supplied`
+  (aggregators such as FRED, ALFRED and DBnomics, `contact` sources, and `paid`
+  or `proprietary` sources) is refused before any network request with `403
+  licence-refused` and a link to the source's terms;
+- interactive CDN documentation (`/docs`, `/redoc`) is not mounted;
+- the AI narrative (`pyeconomics.ai`) is refused with `narrative-not-hosted`;
+- requests to `/mcp` with any `Origin` header are refused with `403`.
+
 ## The MCP server at `/mcp`
 
 With the `mcp` extra installed, the same server answers the Model Context
