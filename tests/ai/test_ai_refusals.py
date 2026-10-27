@@ -12,6 +12,8 @@ and a scripted transport proves no request was sent.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 from ai_support import (
     Scripted,
@@ -40,13 +42,16 @@ from pyeconomics.data import (
 )
 from pyeconomics.surfaces.problems import problem_for
 
+if TYPE_CHECKING:
+    from config_isolation import Home, Isolation
+
 pytestmark = pytest.mark.usefixtures("isolated")
 
 
 @pytest.fixture
-def keyed(isolated: object) -> None:
+def keyed(isolated: Isolation) -> None:
     for provider in PROVIDERS:
-        isolated.keyring.set_password("pyeconomics", provider, canary(provider).value)  # type: ignore[attr-defined]
+        isolated.keyring.set_password("pyeconomics", provider, canary(provider).value)
 
 
 def test_the_narrative_is_off_by_default() -> None:
@@ -73,9 +78,9 @@ def test_the_environment_turns_it_on(
     assert narrative.provider == "openai"
 
 
-def test_the_settings_file_turns_it_on(home: object, keyed: None) -> None:
+def test_the_settings_file_turns_it_on(home: Home, keyed: None) -> None:
     del keyed
-    home.write_config('ai_enabled = true\nai_provider = "gemini"\n')  # type: ignore[attr-defined]
+    home.write_config('ai_enabled = true\nai_provider = "gemini"\n')
     narrative = narrate(black_scholes(), transport=Scripted(ok(answer("gemini"))))
     assert narrative.provider == "gemini"
 
@@ -164,6 +169,7 @@ def test_unclear_data_is_refused_without_the_opt_in(keyed: None) -> None:
 def test_unclear_data_is_narrated_with_the_out_of_band_opt_in(
     monkeypatch: pytest.MonkeyPatch, keyed: None
 ) -> None:
+
     del keyed
     monkeypatch.setenv("PYECONOMICS_ALLOW_UNCLEAR_LLM_USE", "1")
     enable()

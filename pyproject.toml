@@ -357,7 +357,7 @@ python-version = "3.12"
 # tests/registry holds the toy models the result and smoke tests import too;
 # tests itself holds the strategies and the contract check, tests/golden the
 # loader and tests/data the data layer's shared frames.
-extra-paths = ["tests", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/parity", "tests/providers", "tests/registry", "tests/server"]
+extra-paths = ["tests", "tests/ai", "tests/cli", "tests/data", "tests/data/bindings", "tests/data/catalog", "tests/exports", "tests/golden", "tests/mcp", "tests/parity", "tests/providers", "tests/registry", "tests/server"]
 
 [tool.ty.src]
 include = ["src", "tests"]

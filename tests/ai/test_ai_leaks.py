@@ -14,6 +14,7 @@ searched for it; a positive control proves the key did reach the wire.
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import pytest
 from ai_support import answer, black_scholes, enable, narrative_request, ok
@@ -25,6 +26,9 @@ from pyeconomics.ai.prompt import render_prompt
 from pyeconomics.data.transport.cassette import Cassette
 from pyeconomics.data.transport.http import HttpTransport
 from pyeconomics.surfaces.problems import problem_for
+
+if TYPE_CHECKING:
+    from config_isolation import Isolation
 
 PROVIDER_IDS = sorted(PROVIDERS)
 
@@ -43,10 +47,11 @@ def _wire(pool: FakePool) -> list[str]:
 
 @pytest.mark.parametrize("provider", PROVIDER_IDS)
 def test_a_narrative_carries_the_key_to_the_wire_and_nowhere_else(
-    provider: str, isolated: object
+    provider: str, isolated: Isolation
 ) -> None:
+
     planted = canary(provider)
-    isolated.keyring.set_password("pyeconomics", provider, planted.value)  # type: ignore[attr-defined]
+    isolated.keyring.set_password("pyeconomics", provider, planted.value)
     enable()
     body = json.dumps(answer(provider)).encode()
     transport, pool = _transport(
@@ -77,9 +82,11 @@ def test_a_narrative_carries_the_key_to_the_wire_and_nowhere_else(
 
 @pytest.mark.parametrize("provider", PROVIDER_IDS)
 @pytest.mark.parametrize("status", [401, 403, 429, 500, 400])
-def test_a_failure_carries_no_key(provider: str, status: int, isolated: object) -> None:
+def test_a_failure_carries_no_key(
+    provider: str, status: int, isolated: Isolation
+) -> None:
     planted = canary(provider)
-    isolated.keyring.set_password("pyeconomics", provider, planted.value)  # type: ignore[attr-defined]
+    isolated.keyring.set_password("pyeconomics", provider, planted.value)
     enable()
     echo = json.dumps({"error": {"message": f"bad key {planted.value}"}}).encode()
     transport, pool = _transport(
@@ -99,9 +106,9 @@ def test_a_failure_carries_no_key(provider: str, status: int, isolated: object) 
 
 
 @pytest.mark.parametrize("status", [401, 500])
-def test_a_failures_problem_carries_no_key(status: int, isolated: object) -> None:
+def test_a_failures_problem_carries_no_key(status: int, isolated: Isolation) -> None:
     planted = canary("openai")
-    isolated.keyring.set_password("pyeconomics", "openai", planted.value)  # type: ignore[attr-defined]
+    isolated.keyring.set_password("pyeconomics", "openai", planted.value)
     enable()
     transport, _ = _transport(*[FakeRaw(status, planted.value.encode())] * 3)
     check = LeakCheck(planted)

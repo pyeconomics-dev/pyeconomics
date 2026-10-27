@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 import pytest
 from ai_support import (
@@ -49,14 +50,17 @@ from pyeconomics.data import (
 )
 from pyeconomics.data.transport.base import Response
 
+if TYPE_CHECKING:
+    from config_isolation import Isolation
+
 PROVIDER_IDS = sorted(PROVIDERS)
 
 
 @pytest.fixture(autouse=True)
-def keys(isolated: object) -> None:
+def keys(isolated: Isolation) -> None:
     """Every provider has a (canary) key in the chain; the narrative is on."""
     for provider in PROVIDER_IDS:
-        isolated.keyring.set_password("pyeconomics", provider, canary(provider).value)  # type: ignore[attr-defined]
+        isolated.keyring.set_password("pyeconomics", provider, canary(provider).value)
     enable()
 
 
@@ -212,7 +216,7 @@ def test_a_narrative_drops_control_characters_and_keeps_its_length_bounded() -> 
         (302, ResponseError),
     ],
 )
-def test_each_status_maps_to_the_taxonomy(status: int, error: type) -> None:
+def test_each_status_maps_to_the_taxonomy(status: int, error: type[Exception]) -> None:
     response = ok({"error": {"message": "no"}}, status=status)
     with pytest.raises(error) as caught:
         narrate(black_scholes(), transport=Scripted(response))
