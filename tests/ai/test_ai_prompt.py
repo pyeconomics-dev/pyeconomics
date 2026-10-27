@@ -15,7 +15,7 @@ import dataclasses
 import secrets
 
 import pytest
-from ai_support import black_scholes, with_records
+from ai_support import narrated, with_records
 from leakcheck import LeakCheck, canary
 
 from pyeconomics.ai.prompt import (
@@ -32,7 +32,19 @@ pytestmark = pytest.mark.usefixtures("isolated")
 
 
 def test_the_prompt_names_the_model_and_every_input_and_output_with_units() -> None:
-    result = black_scholes()
+    import pyeconomics  # noqa: PLC0415
+
+    result = pyeconomics.run(
+        "derivatives.black_scholes_merton",
+        {
+            "calculation": "price",
+            "spot": 42,
+            "strike": 40,
+            "years": 0.5,
+            "risk_free_rate": 0.1,
+            "volatility": 0.2,
+        },
+    )
     prompt = render_prompt(result)
     spec = result.model.spec
     assert prompt.startswith(
@@ -42,8 +54,11 @@ def test_the_prompt_names_the_model_and_every_input_and_output_with_units() -> N
     assert "- spot = 42 (unit: money): Price of the underlying asset now" in prompt
     assert "- risk_free_rate = 0.1 (unit: rate):" in prompt
     assert "- volatility = 0.2 (unit: volatility):" in prompt
-    assert "- price = 4.759422392871528 (unit: money): Option price" in prompt
-    assert "- delta = 0.7791312909426689 (unit: ratio):" in prompt
+    # Ten significant digits: a residual near zero reads differently per
+    # platform, so it is checked by its line only.
+    assert "- price = 4.759422393 (unit: money): Option price" in prompt
+    assert "- delta = 0.7791312909 (unit: ratio):" in prompt
+    assert "- put_call_parity_residual = " in prompt
     assert "Warnings: none" in prompt
     for assumption in spec.assumptions:
         assert f"- {assumption}" in prompt
@@ -52,7 +67,7 @@ def test_the_prompt_names_the_model_and_every_input_and_output_with_units() -> N
 
 
 def test_the_prompt_holds_no_manifest_field() -> None:
-    result = with_records(black_scholes(), LlmUse.ALLOWED)
+    result = with_records(narrated(), LlmUse.ALLOWED)
     prompt = render_prompt(result)
     manifest = result.manifest
     for value in (
@@ -69,7 +84,7 @@ def test_the_prompt_holds_no_manifest_field() -> None:
 
 def test_the_prompt_lists_the_results_warnings() -> None:
     result = dataclasses.replace(
-        black_scholes(),
+        narrated(),
         warnings=(ResultWarning("revised_data", "The rate is revised data."),),
     )
     assert "Warnings:\n- revised_data: The rate is revised data." in render_prompt(
@@ -105,7 +120,7 @@ def test_a_canary_laden_result_reaches_the_prompt_scrubbed(
         f"(host='api.{host}.example.org') with {key.value}"
     )
     result = dataclasses.replace(
-        with_records(black_scholes(), LlmUse.ALLOWED),
+        with_records(narrated(), LlmUse.ALLOWED),
         warnings=(ResultWarning("planted", laden),),
     )
 
@@ -124,7 +139,7 @@ def test_a_canary_laden_result_reaches_the_prompt_scrubbed(
 def test_a_result_too_large_to_narrate_is_invalid_input() -> None:
     long = "x" * 900
     result = dataclasses.replace(
-        black_scholes(),
+        narrated(),
         warnings=tuple(ResultWarning(f"w{index}", long) for index in range(40)),
     )
     with pytest.raises(InputError, match=str(MAX_PROMPT_CHARACTERS)):

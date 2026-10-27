@@ -17,7 +17,7 @@ import json
 from typing import TYPE_CHECKING
 
 import pytest
-from ai_support import answer, black_scholes, enable, narrative_request, ok
+from ai_support import answer, enable, narrated, narrative_request, ok
 from fakes import FakePool, FakeRaw
 from leakcheck import LeakCheck, canary
 
@@ -58,7 +58,7 @@ def test_a_narrative_carries_the_key_to_the_wire_and_nowhere_else(
         FakeRaw(200, body, {"content-type": "application/json"})
     )
     check = LeakCheck(planted)
-    result = black_scholes()
+    result = narrated()
 
     narrative = check.run(
         lambda: narrate(result, provider=provider, transport=transport)
@@ -94,7 +94,7 @@ def test_a_failure_carries_no_key(
     )
     check = LeakCheck(planted)
     outcome = check.run(
-        lambda: narrate(black_scholes(), provider=provider, transport=transport)
+        lambda: narrate(narrated(), provider=provider, transport=transport)
     )
     assert outcome is None
     caught = [name for name in check.sinks if name.startswith("exception:")]
@@ -113,7 +113,7 @@ def test_a_failures_problem_carries_no_key(status: int, isolated: Isolation) -> 
     transport, _ = _transport(*[FakeRaw(status, planted.value.encode())] * 3)
     check = LeakCheck(planted)
     with pytest.raises(Exception) as caught:  # noqa: PT011 - any mapped failure
-        narrate(black_scholes(), transport=transport)
+        narrate(narrated(), transport=transport)
     problem = problem_for(caught.value)
     check.add("problem:detail", problem.detail)
     check.add("problem:body", problem.to_json())

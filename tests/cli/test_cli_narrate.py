@@ -17,7 +17,7 @@ import zipfile
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from ai_support import MARKER, black_scholes, replay
+from ai_support import MARKER, narrated, replay
 from cli_support import cli
 from leakcheck import canary
 
@@ -33,19 +33,15 @@ if TYPE_CHECKING:
 RUN = (
     "models",
     "run",
-    "derivatives.black_scholes_merton",
+    "foundations.time_value",
     "--calculation",
-    "price",
-    "--spot",
-    "42",
-    "--strike",
-    "40",
-    "--years",
-    "0.5",
-    "--risk-free-rate",
-    "0.1",
-    "--volatility",
-    "0.2",
+    "future_value",
+    "--present-value",
+    "1000",
+    "--rate",
+    "0.05",
+    "--periods",
+    "10",
 )
 
 
@@ -72,14 +68,14 @@ def _files_holding(directory: Path, text: str) -> list[str]:
 @pytest.mark.usefixtures("narrating")
 def test_json_keeps_stdout_canonical_and_narrates_to_stderr() -> None:
     plain = cli(*RUN)
-    narrated = cli(*RUN, "--narrate")
-    assert narrated.code == 0, narrated.stderr
-    assert narrated.stdout == plain.stdout
-    assert narrated.stdout == canonical_bytes(black_scholes()) + b"\n"
-    assert MARKER.encode() not in narrated.stdout
-    assert narrated.stderr.startswith(f"{MARKER} openai:")
-    assert NOT_ADVICE in narrated.stderr
-    assert "Cost: $0.0035 (openai gpt-6.1-sol:" in narrated.stderr
+    told = cli(*RUN, "--narrate")
+    assert told.code == 0, told.stderr
+    assert told.stdout == plain.stdout
+    assert told.stdout == canonical_bytes(narrated()) + b"\n"
+    assert MARKER.encode() not in told.stdout
+    assert told.stderr.startswith(f"{MARKER} openai:")
+    assert NOT_ADVICE in told.stderr
+    assert "Cost: $0.0035 (openai gpt-6.1-sol:" in told.stderr
 
 
 @pytest.mark.usefixtures("narrating")
@@ -190,7 +186,7 @@ def test_batch_cannot_narrate() -> None:
     outcome = cli(
         "models",
         "run",
-        "derivatives.black_scholes_merton",
+        "foundations.time_value",
         "--batch",
         "-",
         "--narrate",

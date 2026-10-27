@@ -6,10 +6,11 @@
 :data:`SYSTEM_PROMPT` is the same for every narrative. :func:`render_prompt`
 writes the user's turn from the result's own facts and nothing else: the
 model's title, id, version and summary; each input and output with its unit
-and description; the result's warnings; and the card's assumptions and
-limitations. The manifest is never read, so no source record, terms page,
-retrieval time or hash reaches a provider, and every piece of text is scrubbed
-of registered secrets, URLs, host fields and file paths
+and description, each number to ten significant digits; the result's
+warnings; and the card's assumptions and limitations. The manifest is never
+read, so no source record, terms page, retrieval time or hash reaches a
+provider, and every piece of text is scrubbed of registered secrets, URLs, host
+fields and file paths
 (:func:`pyeconomics.surfaces.problems.scrub`). An array shows its first
 :data:`MAX_ARRAY_VALUES` values and how many follow.
 
@@ -44,6 +45,7 @@ if TYPE_CHECKING:
 __all__ = [
     "MAX_ARRAY_VALUES",
     "MAX_PROMPT_CHARACTERS",
+    "SIGNIFICANT",
     "SYSTEM_PROMPT",
     "render_prompt",
 ]
@@ -62,6 +64,9 @@ SYSTEM_PROMPT: Final = (
 )
 #: The most values of one array the prompt shows.
 MAX_ARRAY_VALUES: Final = 12
+#: How a number is written: ten significant digits, which every output's
+#: precision exceeds and no platform's last-bit rounding reaches.
+SIGNIFICANT: Final = ".10g"
 #: The longest prompt sent, in characters.
 MAX_PROMPT_CHARACTERS: Final = 32_000
 _DEFINITION: Final = "#/$defs/"
@@ -117,6 +122,8 @@ def _value(value: object) -> str:
         return f"[{shown}{f', ... and {more} more' if more > 0 else ''}]"
     if isinstance(value, str):
         return _clean(value)
+    if isinstance(value, float):
+        return format(value, SIGNIFICANT)
     return canonical_json(value).decode("utf-8")
 
 

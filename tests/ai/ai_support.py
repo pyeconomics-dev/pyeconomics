@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 """What the AI narrative's tests share (tests/ai, tests/cli).
 
-- :func:`black_scholes` is the result every test narrates, and :func:`with_records`
+- :func:`narrated` is the result every test narrates (a future value, whose
+  outputs read the same to ten digits on every platform), and :func:`with_records`
   gives it data records under any ``llm_use`` class.
 - :func:`answer` writes a provider's answer in the shape its API returns
   (read from each API's reference and checked by the live run on 2026-10-26),
   with synthetic text: :data:`MARKER` and the provider's id, so a test can
   search any sink for the narrative.
 - :func:`build_cassette` records that answer to the narrative's request for
-  :func:`black_scholes`; ``uv run --no-sync python tests/ai/build_ai_cassettes.py``
+  :func:`narrated`; ``uv run --no-sync python tests/ai/build_ai_cassettes.py``
   writes one cassette per provider under ``tests/ai/cassettes/``, and
   ``test_ai_cassettes.py`` fails if they drift. :func:`replay` serves them.
 - :class:`Scripted` is a transport that answers from a script and records what
@@ -48,9 +49,9 @@ __all__ = [
     "TOKENS",
     "Scripted",
     "answer",
-    "black_scholes",
     "build_cassette",
     "enable",
+    "narrated",
     "ok",
     "replay",
     "with_records",
@@ -69,14 +70,12 @@ TOKENS: Final = {
     "openai": (782, 190),
     "openrouter": (782, 185),
 }
-#: The Black-Scholes-Merton inputs every test narrates.
+#: The inputs of the result every test narrates.
 INPUTS: Final = {
-    "calculation": "price",
-    "spot": 42,
-    "strike": 40,
-    "years": 0.5,
-    "risk_free_rate": 0.1,
-    "volatility": 0.2,
+    "calculation": "future_value",
+    "present_value": 1000,
+    "rate": 0.05,
+    "periods": 10,
 }
 
 
@@ -85,9 +84,9 @@ def enable() -> None:
     configure(ai_enabled=True)
 
 
-def black_scholes() -> Result[Any, Any]:
+def narrated() -> Result[Any, Any]:
     """Return the result every test narrates."""
-    return pyeconomics.run("derivatives.black_scholes_merton", INPUTS)
+    return pyeconomics.run("foundations.time_value", INPUTS)
 
 
 def with_records(result: Result[Any, Any], *uses: LlmUse) -> Result[Any, Any]:
@@ -111,8 +110,7 @@ def with_records(result: Result[Any, Any], *uses: LlmUse) -> Result[Any, Any]:
 def narrative_text(provider: str) -> str:
     """The synthetic narrative a provider's cassette answers."""
     return (
-        f"{MARKER} {provider}: the call is worth about 4.76, mostly because the "
-        "asset already trades above the strike."
+        f"{MARKER} {provider}: 1,000 grows to about 1,628.89 in ten years at 5% a year."
     )
 
 
@@ -216,9 +214,9 @@ def ok(document: dict[str, Any], status: int = 200) -> Response:
 
 
 def narrative_request(provider: str) -> Request:
-    """The request the narrative of :func:`black_scholes` sends to a provider."""
+    """The request the narrative of :func:`narrated` sends to a provider."""
     return PROVIDERS[provider].request(
-        PROVIDER_MODELS[provider], SYSTEM_PROMPT, render_prompt(black_scholes())
+        PROVIDER_MODELS[provider], SYSTEM_PROMPT, render_prompt(narrated())
     )
 
 

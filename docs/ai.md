@@ -140,8 +140,9 @@ One request per narrative, over HTTPS to the provider's one declared host,
 holding a fixed instruction and these facts of the result, as plain text:
 
 - the model's title, id, version and summary;
-- each input and output with its unit and description (an array shows its first
-  twelve values and how many follow);
+- each input and output with its unit and description, each number to ten
+  significant digits (an array shows its first twelve values and how many
+  follow);
 - the result's warnings;
 - the model card's assumptions and limitations.
 

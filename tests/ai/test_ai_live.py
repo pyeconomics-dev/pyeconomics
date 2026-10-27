@@ -14,6 +14,8 @@ key is there.
 
 from __future__ import annotations
 
+import sys
+
 import pytest
 
 import pyeconomics
@@ -46,4 +48,8 @@ def test_a_live_narrative_has_text_tokens_and_a_cost(provider: str) -> None:
     assert narrative.output_tokens > 0
     assert narrative.cost_usd is not None
     assert narrative.result_sha256 == result.manifest.result_sha256
-    print(f"\n{narrative.render()}\n")  # noqa: T201 - the record the PR keeps
+    # The record the PR keeps; a model may write characters a Windows console's
+    # code page lacks, so the text is shown with those replaced.
+    encoding = sys.stdout.encoding or "utf-8"
+    shown = narrative.render().encode(encoding, "replace").decode(encoding)
+    print(f"\n{shown}\n")  # noqa: T201

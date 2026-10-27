@@ -18,8 +18,8 @@ import pytest
 from ai_support import (
     Scripted,
     answer,
-    black_scholes,
     enable,
+    narrated,
     ok,
     replay,
     with_records,
@@ -57,7 +57,7 @@ def keyed(isolated: Isolation) -> None:
 def test_the_narrative_is_off_by_default() -> None:
     transport = Scripted()
     with pytest.raises(NarrativeDisabledError) as caught:
-        narrate(black_scholes(), transport=transport)
+        narrate(narrated(), transport=transport)
     assert transport.sent == []
     problem = problem_for(caught.value)
     assert (problem.slug, problem.status, problem.exit_code) == (
@@ -74,14 +74,14 @@ def test_the_environment_turns_it_on(
 ) -> None:
     del keyed
     monkeypatch.setenv(variable, "1")
-    narrative = narrate(black_scholes(), transport=Scripted(ok(answer("openai"))))
+    narrative = narrate(narrated(), transport=Scripted(ok(answer("openai"))))
     assert narrative.provider == "openai"
 
 
 def test_the_settings_file_turns_it_on(home: Home, keyed: None) -> None:
     del keyed
     home.write_config('ai_enabled = true\nai_provider = "gemini"\n')
-    narrative = narrate(black_scholes(), transport=Scripted(ok(answer("gemini"))))
+    narrative = narrate(narrated(), transport=Scripted(ok(answer("gemini"))))
     assert narrative.provider == "gemini"
 
 
@@ -92,7 +92,7 @@ def test_hosted_mode_refuses_before_anything_else(
     monkeypatch.setenv("PYECONOMICS_MODE", "hosted")
     transport = Scripted()
     with pytest.raises(NarrativeHostedError) as caught:
-        narrate(black_scholes(), transport=transport)
+        narrate(narrated(), transport=transport)
     assert transport.sent == []
     problem = problem_for(caught.value)
     assert (problem.slug, problem.status, problem.exit_code) == (
@@ -107,7 +107,7 @@ def test_hosted_mode_refuses_even_when_enabled() -> None:
     configure(mode="hosted")
     transport = Scripted()
     with pytest.raises(NarrativeHostedError):
-        narrate(black_scholes(), transport=transport)
+        narrate(narrated(), transport=transport)
     assert transport.sent == []
 
 
@@ -127,7 +127,7 @@ def test_offline_mode_refuses_before_any_request(keyed: None) -> None:
     configure(offline=True)
     transport = Scripted()
     with pytest.raises(OfflineError, match="a narrative needs openai") as caught:
-        narrate(black_scholes(), transport=transport)
+        narrate(narrated(), transport=transport)
     assert transport.sent == []
     assert problem_for(caught.value).exit_code == 7
 
@@ -136,7 +136,7 @@ def test_forbidden_data_never_reaches_a_provider(keyed: None) -> None:
     del keyed
     enable()
     transport = Scripted()
-    result = with_records(black_scholes(), LlmUse.ALLOWED, LlmUse.FORBIDDEN)
+    result = with_records(narrated(), LlmUse.ALLOWED, LlmUse.FORBIDDEN)
     with pytest.raises(LlmUseError) as caught:
         narrate(result, transport=transport)
     assert transport.sent == []
@@ -153,7 +153,7 @@ def test_forbidden_data_is_refused_even_with_the_opt_in(
     enable()
     transport = Scripted()
     with pytest.raises(LlmUseError):
-        narrate(with_records(black_scholes(), LlmUse.FORBIDDEN), transport=transport)
+        narrate(with_records(narrated(), LlmUse.FORBIDDEN), transport=transport)
     assert transport.sent == []
 
 
@@ -162,7 +162,7 @@ def test_unclear_data_is_refused_without_the_opt_in(keyed: None) -> None:
     enable()
     transport = Scripted()
     with pytest.raises(LlmUseError, match="allowed-only policy"):
-        narrate(with_records(black_scholes(), LlmUse.UNCLEAR), transport=transport)
+        narrate(with_records(narrated(), LlmUse.UNCLEAR), transport=transport)
     assert transport.sent == []
 
 
@@ -174,7 +174,7 @@ def test_unclear_data_is_narrated_with_the_out_of_band_opt_in(
     monkeypatch.setenv("PYECONOMICS_ALLOW_UNCLEAR_LLM_USE", "1")
     enable()
     transport = Scripted(ok(answer("openai")))
-    result = with_records(black_scholes(), LlmUse.UNCLEAR, LlmUse.ALLOWED)
+    result = with_records(narrated(), LlmUse.UNCLEAR, LlmUse.ALLOWED)
     narrative = narrate(result, transport=transport)
     assert narrative.text
     assert len(transport.sent) == 1
@@ -184,7 +184,7 @@ def test_allowed_data_is_narrated(keyed: None) -> None:
     del keyed
     enable()
     transport = Scripted(ok(answer("openai")))
-    narrate(with_records(black_scholes(), LlmUse.ALLOWED), transport=transport)
+    narrate(with_records(narrated(), LlmUse.ALLOWED), transport=transport)
     assert len(transport.sent) == 1
 
 
@@ -195,7 +195,7 @@ def test_a_missing_key_names_its_variable_and_no_value(provider: str) -> None:
     check = LeakCheck(planted)
     transport = Scripted()
     with pytest.raises(CredentialError) as caught:
-        narrate(black_scholes(), provider=provider, transport=transport)
+        narrate(narrated(), provider=provider, transport=transport)
     assert transport.sent == []
     variable = PROVIDERS[provider].info.key_variable
     assert variable == f"{provider.upper()}_API_KEY"
