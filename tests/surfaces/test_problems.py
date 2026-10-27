@@ -4,8 +4,9 @@
 """The error table: one row per error class, and problems that hold no secret.
 
 ADR-0012 decision 4. The walking test fails on any ``PyeconomicsError`` subclass
-in core, the data layer or the surfaces without its own row; the mapping is the
-one the maintainer accepted; and every detail is fixed text or a scrubbed message.
+in core, the data layer, the AI narrative or the surfaces without its own row;
+the mapping is the one the maintainer accepted; and every detail is fixed text
+or a scrubbed message.
 """
 
 from __future__ import annotations
@@ -58,7 +59,11 @@ if TYPE_CHECKING:
     from types import ModuleType
 
 #: The modules whose error classes the table must name, one row each.
-ERROR_MODULES = ("pyeconomics.core.errors", "pyeconomics.data.errors")
+ERROR_MODULES = (
+    "pyeconomics.core.errors",
+    "pyeconomics.data.errors",
+    "pyeconomics.ai.errors",
+)
 
 #: The mapping ADR-0012 decision 4 records, with the serving errors Phase 4 Step 6
 #: added under its rule (a new class gets its own row): slug, HTTP status, exit code.
@@ -73,6 +78,8 @@ ACCEPTED = {
     "SeriesNotFoundError": ("series-not-found", 404, 5),
     "LicenceError": ("licence-refused", 403, 6),
     "LlmUseError": ("llm-use-forbidden", 403, 6),
+    "NarrativeDisabledError": ("narrative-disabled", 403, 6),
+    "NarrativeHostedError": ("narrative-not-hosted", 403, 6),
     "CredentialError": ("credential-unavailable", 503, 7),
     "TransportError": ("upstream-unavailable", 502, 7),
     "ResponseError": ("upstream-invalid-response", 502, 7),

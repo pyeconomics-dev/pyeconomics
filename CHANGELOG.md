@@ -159,6 +159,28 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   a hosted MCP run returns whole (256 KiB by default; a larger one answers a
   notice with the REST download of the same run) and the most observations
   `get_series` returns (1,000 by default).
+- The optional AI narrative, `pyeconomics.ai` (ADR-0012 decision 17):
+  `narrate(result, *, provider=None, model=None)` asks a language model, with
+  the user's own key, to explain a result in plain words, and returns a
+  `Narrative` with the text, the provider and model, the input and output
+  tokens, the cost in US dollars from a dated price table, and a "not investment
+  advice" notice. Four providers are declared like data providers and called
+  through the data layer's HTTPS transport, so the `ai` extra installs nothing:
+  `anthropic` (Messages API), `gemini` (Gemini API), `openai` (Responses API)
+  and `openrouter`, each keyed by `<PROVIDER>_API_KEY` through the credential
+  chain. The default, `openai` with `gpt-6.1-sol`, was chosen with the model
+  selector on 2026-10-26. It is off until the new `ai_enabled` setting
+  (`PYECONOMICS_AI_ENABLED`) is on; `ai_provider` and `ai_model` choose another
+  provider and model. It refuses hosted mode, offline mode, data whose terms
+  keep it from a language model and a missing key, before any request, and
+  sends only the result's own facts through a fixed prompt. Two rows join the
+  error table: `narrative-disabled` and `narrative-not-hosted` (403, exit code
+  6). A new documentation page, `ai`, covers it.
+- `pyeconomics models run ... --narrate` prints the narrative and its cost
+  after a table, or on standard error with any other format, so standard output
+  stays the canonical bytes; a narrated run binds its data under the user's
+  `llm_use` policy. `pyeconomics keys set`, `keys list` and `keys delete` cover
+  the AI providers' keys too.
 
 ### Fixed
 

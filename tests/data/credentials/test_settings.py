@@ -93,6 +93,46 @@ def test_environment_settings(home: Home, monkeypatch: pytest.MonkeyPatch) -> No
     assert cache_dir() == cache
 
 
+def test_the_ai_narratives_settings(
+    home: Home, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    assert (settings().ai_enabled, settings().ai_provider, settings().ai_model) == (
+        False,
+        None,
+        None,
+    )
+    home.write_config('ai_enabled = true\nai_provider = "gemini"\n')
+    monkeypatch.setenv("PYECONOMICS_AI_PROVIDER", " Anthropic ")
+    monkeypatch.setenv("PYECONOMICS_AI_MODEL", "claude-sonnet-5-5")
+    reset()
+    current = settings()
+    assert (current.ai_enabled, current.ai_provider, current.ai_model) == (
+        True,
+        "anthropic",
+        "claude-sonnet-5-5",
+    )
+    configured = configure(ai_enabled=False, ai_model="openai/gpt-6.1-sol")
+    assert Settings(ai_provider=None).ai_provider is None
+    assert (configured.ai_enabled, configured.ai_model) == (False, "openai/gpt-6.1-sol")
+
+
+@pytest.mark.parametrize(
+    ("name", "value", "problem"),
+    [
+        ("PYECONOMICS_AI_ENABLED", "perhaps", "must be one of 1, true"),
+        ("PYECONOMICS_AI_PROVIDER", "9acme", "snake_case"),
+        ("PYECONOMICS_AI_MODEL", "bad model", "should match pattern"),
+    ],
+)
+@pytest.mark.usefixtures("home")
+def test_invalid_ai_settings_are_refused(
+    monkeypatch: pytest.MonkeyPatch, name: str, value: str, problem: str
+) -> None:
+    monkeypatch.setenv(name, value)
+    with pytest.raises(ConfigError, match=problem):
+        settings()
+
+
 @pytest.mark.parametrize(
     ("value", "flag"),
     [("1", True), ("TRUE", True), ("on", True), ("0", False), ("No", False)],

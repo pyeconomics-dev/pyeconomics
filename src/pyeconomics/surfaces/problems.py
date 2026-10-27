@@ -5,7 +5,8 @@
 
 ADR-0012 decision 4. :data:`ROWS` holds one :class:`Row` per error class, core's
 (:mod:`pyeconomics.core.errors`), the data layer's
-(:mod:`pyeconomics.data.errors`) and the surfaces' own: a slug, a title, an HTTP
+(:mod:`pyeconomics.data.errors`), the AI narrative's (:mod:`pyeconomics.ai.errors`)
+and the surfaces' own: a slug, a title, an HTTP
 status and a command-line exit code. A row names its class by module and name, so
 this module imports neither error module, and an error takes the row of the
 nearest class in its MRO that has one; an exception that is not a
@@ -84,6 +85,7 @@ _LOGGER: Final = logging.getLogger("pyeconomics.surfaces")
 _CORE: Final = "pyeconomics.core.errors"
 _DATA: Final = "pyeconomics.data.errors"
 _SERVICE: Final = "pyeconomics.surfaces.service"
+_AI: Final = "pyeconomics.ai.errors"
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,6 +161,20 @@ ROWS: Final = (
         f"{_DATA}.LicenceError",
         "licence-refused",
         "The source's licence does not permit this use",
+        403,
+        6,
+    ),
+    Row(
+        f"{_AI}.NarrativeDisabledError",
+        "narrative-disabled",
+        "The AI narrative is turned off",
+        403,
+        6,
+    ),
+    Row(
+        f"{_AI}.NarrativeHostedError",
+        "narrative-not-hosted",
+        "The hosted service does not write AI narratives",
         403,
         6,
     ),

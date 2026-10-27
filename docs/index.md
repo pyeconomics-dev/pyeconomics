@@ -15,8 +15,8 @@ OLS, GARCH and time-series models require the `econometrics` extra; result
 charts use the `plot` extra.
 Each has a generated card with units, bounds, assumptions, limitations and a
 worked example. The Python API, the `pyeconomics` command line, the local
-REST API and the MCP server for AI assistants are available in this checkout;
-the web app follows.
+REST API, the MCP server for AI assistants and an optional AI narrative of a
+result ({doc}`ai`) are available in this checkout; the web app follows.
 
 ```{toctree}
 :maxdepth: 2
@@ -27,6 +27,7 @@ cli
 api
 mcp
 mcp-evaluations
+ai
 tutorials/first-model
 conventions
 results

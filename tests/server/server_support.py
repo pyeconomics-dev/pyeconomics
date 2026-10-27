@@ -108,6 +108,10 @@ LOOPBACK_ONLY = pytest.mark.allow_hosts(["127.0.0.1", "::1"])
 
 
 def _errors() -> dict[str, Callable[[str], BaseException]]:
+    from pyeconomics.ai.errors import (  # noqa: PLC0415 - the AI narrative's errors
+        NarrativeDisabledError,
+        NarrativeHostedError,
+    )
     from pyeconomics.data import (  # noqa: PLC0415 - the data layer's errors
         ConceptNotFoundError,
         ConfigError,
@@ -159,6 +163,8 @@ def _errors() -> dict[str, Callable[[str], BaseException]]:
             llm_use=LlmUse.FORBIDDEN,
             terms_url="https://www.example.org/terms",
         ),
+        "NarrativeDisabledError": lambda _text: NarrativeDisabledError(),
+        "NarrativeHostedError": lambda _text: NarrativeHostedError(),
         "CredentialError": lambda text: CredentialError(text, provider="toy"),
         "TransportError": lambda text: TransportError(text, provider="toy"),
         "ResponseError": lambda text: ResponseError(text, provider="toy"),

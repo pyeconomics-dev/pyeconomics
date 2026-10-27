@@ -33,6 +33,7 @@ $ pyeconomics --version
 | `models describe ID [--format markdown\|json]` | Print a model's card, or its full description |
 | `models run ID [OPTIONS]` | Run a model; its inputs are options |
 | `models run ID --batch FILE` | Run a model once per row of a CSV or JSON Lines file |
+| `models run ID [OPTIONS] --narrate` | Also explain the result with the optional AI narrative ({doc}`ai`) |
 | `data search TEXT [--limit N]` | Search catalog concepts, then providers' series |
 | `data get TARGET [--start] [--end] [--as-of] [--vintage] [--provider]` | Get a concept's or a series' data |
 | `data describe TARGET` | Describe a concept, a series or a provider |
@@ -191,6 +192,11 @@ it takes no field options, `--inputs`, `--bundle` or data options beside it:
 pyeconomics models run foundations.time_value --batch rows.csv --format csv --out results.csv
 pyeconomics bundle check pv.zip
 ```
+
+`--narrate` also asks the optional AI narrative to explain the result, with
+your own key ({doc}`ai`). It follows a table on standard output, and goes to
+standard error with any other format or `--out`, so standard output stays the
+canonical bytes; it is never written into an export or a bundle.
 
 ## Serving the REST API
 
