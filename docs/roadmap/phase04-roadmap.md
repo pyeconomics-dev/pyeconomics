@@ -422,7 +422,6 @@ Phase 3 used. The ones this roadmap foresees:
 | Phase 1 checks 17 and 18 | at least the listed ADRs, each Accepted and indexed | unchanged: ADR-0012 joins the index Accepted |
 | Phase 2 check 4 | runtime floors only, no upper bound | unchanged: `cyclopts>=5.3` carries no upper bound |
 | Phase 2 checks 21 and 55, Phase 3 checks 11, 33 and 40 | each named extra is included in `[all]` | unchanged: `[server]` and `[mcp]` join `[all]`; `[ai]` stays empty, since the narrative adds no client library (Step 11), so it has nothing to add to `[all]` |
-| Phase 1 check 19 | forbids 0.2.x legacy `Dockerfile`, `.dockerignore` and `start.sh` | Step 12 permits `Dockerfile` and `.dockerignore` only with the hosted-mode container markers (`PYECONOMICS_MODE=hosted`, `pyeconomics.server`, `--require-hashes`, no `jupyter`; `.roadmodel/`, `CLAUDE.local.md`, `planning/user-context.md` excluded) while keeping `start.sh` and all other 0.2.x legacy paths forbidden |
 | `docs/index.md` and `README.md` | "the command line, REST API, MCP server and web app follow in later phases" | Step 15 (no earlier check pins the sentence) |
 
 **Contract-change rule.** Steps 3–12 build on the contract ADR-0012 and
@@ -6424,9 +6423,9 @@ hygiene.
 
 ---
 
-## Step 12 — Service Container ✅
+## Step 12 — Service Container
 
-**Status:** Complete — PR #201 (2026-10-26)
+**Status:** Not started
 
 > **Goal:** Package the hosted API as an image that holds only what hosted
 > mode may serve. Add a multi-stage `Dockerfile` and `.dockerignore`: a
@@ -6482,7 +6481,7 @@ and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
 Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
-> Ran 2026-10-26: Balanced Pick — Gemini 4 Argon · High. Selected by the Runs rule (Antigravity pool headroom).
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a Dockerfile,
 an ignore file, an entry point and a CI job that builds, scans and runs
@@ -7240,17 +7239,6 @@ Thinking toggle. New conversation per phase-boundary hygiene.
       scans it and smoke-tests it; nothing is pushed or
       deployed. Hosted mode reads PYECONOMICS_RATELIMIT_URL
       and PYECONOMICS_EDGE_CREDENTIAL from the environment.
-      From Step 12: `Dockerfile` builds on
-      `python:3.14-slim-bookworm` (pinned by digest) with the
-      five extras plus `pyarrow` (verified against `uv.lock`
-      hashes, so hosted `?format=parquet` and `?format=arrow`
-      downloads work), runs as UID/GID `10001` (`pyeconomics`)
-      with `PYECONOMICS_CACHE_DIR=/tmp/pyeconomics-cache` and
-      entry point `python -m pyeconomics.server`
-      (`src/pyeconomics/server/__main__.py`), and `ci.yml`'s
-      `container` job scans with Trivy
-      (`ghcr.io/aquasecurity/trivy:0.69.3` pinned by digest)
-      and uploads a CycloneDX SBOM (`container-sbom.cdx.json`).
     - From Step 8: /mcp sits behind the same edge check and
       limits. The Worker forwards its POSTs with
       MCP-Protocol-Version, Mcp-Method and Mcp-Name intact:
@@ -7803,6 +7791,19 @@ per phase-boundary hygiene.
       exports, REST API, hosted mode, MCP server, parity,
       AI narrative and container; staging deploys on every
       merge and staging-health.yml probes it hourly.
+    - From Step 13: staging lives at
+      `https://staging-api.pyeconomics.dev` (Cloudflare Access
+      service token `CF_ACCESS_CLIENT_ID` and
+      `CF_ACCESS_CLIENT_SECRET` stored under service
+      `pyeconomics` in the maintainer's OS keyring and in the
+      `staging` GitHub environment; outer Cloudflare free-plan
+      rate rule `staging-api-rate-limit` on `URI Path starts
+      with "/"` at 50 req / 10 s per IP; Worker
+      `pyeconomics-api-staging` from `tools/node/edge/`) in
+      front of Cloud Run origin
+      `https://pyeconomics-api-staging-129496897969.us-central1.run.app`
+      (project `pyeconomics-staging`, number `129496897969`,
+      2 workers, 1 GiB RAM).
     - release.yml routes a .devN tag to TestPyPI with PEP 740
       attestations and calls release-smoke.yml.
       docs/releases/1.0.0a2-readiness.md is the fourteen-
@@ -8266,6 +8267,10 @@ hygiene.
       lookup before calling an install failed); plain pip on
       Python 3.12 resolves 0.2.6, whose Requires-Python is
       >=3.11,<3.13.
+    - From Step 13: staging `/version` is checked at
+      `https://staging-api.pyeconomics.dev/version` with
+      `CF-Access-Client-Id` and `CF-Access-Client-Secret` read
+      from `keyring.get_password("pyeconomics", ...)`.
 
     Files to read (every file before drafting):
     - docs/releases/1.0.0b1-readiness.md, 1.0.0a2.md and the
@@ -8683,6 +8688,18 @@ per phase-boundary hygiene.
     Steps 1 through 15 have been implemented: 1.0.0b1 is on
     PyPI and the MCP Registry; staging deploys on every merge
     and staging-health.yml probes it hourly.
+    From Step 13: the staging edge is
+    `https://staging-api.pyeconomics.dev` and the Cloud Run
+    origin is
+    `https://pyeconomics-api-staging-129496897969.us-central1.run.app`
+    in project `pyeconomics-staging` (`129496897969`, billing
+    account `010548-2423B0-E0B624`, budget
+    `1e2a0501-e932-43c4-bf39-0b95c895615d`, Pub/Sub topic
+    `staging-budget-alerts` and subscription
+    `staging-budget-alerts-sub`; pass
+    `CLOUDSDK_CORE_PROJECT=pyeconomics-staging` and
+    `CLOUDSDK_BILLING_QUOTA_PROJECT=pyeconomics-staging` when
+    querying billing budgets).
 
     Reference scripts (pattern templates):
     - scripts/verify-phase03.sh (the structural template:
@@ -9240,7 +9257,7 @@ workflow above maps directly to the corresponding row below.
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #200 |
-| 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #201 |
+| 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
 | 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
 | 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
@@ -9591,18 +9608,19 @@ whatever is still open here.
   variable Google's own documentation uses. The `[ai]` extra stays empty, so it
   does not join `[all]` (Step 16's check 42-44 and the Cross-phase table edited).
   Steps 12 and 14's task blocks note what they build on.
-- From Phase 4 Step 12, kickoff choices and cross-phase narrowing (no decision
-  changed): the maintainer approved installing `pyarrow` in the container image
-  from `uv.lock` with `--require-hashes` (so hosted `?format=parquet` and
-  `?format=arrow` downloads work alongside `xlsx` and `csv`; ADR-0008 decision 8
-  governs package metadata) and scanning with Trivy (`ghcr.io/aquasecurity/trivy`
-  pinned by digest, emitting a CycloneDX SBOM artifact and failing on fixable
-  Critical or High findings). Phase 1 static check 19 in
-  `scripts/verify-phase01.sh` is narrowed to permit `Dockerfile` and
-  `.dockerignore` only with the hosted-mode container markers while keeping
-  `start.sh` and all other 0.2.x legacy paths forbidden (recorded in
-  `docs/roadmap/phase01-roadmap.md` and the Cross-phase table above). Step 13's
-  task block notes what it builds on.
+- From Phase 4 Step 13, staging provisioning and cross-phase narrowing (no
+  decision changed): Google Cloud project `pyeconomics-staging` (`129496897969`,
+  linked to billing account `010548-2423B0-E0B624` because the primary billing
+  account was at its 5-project cap), Cloud Run service `pyeconomics-api-staging`
+  in `us-central1` (`1Gi` memory, 1 vCPU, 0–2 instances, request-based billing),
+  Cloudflare Worker `pyeconomics-api-staging` (`tools/node/edge/`) behind
+  Cloudflare Access on `staging-api.pyeconomics.dev` and free-plan rate rule
+  `staging-api-rate-limit` (Cloudflare's free-plan rate-limiting rule builder
+  exposes `URI Path` rather than `Hostname`, so the rule matches `URI Path
+  starts with "/"` at 50 req / 10 s per IP), and Phase 3 static check 78 in
+  `scripts/verify-phase03.sh` narrowed with its addendum in
+  `docs/roadmap/phase03-roadmap.md`. Steps 14, 15 and 16's task blocks note what
+  they build on.
 
 ---
 

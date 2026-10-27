@@ -58,6 +58,13 @@ pytest_collect_file = Sybil(
         "api.md",
         "ai.md",
     ],
-    excludes=["roadmap/*", "adr/*", "releases/*", "reference/*", "_build/*"],
+    excludes=[
+        "roadmap/*",
+        "adr/*",
+        "releases/*",
+        "operations/*",
+        "reference/*",
+        "_build/*",
+    ],
     fixtures=["isolated"],
 ).pytest()

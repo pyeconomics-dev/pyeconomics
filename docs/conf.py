@@ -48,6 +48,7 @@ exclude_patterns = [
     "roadmap/**",
     "adr/**",
     "releases/**",
+    "operations/**",
     "phase*-qa-findings.md",
     "conftest.py",
 ]

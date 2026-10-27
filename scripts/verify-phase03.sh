@@ -401,14 +401,19 @@ c78() {
   "$PY" - << 'PY'
 import re
 from pathlib import Path
+staging_secrets = {"GITHUB_TOKEN", "CF_ACCESS_CLIENT_ID", "CF_ACCESS_CLIENT_SECRET"}
 for path in Path(".github/workflows").glob("*.yml"):
     if path.name == "providers-live.yml":
         continue
     # github.token and secrets.GITHUB_TOKEN are ephemeral built-in tokens.
     body = "\n".join(line for line in path.read_text(encoding="utf-8").splitlines() if not line.lstrip().startswith("#"))
-    names = re.findall(r"\bsecrets\.([A-Za-z_][A-Za-z_0-9]*)", body)
-    assert set(names) <= {"GITHUB_TOKEN"}, path.name
     assert not re.search(r"\bsecrets\s*\[|toJSON\(secrets\)", body), path.name
+    names = re.findall(r"\bsecrets\.([A-Za-z_][A-Za-z_0-9]*)", body)
+    if path.name in {"deploy-staging.yml", "staging-health.yml"}:
+        assert set(names) <= staging_secrets, path.name
+        assert re.search(r"^\s+environment:\s*(?:staging\s*$|\n\s+name:\s*staging\s*$)", body, re.M), path.name
+    else:
+        assert set(names) <= {"GITHUB_TOKEN"}, path.name
 PY
 }
 run_static() {

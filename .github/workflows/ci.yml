@@ -469,6 +469,9 @@ jobs:
       - name: Install the Node tools from their lockfile
         working-directory: tools/node
         run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Run the edge Worker tests
+        working-directory: tools/node
+        run: node --test edge/worker.test.mjs
       - name: Generate and type-check the TypeScript client
         working-directory: tools/node
         run: |
