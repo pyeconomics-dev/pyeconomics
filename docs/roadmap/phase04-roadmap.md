@@ -6424,9 +6424,9 @@ hygiene.
 
 ---
 
-## Step 12 — Service Container
+## Step 12 — Service Container ✅
 
-**Status:** Not started
+**Status:** Complete — PR #201 (2026-10-26)
 
 > **Goal:** Package the hosted API as an image that holds only what hosted
 > mode may serve. Add a multi-stage `Dockerfile` and `.dockerignore`: a
@@ -6482,7 +6482,7 @@ and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
 Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
-> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+> Ran 2026-10-26: Balanced Pick — Gemini 4 Argon · High. Selected by the Runs rule (Antigravity pool headroom).
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a Dockerfile,
 an ignore file, an entry point and a CI job that builds, scans and runs
@@ -9240,7 +9240,7 @@ workflow above maps directly to the corresponding row below.
 | 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
 | 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #200 |
-| 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #201 |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
 | 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
 | 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
