@@ -389,13 +389,13 @@ c19() {
   # the new non-root hosted-mode container markers.
   if tracked Dockerfile; then
     for p in PYECONOMICS_MODE=hosted pyeconomics.server --require-hashes; do
-      grep -qF "$p" Dockerfile || bad="$bad Dockerfile:$p"
+      grep -qF -- "$p" Dockerfile || bad="$bad Dockerfile:$p"
     done
     grep -qi 'jupyter' Dockerfile && bad="$bad Dockerfile:jupyter"
   fi
   if tracked .dockerignore; then
     for p in .roadmodel/ CLAUDE.local.md planning/user-context.md; do
-      grep -qF "$p" .dockerignore || bad="$bad .dockerignore:$p"
+      grep -qF -- "$p" .dockerignore || bad="$bad .dockerignore:$p"
     done
   fi
   [ -z "$(git ls-files 'docs/roadmap*.rst')" ] || bad="$bad docs/roadmap*.rst"
