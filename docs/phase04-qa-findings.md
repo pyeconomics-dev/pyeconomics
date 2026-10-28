@@ -188,6 +188,9 @@ Linked PRs keep the detailed evidence, tradeoffs and validation.
 | `uv run --python 3.14` would rebuild the project's `.venv` | process | The fuzz group runs in its own project environment | V7.2 |
 | `uv sync` with one group removes other extras from `.venv` | process | --node uses `uv run` (inexact) with every extra | V7.3, V8.3 |
 | A Windows server stopped by its wrapper leaves workers behind | process | `serving` sends Ctrl+Break to a new process group | V7.3, V8.3 |
+| The first canonical `--post` changed directory inside the package check, so every later check ran outside the repository | bug | Fixed in this PR: the check runs in a subshell, and each mode starts from the repository root | The rerun below; every mode passed alone first |
+| A fixed port (8765) can belong to another program, whose `/healthz` then answers the smoke | bug | Fixed in this PR: the verifier picks a free loopback port per server | V7.3, V8.3, V12.3 |
+| The maintainer's `.venv` held a half-removed PyYAML (no `__init__.py`) since 2026-10-26, which stops myst-parser's front-matter read | process | Reinstalled with `uv sync --reinstall-package pyyaml`; an interrupted exact sync while an editor held `_yaml.pyd` is the likely cause | DOCS; `vscode-venv-lock` practice |
 | The parent's acceptance criterion names a past-date Taylor-rule agent task; Step 9 deferred it | spec-rot | Parent criterion amended in this PR; #195/#196 (open) own the Taylor task | V9.2 (nine scripted tasks) |
 | V9.2 said eight scripted tasks; there are nine | spec-rot | Phase 4 roadmap amended in this PR | Static check 38; `test_mcp_agent_tasks.py` |
 | The roadmap's known property issues omitted #137 | spec-rot | Phase 4 roadmap amended in this PR | CI profile |

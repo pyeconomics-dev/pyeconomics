@@ -648,7 +648,8 @@ wheel_file() {
   echo "$wheel"
 }
 # ci.yml's package job: the console script and a bundle from the clean wheel.
-wheel_package() {
+# A subshell, because it works in its own directory.
+wheel_package() (
   local wheel py cli
   wheel=$(wheel_file) || return 1
   uv venv --no-config --python "$(interpreter)" -q "$TMP/clean" || return 1
@@ -667,7 +668,7 @@ wheel_package() {
   uv pip install --no-config --python "$py" "$wheel" || return 1
   mkdir irr && "$py" -c 'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' irr.zip irr || return 1
   (cd irr && "$py" reproduce.py --out rerun.json && cmp rerun.json result.json)
-}
+)
 wheel_smoke() {
   local py wheel
   wheel=$(wheel_file) || return 1
@@ -701,6 +702,7 @@ pyodide_job() {
 }
 run_python() {
   CURRENT_MODE=python
+  cd "$ROOT" || exit 2
   section "--python"
   vcheck TYPES "Locked extras/docs; format, lint and strict types" lint_types
   local suite_status=PASS fuzz_status=PASS combined id
@@ -727,12 +729,16 @@ run_python() {
   vcheck V4.3 "ci.yml's pyodide job builds the CLI for this commit" pyodide_job
 }
 
+# A free loopback port: a fixed one may belong to another program.
+free_port() {
+  "$PY" -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])'
+}
 node_tools() {
   (cd tools/node && npm ci --ignore-scripts --no-fund --no-audit && npm audit --audit-level=high)
 }
 edge_tests() { (cd tools/node && node --test edge/worker.test.mjs); }
 clients() {
-  local cli
+  local cli port
   uv run --locked --all-extras --group clients pyeconomics registry export --out tools/node/generated || return 1
   (cd tools/node && npx --no-install openapi-ts && npx --no-install tsc --noEmit && npx --no-install tsc) || return 1
   uv run --locked --all-extras --group clients python scripts/clients/retitle_openapi.py \
@@ -741,26 +747,31 @@ clients() {
     --path "$TMP/openapi-titled.json" --output-path "$TMP/python-client/pyeconomics_client" \
     --meta none --fail-on-warning || return 1
   cli=$(venv_bin "$ROOT/.venv" pyeconomics)
-  serving http://127.0.0.1:8765/healthz "$cli" serve --port 8765 --workers 1 -- \
-    bash -c "cd tools/node && node smoke.mjs http://127.0.0.1:8765 '$TMP/ts-run.json'" || return 1
-  serving http://127.0.0.1:8765/healthz "$cli" serve --port 8765 --workers 1 -- \
+  port=$(free_port) || return 1
+  serving "http://127.0.0.1:$port/healthz" "$cli" serve --port "$port" --workers 1 -- \
+    bash -c "cd tools/node && node smoke.mjs http://127.0.0.1:$port '$TMP/ts-run.json'" || return 1
+  port=$(free_port) || return 1
+  serving "http://127.0.0.1:$port/healthz" "$cli" serve --port "$port" --workers 1 -- \
     uv run --locked --all-extras --group clients python scripts/clients/python_smoke.py \
-    "$TMP/python-client" http://127.0.0.1:8765 "$TMP/py-run.json" || return 1
+    "$TMP/python-client" "http://127.0.0.1:$port" "$TMP/py-run.json" || return 1
   uv run --locked --all-extras --group clients python scripts/clients/compare_runs.py "$TMP/ts-run.json" "$TMP/py-run.json"
 }
 inspector() {
-  local cli py
+  local cli py port
   export MCP_CATALOG_PATH="$TMP/inspector-catalog.json"
   cli=$(venv_bin "$ROOT/.venv" pyeconomics)
   py=$(venv_python "$ROOT/.venv")
   "$py" scripts/mcp/inspector_checks.py tools/node "$cli" mcp || return 1
-  serving http://127.0.0.1:8765/healthz "$cli" serve --port 8765 --workers 1 -- \
-    "$py" scripts/mcp/inspector_checks.py tools/node http://127.0.0.1:8765/mcp || return 1
-  serving http://127.0.0.1:8766/mcp "$cli" mcp --transport http --port 8766 -- \
-    "$py" scripts/mcp/inspector_checks.py tools/node http://127.0.0.1:8766/mcp
+  port=$(free_port) || return 1
+  serving "http://127.0.0.1:$port/healthz" "$cli" serve --port "$port" --workers 1 -- \
+    "$py" scripts/mcp/inspector_checks.py tools/node "http://127.0.0.1:$port/mcp" || return 1
+  port=$(free_port) || return 1
+  serving "http://127.0.0.1:$port/mcp" "$cli" mcp --transport http --port "$port" -- \
+    "$py" scripts/mcp/inspector_checks.py tools/node "http://127.0.0.1:$port/mcp"
 }
 run_node() {
   CURRENT_MODE=node
+  cd "$ROOT" || exit 2
   section "--node"
   vcheck NPM "npm ci and npm audit --audit-level=high in tools/node" node_tools
   vcheck EDGE "Edge Worker tests" edge_tests
@@ -780,7 +791,8 @@ image_scan() {
     image --skip-version-check --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 "$IMAGE"
 }
 image_smoke() {
-  local port=18080 uid status=0
+  local port uid status=0
+  port=$(free_port) || return 1
   docker run -d --name "$CONTAINER" --read-only --tmpfs /tmp -p "127.0.0.1:$port:8080" \
     -e PYECONOMICS_WORKERS=2 "$IMAGE" > /dev/null || return 1
   uid=$(docker exec "$CONTAINER" id -u | tr -d '\r')
@@ -837,6 +849,7 @@ PY
 }
 run_container() {
   CURRENT_MODE=container
+  cd "$ROOT" || exit 2
   section "--container"
   local scan=PASS
   image_scan > "$TMP/image.log" 2>&1 || scan=FAIL
@@ -869,6 +882,7 @@ cassette_scan() { uv run --locked pytest -q tests/providers/test_cassette_files.
 npm_audit() { (cd tools/node && npm audit --audit-level=high); }
 run_security() {
   CURRENT_MODE=security
+  cd "$ROOT" || exit 2
   section "--security"
   local layers=PASS gate=PASS secrets=PASS cassettes=PASS npm=PASS status=PASS
   layering > "$TMP/layering.log" 2>&1 || layers=FAIL
@@ -1014,6 +1028,7 @@ PY
 }
 run_live() {
   CURRENT_MODE=live
+  cd "$ROOT" || exit 2
   section "--live"
   vcheck V1.3 "Issue #157 closed" issue_157
   vcheck V7.4 "Issue #162 closed" issue_162
@@ -1124,6 +1139,7 @@ pr_checks() {
 }
 run_post() {
   CURRENT_MODE=post
+  cd "$ROOT" || exit 2
   section "--post"
   vcheck V15.3 "Fresh PyPI install, CLI and smoke; uvx MCP Inspector; stable 0.2.6" published_install
   vcheck V16.5 "Synthetic staging alarm, its issue, confirmed notification, budget notice" alarms
