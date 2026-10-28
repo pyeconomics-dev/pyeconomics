@@ -7958,9 +7958,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 15 — 1.0.0b1 Release
+## Step 15 — 1.0.0b1 Release ✅
 
-**Status:** Not started
+**Status:** Complete — PR #208 (2026-10-28)
 
 > **Goal:** Publish the approved candidate as `1.0.0b1` and every surface
 > that ships with it. Move the version to `1.0.0b1` with `CITATION.cff` in
@@ -8021,6 +8021,7 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+> Ran 2026-10-28: Balanced Pick — Gemini 4 Argon · High. Balanced column default (Antigravity pool headroom).
 
 **Model rationale:** Agentic is PRIMARY and coding SECONDARY: a release
 checklist across version files, notes, a tag, two protected deployments,
@@ -9302,7 +9303,7 @@ workflow above maps directly to the corresponding row below.
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #201 |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #204 |
 | 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #207 |
-| 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #208 |
 | 16      | QA + verify-phase04.sh           | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | V1      | Concurrency hardening            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V2      | ADR-0012 + surface core          | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |

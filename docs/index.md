@@ -1,7 +1,7 @@
 # pyeconomics 1.0 preview
 
 ```{warning}
-This is the **1.0 alpha preview**, built from `main`. APIs may change.
+This is the **1.0 beta preview**, built from `main`. APIs may change.
 For the current stable release, use the [0.2.6 documentation](https://pyeconomics.readthedocs.io/en/stable/).
 ```
 
@@ -14,9 +14,11 @@ sources, 171 catalog concepts and live bindings with real-time vintages.
 OLS, GARCH and time-series models require the `econometrics` extra; result
 charts use the `plot` extra.
 Each has a generated card with units, bounds, assumptions, limitations and a
-worked example. The Python API, the `pyeconomics` command line, the local
-REST API, the MCP server for AI assistants and an optional AI narrative of a
-result ({doc}`ai`) are available in this checkout; the web app follows.
+worked example. The Python API, the `pyeconomics` command line ({doc}`cli`),
+tabular exports and reproducibility bundles ({doc}`exports`), the local and
+hosted REST API ({doc}`api`), the MCP server for AI assistants ({doc}`mcp`)
+and an optional AI narrative of a result ({doc}`ai`) are available in this
+checkout; the web app arrives in Phase 5.
 
 ```{toctree}
 :maxdepth: 2
