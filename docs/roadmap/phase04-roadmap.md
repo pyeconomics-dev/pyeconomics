@@ -8267,8 +8267,18 @@ hygiene.
     Current state (post-Phase-4 Step 14):
 
     - docs/releases/1.0.0b1-readiness.md records the
-      maintainer's GO for v1.0.0b1.devN at its commit, and
-      lists what the release may still change.
+      maintainer's GO (2026-10-28) for v1.0.0b1.dev1 at
+      3a9fde9c460d853dd92f544d1490dca1d592bc66, and lists what
+      the release may still change; the 9 open Dependabot PRs
+      (#101-#103, #185, #187-#189, #202, #203) are held until
+      1.0.0b1 is published, then rebased and evaluated.
+    - From Step 14: when running `scripts/mcp/inspector_checks.py`
+      against a clean wheel venv, invoke `inspector_checks.py`
+      with that venv's own Python interpreter (`<venv>/bin/python -I`)
+      so `manifest.dependencies` matches the server's installed
+      packages; on Windows, pass `--python 3.13` to `uv venv`
+      when testing `[econometrics]` so CPython 3.15 is not
+      selected (#154).
     - release.yml publishes a non-dev v* tag to PyPI behind
       the pypi environment, with attestations, then runs
       release-smoke.yml; mcp-registry.yml runs on a published
@@ -8719,7 +8729,17 @@ per phase-boundary hygiene.
     `/healthz` through `https://staging-api.pyeconomics.dev`
     (with `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`
     from `keyring` under `service="pyeconomics"`) and `/version`
-    on the `.run.app` origin.
+    on the `.run.app` origin. From Step 14: for `--live`'s
+    two-layer `429` burst check on `https://staging-api.pyeconomics.dev`,
+    trigger the application's Redis limiter first on `/v1/series/...`
+    (`30/minute`, <50 req/10s, checking `Retry-After`), wait 12s
+    for Cloudflare's 10s window to clear, and then trigger
+    Cloudflare's `staging-api-rate-limit` rule (`50 req / 10s`) on
+    `GET /version` (exempt from the app limiter) using
+    `httpx2.AsyncClient` + `asyncio.gather` over pre-warmed
+    connections; invoke `scripts/mcp/inspector_checks.py` with the
+    target venv's Python interpreter (`-I`) so
+    `manifest.dependencies` matches.
 
     Reference scripts (pattern templates):
     - scripts/verify-phase03.sh (the structural template:
