@@ -44,10 +44,20 @@ AGENT: Final = {"User-Agent": "pyeconomics-verify/1.0"}
 # Cloudflare Access refuses a request without the token by redirecting or denying it.
 REFUSED: Final = {302, 303, 401, 403}
 # The application's limiter allows 30 series requests a minute; Cloudflare's
-# rule allows 50 requests in 10 seconds (Phase 4 Step 13).
+# rule allows 50 requests in 10 seconds (Phase 4 Step 13). Cloudflare's counters
+# lag: one sub-second burst of 100 can pass untouched, so the edge is probed in
+# spaced waves inside one window until it answers 429.
 SERIES_BURST: Final = 40
-EDGE_BURST: Final = 100
+EDGE_WAVE: Final = 30
+EDGE_WAVES: Final = 6
+EDGE_WAVE_GAP: Final = 1.5
 CLOUDFLARE_WINDOW: Final = 12.0
+
+
+def _fail(invariant: str) -> int:
+    """Name the failed invariant with a fixed verdict and fail closed."""
+    sys.stdout.write(json.dumps({invariant: "FAIL"}) + "\n")
+    return 1
 
 
 def published(cli: str) -> int:  # noqa: PLR0911 # each independent invariant fails closed
@@ -57,14 +67,14 @@ def published(cli: str) -> int:  # noqa: PLR0911 # each independent invariant fa
     from pyeconomics.data.credentials import has_key, withheld  # noqa: PLC0415
 
     if version("pyeconomics") != VERSION:
-        return 1
+        return _fail("version")
     if any(name.endswith("_API_KEY") for name in os.environ):
-        return 1
+        return _fail("ambient_key")
     answer = subprocess.run(  # noqa: S603 # nosec B603 # the release's console script
         [cli, "--version"], capture_output=True, text=True, check=True
     )
     if answer.stdout.strip() != f"pyeconomics {VERSION}":
-        return 1
+        return _fail("cli_version")
     printed = subprocess.run(  # noqa: S603 # nosec B603
         [
             cli,
@@ -84,15 +94,15 @@ def published(cli: str) -> int:  # noqa: PLR0911 # each independent invariant fa
         check=True,
     ).stdout.replace(b"\r\n", b"\n")
     if printed != run("foundations.time_value", RUN_INPUTS).to_json().encode() + b"\n":
-        return 1
+        return _fail("cli_bytes")
     start, end = dt.date(2024, 1, 1), dt.date(2024, 12, 31)
     months = 12
     with cache.bypass(), withheld("fred"):
         if has_key("fred"):
-            return 1
+            return _fail("fred_withheld")
         found = data.get("bls:CUUR0000SA0", start=start, end=end)
         if len(found.frame.index) != months or found.sources[0].provider != "bls":
-            return 1
+            return _fail("bls_keyless")
     shown = subprocess.run(  # noqa: S603 # nosec B603
         [
             cli,
@@ -108,7 +118,7 @@ def published(cli: str) -> int:  # noqa: PLR0911 # each independent invariant fa
         check=False,
     )
     if shown.returncode != 0:
-        return 1
+        return _fail("data_get_cli")
     sys.stdout.write(
         json.dumps({"console_script": "PASS", "bls_keyless": "PASS"}) + "\n"
     )
@@ -152,7 +162,7 @@ def deployed(sha: str) -> int:
     status, _, body = _call(_edge() + "/version", _token())
     found = json.loads(body) if status == HTTPStatus.OK else {}
     if found.get("git_sha") != sha or found.get("mode") != "hosted":
-        return 1
+        return _fail("deployed_sha")
     sys.stdout.write(json.dumps({"deployed_sha": "PASS"}) + "\n")
     return 0
 
@@ -194,15 +204,30 @@ async def _burst(url: str, headers: dict[str, str], count: int) -> list[Any]:
         return list(await asyncio.gather(*(client.get(url) for _ in range(count))))
 
 
-def _rate_limits(edge: str, headers: dict[str, str]) -> bool:
+def _application_limit(edge: str, headers: dict[str, str]) -> bool:
     series = edge + "/v1/series/treasury:debt?start=2025-01-01&end=2025-01-31"
     answers = asyncio.run(_burst(series, headers, SERIES_BURST))
     application = [r for r in answers if r.status_code == HTTPStatus.TOO_MANY_REQUESTS]
-    if not application or not all(r.headers.get("Retry-After") for r in application):
-        return False
+    return bool(application) and all(r.headers.get("Retry-After") for r in application)
+
+
+def _edge_limit(edge: str, headers: dict[str, str]) -> bool:
     time.sleep(CLOUDFLARE_WINDOW)
-    answers = asyncio.run(_burst(edge + "/version", headers, EDGE_BURST))
-    return any(r.status_code == HTTPStatus.TOO_MANY_REQUESTS for r in answers)
+    for _ in range(EDGE_WAVES):
+        answers = asyncio.run(_burst(edge + "/version", headers, EDGE_WAVE))
+        if any(r.status_code == HTTPStatus.TOO_MANY_REQUESTS for r in answers):
+            return True
+        time.sleep(EDGE_WAVE_GAP)
+    return False
+
+
+def _rate_limits(edge: str, headers: dict[str, str]) -> str | None:
+    """Name the rate-limit layer that failed to answer 429, if any."""
+    if not _application_limit(edge, headers):
+        return "application_limit"
+    if not _edge_limit(edge, headers):
+        return "edge_limit"
+    return None
 
 
 def staging() -> int:  # noqa: PLR0911 # each independent live invariant fails closed
@@ -213,10 +238,10 @@ def staging() -> int:  # noqa: PLR0911 # each independent live invariant fails c
     headers = _token()
     status, _, body = _call(edge + "/healthz", headers)
     if status != HTTPStatus.OK or json.loads(body) != {"status": "ok"}:
-        return 1
+        return _fail("healthz")
     status, _, body = _call(edge + RUN_PATH, headers, RUN_BODY)
     if status != HTTPStatus.OK:
-        return 1
+        return _fail("edge_run")
     # The manifest records the interpreter's dependencies; the result and
     # input digests, which never cover it, must equal the Python API's.
     remote, local = (
@@ -225,9 +250,9 @@ def staging() -> int:  # noqa: PLR0911 # each independent live invariant fails c
     )
     for key in ("result_sha256", "inputs_sha256"):
         if remote["manifest"][key] != local["manifest"][key]:
-            return 1
+            return _fail("run_digests")
     if remote["outputs"] != local["outputs"]:
-        return 1
+        return _fail("run_outputs")
     status, _, body = _call(
         edge + "/v1/series/treasury:debt?start=2025-01-01&end=2025-01-31", headers
     )
@@ -237,16 +262,16 @@ def staging() -> int:  # noqa: PLR0911 # each independent live invariant fails c
         or series["sources"][0]["licence"] != "hosted-safe"
         or not series["attributions"]
     ):
-        return 1
+        return _fail("hosted_safe_series")
     status, _, body = _call(edge + "/v1/series/fred:UNRATE", headers)
     if status != HTTPStatus.FORBIDDEN or not json.loads(body)["type"].endswith(
         "/problems/licence-refused"
     ):
-        return 1
+        return _fail("licence_refused")
     if not _refusals(edge, origin):
-        return 1
-    if not _rate_limits(edge, headers):
-        return 1
+        return _fail("refusals")
+    if (failed := _rate_limits(edge, headers)) is not None:
+        return _fail(failed)
     sys.stdout.write(
         json.dumps({"edge": "PASS", "refusals": "PASS", "rate_limits": "PASS"}) + "\n"
     )
