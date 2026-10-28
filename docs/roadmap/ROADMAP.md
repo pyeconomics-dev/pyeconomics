@@ -996,8 +996,10 @@ backup.
   422 with problem details.
 - The MCP server passes MCP Inspector checks over stdio and Streamable
   HTTP; the `tools/list` snapshot is stable; scripted agent tasks (price a
-  bond and report its duration; run the Taylor rule for a past date)
-  succeed through the tools.
+  bond and report its duration; run a bound model for a past date)
+  succeed through the tools. (Amended in Phase 4 Step 16: the past-date
+  task binds the recession probability at 2025-06-30; a 2019 Taylor-rule
+  task joins once #195 and #196 are fixed, as Step 9 recorded.)
 - **Deployed & verified:** `pip install --pre pyeconomics==1.0.0b1` gives
   a working `pyeconomics` CLI and `pyeconomics mcp` server; staging
   `/version` reports this phase's SHA; a request with a Cloudflare Access

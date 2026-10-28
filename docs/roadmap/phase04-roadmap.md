@@ -836,7 +836,7 @@ execute all six stages before declaring a step complete.
   and `-m "not live"`, over `tests`, `src` and `docs`. The offline suite
   passed 7,755 tests in about 16–19 minutes serially (no pytest-xdist);
   `HYPOTHESIS_PROFILE=ci` is the required profile, and the dev profile
-  fails five known property issues (#112, #139, #143, #149, #152).
+  fails six known property issues (#112, #137, #139, #143, #149, #152).
 - `tests/golden/` holds one TOML file per model: 354 cited cases across 50
   files, the inputs every parity check will run. `tests/registry/toy_models.py`
   is the toy catalog, `tests/data/bindings/bound_support.py` the scripted
@@ -9201,7 +9201,7 @@ workflow above maps directly to the corresponding row below.
 | ID   | Check                                                              | Automation                                                                |
 | ---- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | V9.1 | Static checks 35–38 all PASS, including `docs/mcp-evaluations.md` with no failed task. | `phase-verify.yml --fast`.                           |
-| V9.2 | The MCP Apps resource tests, `server.json`'s schema validation and the eight scripted tasks pass. | `ci.yml` tests matrix (`--python` locally). |
+| V9.2 | The MCP Apps resource tests, `server.json`'s schema validation and the nine scripted tasks pass. | `ci.yml` tests matrix (`--python` locally). |
 
 ### V10 — Cross-surface parity
 

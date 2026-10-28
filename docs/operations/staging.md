@@ -72,9 +72,10 @@ gate (`src/pyeconomics/server/edge.py`):
   `refs/heads/main`. Each service account lists only `SYSTEM_MANAGED` keys.
 - **Deploy service account (`pyeconomics-staging-deploy`):** granted only
   `roles/artifactregistry.writer` on the `pyeconomics` Artifact Registry
-  repository, `roles/run.admin` (or `roles/run.developer`) on the
-  `pyeconomics-api-staging` Cloud Run service, and `roles/iam.serviceAccountUser`
-  on `pyeconomics-staging-runtime`.
+  repository, `roles/run.admin` on the `pyeconomics-staging` project (Cloud Run
+  refuses a service-level binding before the service exists; narrowing it to
+  the `pyeconomics-api-staging` service is issue #211), and
+  `roles/iam.serviceAccountUser` on `pyeconomics-staging-runtime`.
 - **Runtime service account (`pyeconomics-staging-runtime`):** granted only
   `roles/secretmanager.secretAccessor` on the `ratelimit-url` and
   `edge-credential` secrets in Secret Manager. It holds no project-wide role.
@@ -125,7 +126,10 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
      (`licence-refused`) with the source's `terms` URL.
 6. If any deployment or verification step fails, the workflow automatically
    executes `gcloud run services update-traffic` to route `100%` of traffic back
-   to `PREVIOUS_REVISION` and fails the run.
+   to `PREVIOUS_REVISION` and fails the run. That pins traffic to the named
+   revision, so the next deploy's revision receives none until traffic is
+   returned with `gcloud run services update-traffic pyeconomics-api-staging
+   --to-latest` (issue #210 makes the deploy do it).
 
 ### Deploying the Cloudflare Worker edge
 
