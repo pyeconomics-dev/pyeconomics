@@ -7458,9 +7458,9 @@ Thinking toggle. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 14 — 1.0.0b1 Readiness Gate
+## Step 14 — 1.0.0b1 Readiness Gate ✅
 
-**Status:** Not started
+**Status:** Complete — PR #207 (2026-10-28)
 
 > **Goal:** Decide, on evidence, whether the exact candidate may become
 > `1.0.0b1`. Tag `main`'s HEAD `v1.0.0b1.devN` so `release.yml` publishes
@@ -7521,6 +7521,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-28: Quality Runner-up — Gemini 4 Argon · High. Selected by the user on Antigravity (Antigravity pool headroom).
 
 **Model rationale:** Agentic is PRIMARY and planning SECONDARY: a long
 verification run across TestPyPI, clean environments, staging, the MCP
@@ -9299,7 +9301,7 @@ workflow above maps directly to the corresponding row below.
 | 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #200 |
 | 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #201 |
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #204 |
-| 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Not started |
+| 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #207 |
 | 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | 16      | QA + verify-phase04.sh           | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
 | V1      | Concurrency hardening            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
@@ -9686,6 +9688,22 @@ whatever is still open here.
   startup probe checks container `/healthz:8080` directly while `worker.mjs`
   probes origin `/version` for edge `/healthz` (spec rot fixed in Step 13's
   task block). Steps 14 and 16's task blocks note what they build on.
+- From Phase 4 Step 14, readiness gate and TestPyPI rehearsal (no decision
+  changed): tagged `main` (`3a9fde9c460d853dd92f544d1490dca1d592bc66`) as
+  `v1.0.0b1.dev1`, verified `release.yml` run `40616687502` published
+  byte-identical wheel (`03020f84...`) and sdist (`603860c8...`) to TestPyPI
+  with PEP 740 attestations, verified clean-venv installs (`core`,
+  `[econometrics,plot]`, `[server]`, `[mcp]` via `uvx`), MCP Inspector over
+  stdio, staging `/mcp` over Streamable HTTP with Access headers, 13-domain
+  staging parity sample, SSRF `4xx` checks, bounded `429` burst checks (Upstash
+  Redis limiter with `Retry-After` and Cloudflare `50 req / 10s` rule), 9/9
+  scripted and live `claude-sonnet-5-5` MCP agent tasks
+  (`docs/mcp-evaluations.md`), and live AI narrative across all 4 providers
+  (`$0.0156`). All 9 open Dependabot PRs (`#101`–`#103`, `#185`, `#187`–`#189`,
+  `#202`, `#203`) are held until Step 15 publishes `1.0.0b1`; maintainer signed
+  off `Decision: GO — 2026-10-28 — Nathan Ramos, CFA` in
+  `docs/releases/1.0.0b1-readiness.md`. Steps 15 and 16's task blocks note what
+  they build on.
 
 ---
 
