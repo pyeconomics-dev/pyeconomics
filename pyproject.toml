@@ -34,12 +34,12 @@ classifiers = [
 dependencies = [
     "cyclopts>=5.3",
     "defusedxml>=0.7.1",
-    "holidays>=0.106",
-    "numpy>=2.4",
+    "holidays>=0.107",
+    "numpy>=2.5.4",
     "openpyxl>=3.1.5",
-    "pandas>=3.0",
-    "platformdirs>=4.9.4",
-    "pydantic>=2.12",
+    "pandas>=3.1.0",
+    "platformdirs>=4.13.5",
+    "pydantic>=2.14.1",
     "scipy>=1.18",
     "truststore>=0.10 ; sys_platform != 'emscripten'",
     "urllib3>=2.6.3",
@@ -149,14 +149,14 @@ all = [
     "uvicorn>=0.54",
     "mcp>=2.3",
     "yfinance>=1.7",
-    "sdmx1>=2.27",
+    "sdmx1>=2.28.0",
     "keyring>=25.7",
     "plotly>=7.1.0",
     "statsmodels>=0.15.0",
     "arch>=8.0 ; python_full_version < '3.15'",
 ]
 sdmx = [
-    "sdmx1>=2.27",
+    "sdmx1>=2.28.0",
 ]
 yfinance = [
     "yfinance>=1.7",
@@ -166,7 +166,7 @@ yfinance = [
 [dependency-groups]
 test = [
     "yfinance>=1.7",
-    "sdmx1>=2.27",
+    "sdmx1>=2.28.0",
     "fastapi>=0.162",
     "limits[redis]>=5.8",
     "uvicorn>=0.54",
@@ -174,7 +174,7 @@ test = [
     # httpx2: Starlette's TestClient (tests/server); Starlette 1.10 deprecates
     # httpx there.
     "httpx2>=2.16.0",
-    "hypothesis>=6.168.5",
+    "hypothesis>=6.170.9",
     "jsonschema>=4.26.0",
     "keyring>=25.7",
     "numpy-financial>=1.0.0",
@@ -185,7 +185,7 @@ test = [
     "pytest-benchmark>=5.3.0",
     "pytest-cov>=7.1.0",
     "pytest-socket>=0.8.1",
-    "quantlib>=1.43",
+    "quantlib>=1.44",
     "rfc8785>=0.1.4",
     "statsmodels>=0.15.0",
     "sybil>=10.1.0",
@@ -202,11 +202,11 @@ dev = [
     # pandas-stubs, scipy-stubs: mypy strict types pandas and SciPy, which ship
     # no py.typed (Phase 2 Step 1).
     "pandas-stubs>=3.0.5.260914",
-    "prek>=0.5.5",
+    "prek>=0.5.7",
     "pyright>=1.1.414",
-    "ruff>=0.16.10",
+    "ruff>=0.17.2",
     "scipy-stubs>=1.18.1.1",
-    "ty>=0.0.85",
+    "ty>=0.0.91",
     "types-defusedxml>=0.7.0.20260504",
     "types-openpyxl>=3.1.5.20261017",
     "xlwt>=1.3",
@@ -214,7 +214,7 @@ dev = [
 docs = [
     "myst-nb>=1.4.0",
     "pydata-sphinx-theme>=0.23.0",
-    "sphinx>=9.1.0",
+    "sphinx>=9.1.1",
     "sphinx-autoapi>=3.8.1",
 ]
 # Schemathesis against openapi.json (ci.yml's api-fuzz job, Python 3.14). The
