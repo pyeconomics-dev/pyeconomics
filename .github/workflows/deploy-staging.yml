@@ -72,9 +72,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv build --wheel
+          uv build --no-config --wheel
+          uv export --no-config --frozen --no-dev --no-emit-project --output-file "$RUNNER_TEMP/requirements.txt"
           uv venv "$RUNNER_TEMP/wheel-venv"
-          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" dist/*.whl
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --require-hashes --requirement "$RUNNER_TEMP/requirements.txt"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --no-deps dist/*.whl
           "$RUNNER_TEMP/wheel-venv/bin/python" - <<'PY' > "$RUNNER_TEMP/expected-run.json"
           import sys
           import pyeconomics
