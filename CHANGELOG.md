@@ -13,6 +13,35 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+### Changed
+
+- The version on `main` moves to `1.0.0rc1.dev1`, the first development build
+  towards the 1.0.0 release candidate; `CITATION.cff` and the MCP Registry entry
+  (`server.json`) follow it.
+
+### Fixed
+
+- Every phase verifier (`scripts/verify-phaseNN.sh`) refuses to run under a
+  bash older than 4 (exit 2 with a message) instead of stopping at its first
+  check and exiting 0, and keeps a crash's exit status through its `EXIT`
+  trap; `CONTRIBUTING.md` names the requirement (#217).
+- Phase 1's verifier strips the carriage returns `gh` can print on Windows, so
+  check 16 no longer reports an open pull request's branch as unexpected
+  (#213).
+- The staging deploy returns traffic to the latest revision before it
+  verifies, so a new revision is never stranded at 0% after a rollback pinned
+  the traffic, and the runbook says how to return to latest after a manual
+  rollback (#210).
+- The staging deploy identity holds `roles/run.developer` on the Cloud Run
+  service alone, never a project-level Cloud Run role, and the deploy no longer
+  rewrites the service's IAM policy (#211).
+
+### Security
+
+- actionlint, pinned by commit, checks every GitHub Actions workflow in the
+  pre-commit gate and in CI's `zizmor` job, so a workflow GitHub would reject at
+  load time fails before it merges (#212).
+
 ## [1.0.0b1] - 2026-10-28
 
 ### Added

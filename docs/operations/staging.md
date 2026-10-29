@@ -41,11 +41,11 @@ Google Cloud Run (pyeconomics-api-staging, us-central1)
 
 ### Why Cloud Run IAM allows unauthenticated invocations
 
-Cloud Run's IAM policy grants `roles/run.invoker` to `allUsers`
-(`--allow-unauthenticated`) and accepts `--ingress=all` because the Cloudflare
-Worker executes on Cloudflare's global edge without a static source IP range or
-a Google Cloud OIDC identity. Instead, the origin enforces its own cryptographic
-gate (`src/pyeconomics/server/edge.py`):
+Cloud Run's IAM policy grants `roles/run.invoker` to `allUsers` and accepts
+`--ingress=all` because the Cloudflare Worker executes on Cloudflare's global
+edge without a static source IP range or a Google Cloud OIDC identity. Instead,
+the origin enforces its own cryptographic gate
+(`src/pyeconomics/server/edge.py`):
 
 - Every request to `/v1/*` or `/mcp` must carry `X-Pyeconomics-Edge` matching
   `PYECONOMICS_EDGE_CREDENTIAL` (32 to 512 printable ASCII characters, no
@@ -63,6 +63,18 @@ gate (`src/pyeconomics/server/edge.py`):
   `HEAD /healthz` requests and translates a `200` response into
   `{"status":"ok"}`.
 
+The `allUsers` binding is set once on the service and persists across deploys:
+since issue #211 the deploy no longer passes `--allow-unauthenticated`, so it
+never rewrites the service's IAM policy. If the binding is ever lost, the
+deploy's origin `/version` check fails (Google answers `403`) and traffic rolls
+back; a project owner restores it with:
+
+```bash
+gcloud run services add-iam-policy-binding pyeconomics-api-staging \
+  --project=pyeconomics-staging --region=us-central1 \
+  --member=allUsers --role=roles/run.invoker
+```
+
 ### Least-privilege identities and secrets
 
 - **No service-account keys:** GitHub Actions authenticates to Google Cloud
@@ -72,10 +84,14 @@ gate (`src/pyeconomics/server/edge.py`):
   `refs/heads/main`. Each service account lists only `SYSTEM_MANAGED` keys.
 - **Deploy service account (`pyeconomics-staging-deploy`):** granted only
   `roles/artifactregistry.writer` on the `pyeconomics` Artifact Registry
-  repository, `roles/run.admin` on the `pyeconomics-staging` project (Cloud Run
-  refuses a service-level binding before the service exists; narrowing it to
-  the `pyeconomics-api-staging` service is issue #211), and
-  `roles/iam.serviceAccountUser` on `pyeconomics-staging-runtime`.
+  repository, `roles/run.developer` on the `pyeconomics-api-staging` service,
+  and `roles/iam.serviceAccountUser` on `pyeconomics-staging-runtime`. It holds
+  no project-level role (as of 2026-10-29, issue #211). Phase 4 had bound
+  `roles/run.admin` on the project, because Cloud Run refuses a service-level
+  binding before the service exists; once the service existed, the role moved
+  to the service, narrowed to `roles/run.developer`, which deploys and routes
+  traffic but cannot set IAM policy. A new service (production) gets the same
+  pattern: create it once by hand, then bind the deploy identity on it.
 - **Runtime service account (`pyeconomics-staging-runtime`):** granted only
   `roles/secretmanager.secretAccessor` on the `ratelimit-url` and
   `edge-credential` secrets in Secret Manager. It holds no project-wide role.
@@ -127,9 +143,10 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
 6. If any deployment or verification step fails, the workflow automatically
    executes `gcloud run services update-traffic` to route `100%` of traffic back
    to `PREVIOUS_REVISION` and fails the run. That pins traffic to the named
-   revision, so the next deploy's revision receives none until traffic is
-   returned with `gcloud run services update-traffic pyeconomics-api-staging
-   --to-latest` (issue #210 makes the deploy do it).
+   revision. The next deploy returns it to the latest revision itself: right
+   after `gcloud run deploy` it runs `gcloud run services update-traffic
+   --to-latest`, before verifying (issue #210), so its new revision is never
+   left at `0%`.
 
 ### Deploying the Cloudflare Worker edge
 
@@ -167,6 +184,25 @@ gcloud run services update-traffic pyeconomics-api-staging \
   --project="$GCP_PROJECT_ID" \
   --region=us-central1 \
   --to-revisions="<REVISION_NAME>=100"
+```
+
+A manual rollback pins traffic to that revision (`latestRevision: true`
+disappears from the service's traffic). The next deploy returns traffic to its
+own new revision; to return to the latest revision before then, once the fault
+is fixed:
+
+```bash
+# 3. Send 100% of traffic to the latest ready revision again
+gcloud run services update-traffic pyeconomics-api-staging \
+  --project="$GCP_PROJECT_ID" \
+  --region=us-central1 \
+  --to-latest
+
+# 4. Confirm: the traffic entry reads latestRevision: true, percent: 100
+gcloud run services describe pyeconomics-api-staging \
+  --project="$GCP_PROJECT_ID" \
+  --region=us-central1 \
+  --format='yaml(spec.traffic)'
 ```
 
 ---

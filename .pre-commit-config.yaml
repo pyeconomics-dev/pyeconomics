@@ -153,6 +153,18 @@ repos:
         files: ^\.github/
         pass_filenames: false
 
+  # Workflow validity (issue #212): actionlint (MIT) checks every workflow's
+  # syntax, expressions and contexts, which zizmor does not; a workflow
+  # GitHub would reject at load time fails here first. prek builds it from
+  # the pinned commit with Go modules checksum-verified. shellcheck and
+  # pyflakes are off so a run is the same on every machine: CI runners have
+  # shellcheck installed and most local machines do not.
+  - repo: https://github.com/rhysd/actionlint
+    rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # frozen: v1.7.12
+    hooks:
+      - id: actionlint
+        args: [-shellcheck=, -pyflakes=]
+
   # No direct commits to main: every change arrives by pull request.
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0

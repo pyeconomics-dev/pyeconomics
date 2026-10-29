@@ -13,6 +13,10 @@
 # - Runs in the protected `staging` environment (`main` only), where
 #   `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` are stored as
 #   environment secrets (never repository secrets).
+# - Deploys without `--allow-unauthenticated`: the service keeps its
+#   `allUsers` invoker binding between deploys, so the deploy identity needs
+#   only `roles/run.developer` on the service and never sets its IAM policy
+#   (#211). The origin `/version` check below fails if the binding is lost.
 
 name: deploy-staging
 
@@ -188,9 +192,15 @@ jobs:
             --concurrency=8 \
             --startup-probe=httpGet.path=/healthz,httpGet.port=8080,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
             --ingress=all \
-            --allow-unauthenticated \
             --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
             --set-secrets="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${ratelimit_ver},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${edge_ver}" \
+            --quiet
+          # A rollback pins traffic to a named revision, which leaves a new
+          # revision at 0% (#210): return it to the latest before verifying.
+          gcloud run services update-traffic "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --to-latest \
             --quiet
           origin_url=$(gcloud run services describe "$GCP_SERVICE" \
             --project="$GCP_PROJECT_ID" \

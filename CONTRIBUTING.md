@@ -81,8 +81,9 @@ conventions.
 The pre-commit hook is the project's per-step security gate (ROADMAP §5
 "Per-step security gate"): gitleaks for secrets, bandit and semgrep with the
 project's rules for SAST, `pip-audit` over `uv.lock` for the dependency audit,
-and the runtime licence allowlist. It is fail-closed, and CI re-runs the same
-hooks as required checks.
+the runtime licence allowlist, and zizmor (security) and actionlint (validity)
+over the workflows. It is fail-closed, and CI re-runs the same hooks as
+required checks.
 
 The bypass (`SKIP=<hook>` or `git commit --no-verify`) is for genuine
 emergencies only. Every use is recorded in the pull request body's "Security
@@ -213,3 +214,14 @@ destination and one label:
 
 A pull request contains its step plus blocking fixes only, and lists the issues
 it opened.
+
+### Phase verification
+
+Each completed phase has a verifier, `scripts/verify-phaseNN.sh`, and
+`phase-verify.yml` runs every one of them (`--fast` and `--security`) on each
+pull request. Run one by hand from the repository with
+`bash scripts/verify-phase04.sh --fast`. The verifiers need bash 4 or later:
+under an older bash (macOS's `/bin/bash` is 3.2) each exits 2 with a message
+rather than run, so install a newer one first (`brew install bash`). A check
+that crashes ends the script with a non-zero status, never a pass. On Windows,
+run them in Git Bash.

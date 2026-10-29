@@ -153,6 +153,11 @@ jobs:
         run: uv run --locked prek run zizmor --all-files --verbose
         env:
           GH_TOKEN: ${{ github.token }}
+      # Workflow validity (#212): the job keeps zizmor's name, the required
+      # check, and also runs actionlint (prek fetches the Go toolchain that
+      # builds it).
+      - name: actionlint
+        run: uv run --locked prek run actionlint --all-files --verbose
 
   dependency-review:
     name: dependency-review

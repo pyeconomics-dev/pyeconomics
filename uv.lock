@@ -2695,7 +2695,7 @@ wheels = [
 
 [[package]]
 name = "pyeconomics"
-version = "1.0.0b1"
+version = "1.0.0rc1.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "cyclopts" },
