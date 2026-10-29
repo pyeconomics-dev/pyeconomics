@@ -1,6 +1,6 @@
 # Phase 5 Roadmap — Web App, Docs & Public Launch (1.0.0)
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1235,9 +1235,9 @@ maintainer's GO; Step 20 follows Step 19.
 
 ---
 
-## Step 1 — Launch Baseline and Carried Fixes
+## Step 1 — Launch Baseline and Carried Fixes ✅
 
-**Status:** Not started
+**Status:** Complete — PR #219 (2026-10-29)
 
 > **Goal:** Set the baseline the launch builds towards and close the
 > findings production must not inherit. Land this roadmap and the refreshed
@@ -1287,6 +1287,10 @@ service's traffic and its IAM policy. The version moves to
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1 out)
 × the tokens the model uses at that level; * token use not yet measured, a
 typical model's at that level assumed.
+
+> Ran 2026-10-29: Quality Runner-up — Opus 5.5 · High. The operator opened
+> the step on Claude Code (Claude pool headroom); the Runs rule selected the
+> Balanced Pick, GPT-6.1 Sol on Codex.
 
 **Conversation:** New
 
@@ -11549,7 +11553,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Launch baseline, fixes         | GPT-6.1 Sol    | Not started        |
+| 1    | Launch baseline, fixes         | GPT-6.1 Sol    | Complete — PR #219 |
 | 2    | ADR-0013                       | Opus 5.5       | Not started        |
 | 3    | Web foundation                 | Gemini 4 Argon | Not started        |
 | 4    | Staging site                   | Sonnet 5.5     | Not started        |
