@@ -27,8 +27,9 @@ OF EVERY FINDING, DECLARE COMPLETION, THEN NEW CONVERSATION", and its
 Step 1 has `**Status:** Not started` directly under the `## Step 1`
 heading. If Stage 3 is a bare "OPEN THE PR", Stage 6 tells you to put
 findings in a "Follow-ups (non-blocking)" note after the completion
-line, a step's Status line sits after its `**Deploys:**` line, or its
-Settings tables have no `Backup` row, STOP
+line, a step's Status line sits after its `**Deploys:**` line, its
+Settings tables have no `Backup` row, or its ladder tables have no
+`Price` row, STOP
 and tell me the kit is stale — do not write the roadmap from it.
 
 Step 0b — roadmaps live in `docs/roadmap/`: `ROADMAP.md` and every
@@ -68,19 +69,25 @@ own model> on <this surface>.`
   take a rollout from another directory. Where no source names
   the model, print `unverified`, ask me which I picked, and go on with my
   answer.
-- A ladder table (Cost / Balanced / Quality columns): its **Runs:**
-  line names the column this session runs (Quality, for a phase
-  roadmap). Apply that line's rule to the Usage-pool status table in
-  `planning/user-context.md`: a pool that reads `tight` moves the run
-  to the column's Backup when the Backup's pool has headroom, else to
-  the Cost column; `exhausted` moves it to the column's Backup. That
-  column's Model, Platform and dials are the ones checked below; print
-  which column it is.
+- A ladder (Cost / Balanced / Quality columns): each column ranks a
+  Pick, a Runner-up and a Backup — from roadmodel 0.2.95 a bold group
+  label each, beside its Model / Platform / Level / AA / Price rows
+  (0.2.94 wrote them as `- Pick:` lists, 0.2.93 as `1 · Pick` rows,
+  and older ladders Model / Backup rows with no Runner-up) — and its
+  **Runs:** line names the
+  column this session runs (Quality, for a phase roadmap). Apply that
+  line's rule to the Usage-pool status table in
+  `planning/user-context.md`: a pool that reads `tight` or `exhausted`
+  moves the run to the first of the column's Runner-up and Backup whose
+  pool has headroom; with neither, `tight` moves it to the Cost
+  column's Pick and `exhausted` to the column's Backup. That option's
+  model, platform and dials are the ones checked below; print which
+  column and rank it is.
 - You are its Model on its Platform, or a newer version in the same
   line (Opus 5 → Opus 5.5, Fable 5 → Fable 5.1, GPT-6 Sol → GPT-6.1
-  Sol): continue, and say so on the line. In a ladder table, any
-  column's model on that column's platform continues too; when it is
-  not the column the rule selects, say which one is.
+  Sol): continue, and say so on the line. In a ladder, any
+  option on its own platform continues too; when it is not the one
+  the rule selects, say which one is.
 - You are its Backup on the backup's platform: continue — I have
   switched to it — and say so on the line.
 - Anything else — a different line, an older version, another
@@ -110,12 +117,13 @@ For **each step's** Settings table, classify the step first: its
 PRIMARY and SECONDARY category, its complexity, and whether it is novel
 problem-solving (the model selector's Steps 1 and 2 in
 `@planning/model-selector.txt`, against `@planning/user-context.md`).
-Where `roadmodel` is installed, the Settings table is the ladder
+Where `roadmodel` is installed, the Settings are the ladder
 `roadmodel ladder --category <c> --complexity <x> [--novel]` prints for
 that classification (MCP tool: `roadmap_settings`), pasted as printed
 with its **Runs:** line. It carries the full recommendation /recommend
-shows: Cost, Balanced and Quality, each with its own effort and a
-backup from another maker. The step's runner picks the column from the
+shows: Cost, Balanced and Quality, each ranked three deep (the Pick,
+the Runner-up, and a Backup from another maker), each option on one
+its own level, AA Index and price. The step's runner picks the column from the
 usage pools on the day, so the roadmap needs no refresh when a pool
 tightens. Its models are always the latest version of their series.
 The Model rationale explains the classification and what sets the
