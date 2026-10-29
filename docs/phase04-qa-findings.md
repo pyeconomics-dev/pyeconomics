@@ -274,6 +274,38 @@ No credential, token or billing account appears in this record.
 
 ## Final verification evidence
 
-The canonical `./scripts/verify-phase04.sh --post` result, the Phase 3
-`--post` it runs (with Phases 2 and 1), the CI checks and the required-check
-update are recorded here once the run completes on the frozen branch.
+The canonical run is `HYPOTHESIS_PROFILE=ci ./scripts/verify-phase04.sh
+--post`, on the frozen branch head `52fca2c` (Windows 11, the maintainer's
+machine), from 2026-10-28 19:49 to 2026-10-29 00:06 local time (15,414 s).
+Its result: `RESULT: PASS`, exit 0, with 121 checks passed and none failed.
+
+| Mode | Passed | Failed |
+|---|---|---|
+| fast (static checks 1-64, V*.1, V16.2, V16.3) | 82 | 0 |
+| python | 18 | 0 |
+| node | 4 | 0 |
+| container | 2 | 0 |
+| security | 2 | 0 |
+| live | 9 | 0 |
+| post | 4 | 0 |
+
+- **Coverage floors** (V1.2 to V11.2): core 99.77% of 5,118, models 98.41% of
+  8,799, data 96.19% of 12,794, surfaces 99.79% of 974.
+- **Python 3.14 fuzz group** (V7.2): Schemathesis passed both modes, with 212
+  subtests.
+- **V16.6**: the Phase 3 `--post` passed, including its V20.6. That check runs
+  Phase 2's `--post`, which runs Phase 1's.
+- **The three earlier canonical runs:**
+
+  | Run | Result | Fix |
+  |---|---|---|
+  | `91d185d` | A `cd` leak (see above) | In this PR |
+  | `f8b89c9` | V13.3: Cloudflare's lagging counters | `f83c8ee` |
+  | `f83c8ee` | Phase 2's nested gate: tornado advisories | `665e328` |
+
+  Each fix is in this PR and recorded in the Step 16 table.
+- **Pull request #214:** all 45 checks passed on `52fca2c`.
+- **Required checks on `main`:** 24, strict, app 15368, including both
+  `phase-verify (04)` contexts (V16.7).
+- **Synthetic alarm and budget notice:** run 40699025411, issue #209 and the
+  maintainer's confirmation passed V16.5.
