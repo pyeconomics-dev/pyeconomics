@@ -9274,38 +9274,38 @@ workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1       | ADR-0008 + core conventions      | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #71 |
-| 2       | Dates, day counts, calendars     | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #73 |
-| 3       | Spec + registry                  | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #76 |
-| 4       | Results, provenance, schemas     | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #77 |
-| 5       | Verification harness             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #78 |
-| 6       | Catalog: foundations             | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #79 |
-| 7       | Cards + docs preview             | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #80 |
-| 8       | Catalog: fixed income            | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #82 |
-| 9       | Catalog: derivatives + intl      | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #84 |
-| 10      | Catalog: equity, corp., acct.    | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #86 |
-| 11      | Catalog: portfolio + performance | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #87 |
-| 12      | Catalog: risk + econometrics     | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #88 |
-| 13      | 1.0.0a1 readiness gate           | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #93 |
-| 14      | 1.0.0a1 release                  | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #96 |
-| 15      | QA + verify-phase02.sh           | GPT-6.1 Sol         | Codex        | Intelligence Medium | --       | New  | Complete — PR #97 |
-| V1      | Conventions                      | CI: phase-verify.yml, ci.yml, security.yml; live | -- | -- | -- | -- | -- |
-| V2      | Dates and calendars              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V3      | Spec + registry                  | CI: phase-verify.yml, ci.yml, security.yml | -- | --      | --       | --   | --          |
-| V4      | Results + schemas                | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V5      | Verification harness             | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V6      | Foundations                      | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V7      | Docs preview                     | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
-| V8      | Fixed income                     | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V9      | Derivatives + international      | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V10     | Equity, corporate, accounting    | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V11     | Portfolio + performance          | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V12     | Risk + econometrics              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V13     | Readiness gate                   | CI: phase-verify.yml; live | --    | --                  | --       | --   | --          |
-| V14     | 1.0.0a1 release                  | CI: phase-verify.yml; live, post | -- | --              | --       | --   | --          |
-| V15     | CI integration                   | CI: phase-verify.yml; post | --    | --                  | --       | --   | --          |
+| Step | Scope                          | Model             | Status            |
+| ---- | ------------------------------ | ----------------- | ----------------- |
+| 1    | ADR-0008 + core conventions    | Claude Opus 5.5   | Complete — PR #71 |
+| 2    | Dates, day counts, calendars   | GPT-6.1 Sol       | Complete — PR #73 |
+| 3    | Spec + registry                | Claude Sonnet 5.5 | Complete — PR #76 |
+| 4    | Results, provenance, schemas   | Claude Sonnet 5.5 | Complete — PR #77 |
+| 5    | Verification harness           | Claude Sonnet 5.5 | Complete — PR #78 |
+| 6    | Catalog: foundations           | Claude Opus 5.5   | Complete — PR #79 |
+| 7    | Cards + docs preview           | GPT-6.1 Sol       | Complete — PR #80 |
+| 8    | Catalog: fixed income          | Claude Opus 5.5   | Complete — PR #82 |
+| 9    | Catalog: derivatives + intl    | Claude Opus 5.5   | Complete — PR #84 |
+| 10   | Catalog: equity, corp., acct.  | GPT-6.1 Sol       | Complete — PR #86 |
+| 11   | Catalog: portfolio + perf.     | Claude Opus 5.5   | Complete — PR #87 |
+| 12   | Catalog: risk + econometrics   | Claude Opus 5.5   | Complete — PR #88 |
+| 13   | 1.0.0a1 readiness gate         | GPT-6.1 Sol       | Complete — PR #93 |
+| 14   | 1.0.0a1 release                | GPT-6.1 Sol       | Complete — PR #96 |
+| 15   | QA + verify-phase02.sh         | GPT-6.1 Sol       | Complete — PR #97 |
+| V1   | Conventions                    | CI                | --                |
+| V2   | Dates and calendars            | CI                | --                |
+| V3   | Spec + registry                | CI                | --                |
+| V4   | Results + schemas              | CI                | --                |
+| V5   | Verification harness           | CI                | --                |
+| V6   | Foundations                    | CI                | --                |
+| V7   | Docs preview                   | CI                | --                |
+| V8   | Fixed income                   | CI                | --                |
+| V9   | Derivatives + international    | CI                | --                |
+| V10  | Equity, corporate, accounting  | CI                | --                |
+| V11  | Portfolio + performance        | CI                | --                |
+| V12  | Risk + econometrics            | CI                | --                |
+| V13  | Readiness gate                 | CI                | --                |
+| V14  | 1.0.0a1 release                | CI                | --                |
+| V15  | CI integration                 | CI                | --                |
 
 ---
 
