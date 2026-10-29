@@ -87,6 +87,13 @@ Do not type the ask each time. Open `prompts/phase-roadmap.md` (or
 `prompts/project-roadmap.md`), fill the `{{placeholders}}` in its table, paste
 everything below its rule into a **new** chat in this project, and submit.
 
+The project roadmap is written from **your brief**: what you want the project
+to become. With the slash command, pass it as files and/or a description
+(`/roadmap-project docs/brief.md notes.txt`, or a sentence in quotes). Run it
+with nothing and it asks for the brief before writing. Pasting the prompt
+yourself, put the same in `{{BRIEF}}`. Its default, `README.md`, only fits a
+project whose README already says what the project should become.
+
 Each prompt starts with a Step 0 that refreshes this kit
 (`pip install -U roadmodel && roadmodel export-kit . --force`) and checks the
 template's step lifecycle is current (Stage 3 marks the step's `**Status:**`
