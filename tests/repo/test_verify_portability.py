@@ -62,6 +62,19 @@ def bash() -> str:
     return found
 
 
+def _major(bash: str) -> int:
+    return int(_run([bash, "-c", 'echo "${BASH_VERSINFO[0]}"']).stdout.strip())
+
+
+@pytest.fixture(scope="module")
+def modern_bash(bash: str) -> str:
+    """A bash the verifiers accept: on macOS PATH's bash may be /bin/bash 3.2."""
+    for candidate in (bash, "/opt/homebrew/bin/bash", "/usr/local/bin/bash"):
+        if Path(candidate).is_file() and _major(candidate) >= 4:
+            return candidate
+    pytest.skip("no bash 4 or later is installed")
+
+
 def test_every_phase_has_a_verifier() -> None:
     expected = [f"verify-phase{n:02d}.sh" for n in range(1, len(SCRIPTS) + 1)]
     assert expected == SCRIPTS
@@ -90,8 +103,7 @@ def test_macos_system_bash_is_refused(script: str) -> None:
     system_bash = Path("/bin/bash")
     if platform.system() != "Darwin" or not system_bash.is_file():
         pytest.skip("macOS's /bin/bash only")
-    version = _run([str(system_bash), "-c", 'echo "${BASH_VERSINFO[0]}"'])
-    if int(version.stdout.strip()) >= 4:
+    if _major(str(system_bash)) >= 4:
         pytest.skip("this /bin/bash is 4 or later")
     result = _run([str(system_bash), f"scripts/{script}", "--fast"])
     assert result.returncode == 2
@@ -106,7 +118,7 @@ def test_the_exit_trap_keeps_the_status(script: str) -> None:
 
 
 @pytest.mark.parametrize("script", SCRIPTS)
-def test_a_crash_is_never_a_pass(script: str, bash: str, tmp_path: Path) -> None:
+def test_a_crash_is_never_a_pass(script: str, modern_bash: str, tmp_path: Path) -> None:
     # bash reads BASH_ENV before the script. Its declare() shadows the
     # builtin, so the first declaration after the EXIT trap dies on an
     # unbound variable under set -u, mid-run.
@@ -116,7 +128,7 @@ def test_a_crash_is_never_a_pass(script: str, bash: str, tmp_path: Path) -> None
     scratch.mkdir()
     env = {**os.environ, "BASH_ENV": crash.as_posix(), "TMPDIR": scratch.as_posix()}
     env.pop("VERIFY_PORTABILITY_UNSET", None)
-    result = _run([bash, f"scripts/{script}", "--fast"], env=env)
+    result = _run([modern_bash, f"scripts/{script}", "--fast"], env=env)
     assert "VERIFY_PORTABILITY_UNSET: unbound variable" in result.stderr
     assert result.returncode != 0
     # The trap still ran: the script's temporary directory is gone.
