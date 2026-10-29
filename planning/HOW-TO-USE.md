@@ -28,12 +28,14 @@ MCP tool, or web service — the operator's editor session already pays for your
 reasoning (e.g. Claude Code funded by a flat Max plan = $0 marginal). Calling
 out would add cost for no benefit.
 
-**Where `roadmodel` is installed, the Settings table comes from it.** Classify
-the step (step 1 below), then paste the table and **Runs:** line
+**Where `roadmodel` is installed, the Settings come from it.** Classify
+the step (step 1 below), then paste the ladder and **Runs:** line
 `roadmodel ladder --category <c> --complexity <x> [--novel]` prints: the
-Cost / Balanced / Quality picks /recommend shows, each with its effort and a
-backup from another maker. It is local code — no API call, no engine — and it
-reads every usage pool at headroom, so the table outlives a pool's state: when
+Cost / Balanced / Quality picks /recommend shows, each ranked three deep (the
+Pick, the Runner-up, and a Backup from another maker), each option with its
+level, AA Index and price. It is local code — no API
+call, no engine — and it
+reads every usage pool at headroom, so the ladder outlives a pool's state: when
 a pool reads `tight` or `exhausted`, `/roadmap-step` runs another column
 instead of the roadmap being refreshed. Its models are always the latest
 version of their series (GPT-6.1 Sol, never GPT-6 Sol where both run). The

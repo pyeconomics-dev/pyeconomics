@@ -45,11 +45,13 @@ STYLE RULES (the AI MUST follow)
     in Claude Code, which `/roadmap-phase` sets by itself),
     with thinking on where the model has a Thinking toggle
     (Opus 5.5 and the other models that always think have
-    none: their cell is `—`). Where `roadmodel` is installed, the table
+    none, and the ladder carries no Thinking row: it is always On where a
+    toggle exists). Where `roadmodel` is installed, the table
     is the ladder `roadmodel ladder --category planning
     --complexity high --phase` prints, pasted as printed with
-    its **Runs:** line: Cost, Balanced and Quality, each with a
-    backup from another maker, so a pool that reads `tight` or
+    its **Runs:** line: Cost, Balanced and Quality, each ranked
+    three deep (Pick, Runner-up, and a Backup from another
+    maker), each option with its level, AA Index and price, so a pool that reads `tight` or
     `exhausted` on the day moves the session to another column
     instead of the table being refreshed. It ranks on measured
     benchmarks, so a stale catalog letter cannot steer it, and
@@ -248,17 +250,33 @@ dependency graph in §5 is honoured.
 **Phase roadmap settings** — the session that writes
 `phase01-roadmap.md` (`/roadmap-phase 1`):
 
-| Setting      | Cost                   | Balanced               | Quality                                  |
-|--------------|------------------------|------------------------|------------------------------------------|
-| Model        | <Model>                | <Model>                | <The strongest planning model>           |
-| Backup       | <Backup — its platform · its dial> | <Backup — its platform · its dial> | <Backup — its platform · its dial> |
-| Platform     | <Access method>        | <Access method>        | <Claude Code, or the access method that pays> |
-| Effort       | <Its dial and level>   | <Its dial and level>   | <Deepest rung there — Effort Max in Claude Code> |
-| AA Index     | <AA Index at that effort> | <AA Index at that effort> | <AA Index at that effort>        |
-| Thinking     | <On, or — with no toggle> | <On, or — with no toggle> | <On, or — with no toggle>          |
-| Conversation | **New**                | **New**                | **New**                                  |
+|               |          | Cost                | Balanced            | Quality             |
+| ------------- | -------- | ------------------- | ------------------- | ------------------- |
+| **Pick**      | Model    | **<Model>**         | **<Model>**         | **<Model>**         |
+|               | Platform | <Platform>          | <Platform>          | <Platform>          |
+|               | Level    | <Level>             | <Level>             | <Level>             |
+|               | AA       | <AA Index>          | <AA Index>          | <AA Index>          |
+|               | Price    | <$ per 1M>          | <$ per 1M>          | <$ per 1M>          |
+| **Runner‑up** | Model    | **<Model>**         | **<Model>**         | **<Model>**         |
+|               | Platform | <Platform>          | <Platform>          | <Platform>          |
+|               | Level    | <Level>             | <Level>             | <Level>             |
+|               | AA       | <AA Index>          | <AA Index>          | <AA Index>          |
+|               | Price    | <$ per 1M>          | <$ per 1M>          | <$ per 1M>          |
+| **Backup**    | Model    | **<Model or none>** | **<Model or none>** | **<Model or none>** |
+|               | Platform | <Platform>          | <Platform>          | <Platform>          |
+|               | Level    | <Level>             | <Level>             | <Level>             |
+|               | AA       | <AA Index>          | <AA Index>          | <AA Index>          |
+|               | Price    | <$ per 1M>          | <$ per 1M>          | <$ per 1M>          |
 
-**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
+
+**Conversation:** New
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
+that column's usage pool reads `tight` or `exhausted`, run the first of its
+Runner-up and Backup whose pool has headroom; with neither, a `tight` column
+runs the Cost column and an `exhausted` one its Backup.
 
 <!-- The ladder `roadmodel ladder --category planning
 --complexity high --phase` prints, pasted as printed. Without
@@ -309,15 +327,28 @@ key pays for the platform.>
 **Phase roadmap settings** — the session that writes
 `phase02-roadmap.md` (`/roadmap-phase 2`):
 
-| Setting      | Cost    | Balanced | Quality |
-|--------------|---------|----------|---------|
-| Model        | …       | …        | …       |
-| Backup       | …       | …        | …       |
-| Platform     | …       | …        | …       |
-| Effort       | …       | …        | …       |
-| AA Index     | …       | …        | …       |
-| Thinking     | …       | …        | …       |
-| Conversation | **New** | **New**  | **New** |
+|               |          | Cost  | Balanced | Quality |
+| ------------- | -------- | ----- | -------- | ------- |
+| **Pick**      | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Runner‑up** | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Backup**    | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
+
+**Conversation:** New
 
 **Runs:** Quality — <the line `roadmodel ladder` prints>
 
@@ -347,15 +378,28 @@ key pays for the platform.>
 **Phase roadmap settings** — the session that writes
 `phaseNN-roadmap.md` (`/roadmap-phase N`):
 
-| Setting      | Cost    | Balanced | Quality |
-|--------------|---------|----------|---------|
-| Model        | …       | …        | …       |
-| Backup       | …       | …        | …       |
-| Platform     | …       | …        | …       |
-| Effort       | …       | …        | …       |
-| AA Index     | …       | …        | …       |
-| Thinking     | …       | …        | …       |
-| Conversation | **New** | **New**  | **New** |
+|               |          | Cost  | Balanced | Quality |
+| ------------- | -------- | ----- | -------- | ------- |
+| **Pick**      | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Runner‑up** | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Backup**    | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
+
+**Conversation:** New
 
 **Runs:** Quality — <the line `roadmodel ladder` prints>
 

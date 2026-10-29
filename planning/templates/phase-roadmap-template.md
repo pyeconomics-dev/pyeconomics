@@ -38,7 +38,9 @@ PLACEHOLDER SYNTAX
     {{...}} tokens.
 
 STYLE RULES (the AI MUST follow)
-  - All prose wraps at 80 characters per line.
+  - All prose wraps at 80 characters per line, and every table fits in
+    80 columns: a ladder takes one field a row, and a Summary Table
+    Scope is at most 30 characters.
   - Use Markdown tables for any list of >3 structured items.
   - Use ASCII boxes / arrows (┌ ┐ └ ┘ │ ─ ▶ ↓) for the
     execution-order diagram.
@@ -744,28 +746,50 @@ that owns it.}}
      THE LADDER — the default wherever roadmodel is
      installed. A step's Settings table carries the full
      recommendation /recommend shows: Cost, Balanced and
-     Quality, each with its own model, platform and effort
-     and a backup from another maker. The roadmap then
+     Quality, each ranked three deep — the Pick, the
+     Runner-up (the column's next choice, never the Pick's
+     series) and a Backup from another maker — each option
+     with its own model, platform and effort. The roadmap then
      outlives a usage pool's state: when a pool reads
      `tight` or `exhausted`, the step's runner picks
      another column (the **Runs:** line's rule) instead of
-     the roadmap being refreshed. Paste the table and its
+     the roadmap being refreshed. Paste the ladder and its
      **Runs:** line exactly as `roadmodel ladder --category
      <c> --complexity <x> [--novel]` prints them for the
      step's classification (MCP tool: `roadmap_settings`).
-     Rows: Model / Backup / Platform / Effort / AA Index /
-     Thinking / Conversation. The Effort cell names each
-     column's own dial (`Intelligence Medium` on Codex,
-     `Effort High` on Claude Code); a column whose surface
-     has no such control reads `—` there. The AA Index cell
-     is that column's model's Artificial Analysis
-     Intelligence Index at that column's effort, the figure
-     the pick was read from; it reads `not measured` where
-     AA has no row for the model at that effort. Every model is the latest
+     Layout (roadmodel 0.2.95 on): one table whose columns
+     are Cost, Balanced and Quality. Each rank — **Pick**, **Runner‑up**,
+     **Backup** — names the first of its rows from a column of
+     its own (blank below it, no `&nbsp;`), beside
+     field rows: Model (bold); Platform; Level, the bare
+     level the platform's own dial sets (`High` is
+     Intelligence High on Codex and Effort High on Claude
+     Code and Antigravity; `—` where the surface has no
+     dial); AA, the model's Artificial Analysis Intelligence
+     Index at that level (`not measured` where AA has no row
+     for it there); and Price, its blended list price per 1M
+     tokens (3 in : 1 out) times the tokens it uses at that
+     level (`*` where that use is not yet measured). There is
+     no Thinking row: Thinking is always On wherever the
+     platform has the toggle, and every AA Index and Price
+     already assumes it. A note line under the table explains
+     Price, and a `**Conversation:**` line closes the
+     ladder. Each rank comes from its own maker (roadmodel
+     0.2.97 on), because a tight usage pool is a maker's: the
+     Runner-up is the column's recommendation with the Pick's
+     maker left out, and the Backup leaves out both makers
+     above it. Where the user-context funds too few makers, a
+     missing rank is the Pick's own model one level lower,
+     its Level marked ↓ (it uses less of a tight pool), and
+     `none` below the dial's lowest level. The note line
+     names the classification the ladder was ranked for. The
+     ranks follow the column's own rule, not the AA Index:
+     Cost ranks each maker's cheapest adequate option, so its
+     AA Index may rise down the column. Every model is the latest
      version of its series, never an older one (GPT-6 Sol
      where GPT-6.1 Sol runs, Opus 5 where Opus 5.5 does).
-     Set Conversation to **Continue** in every column only
-     when the step continues the previous one's session.
+     Set the Conversation line to **Continue** only when the
+     step continues the previous one's session.
      The single-column shapes below are the fallback where
      roadmodel cannot be reached.
 
@@ -860,24 +884,41 @@ that owns it.}}
      cannot apply.
      -->
 
-Settings table — ladder ({{the default wherever roadmodel is
+Settings — ladder ({{the default wherever roadmodel is
 installed: the table and **Runs:** line `roadmodel ladder
 --category <c> --complexity <x> [--novel]` prints for the
-step's classification, pasted as printed. The three shapes
-after it are the fallback where roadmodel cannot be
+step's classification, pasted as printed. The three table
+shapes after it are the fallback where roadmodel cannot be
 reached}}):
 
-| Setting      | Cost                        | Balanced                    | Quality                     |
-| ------------ | --------------------------- | --------------------------- | --------------------------- |
-| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
-| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
-| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
-| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
-| AA Index     | {{AA Index at that effort}} | {{AA Index at that effort}} | {{AA Index at that effort}} |
-| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
-| Conversation | **{{New or Continue}}**     | **{{New or Continue}}**     | **{{New or Continue}}**     |
+|               |          | Cost                  | Balanced              | Quality               |
+| ------------- | -------- | --------------------- | --------------------- | --------------------- |
+| **Pick**      | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Runner‑up** | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Backup**    | Model    | **{{Model or none}}** | **{{Model or none}}** | **{{Model or none}}** |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
 
-**Runs:** {{Cost / Balanced / Quality}} — the user-context's Budget priority is `{{cheap / balanced / best}}`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
+
+**Conversation:** New
+
+**Runs:** {{Cost / Balanced / Quality}} — the user-context's Budget priority is
+`{{cheap / balanced / best}}`. If that column's usage pool reads `tight` or
+`exhausted`, run the first of its Runner-up and Backup whose pool has headroom;
+with neither, a `tight` column runs the Cost column and an `exhausted` one its
+Backup.
 
 Settings table — Effort + Thinking variant ({{use this
 shape when PLATFORM is "Claude Code" or any other
@@ -1289,15 +1330,28 @@ printed with its **Runs:** line. Where roadmodel cannot be
 reached, the single-column variant that matches PLATFORM,
 carrying ONLY the rows that platform's panel exposes.}}
 
-| Setting      | Cost                        | Balanced                    | Quality                     |
-| ------------ | --------------------------- | --------------------------- | --------------------------- |
-| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
-| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
-| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
-| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
-| AA Index     | {{AA Index at that effort}} | {{AA Index at that effort}} | {{AA Index at that effort}} |
-| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
-| Conversation | **{{New or Continue}}**     | **{{New or Continue}}**     | **{{New or Continue}}**     |
+|               |          | Cost                  | Balanced              | Quality               |
+| ------------- | -------- | --------------------- | --------------------- | --------------------- |
+| **Pick**      | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Runner‑up** | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Backup**    | Model    | **{{Model or none}}** | **{{Model or none}}** | **{{Model or none}}** |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
+
+**Conversation:** New
 
 **Runs:** {{the line `roadmodel ladder` prints}}
 
@@ -1426,15 +1480,28 @@ this step's classification, pasted as printed with its
 **Runs:** line; where roadmodel cannot be reached, the
 single-column variant that matches PLATFORM.}}
 
-| Setting      | Cost                        | Balanced                    | Quality                     |
-| ------------ | --------------------------- | --------------------------- | --------------------------- |
-| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
-| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
-| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
-| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
-| AA Index     | {{AA Index at that effort}} | {{AA Index at that effort}} | {{AA Index at that effort}} |
-| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
-| Conversation | **New**                     | **New**                     | **New**                     |
+|               |          | Cost                  | Balanced              | Quality               |
+| ------------- | -------- | --------------------- | --------------------- | --------------------- |
+| **Pick**      | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Runner‑up** | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Backup**    | Model    | **{{Model or none}}** | **{{Model or none}}** | **{{Model or none}}** |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
+
+**Conversation:** New
 
 **Runs:** {{the line `roadmodel ladder` prints}}
 
@@ -1922,56 +1989,30 @@ corresponding row below.
 
 ## Summary Table
 
-<!-- With ladder Settings tables, each step's row shows the
-     column its **Runs:** line names (the Model, Platform
-     and dial of that column); the other two columns live
-     in the step's own table.
+<!-- One row per step and per verification check. Model is the
+     Pick of the column the step's **Runs:** line names (with
+     a single-column Settings table, its Model); the step's own
+     Settings table carries the platform, the dials, the other
+     ranks and the other two columns, so this table need not.
+     Scope is at most 30 characters, so every row fits in 80
+     columns. A verification row's Model reads `CI`; its
+     section names the workflows.
 
-     Summary Table column "Reasoning dial" carries
-     whichever dial the step's PLATFORM exposes, written
-     in the surface's native vocabulary so reviewers can
-     audit each row 1:1 against the panel. The per-step
-     Settings tables are the source of truth; this table
-     just flattens them, so a step whose surface lacks a
-     dial gets "--" HERE (a column cannot be dropped for
-     one row) even though the Settings table above omits
-     the row entirely. "--" means "this surface has no
-     such control" — it is never a setting to apply:
-       • Claude Code → "Effort {{Low/Med/High/XHigh/Max}}"
-         (plus " + Ultracode" when the switch is on), and
-         the Thinking column carries "On" or "Off" — or
-         "--" for a model that always thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models).
-       • Codex → "Intelligence {{Low/Med/High/XHigh}}"
-         (the Thinking column is "--" because the surface
-         exposes no Thinking field; Codex covers both the
-         CLI binary and the Cursor IDE extension as a
-         single Platform).
-       • Other reasoning-dial surfaces (ChatGPT app,
-         claude.ai web, Anthropic / OpenAI / Google APIs,
-         Gemini CLI, DeepSeek API) → "Effort {{level}}"
-         (and the Thinking column carries "On" or "Off",
-         or "--" for a model that always thinks).
-         Never "Max ON/OFF" — none of these has Max Mode.
-       • Cursor → "Max ON" or "Max OFF" (and the Thinking
-         column is "--"; Cursor exposes no reasoning
-         dial). Max is a CURSOR-ONLY value in this
-         column.
+     Column "Status" mirrors each step's `**Status:**` line:
+     `Not started` when this roadmap is written, set to
+     `Complete — PR #<n>` by the step's own Stage-3 commit
+     (Status rule). Verification rows read "--". -->
 
-     Column "Status" mirrors each step's `**Status:**`
-     line: `Not started` when this roadmap is written, set
-     to `Complete — PR #<n>` by the step's own Stage-3
-     commit (Status rule). Verification rows read "--". -->
-
-| Step    | Scope                     | Model       | Platform     | Reasoning dial  | Thinking         | Conv | Status      |
-| ------- | ------------------------- | ----------- | ------------ | --------------- | ---------------- | ---- | ----------- |
-| 1       | {{Step 1 short scope}}    | {{Model}}   | {{Platform}} | {{Effort Low/Med/High/XHigh/Max/Ultracode or Intelligence Low/Med/High/XHigh or Max ON/OFF (Cursor only)}} | {{On / Off / --}} | New  | Not started |
-| 2       | {{Step 2 short scope}}    | {{Model}}   | {{Platform}} | {{Effort Low/Med/High/XHigh/Max/Ultracode or Intelligence Low/Med/High/XHigh or Max ON/OFF (Cursor only)}} | {{On / Off / --}} | New  | Not started |
-| ...     | ...                       | ...         | ...          | ...             | ...              | ...  | ...         |
-| {{N}}   | QA + verify-phase{{N}}.sh | {{Model}}   | {{Platform}} | {{Effort Low/Med/High/XHigh/Max/Ultracode or Intelligence Low/Med/High/XHigh or Max ON/OFF (Cursor only)}} | {{On / Off / --}} | New  | Not started |
-| V1      | {{Step 1 scope}}          | CI: {{wf}}  | --           | --              | --               | --   | --          |
-| V2      | {{Step 2 scope}}          | CI: {{wf}}  | --           | --              | --               | --   | --          |
-| ...     | ...                       | ...         | --           | --              | --               | --   | ...         |
-| V{{N}}  | CI integration            | CI: phase-verify.yml | --  | --              | --               | --   | --          |
+| Step | Scope                          | Model          | Status             |
+| ---- | ------------------------------ | -------------- | ------------------ |
+| 1    | {{Step 1 short scope}}         | {{Model}}      | Not started        |
+| 2    | {{Step 2 short scope}}         | {{Model}}      | Not started        |
+| ...  | ...                            | ...            | ...                |
+| {{N}} | QA + verify-phase{{N}}.sh     | {{Model}}      | Not started        |
+| V1   | {{Step 1 scope}}               | CI             | --                 |
+| V2   | {{Step 2 scope}}               | CI             | --                 |
+| ...  | ...                            | CI             | --                 |
+| V{{N}} | CI integration               | CI             | --                 |
 
 ---
 

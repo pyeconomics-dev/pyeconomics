@@ -69,8 +69,9 @@ as Opus 5.5, has none), never `Ultracode` — unless the user-context states a r
 roadmap-writing sessions. Where `roadmodel` is installed, the table is
 the ladder `roadmodel ladder --category planning --complexity high
 --phase` prints (MCP tool: `roadmap_settings` with `phase`), pasted as
-printed with its **Runs:** line: Cost, Balanced and Quality, each with
-a backup from another maker, so a pool that tightens on the day moves
+printed with its **Runs:** line: Cost, Balanced and Quality, each
+ranked three deep (the Pick, the Runner-up, and a Backup from another
+maker), each option with its level, AA Index and price, so a pool that tightens on the day moves
 the session to another column instead of the table being refreshed. It
 ranks on measured benchmarks, so a stale catalog letter cannot steer
 it, and a model the user-context names for these sessions still wins.

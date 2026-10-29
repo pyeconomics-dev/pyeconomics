@@ -12003,48 +12003,48 @@ skip: any other missing source, or partially enabled EDGAR, fails verification.
 
 ## Summary Table
 
-| Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1       | Core hardening + baseline        | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #106 |
-| 2       | ADR-0011 + data model            | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #108 |
-| 3       | Credentials + redaction          | Claude Opus 5.5   | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #111 |
-| 4       | Provider SDK + transport         | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #115 |
-| 5       | Cache + offline mode             | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #117 |
-| 6       | FRED/ALFRED, BLS, BEA, Census    | Claude Opus 5.5   | Claude Code  | Effort High         | On       | New  | Complete — PR #118 |
-| 7       | Treasury, Fed Board, NY Fed, EDGAR, OpenFIGI | Claude Opus 5.5 | Claude Code | Effort Medium | On | New  | Complete — PR #124 |
-| 8       | SDMX, World Bank, DBnomics       | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #125 |
-| 9       | Regional Feds, CBO, PWT          | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #127 |
-| 10      | Finance research data            | GPT-6.1 Sol       | Codex        | Intelligence Medium | --       | New  | Complete — PR #129 |
-| 11      | Catalog + resolver               | Claude Sonnet 5.5 | Claude Code  | Effort High         | On       | New  | Complete — PR #130 |
-| 12      | Bindings + vintage runs          | Claude Sonnet 5.5 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #132 |
-| 13      | Monetary-policy suite            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #140 |
-| 14      | Catalog: macro                   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #144 |
-| 15      | Catalog: fixed income + equity   | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #146 |
-| 16      | Catalog: asset pricing + portfolio | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #153 |
-| 17      | Catalog: econometrics            | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #160 |
-| 18      | 1.0.0a2 readiness gate           | Claude Opus 5.5 | Claude Code | Effort High | On | New  | Complete — PR #165 |
-| 19      | 1.0.0a2 release                  | GPT-6.1 Sol | Codex | Intelligence High | -- | New  | Complete — PR #166 |
-| 20 | QA + verify-phase03.sh | GPT-6.1 Sol | Codex | Intelligence High | -- | New | Complete — PR #170 |
-| V1      | Core hardening                   | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
-| V2      | ADR-0011 + data model            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
-| V3      | Credentials + redaction          | CI: phase-verify.yml, ci.yml, security.yml | -- | --     | --       | --   | --          |
-| V4      | Provider SDK + transport         | CI: phase-verify.yml, ci.yml, security.yml | -- | --     | --       | --   | --          |
-| V5      | Cache + offline mode             | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V6      | Keyed providers + live run       | CI: phase-verify.yml, ci.yml, providers-live.yml; live | -- | -- | -- | -- | --         |
-| V7      | Keyless providers                | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V8      | International providers          | CI: phase-verify.yml, ci.yml, security.yml | -- | --     | --       | --   | --          |
-| V9      | Research macro providers         | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V10     | Research finance providers       | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V11     | Catalog + resolver               | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
-| V12     | Bindings                         | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V13     | Monetary-policy suite            | CI: phase-verify.yml, ci.yml, providers-live.yml; live | -- | -- | -- | -- | --         |
-| V14     | Macro                            | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V15     | Fixed income + equity            | CI: phase-verify.yml, ci.yml, providers-live.yml; live | -- | -- | -- | -- | --         |
-| V16     | Asset pricing + portfolio        | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V17     | Econometrics                     | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V18     | Readiness gate                   | CI: phase-verify.yml; live | --    | --                  | --       | --   | --          |
-| V19     | 1.0.0a2 release                  | CI: phase-verify.yml; live, post | -- | --              | --       | --   | --          |
-| V20     | CI integration                   | CI: phase-verify.yml; live, post | -- | --              | --       | --   | --          |
+| Step | Scope                          | Model             | Status             |
+| ---- | ------------------------------ | ----------------- | ------------------ |
+| 1    | Core hardening + baseline      | GPT-6.1 Sol       | Complete — PR #106 |
+| 2    | ADR-0011 + data model          | Claude Opus 5.5   | Complete — PR #108 |
+| 3    | Credentials + redaction        | Claude Opus 5.5   | Complete — PR #111 |
+| 4    | Provider SDK + transport       | Claude Sonnet 5.5 | Complete — PR #115 |
+| 5    | Cache + offline mode           | Claude Sonnet 5.5 | Complete — PR #117 |
+| 6    | FRED/ALFRED, BLS, BEA, Census  | Claude Opus 5.5   | Complete — PR #118 |
+| 7    | Treasury/FRB/NY Fed/EDGAR/FIGI | Claude Opus 5.5   | Complete — PR #124 |
+| 8    | SDMX, World Bank, DBnomics     | GPT-6.1 Sol       | Complete — PR #125 |
+| 9    | Regional Feds, CBO, PWT        | GPT-6.1 Sol       | Complete — PR #127 |
+| 10   | Finance research data          | GPT-6.1 Sol       | Complete — PR #129 |
+| 11   | Catalog + resolver             | Claude Sonnet 5.5 | Complete — PR #130 |
+| 12   | Bindings + vintage runs        | Claude Sonnet 5.5 | Complete — PR #132 |
+| 13   | Monetary-policy suite          | Claude Opus 5.5   | Complete — PR #140 |
+| 14   | Catalog: macro                 | Claude Opus 5.5   | Complete — PR #144 |
+| 15   | Catalog: fixed income + equity | Claude Opus 5.5   | Complete — PR #146 |
+| 16   | Catalog: asset pricing, portf. | Claude Opus 5.5   | Complete — PR #153 |
+| 17   | Catalog: econometrics          | Claude Opus 5.5   | Complete — PR #160 |
+| 18   | 1.0.0a2 readiness gate         | Claude Opus 5.5   | Complete — PR #165 |
+| 19   | 1.0.0a2 release                | GPT-6.1 Sol       | Complete — PR #166 |
+| 20   | QA + verify-phase03.sh         | GPT-6.1 Sol       | Complete — PR #170 |
+| V1   | Core hardening                 | CI                | --                 |
+| V2   | ADR-0011 + data model          | CI                | --                 |
+| V3   | Credentials + redaction        | CI                | --                 |
+| V4   | Provider SDK + transport       | CI                | --                 |
+| V5   | Cache + offline mode           | CI                | --                 |
+| V6   | Keyed providers + live run     | CI                | --                 |
+| V7   | Keyless providers              | CI                | --                 |
+| V8   | International providers        | CI                | --                 |
+| V9   | Research macro providers       | CI                | --                 |
+| V10  | Research finance providers     | CI                | --                 |
+| V11  | Catalog + resolver             | CI                | --                 |
+| V12  | Bindings                       | CI                | --                 |
+| V13  | Monetary-policy suite          | CI                | --                 |
+| V14  | Macro                          | CI                | --                 |
+| V15  | Fixed income + equity          | CI                | --                 |
+| V16  | Asset pricing + portfolio      | CI                | --                 |
+| V17  | Econometrics                   | CI                | --                 |
+| V18  | Readiness gate                 | CI                | --                 |
+| V19  | 1.0.0a2 release                | CI                | --                 |
+| V20  | CI integration                 | CI                | --                 |
 
 ---
 

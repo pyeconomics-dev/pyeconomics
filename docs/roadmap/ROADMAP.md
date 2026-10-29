@@ -1030,7 +1030,7 @@ service's secrets
 **Phase roadmap settings** — the session that writes
 `phase05-roadmap.md` (`/roadmap-phase 5`):
 
-|               |          | Cost               | Balanced           | Quality ✓          |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
 |               | Platform | Codex              | Claude Code        | Claude Code        |
@@ -1042,15 +1042,15 @@ service's secrets
 |               | Level    | High               | High               | Max                |
 |               | AA       | 46.8               | 50.2               | not measured       |
 |               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 52.7               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $24.80/1M          |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
 
-Ranked for planning, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -1059,6 +1059,13 @@ that column's usage pool reads `tight` or `exhausted`, run the first of its
 Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
 ↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
 Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
+> GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
+> 0.2.100 takes the cheaper of two same-maker models the benchmarks cannot
+> tell apart (AA 51.8 at $5.18/1M against 52.7 at $24.80/1M). Every Pick and
+> Runner-up is unchanged; `roadmodel ladder --category planning --complexity
+> high --phase` prints the same table.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
@@ -1220,7 +1227,7 @@ and licensed market data
 **Phase roadmap settings** — the session that writes
 `phase06-roadmap.md` (`/roadmap-phase 6`):
 
-|               |          | Cost               | Balanced           | Quality ✓          |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
 |               | Platform | Codex              | Claude Code        | Claude Code        |
@@ -1232,15 +1239,15 @@ and licensed market data
 |               | Level    | High               | High               | Max                |
 |               | AA       | 46.8               | 50.2               | not measured       |
 |               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 52.7               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $24.80/1M          |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
 
-Ranked for planning, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -1249,6 +1256,13 @@ that column's usage pool reads `tight` or `exhausted`, run the first of its
 Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
 ↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
 Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
+> GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
+> 0.2.100 takes the cheaper of two same-maker models the benchmarks cannot
+> tell apart (AA 51.8 at $5.18/1M against 52.7 at $24.80/1M). Every Pick and
+> Runner-up is unchanged; `roadmodel ladder --category planning --complexity
+> high --phase` prints the same table.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
@@ -1439,7 +1453,7 @@ batches that surface everywhere automatically.
 **Phase roadmap settings** — the session that writes
 `phase07-roadmap.md` (`/roadmap-phase 7`):
 
-|               |          | Cost               | Balanced           | Quality ✓          |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
 |               | Platform | Codex              | Claude Code        | Claude Code        |
@@ -1451,15 +1465,15 @@ batches that surface everywhere automatically.
 |               | Level    | High               | High               | Max                |
 |               | AA       | 46.8               | 50.2               | not measured       |
 |               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 52.7               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $24.80/1M          |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
 
-Ranked for planning, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -1468,6 +1482,13 @@ that column's usage pool reads `tight` or `exhausted`, run the first of its
 Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
 ↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
 Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
+> GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
+> 0.2.100 takes the cheaper of two same-maker models the benchmarks cannot
+> tell apart (AA 51.8 at $5.18/1M against 52.7 at $24.80/1M). Every Pick and
+> Runner-up is unchanged; `roadmodel ladder --category planning --complexity
+> high --phase` prints the same table.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
@@ -1617,7 +1638,7 @@ Yes — account PII, authentication, billing metadata (never card data)
 **Phase roadmap settings** — the session that writes
 `phase08-roadmap.md` (`/roadmap-phase 8`):
 
-|               |          | Cost               | Balanced           | Quality ✓          |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
 |               | Platform | Codex              | Claude Code        | Claude Code        |
@@ -1629,15 +1650,15 @@ Yes — account PII, authentication, billing metadata (never card data)
 |               | Level    | High               | High               | Max                |
 |               | AA       | 46.8               | 50.2               | not measured       |
 |               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 52.7               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $24.80/1M          |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
 
-Ranked for planning, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -1646,6 +1667,13 @@ that column's usage pool reads `tight` or `exhausted`, run the first of its
 Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
 ↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
 Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
+> GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
+> 0.2.100 takes the cheaper of two same-maker models the benchmarks cannot
+> tell apart (AA 51.8 at $5.18/1M against 52.7 at $24.80/1M). Every Pick and
+> Runner-up is unchanged; `roadmodel ladder --category planning --complexity
+> high --phase` prints the same table.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
@@ -2695,7 +2723,7 @@ The following are deliberately deferred to a future version, or excluded:
 |-------|--------------------------------------------------------|------------|-------------|
 | 1     | Reset & Foundation                                     | Medium     | Complete    |
 | 2     | Model Engine & Core Catalog                            | High       | Complete    |
-| 3     | Data Platform & Free Sources                           | High       | Complete |
+| 3     | Data Platform & Free Sources                           | High       | Complete    |
 | 4     | Programmatic Surfaces: CLI, REST API, MCP & Exports    | High       | Complete    |
 | 5     | Web App, Docs & Public Launch (1.0.0)                  | High       | Not started |
 | 6     | Premium Data: Bloomberg & BYOK Providers               | Medium     | Not started |

@@ -7121,32 +7121,32 @@ workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step    | Scope                          | Model             | Platform     | Reasoning dial  | Thinking | Conv | Status      |
-| ------- | ------------------------------ | ----------------- | ------------ | --------------- | -------- | ---- | ----------- |
-| 1       | Preserve 0.2.x, land roadmaps  | Claude Opus 5.5   | Claude Code  | Effort Medium   | On       | New  | Complete — PR #46 |
-| 2       | Legacy fix + hardened pipeline | Claude Opus 5.5   | Claude Code  | Effort High     | On       | New  | Complete — PR #48 |
-| 3       | 0.2.6 readiness gate           | Claude Opus 5.5   | Claude Code  | Effort Medium   | On       | New  | Complete — PR #49 |
-| 4       | 0.2.6 release + advisory       | Claude Opus 5.5   | Claude Code  | Effort Medium   | On       | New  | Complete — PR #51 |
-| 5       | Characterize + archive 0.2.x   | Claude Opus 5.5   | Claude Code  | Effort Medium   | On       | New  | Complete — PR #53 |
-| 6       | Architecture decision records  | Claude Opus 5.5   | Claude Code  | Effort XHigh    | On       | New  | Complete — PR #54 |
-| 7       | Reset + package skeleton       | Claude Opus 5.5   | Claude Code  | Effort High     | On       | New  | Complete — PR #59 |
-| 8       | Per-step security gate         | Claude Opus 5.5   | Claude Code  | Effort XHigh    | On       | New  | Complete — PR #60 |
-| 9       | Quality toolchain              | Claude Opus 5.5   | Claude Code  | Effort Medium   | On       | New  | Complete — PR #63 |
-| 10      | CI/CD + publishing rehearsal   | Claude Sonnet 5.5 | Claude Code  | Effort High     | On       | New  | Complete — PR #64 |
-| 11      | Governance + agent instructions | Claude Opus 5.5  | Claude Code  | Effort Medium   | On       | New  | Complete — PR #67 |
-| 12      | QA + verify-phase01.sh         | Claude Opus 5.5   | Claude Code  | Effort Medium   | On       | New  | Complete — PR #70 |
-| V1      | Preserve + bootstrap           | CI: phase-verify.yml; live | --  | --              | --       | --   | --          |
-| V2      | Legacy fix + pipeline          | CI: phase-verify.yml; live | --  | --              | --       | --   | --          |
-| V3      | Readiness gate                 | CI: phase-verify.yml | --        | --              | --       | --   | --          |
-| V4      | 0.2.6 release                  | CI: phase-verify.yml; live, post | -- | --         | --       | --   | --          |
-| V5      | Characterize + archive         | CI: phase-verify.yml; live, post | -- | --         | --       | --   | --          |
-| V6      | ADRs                           | CI: phase-verify.yml; live | --  | --              | --       | --   | --          |
-| V7      | Reset + skeleton               | CI: phase-verify.yml, ci.yml | -- | --             | --       | --   | --          |
-| V8      | Security gate                  | CI: phase-verify.yml, security.yml; live, post | -- | -- | --  | --   | --          |
-| V9      | Quality toolchain              | CI: phase-verify.yml, ci.yml | -- | --             | --       | --   | --          |
-| V10     | CI/CD + rehearsal              | CI: phase-verify.yml; live, post | -- | --         | --       | --   | --          |
-| V11     | Governance                     | CI: phase-verify.yml; live | --  | --              | --       | --   | --          |
-| V12     | CI integration                 | CI: phase-verify.yml | --        | --              | --       | --   | --          |
+| Step | Scope                          | Model             | Status            |
+| ---- | ------------------------------ | ----------------- | ----------------- |
+| 1    | Preserve 0.2.x, land roadmaps  | Claude Opus 5.5   | Complete — PR #46 |
+| 2    | Legacy fix + hardened pipeline | Claude Opus 5.5   | Complete — PR #48 |
+| 3    | 0.2.6 readiness gate           | Claude Opus 5.5   | Complete — PR #49 |
+| 4    | 0.2.6 release + advisory       | Claude Opus 5.5   | Complete — PR #51 |
+| 5    | Characterize + archive 0.2.x   | Claude Opus 5.5   | Complete — PR #53 |
+| 6    | Architecture decision records  | Claude Opus 5.5   | Complete — PR #54 |
+| 7    | Reset + package skeleton       | Claude Opus 5.5   | Complete — PR #59 |
+| 8    | Per-step security gate         | Claude Opus 5.5   | Complete — PR #60 |
+| 9    | Quality toolchain              | Claude Opus 5.5   | Complete — PR #63 |
+| 10   | CI/CD + publishing rehearsal   | Claude Sonnet 5.5 | Complete — PR #64 |
+| 11   | Governance, agent instructions | Claude Opus 5.5   | Complete — PR #67 |
+| 12   | QA + verify-phase01.sh         | Claude Opus 5.5   | Complete — PR #70 |
+| V1   | Preserve + bootstrap           | CI                | --                |
+| V2   | Legacy fix + pipeline          | CI                | --                |
+| V3   | Readiness gate                 | CI                | --                |
+| V4   | 0.2.6 release                  | CI                | --                |
+| V5   | Characterize + archive         | CI                | --                |
+| V6   | ADRs                           | CI                | --                |
+| V7   | Reset + skeleton               | CI                | --                |
+| V8   | Security gate                  | CI                | --                |
+| V9   | Quality toolchain              | CI                | --                |
+| V10  | CI/CD + rehearsal              | CI                | --                |
+| V11  | Governance                     | CI                | --                |
+| V12  | CI integration                 | CI                | --                |
 
 ---
 

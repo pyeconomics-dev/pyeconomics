@@ -5041,7 +5041,7 @@ Effort XHigh (56.0). New conversation per phase-boundary hygiene.
 with the next build; `mcp-registry.yml` first runs at Step 15, after
 `1.0.0b1` is on PyPI.
 
-|               |          | Cost                 | Balanced ✓         | Quality            |
+|               |          | Cost                 | Balanced           | Quality            |
 | ------------- | -------- | -------------------- | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex                | Antigravity        | Claude Code        |
@@ -5059,9 +5059,9 @@ with the next build; `mcp-registry.yml` first runs at Step 15, after
 |               | AA       | 40.8                 | 50.2               | 50.9               |
 |               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
-Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -5524,7 +5524,7 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** nothing beyond merge.
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -5542,9 +5542,9 @@ conversation per phase-boundary hygiene.
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -5994,7 +5994,7 @@ conversation per phase-boundary hygiene.
 package build and never runs in the hosted service (Phase 8 adds it there
 behind a ledger and a cap).
 
-|               |          | Cost                 | Balanced ✓         | Quality            |
+|               |          | Cost                 | Balanced           | Quality            |
 | ------------- | -------- | -------------------- | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex                | Antigravity        | Claude Code        |
@@ -6012,9 +6012,9 @@ behind a ledger and a cap).
 |               | AA       | 40.8                 | 50.2               | 50.9               |
 |               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
-Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -6452,7 +6452,7 @@ hygiene.
 **Deploys:** nothing beyond merge — the image is a CI artifact; Step 13
 pushes it to Artifact Registry and deploys it to staging.
 
-|               |          | Cost                 | Balanced ✓         | Quality            |
+|               |          | Cost                 | Balanced           | Quality            |
 | ------------- | -------- | -------------------- | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex                | Antigravity        | Claude Code        |
@@ -6470,9 +6470,9 @@ pushes it to Artifact Registry and deploys it to staging.
 |               | AA       | 40.8                 | 50.2               | 50.9               |
 |               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
-Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -6936,7 +6936,7 @@ the Deployed & verified check runs through the edge with the service token
 read from the maintainer's keyring, and `staging-health.yml` probes it
 hourly.
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
 |               | Platform | Codex              | Claude Code        | Claude Code        |
@@ -6954,9 +6954,9 @@ hourly.
 |               | AA       | not measured       | not measured       | 52.4               |
 |               | Price    | $2.40/1M*          | $3.20/1M*          | $16.36/1M          |
 
-Ranked for agentic, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -7490,7 +7490,7 @@ Thinking toggle. New conversation per phase-boundary hygiene.
 TestPyPI with attestations; staging redeploys on this step's merge, as on
 every merge.
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
 |               | Platform | Codex              | Claude Code        | Claude Code        |
@@ -7508,9 +7508,9 @@ every merge.
 |               | AA       | not measured       | not measured       | 52.4               |
 |               | Price    | $2.40/1M*          | $3.20/1M*          | $16.36/1M          |
 
-Ranked for agentic, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -7990,7 +7990,7 @@ environment), the GitHub pre-release, the MCP Registry (through
 Read the Docs `main` preview (the surface guides) and staging (redeployed
 by the merge); the Deployed & verified check covers each.
 
-|               |          | Cost                 | Balanced ✓         | Quality            |
+|               |          | Cost                 | Balanced           | Quality            |
 | ------------- | -------- | -------------------- | ------------------ | ------------------ |
 | **Pick**      | Model    | **Haiku 5.5**        | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Claude Code          | Antigravity        | Claude Code        |
@@ -8008,9 +8008,9 @@ by the merge); the Deployed & verified check covers each.
 |               | AA       | 39.8                 | 51.2               | 50.9               |
 |               | Price    | $2.19/1M             | $5.42/1M           | $8.82/1M           |
 
-Ranked for agentic, medium complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for agentic, medium complexity. Price: list $ per 1M tokens (3 in : 1
+out) × the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -8438,7 +8438,7 @@ hygiene.
 the required-check update and the synthetic alarms are part of the step,
 and staging redeploys on the merge as on every merge.
 
-|               |          | Cost                 | Balanced ✓         | Quality            |
+|               |          | Cost                 | Balanced           | Quality            |
 | ------------- | -------- | -------------------- | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex                | Antigravity        | Claude Code        |
@@ -8456,9 +8456,9 @@ and staging redeploys on the merge as on every merge.
 |               | AA       | 40.8                 | 50.2               | 50.9               |
 |               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
-Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -9289,40 +9289,40 @@ workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step    | Scope                            | Model             | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ------- | -------------------------------- | ----------------- | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1       | Surfaces baseline + concurrency  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #175 |
-| 2       | ADR-0012 + surface core          | Opus 5.5          | Claude Code  | Effort High         | --       | New  | Complete — PR #177 |
-| 3       | Registry export                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #178 |
-| 4       | The pyeconomics CLI              | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #179 |
-| 5       | Exports + bundles                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #180 |
-| 6       | REST API                         | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #181 |
-| 7       | Hosted mode, fuzzing + clients   | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #183 |
-| 8       | MCP server                       | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #191 |
-| 9       | MCP Apps, registry + evaluations | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #198 |
-| 10      | Cross-surface parity             | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #199 |
-| 11      | AI narrative                     | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #200 |
-| 12      | Service container                | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #201 |
-| 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #204 |
-| 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #207 |
-| 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #208 |
-| 16      | QA + verify-phase04.sh           | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #214 |
-| V1      | Concurrency hardening            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
-| V2      | ADR-0012 + surface core          | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V3      | Registry export                  | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V4      | CLI                              | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V5      | Exports + bundles                | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V6      | REST API                         | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V7      | Hosted mode + clients            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
-| V8      | MCP server                       | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V9      | MCP Apps + registry entry        | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V10     | Parity                           | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V11     | AI narrative                     | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V12     | Container                        | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
-| V13     | Staging                          | CI: phase-verify.yml, deploy-staging.yml, staging-health.yml; live | -- | -- | -- | -- | -- |
-| V14     | Readiness gate                   | CI: phase-verify.yml; live | --    | --                  | --       | --   | --          |
-| V15     | 1.0.0b1 release                  | CI: phase-verify.yml; live, post | -- | --              | --       | --   | --          |
-| V16     | CI integration                   | CI: phase-verify.yml; live, post | -- | --              | --       | --   | --          |
+| Step | Scope                          | Model          | Status             |
+| ---- | ------------------------------ | -------------- | ------------------ |
+| 1    | Surfaces baseline, concurrency | Gemini 4 Argon | Complete — PR #175 |
+| 2    | ADR-0012 + surface core        | Opus 5.5       | Complete — PR #177 |
+| 3    | Registry export                | Gemini 4 Argon | Complete — PR #178 |
+| 4    | The pyeconomics CLI            | Gemini 4 Argon | Complete — PR #179 |
+| 5    | Exports + bundles              | Gemini 4 Argon | Complete — PR #180 |
+| 6    | REST API                       | Gemini 4 Argon | Complete — PR #181 |
+| 7    | Hosted mode, fuzzing + clients | Gemini 4 Argon | Complete — PR #183 |
+| 8    | MCP server                     | Gemini 4 Argon | Complete — PR #191 |
+| 9    | MCP Apps, registry + evals     | Gemini 4 Argon | Complete — PR #198 |
+| 10   | Cross-surface parity           | Gemini 4 Argon | Complete — PR #199 |
+| 11   | AI narrative                   | Gemini 4 Argon | Complete — PR #200 |
+| 12   | Service container              | Gemini 4 Argon | Complete — PR #201 |
+| 13   | Staging on Cloud Run           | Sonnet 5.5     | Complete — PR #204 |
+| 14   | 1.0.0b1 readiness gate         | Sonnet 5.5     | Complete — PR #207 |
+| 15   | 1.0.0b1 release                | Gemini 4 Argon | Complete — PR #208 |
+| 16   | QA + verify-phase04.sh         | Gemini 4 Argon | Complete — PR #214 |
+| V1   | Concurrency hardening          | CI             | --                 |
+| V2   | ADR-0012 + surface core        | CI             | --                 |
+| V3   | Registry export                | CI             | --                 |
+| V4   | CLI                            | CI             | --                 |
+| V5   | Exports + bundles              | CI             | --                 |
+| V6   | REST API                       | CI             | --                 |
+| V7   | Hosted mode + clients          | CI             | --                 |
+| V8   | MCP server                     | CI             | --                 |
+| V9   | MCP Apps + registry entry      | CI             | --                 |
+| V10  | Parity                         | CI             | --                 |
+| V11  | AI narrative                   | CI             | --                 |
+| V12  | Container                      | CI             | --                 |
+| V13  | Staging                        | CI             | --                 |
+| V14  | Readiness gate                 | CI             | --                 |
+| V15  | 1.0.0b1 release                | CI             | --                 |
+| V16  | CI integration                 | CI             | --                 |
 
 ---
 
