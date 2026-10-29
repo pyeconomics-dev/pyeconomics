@@ -1,6 +1,6 @@
-# Phase 4 Roadmap — Programmatic Surfaces: CLI, REST API, MCP & Exports
+# Phase 4 Roadmap — Programmatic Surfaces: CLI, REST API, MCP & Exports ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-28
 
 ## Overview
 
@@ -836,7 +836,7 @@ execute all six stages before declaring a step complete.
   and `-m "not live"`, over `tests`, `src` and `docs`. The offline suite
   passed 7,755 tests in about 16–19 minutes serially (no pytest-xdist);
   `HYPOTHESIS_PROFILE=ci` is the required profile, and the dev profile
-  fails five known property issues (#112, #139, #143, #149, #152).
+  fails six known property issues (#112, #137, #139, #143, #149, #152).
 - `tests/golden/` holds one TOML file per model: 354 cited cases across 50
   files, the inputs every parity check will run. `tests/registry/toy_models.py`
   is the toy catalog, `tests/data/bindings/bound_support.py` the scripted
@@ -8410,9 +8410,9 @@ hygiene.
 
 ---
 
-## Step 16 — QA and Verification Script
+## Step 16 — QA and Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #214 (2026-10-28)
 
 > **Goal:** Package the phase's verification matrix into
 > `scripts/verify-phase04.sh` — Phase 3's `--fast`, `--python`,
@@ -8469,6 +8469,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+
+> Ran 2026-10-28: Quality Pick — Opus 5.5 · High. The **Runs:** rule selected the Balanced Pick (Gemini 4 Argon on Antigravity, pool headroom); the operator ran the step on Claude Code, where Opus 5.5 at High is the Quality column's Pick.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: the
 mechanical translation of `verify-phase03.sh` into this phase's
@@ -9201,7 +9203,7 @@ workflow above maps directly to the corresponding row below.
 | ID   | Check                                                              | Automation                                                                |
 | ---- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | V9.1 | Static checks 35–38 all PASS, including `docs/mcp-evaluations.md` with no failed task. | `phase-verify.yml --fast`.                           |
-| V9.2 | The MCP Apps resource tests, `server.json`'s schema validation and the eight scripted tasks pass. | `ci.yml` tests matrix (`--python` locally). |
+| V9.2 | The MCP Apps resource tests, `server.json`'s schema validation and the nine scripted tasks pass. | `ci.yml` tests matrix (`--python` locally). |
 
 ### V10 — Cross-surface parity
 
@@ -9304,7 +9306,7 @@ workflow above maps directly to the corresponding row below.
 | 13      | Staging on Cloud Run             | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #204 |
 | 14      | 1.0.0b1 readiness gate           | Sonnet 5.5        | Claude Code  | Effort XHigh        | --       | New  | Complete — PR #207 |
 | 15      | 1.0.0b1 release                  | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #208 |
-| 16      | QA + verify-phase04.sh           | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Not started |
+| 16      | QA + verify-phase04.sh           | Gemini 4 Argon    | Antigravity  | Effort High         | On       | New  | Complete — PR #214 |
 | V1      | Concurrency hardening            | CI: phase-verify.yml, ci.yml; live | -- | --             | --       | --   | --          |
 | V2      | ADR-0012 + surface core          | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
 | V3      | Registry export                  | CI: phase-verify.yml, ci.yml | --  | --                  | --       | --   | --          |
