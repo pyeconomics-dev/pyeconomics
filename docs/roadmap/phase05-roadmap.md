@@ -9207,7 +9207,10 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       policy and guardrails, and the questions (FRED content
       at inference time, an EU or UK representative, the
       governing law, the liability cap, analytics without a
-      banner, the New York Fed and OECD pass-through, the
+      banner (Umami's pricing says none is needed, its
+      documentation that it depends on the site's setup;
+      ADR-0013 decision 13), the New York Fed and OECD
+      pass-through, the
       Pro preview's wording); the maintainer sends it; Step
       18 records the outcome.
     </requirement>
