@@ -17,6 +17,17 @@
 #   `allUsers` invoker binding between deploys, so the deploy identity needs
 #   only `roles/run.developer` on the service and never sets its IAM policy
 #   (#211). The origin `/version` check below fails if the binding is lost.
+# - Then the `site` job (Phase 5 Step 4; ADR-0013 decisions 3, 4 and 9)
+#   builds the staging flavour of the site from this commit and deploys it,
+#   with the shared edge Worker, to `pyeconomics-web-staging` on
+#   `staging.pyeconomics.dev` behind Access. `CLOUDFLARE_API_TOKEN` is an
+#   account-owned token holding the Editor role on that one Worker: it uploads
+#   and deploys versions (`wrangler versions upload`, then `versions deploy`)
+#   and rolls back, and cannot touch routes, custom domains, DNS or any other
+#   Worker, so `wrangler deploy`, which rewrites the custom domain, stays the
+#   maintainer's. Only the steps that call Wrangler see the token. The job
+#   verifies the site through Access and, on failure, returns the Worker to
+#   the version it served before and fails.
 
 name: deploy-staging
 
@@ -367,3 +378,204 @@ jobs:
             --region="$GCP_REGION" \
             --to-revisions="${PREVIOUS_REVISION}=100" \
             --quiet
+
+  site:
+    name: deploy and verify the staging site
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://${{ vars.STAGING_SITE_HOST }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      STAGING_SITE_HOST: ${{ vars.STAGING_SITE_HOST }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      ASTRO_TELEMETRY_DISABLED: "1"
+      WRANGLER_SEND_METRICS: "false"
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: true
+
+      - name: Set up Node.js from web/.nvmrc
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+
+      # npm ci installs exactly the lockfile; no package may run an install script.
+      - name: Install the site's tools from their lockfile
+        working-directory: web
+        run: npm ci --ignore-scripts --no-fund --no-audit
+
+      - name: Export the site data from this commit
+        working-directory: web
+        run: npm run data
+
+      # scripts/headers.ts writes dist/_headers with X-Robots-Tag: noindex.
+      - name: Build the staging flavour of the site
+        working-directory: web
+        env:
+          SITE_FLAVOUR: staging
+          GIT_SHA: ${{ github.sha }}
+        run: npm run build
+
+      - name: Record the Worker version serving now
+        id: previous
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install wrangler deployments status --env staging --json > "$RUNNER_TEMP/deployment.json"
+          previous=$(python3 - "$RUNNER_TEMP/deployment.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              deployment = json.load(handle)
+          whole = [v["version_id"] for v in deployment.get("versions", []) if v.get("percentage") == 100]
+          print(whole[0] if len(whole) == 1 else "")
+          PY
+          )
+          echo "previous_version=${previous}" >> "$GITHUB_OUTPUT"
+          echo "Worker version serving before this deploy: ${previous:-none}"
+
+      - name: Upload the site as a new Worker version and deploy it
+        id: release
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install wrangler versions upload --env staging --message "deploy-staging ${GITHUB_SHA}"
+          version=$(python3 - "$WRANGLER_OUTPUT_FILE_PATH" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              entries = [json.loads(line) for line in handle if line.strip()]
+          uploads = [e["version_id"] for e in entries if e.get("type") == "version-upload"]
+          print(uploads[-1] if uploads else "")
+          PY
+          )
+          if [[ ! "$version" =~ ^[0-9a-f-]{36}$ ]]; then
+            echo "::error::wrangler versions upload reported no version id."
+            exit 1
+          fi
+          npx --no-install wrangler versions deploy "${version}@100%" --env staging \
+            --message "deploy-staging ${GITHUB_SHA}" --yes
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the site and the API through Access
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = f"https://{os.environ['STAGING_SITE_HOST'].strip()}"
+          git_sha = os.environ["GITHUB_SHA"].strip()
+          agent = {"User-Agent": "pyeconomics-deploy-check/1.0"}
+          access = {
+              "CF-Access-Client-Id": os.environ["CF_ACCESS_CLIENT_ID"].strip(),
+              "CF-Access-Client-Secret": os.environ["CF_ACCESS_CLIENT_SECRET"].strip(),
+              **agent,
+          }
+          generated = pathlib.Path("web/src/data/generated/registry.json")
+          expected_version = json.loads(generated.read_text(encoding="utf-8"))["pyeconomics"]
+          policy_lines = [
+              line.strip()
+              for line in pathlib.Path("web/dist/_headers").read_text(encoding="utf-8").splitlines()
+              if line.strip().startswith("Content-Security-Policy:")
+          ]
+          assert len(policy_lines) == 1, "dist/_headers must hold one Content-Security-Policy"
+          expected_policy = policy_lines[0].split(":", 1)[1].strip()
+
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect)
+
+          def request(path: str, headers: dict[str, str]):
+              req = urllib.request.Request(f"{base}{path}", headers=headers)
+              try:
+                  with opener.open(req, timeout=30) as resp:
+                      return resp.status, resp.headers, resp.read()
+              except urllib.error.HTTPError as exc:
+                  return exc.code, exc.headers, exc.read()
+
+          # 1. Without the service token, Access refuses the host: pages and API alike.
+          for path in ("/", "/version.json", "/v1/models"):
+              status, _, _ = request(path, agent)
+              assert status in {302, 303, 401, 403}, (
+                  f"unauthenticated {path} returned {status}, expected Access refusal"
+              )
+
+          # 2. /version.json reports this commit once the new version has propagated.
+          deadline = time.monotonic() + 120
+          while True:
+              status, _, body = request("/version.json", access)
+              found = json.loads(body) if status == 200 else None
+              if found == {"pyeconomics": expected_version, "git_sha": git_sha}:
+                  break
+              assert time.monotonic() < deadline, f"/version.json returned {status}: {found}"
+              time.sleep(5)
+
+          # 3. A page carries the build's exact policy and refuses indexing.
+          status, headers, _ = request("/", access)
+          assert status == 200, f"/ returned {status}"
+          assert headers.get("Content-Security-Policy") == expected_policy, "/ policy differs from dist/_headers"
+          assert headers.get("X-Robots-Tag") == "noindex", "/ does not refuse indexing"
+          assert headers.get("X-Content-Type-Options") == "nosniff"
+
+          # 4. The API answers on the same host, through the shared edge Worker.
+          status, headers, body = request("/v1/models", access)
+          assert status == 200, f"/v1/models returned {status}"
+          assert headers.get("X-Content-Type-Options") == "nosniff", "the API response lacks nosniff"
+          assert json.loads(body), "/v1/models answered an empty document"
+          status, _, body = request("/healthz", access)
+          assert status == 200 and json.loads(body) == {"status": "ok"}, f"/healthz returned {status}"
+          print("All staging site checks passed.")
+          PY
+
+      - name: Return the Worker to the previous version on failure
+        if: failure() && steps.previous.outputs.previous_version != '' && steps.release.outcome != 'skipped'
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PREVIOUS_VERSION: ${{ steps.previous.outputs.previous_version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Staging site deploy or verification failed; rolling the Worker back to ${PREVIOUS_VERSION}."
+          npx --no-install wrangler rollback "$PREVIOUS_VERSION" --env staging \
+            --message "deploy-staging ${GITHUB_SHA} failed verification" --yes
