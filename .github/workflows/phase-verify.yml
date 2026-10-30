@@ -75,6 +75,16 @@ jobs:
         with:
           version: "0.12.15"
           enable-cache: false
+      # The gate's eslint-web hook (Phase 5 Step 3) runs web/'s own ESLint, so
+      # the web app's tools are installed first, exactly from its lockfile and
+      # with no install script.
+      - name: Set up Node.js from web/.nvmrc
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+      - name: Install the web app's tools from their lockfile
+        working-directory: web
+        run: npm ci --ignore-scripts --no-fund --no-audit
       # The token lets zizmor run its online audits; prek's gate then scans
       # the whole tree.
       - name: Security gate
