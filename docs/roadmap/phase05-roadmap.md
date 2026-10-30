@@ -1784,9 +1784,9 @@ toggle. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 2 — ADR-0013: Web App, Hosting, Data Plane and Launch
+## Step 2 — ADR-0013: Web App, Hosting, Data Plane and Launch ✅
 
-**Status:** Not started
+**Status:** Complete — PR #221 (2026-10-29)
 
 > **Goal:** Fix every decision the site, the data plane, production and
 > the launch encode before any of them is built. Write
@@ -1840,6 +1840,9 @@ site.
 Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
 × the tokens the model uses at that level; * token use not yet measured, a
 typical model's at that level assumed.
+
+> Ran 2026-10-29: Balanced Pick — Opus 5.5 · High. The **Runs:** column; the
+> claude.ai Max weekly pool read `headroom`.
 
 **Conversation:** New
 
@@ -11603,7 +11606,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Launch baseline, fixes         | GPT-6.1 Sol    | Complete — PR #219 |
-| 2    | ADR-0013                       | Opus 5.5       | Not started        |
+| 2    | ADR-0013                       | Opus 5.5       | Complete — PR #221 |
 | 3    | Web foundation                 | Gemini 4 Argon | Not started        |
 | 4    | Staging site                   | Sonnet 5.5     | Not started        |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Not started        |
