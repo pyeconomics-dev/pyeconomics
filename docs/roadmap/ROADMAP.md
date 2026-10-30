@@ -1248,29 +1248,23 @@ and licensed market data
 |               | Platform | Codex              | Claude Code        | Claude Code        |
 |               | Level    | Medium             | High               | Max                |
 |               | AA       | 47.8               | 53.6               | 57.6               |
-|               | Price    | $1.61/1M           | $6.02/1M           | $67.58/1M          |
+|               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | High               | Max                |
-|               | AA       | 46.8               | 50.2               | not measured       |
-|               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
+|               | Level    | High               | XHigh              | High               |
+|               | AA       | 46.8               | 51                 | 52.6               |
+|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 51.8               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
+|               | AA       | ≈45.2              | ≈49.8              | 51.8               |
+|               | Price    | $2.31/1M           | $2.37/1M           | $4.74/1M           |
 
-Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
-× the tokens the model uses at that level; * token use not yet measured, a
-typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level. ≈
+estimated from the model's measured levels.
 
 **Conversation:** New
-
-**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
-that column's usage pool reads `tight` or `exhausted`, run the first of its
-Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
-↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
-Cost column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
 > GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
@@ -1474,29 +1468,23 @@ batches that surface everywhere automatically.
 |               | Platform | Codex              | Claude Code        | Claude Code        |
 |               | Level    | Medium             | High               | Max                |
 |               | AA       | 47.8               | 53.6               | 57.6               |
-|               | Price    | $1.61/1M           | $6.02/1M           | $67.58/1M          |
+|               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | High               | Max                |
-|               | AA       | 46.8               | 50.2               | not measured       |
-|               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
+|               | Level    | High               | XHigh              | High               |
+|               | AA       | 46.8               | 51                 | 52.6               |
+|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 51.8               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
+|               | AA       | ≈45.2              | ≈49.8              | 51.8               |
+|               | Price    | $2.31/1M           | $2.37/1M           | $4.74/1M           |
 
-Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
-× the tokens the model uses at that level; * token use not yet measured, a
-typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level. ≈
+estimated from the model's measured levels.
 
 **Conversation:** New
-
-**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
-that column's usage pool reads `tight` or `exhausted`, run the first of its
-Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
-↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
-Cost column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
 > GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
@@ -1664,29 +1652,23 @@ Yes — account PII, authentication, billing metadata (never card data)
 |               | Platform | Codex              | Claude Code        | Claude Code        |
 |               | Level    | Medium             | High               | Max                |
 |               | AA       | 47.8               | 53.6               | 57.6               |
-|               | Price    | $1.61/1M           | $6.02/1M           | $67.58/1M          |
+|               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | High               | Max                |
-|               | AA       | 46.8               | 50.2               | not measured       |
-|               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
+|               | Level    | High               | XHigh              | High               |
+|               | AA       | 46.8               | 51                 | 52.6               |
+|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
-|               | AA       | not measured       | not measured       | 51.8               |
-|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
+|               | AA       | ≈45.2              | ≈49.8              | 51.8               |
+|               | Price    | $2.31/1M           | $2.37/1M           | $4.74/1M           |
 
-Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
-× the tokens the model uses at that level; * token use not yet measured, a
-typical model's at that level assumed.
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level. ≈
+estimated from the model's measured levels.
 
 **Conversation:** New
-
-**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
-that column's usage pool reads `tight` or `exhausted`, run the first of its
-Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
-↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
-Cost column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
 > GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
