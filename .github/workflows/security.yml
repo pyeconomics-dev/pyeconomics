@@ -258,6 +258,10 @@ jobs:
           #   yet relicensed, both allowed. Its web client brings Vite, whose CSS
           #   tool lightningcss (with one prebuilt package per platform) is
           #   MPL-2.0: a development tool, never shipped, linked or published.
+          # - tslib (0BSD) ships to browsers in the web app, through radix-ui
+          #   (Phase 5 Step 3). 0BSD, zero-clause BSD, is on the Phase 5 web
+          #   allowlist for what ships (MIT, BSD, Apache-2.0, ISC, 0BSD), which
+          #   scripts/checks/web_licences.py enforces; it grants more than MIT.
           # - The web app's build and test tools (web/ devDependencies, Phase 5
           #   Step 3), never shipped to browsers; scripts/checks/web_licences.py
           #   holds what ships to the permissive allowlist:
@@ -321,6 +325,7 @@ jobs:
             pkg:npm/path-scurry,
             pkg:npm/sax,
             pkg:npm/sentry,
+            pkg:npm/tslib,
             pkg:npm/%40modelcontextprotocol/inspector,
             pkg:npm/@modelcontextprotocol/inspector,
             pkg:npm/lightningcss,
