@@ -1,0 +1,20 @@
+// web/wrangler.jsonc
+// The site as Workers static assets (ADR-0013 decisions 3 and 4). In Step 3 it
+// is served only by `wrangler dev`, so Playwright and Lighthouse see the
+// headers dist/_headers sets exactly as Cloudflare sends them. Step 4 adds
+// the shared Worker (`main`, run_worker_first on the API's paths) and the
+// staging and production environments. Version and preview URLs on
+// workers.dev are public, so both stay off.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pyeconomics-web",
+  "compatibility_date": "2026-10-29",
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

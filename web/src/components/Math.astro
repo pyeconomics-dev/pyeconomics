@@ -1,0 +1,19 @@
+---
+// web/src/components/Math.astro
+// One formula, rendered to MathML at build time by src/lib/math.ts. The markup
+// is KaTeX's own output for a formula from the registry or a page's source;
+// trust is off, so it holds no link, style, class or script a formula chose.
+import { renderMath } from "@/lib/math";
+
+interface Props {
+  /** The formula, in LaTeX. */
+  latex: string;
+  /** A display formula on its own line, rather than inline in text. */
+  display?: boolean;
+}
+
+const { latex, display = false } = Astro.props;
+const markup = renderMath(latex, display);
+---
+
+<Fragment set:html={markup} />

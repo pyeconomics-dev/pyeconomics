@@ -5,8 +5,9 @@
 # pull request passes here. `test` is the one aggregate status check that
 # branch protection requires for the whole matrix, for `pyodide`, which runs
 # scripts/smoke.py against the wheel in Pyodide, for `api-fuzz` (Schemathesis
-# against openapi.json) and for `clients` (the generated TypeScript and Python
-# clients against a local server). ty is informational until it reaches 1.0
+# against openapi.json), for `clients` (the generated TypeScript and Python
+# clients against a local server) and for `web` (the web app's build, headers
+# and tests). ty is informational until it reaches 1.0
 # and is never required. pyright is editor-only: its PyPI wrapper fetches Node
 # at first run.
 name: ci
@@ -627,6 +628,103 @@ jobs:
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/parity/bin/python" -I "$check" "$golden" "$RUNNER_TEMP/parity/bin/pyeconomics"
 
+  # Phase 5 Step 3 (ADR-0013 decisions 2, 9 and 19): the web app in web/, on
+  # the Node of web/.nvmrc. The site data is exported twice and must not
+  # change; then astro check, ESLint with the security and accessibility rules
+  # (the eslint-web hook), Vitest, the build with its post-build headers check,
+  # gitleaks over dist/, Playwright with axe and the CSP-violation listener,
+  # Lighthouse at decision 19's scores (both against `wrangler dev`, so
+  # dist/_headers applies as on Cloudflare), npm audit (the npm-audit-web
+  # hook) and the licence check of what ships to browsers.
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ASTRO_TELEMETRY_DISABLED: "1"
+      WRANGLER_SEND_METRICS: "false"
+      # /version.json reports the commit the checkout holds.
+      GIT_SHA: ${{ github.sha }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: true
+      - name: Set up Node.js from web/.nvmrc
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+      - name: Install the locked environment with every extra
+        run: uv sync --locked --all-extras
+      # npm ci installs exactly the lockfile; no package may run an install script.
+      - name: Install the site's tools from their lockfile
+        working-directory: web
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Export the site data twice; it must not change
+        working-directory: web
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run data
+          sha256sum src/data/generated/*.json > "$RUNNER_TEMP/site-data.sha256"
+          npm run data
+          sha256sum --check --strict "$RUNNER_TEMP/site-data.sha256"
+      - name: astro check
+        working-directory: web
+        run: npx --no-install astro check
+      - name: ESLint (security and accessibility, no warnings)
+        run: uv run --locked prek run eslint-web --all-files --verbose
+      - name: Vitest
+        working-directory: web
+        run: npm test
+      # The build runs scripts/headers.ts, which writes dist/_headers and fails
+      # on an unsafe source, an unhashed inline script or style, an inline
+      # style attribute, a line over 2,000 characters or a server route.
+      - name: Build the site and check its headers
+        working-directory: web
+        run: npm run build
+      - name: Scan the build output for secrets with gitleaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          gitleaks_image="ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f"
+          docker run --rm -v "$PWD:/repo:ro" -w /repo "$gitleaks_image" \
+            dir web/dist --config .gitleaks.toml --redact --no-banner --exit-code 1
+      - name: Install Playwright's Chromium
+        working-directory: web
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Playwright with axe and the CSP-violation listener
+        working-directory: web
+        run: npm run e2e
+      - name: Lighthouse on decision 19's sample
+        working-directory: web
+        run: npm run lighthouse
+      - name: Upload the Playwright and Lighthouse reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web-reports
+          path: |
+            web/playwright-report
+            web/.lighthouse
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: npm audit (high and above)
+        run: uv run --locked prek run npm-audit-web --all-files --verbose
+      - name: Licence check of what ships to browsers
+        run: uv run --locked python scripts/checks/web_licences.py --shipped web/.astro/shipped-packages.json
+
   container:
     name: container
     runs-on: ubuntu-latest
@@ -851,7 +949,7 @@ jobs:
     # skipped by design (pr-title and dco on a push) passes; a failed or
     # cancelled one does not.
     if: always()
-    needs: [lint, types, tests, package, pyodide, docs, api-fuzz, clients, mcp-inspector, parity, container, lockfile, pr-title, dco]
+    needs: [lint, types, tests, package, pyodide, docs, api-fuzz, clients, mcp-inspector, parity, web, container, lockfile, pr-title, dco]
     runs-on: ubuntu-latest
     permissions: {}
     steps:

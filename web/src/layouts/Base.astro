@@ -1,0 +1,45 @@
+---
+// web/src/layouts/Base.astro
+// The layout every page uses: one stylesheet, the header, a main landmark the
+// skip link targets, and the footer with the notices. It loads no script and
+// no web font; Astro adds each page's Content Security Policy as a <meta>
+// element, and dist/_headers sends the same policy as a header.
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const pageTitle = title === "pyeconomics" ? title : `${title} · pyeconomics`;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="color-scheme" content="light dark" />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2"
+    >
+      Skip to content
+    </a>
+    <Header />
+    <main id="main" tabindex="-1" class="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

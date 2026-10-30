@@ -39,7 +39,7 @@ STYLE RULES (the AI MUST follow)
     selector, quality first. A phase roadmap fixes every step's
     scope, task prompt, acceptance criteria and Settings, so it
     is the phase's highest-leverage session, and it runs once:
-    it runs the Quality column, the strongest `planning` model
+    its Quality column is the strongest `planning` model
     the operator's access methods reach, at the deepest
     reasoning rung that model exposes on its platform (`Max`
     in Claude Code, which `/roadmap-phase` sets by itself),
@@ -48,18 +48,20 @@ STYLE RULES (the AI MUST follow)
     none, and the ladder carries no Thinking row: it is always On where a
     toggle exists). Where `roadmodel` is installed, the table
     is the ladder `roadmodel ladder --category planning
-    --complexity high --phase` prints, pasted as printed with
-    its **Runs:** line: Cost, Balanced and Quality, each ranked
-    three deep (Pick, Runner-up, and a Backup from another
-    maker), each option with its level, AA Index and price, so a pool that reads `tight` or
-    `exhausted` on the day moves the session to another column
-    instead of the table being refreshed. It ranks on measured
+    --complexity high --phase` prints, pasted as printed:
+    Cost, Balanced and Quality, each ranked three deep (Pick,
+    Runner-up, and a Backup from another maker), each option
+    with its level, AA Index and price, every usage pool read
+    at headroom. It names no column to run: the operator picks
+    the option (roadmodel 0.2.106 on). It ranks on measured
     benchmarks, so a stale catalog letter cannot steer it, and
     a model the user-context names for these sessions still
     wins. Never `Ultracode`: it reasons at `Extra high` and
     adds parallel agents, which one planning document does not
     need. A rule for roadmap-writing sessions in the
-    user-context overrides this default. Without roadmodel, the
+    user-context overrides this default, unless it turns on a
+    usage pool's state: pool states are informational and never
+    steer a pick. Without roadmodel, the
     table takes its platform's single-column shape (the phase
     roadmap template's Settings variants) with a Backup row.
     Its Conversation is always **New**. Once the phase roadmap
@@ -273,11 +275,6 @@ level.
 
 **Conversation:** New
 
-**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
-that column's usage pool reads `tight` or `exhausted`, run the first of its
-Runner-up and Backup whose pool has headroom; with neither, a `tight` column
-runs the Cost column and an `exhausted` one its Backup.
-
 <!-- The ladder `roadmodel ladder --category planning
 --complexity high --phase` prints, pasted as printed. Without
 roadmodel, a single-column table in its platform's shape from
@@ -286,8 +283,10 @@ Intelligence and no Thinking row; Cursor carries Max Mode
 alone. -->
 
 <One or two sentences: what this phase's roadmap must get
-right, why this model at this rung, and which subscription or
-key pays for the platform.>
+right, and, on its merits alone, the option that fits it best
+(quality first: it fixes every step after it). Never which
+column runs, a pool's state or the Budget priority: the
+operator picks the option.>
 
 #### 1.1 <Sub-section title>
 - <Action item>.
@@ -350,8 +349,6 @@ level.
 
 **Conversation:** New
 
-**Runs:** Quality — <the line `roadmodel ladder` prints>
-
 <Why, in one or two sentences.>
 
 #### 2.1 <Sub-section title>
@@ -400,8 +397,6 @@ Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
 level.
 
 **Conversation:** New
-
-**Runs:** Quality — <the line `roadmodel ladder` prints>
 
 <Why, in one or two sentences.>
 

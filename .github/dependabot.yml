@@ -1,8 +1,8 @@
 # .github/dependabot.yml
-# Weekly version updates for the uv lock, the workflows' actions, the
-# tools/node workspace's npm lockfile and the service container's base images
-# (ROADMAP §5 "Security controls by layer"). Security updates are on in the repository
-# settings. The prefixes keep Dependabot's pull request titles Conventional
+# Weekly version updates for the uv lock, the workflows' actions, the npm
+# lockfiles of the tools/node workspace and the web app, and the service
+# container's base images (ROADMAP §5 "Security controls by layer"). Security
+# updates are on in the repository settings. The prefixes keep Dependabot's pull request titles Conventional
 # Commits. When a pull request changes uv.lock but not pylock.toml,
 # regenerate pylock.toml on it with
 #   uv export --no-config --format pylock.toml --output-file pylock.toml
@@ -34,6 +34,22 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    commit-message:
+      prefix: chore(deps)
+
+  # The web app (Phase 5 Step 3): Astro, React, Tailwind, the test tools and
+  # wrangler, in web/'s own lockfile. TypeScript stays on 6 while astro check
+  # refuses 7 (@astrojs/check peers on ^5 or ^6).
+  - package-ecosystem: npm
+    directory: "/web"
+    schedule:
+      interval: weekly
+    groups:
+      web-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: chore(deps)
 

@@ -91,6 +91,9 @@ jobs:
       # tools/node's lockfile (Phase 4 Step 7); npm audit reads it, installs nothing.
       - name: npm audit
         run: uv run --locked prek run npm-audit --all-files --verbose
+      # web/'s lockfile (Phase 5 Step 3), the same way.
+      - name: npm audit (web)
+        run: uv run --locked prek run npm-audit-web --all-files --verbose
 
   gate-licences:
     name: gate-licences
@@ -110,6 +113,10 @@ jobs:
           enable-cache: false
       - name: runtime licence allowlist
         run: uv run --locked prek run licences --all-files --verbose
+      # What web/ ships to browsers, read from its lockfile (Phase 5 Step 3);
+      # ci.yml's web job also checks the built bundle's packages.
+      - name: web licence allowlist
+        run: uv run --locked prek run web-licences --all-files --verbose
 
   trufflehog:
     name: trufflehog
@@ -251,9 +258,74 @@ jobs:
           #   yet relicensed, both allowed. Its web client brings Vite, whose CSS
           #   tool lightningcss (with one prebuilt package per platform) is
           #   MPL-2.0: a development tool, never shipped, linked or published.
+          # - tslib (0BSD) ships to browsers in the web app, through radix-ui
+          #   (Phase 5 Step 3). 0BSD, zero-clause BSD, is on the Phase 5 web
+          #   allowlist for what ships (MIT, BSD, Apache-2.0, ISC, 0BSD), which
+          #   scripts/checks/web_licences.py enforces; it grants more than MIT.
+          # - The web app's build and test tools (web/ devDependencies, Phase 5
+          #   Step 3), never shipped to browsers; scripts/checks/web_licences.py
+          #   holds what ships to the permissive allowlist:
+          #   - axe-core and @axe-core/playwright (MPL-2.0): Playwright's
+          #     accessibility checks; Tailwind 4 and Astro's Vite also bring
+          #     lightningcss (MPL-2.0, listed above);
+          #   - sharp's prebuilt libvips packages (LGPL-3.0-or-later, and
+          #     sharp-wasm32 and sharp-win32-* with Apache-2.0 and MIT): Astro's
+          #     and miniflare's optional image service; the site processes no
+          #     image at build time;
+          #   - glob, minimatch, minipass, path-scurry, lru-cache, sax and
+          #     common-ancestor-path (BlueOak-1.0.0, a permissive licence);
+          #   - mdn-data, language-subtag-registry and @speed-highlight/core
+          #     (CC0-1.0, public-domain dedication);
+          #   - sentry (FSL-1.1-Apache-2.0, the Sentry CLI): reached through
+          #     lighthouse -> @sentry/node, Lighthouse's own error reporting,
+          #     which is off unless asked for; installed with --ignore-scripts.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:npm/argparse,
+            pkg:npm/%40axe-core/playwright,
+            pkg:npm/@axe-core/playwright,
+            pkg:npm/axe-core,
+            pkg:npm/%40img/sharp-libvips-darwin-arm64,
+            pkg:npm/@img/sharp-libvips-darwin-arm64,
+            pkg:npm/%40img/sharp-libvips-darwin-x64,
+            pkg:npm/@img/sharp-libvips-darwin-x64,
+            pkg:npm/%40img/sharp-libvips-linux-arm,
+            pkg:npm/@img/sharp-libvips-linux-arm,
+            pkg:npm/%40img/sharp-libvips-linux-arm64,
+            pkg:npm/@img/sharp-libvips-linux-arm64,
+            pkg:npm/%40img/sharp-libvips-linux-ppc64,
+            pkg:npm/@img/sharp-libvips-linux-ppc64,
+            pkg:npm/%40img/sharp-libvips-linux-riscv64,
+            pkg:npm/@img/sharp-libvips-linux-riscv64,
+            pkg:npm/%40img/sharp-libvips-linux-s390x,
+            pkg:npm/@img/sharp-libvips-linux-s390x,
+            pkg:npm/%40img/sharp-libvips-linux-x64,
+            pkg:npm/@img/sharp-libvips-linux-x64,
+            pkg:npm/%40img/sharp-libvips-linuxmusl-arm64,
+            pkg:npm/@img/sharp-libvips-linuxmusl-arm64,
+            pkg:npm/%40img/sharp-libvips-linuxmusl-x64,
+            pkg:npm/@img/sharp-libvips-linuxmusl-x64,
+            pkg:npm/%40img/sharp-wasm32,
+            pkg:npm/@img/sharp-wasm32,
+            pkg:npm/%40img/sharp-win32-arm64,
+            pkg:npm/@img/sharp-win32-arm64,
+            pkg:npm/%40img/sharp-win32-ia32,
+            pkg:npm/@img/sharp-win32-ia32,
+            pkg:npm/%40img/sharp-win32-x64,
+            pkg:npm/@img/sharp-win32-x64,
+            pkg:npm/%40speed-highlight/core,
+            pkg:npm/@speed-highlight/core,
+            pkg:npm/common-ancestor-path,
+            pkg:npm/glob,
+            pkg:npm/language-subtag-registry,
+            pkg:npm/lru-cache,
+            pkg:npm/mdn-data,
+            pkg:npm/minimatch,
+            pkg:npm/minipass,
+            pkg:npm/path-scurry,
+            pkg:npm/sax,
+            pkg:npm/sentry,
+            pkg:npm/tslib,
             pkg:npm/%40modelcontextprotocol/inspector,
             pkg:npm/@modelcontextprotocol/inspector,
             pkg:npm/lightningcss,

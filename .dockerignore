@@ -68,7 +68,7 @@ htmlcov/
 coverage.xml
 coverage.json
 
-# Documentation, tests, scripts, Node tooling and web placeholder
+# Documentation, tests, scripts, Node tooling and the web app
 docs/
 docs/_build/
 docs/reference/models/
@@ -84,6 +84,16 @@ tests/
 scripts/
 tools/
 web/
+# The web app's local output, already inside web/ above; listed so this file
+# covers every .gitignore rule (tests/server/test_container.py).
+web/node_modules/
+web/dist/
+web/.astro/
+web/src/data/generated/
+web/src/client/
+web/playwright-report/
+web/test-results/
+web/.lighthouse/
 Dockerfile
 .dockerignore
 pylock.toml

@@ -29,16 +29,17 @@ reasoning (e.g. Claude Code funded by a flat Max plan = $0 marginal). Calling
 out would add cost for no benefit.
 
 **Where `roadmodel` is installed, the Settings come from it.** Classify
-the step (step 1 below), then paste the ladder and **Runs:** line
+the step (step 1 below), then paste the ladder
 `roadmodel ladder --category <c> --complexity <x> [--novel]` prints: the
 Cost / Balanced / Quality picks /recommend shows, each ranked three deep (the
 Pick, the Runner-up, and a Backup from another maker), each option with its
 level, AA Index and price. It is local code — no API
 call, no engine — and it
-reads every usage pool at headroom, so the ladder outlives a pool's state: when
-a pool reads `tight` or `exhausted`, `/roadmap-step` runs another column
-instead of the roadmap being refreshed. Its models are always the latest
-version of their series (GPT-6.1 Sol, never GPT-6 Sol where both run). The
+reads every usage pool at headroom: a pool's state is informational and never
+steers it. It names no column to run. The operator picks the option, and the
+Model rationale names the best fit on the step's merits alone. Its models are
+always the latest version of their series (GPT-6.1 Sol, never GPT-6 Sol where
+both run). The
 project roadmap's phase tables come from `roadmodel ladder --category
 planning --complexity high --phase`. Steps 2–4 are the fallback where
 `roadmodel` cannot be reached.
@@ -54,8 +55,9 @@ Concretely, for each roadmap step:
    marked "do NOT recommend" — e.g. a withdrawn flagship — is off the table;
    use its documented fallback).
 3. **Pick the platform** by running `<access-selection>` against
-   `user-context.md` — the cheapest access method that can run the chosen model
-   given the operator's active subscriptions (a Claude pick → "Claude Code"
+   `user-context.md`, every usage pool read as `headroom` — the cheapest access
+   method that can run the chosen model given the operator's active
+   subscriptions (a Claude pick → "Claude Code"
    funded by Max; a GPT pick → "Codex" funded by ChatGPT Pro; etc.).
 4. **Emit** the step's Settings table using the **platform-specific variant**
    the template defines. Every table carries Model / Backup / Platform /
@@ -76,10 +78,11 @@ Concretely, for each roadmap step:
 
 The project roadmap uses the same engine for one more table per phase: its
 **Phase roadmap settings**, the model and dials for the session that writes
-that phase's roadmap. They are picked quality first — the strongest planning
-model the operator's access methods reach, at its deepest reasoning rung —
-because a phase roadmap fixes every step after it. `prompts/phase-roadmap.md`
-checks the session against them before it writes anything.
+that phase's roadmap. Its Quality column is picked quality first — the
+strongest planning model the operator's access methods reach, at its deepest
+reasoning rung — because a phase roadmap fixes every step after it. The
+operator picks the option; `prompts/phase-roadmap.md` checks the session is
+one of them before it writes anything.
 
 ## Paste-prompt
 

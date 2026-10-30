@@ -61,18 +61,20 @@ say explicitly which optional ones you omitted and why.
 For **each phase's** Phase roadmap settings table — the model and
 dials for the session that will write that phase's roadmap with
 `/roadmap-phase N` — pick quality first as the template's style rule
-says: the session runs the Quality column, the strongest `planning`
+says: its Quality column is the strongest `planning`
 model the operator's access methods reach, at the deepest reasoning
 rung it exposes on its platform (`Max` in Claude Code), thinking on
 where the model has a Thinking toggle (a model that always thinks, such
 as Opus 5.5, has none), never `Ultracode` — unless the user-context states a rule for
-roadmap-writing sessions. Where `roadmodel` is installed, the table is
+roadmap-writing sessions that does not turn on a usage pool's state.
+Where `roadmodel` is installed, the table is
 the ladder `roadmodel ladder --category planning --complexity high
 --phase` prints (MCP tool: `roadmap_settings` with `phase`), pasted as
-printed with its **Runs:** line: Cost, Balanced and Quality, each
-ranked three deep (the Pick, the Runner-up, and a Backup from another
-maker), each option with its level, AA Index and price, so a pool that tightens on the day moves
-the session to another column instead of the table being refreshed. It
+printed: Cost, Balanced and Quality, each ranked three deep (the Pick,
+the Runner-up, and a Backup from another maker), each option with its
+level, AA Index and price, every usage pool read at headroom. It names
+no column to run: I pick the option, and the why beneath it names the
+best fit on the phase's merits alone, never a pool's state. It
 ranks on measured benchmarks, so a stale catalog letter cannot steer
 it, and a model the user-context names for these sessions still wins.
 Where `roadmodel` cannot be reached, run the model selector in

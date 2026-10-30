@@ -749,14 +749,14 @@ that owns it.}}
      Quality, each ranked three deep — the Pick, the
      Runner-up (the column's next choice, never the Pick's
      series) and a Backup from another maker — each option
-     with its own model, platform and effort. The roadmap then
-     outlives a usage pool's state: when a pool reads
-     `tight` or `exhausted`, the step's runner picks
-     another column (the **Runs:** line's rule) instead of
-     the roadmap being refreshed. Paste the ladder and its
-     **Runs:** line exactly as `roadmodel ladder --category
-     <c> --complexity <x> [--novel]` prints them for the
-     step's classification (MCP tool: `roadmap_settings`).
+     with its own model, platform and effort. It is chosen
+     on the step's merits and the operator's access alone,
+     with every usage pool read at headroom: a pool's state
+     never steers it. It names no column to run: the
+     operator picks the option (roadmodel 0.2.106 on). Paste
+     the ladder exactly as `roadmodel ladder --category <c>
+     --complexity <x> [--novel]` prints it for the step's
+     classification (MCP tool: `roadmap_settings`).
      Layout (roadmodel 0.2.95 on): one table whose columns
      are Cost, Balanced and Quality. Each rank — **Pick**, **Runner‑up**,
      **Backup** — names the first of its rows from a column of
@@ -775,12 +775,12 @@ that owns it.}}
      already assumes it. A note line under the table explains
      Price, and a `**Conversation:**` line closes the
      ladder. Each rank comes from its own maker (roadmodel
-     0.2.97 on), because a tight usage pool is a maker's: the
+     0.2.97 on), so the options span subscriptions: the
      Runner-up is the column's recommendation with the Pick's
      maker left out, and the Backup leaves out both makers
      above it. Where the user-context funds too few makers, a
      missing rank is the Pick's own model one level lower,
-     its Level marked ↓ (it uses less of a tight pool), and
+     its Level marked ↓ (a cheaper run of it), and
      `none` below the dial's lowest level. The note line
      names the classification the ladder was ranked for. The
      ranks follow the column's own rule, not the AA Index:
@@ -885,10 +885,10 @@ that owns it.}}
      -->
 
 Settings — ladder ({{the default wherever roadmodel is
-installed: the table and **Runs:** line `roadmodel ladder
---category <c> --complexity <x> [--novel]` prints for the
-step's classification, pasted as printed. The three table
-shapes after it are the fallback where roadmodel cannot be
+installed: the table `roadmodel ladder --category <c>
+--complexity <x> [--novel]` prints for the step's
+classification, pasted as printed. The three table shapes
+after it are the fallback where roadmodel cannot be
 reached}}):
 
 |               |          | Cost                  | Balanced              | Quality               |
@@ -913,12 +913,6 @@ Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
 level.
 
 **Conversation:** New
-
-**Runs:** {{Cost / Balanced / Quality}} — the user-context's Budget priority is
-`{{cheap / balanced / best}}`. If that column's usage pool reads `tight` or
-`exhausted`, run the first of its Runner-up and Backup whose pool has headroom;
-with neither, a `tight` column runs the Cost column and an `exhausted` one its
-Backup.
 
 Settings table — Effort + Thinking variant ({{use this
 shape when PLATFORM is "Claude Code" or any other
@@ -969,7 +963,16 @@ row and no Thinking row}}):
 | Conversation | **{{New or Continue}}**     |
 
 **Model rationale:** {{3-5 sentences explaining the choice.
-Lead with the task characteristics (long-running agentic
+With the ladder: the classification it was printed for
+(PRIMARY and SECONDARY category, complexity, novel or not)
+and why; then, on the step's merits alone, the option that
+fits it best (`On the step alone, the Balanced Pick fits
+best: …`) and what the other columns trade against it. The
+operator picks the option, so never say which column runs,
+and never cite the Budget priority, a usage pool's state or
+which subscription has slack, nor follow a user-context rule
+keyed to them. With a single-column table:
+lead with the task characteristics (long-running agentic
 session / multi-file editing / multimodal visual analysis /
 correctness-sensitive reasoning / mechanical translation)
 and map them to the model's documented strengths. Name the
@@ -1326,7 +1329,7 @@ hygiene").}}
 
 {{Settings table — the ladder `roadmodel ladder` prints for
 this step's classification (the Step 1 guidance), pasted as
-printed with its **Runs:** line. Where roadmodel cannot be
+printed. Where roadmodel cannot be
 reached, the single-column variant that matches PLATFORM,
 carrying ONLY the rows that platform's panel exposes.}}
 
@@ -1353,12 +1356,13 @@ level.
 
 **Conversation:** New
 
-**Runs:** {{the line `roadmodel ladder` prints}}
-
 **Model rationale:** 3-5 sentences. With the ladder: the
 classification it was printed for (PRIMARY and SECONDARY
-category, complexity, novel or not) and why, then what sets
-the three columns apart for this step. Otherwise: name the
+category, complexity, novel or not) and why, then, on the
+step's merits alone, the option that fits it best and what
+the other columns trade against it — never which column
+runs, a pool's state or the Budget priority (the Step 1
+guidance). Otherwise: name the
 PLATFORM and the subscription or API key that pays for it. For Claude
 Code and the other reasoning-dial surfaces, state why
 EFFORT is at the stated level and why THINKING is on or
@@ -1476,8 +1480,8 @@ mechanically rather than left to memory.
 on merge.
 
 {{Settings table — the ladder `roadmodel ladder` prints for
-this step's classification, pasted as printed with its
-**Runs:** line; where roadmodel cannot be reached, the
+this step's classification, pasted as printed; where
+roadmodel cannot be reached, the
 single-column variant that matches PLATFORM.}}
 
 |               |          | Cost                  | Balanced              | Quality               |
@@ -1502,8 +1506,6 @@ Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
 level.
 
 **Conversation:** New
-
-**Runs:** {{the line `roadmodel ladder` prints}}
 
 **Model rationale:** Why this model fits the mechanical
 translation of the prior verify-script template into this
@@ -1990,8 +1992,9 @@ corresponding row below.
 ## Summary Table
 
 <!-- One row per step and per verification check. Model is the
-     Pick of the column the step's **Runs:** line names (with
-     a single-column Settings table, its Model); the step's own
+     model of the option the step's Model rationale names as
+     its best fit (with a single-column Settings table, its
+     Model); the operator still picks the option. The step's own
      Settings table carries the platform, the dials, the other
      ranks and the other two columns, so this table need not.
      Scope is at most 30 characters, so every row fits in 80
@@ -2030,8 +2033,8 @@ output format for ease of audit by a roadmodel script.
 
 Include this section if your project has a roadmodel
 audit tool that consumes the text format. Skip it if not.
-With ladder Settings tables, each block restates the column
-the step's **Runs:** line names.
+With ladder Settings tables, each block restates the option
+the step's Model rationale names as its best fit.
 -->
 
 <!-- These blocks follow OUTPUT CONTRACT VERSION 2 of

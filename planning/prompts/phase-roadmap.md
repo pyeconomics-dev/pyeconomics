@@ -73,27 +73,23 @@ own model> on <this surface>.`
   Pick, a Runner-up and a Backup — from roadmodel 0.2.95 a bold group
   label each, beside its Model / Platform / Level / AA / Price rows
   (0.2.94 wrote them as `- Pick:` lists, 0.2.93 as `1 · Pick` rows,
-  and older ladders Model / Backup rows with no Runner-up) — and its
-  **Runs:** line names the
-  column this session runs (Quality, for a phase roadmap). Apply that
-  line's rule to the Usage-pool status table in
-  `planning/user-context.md`: a pool that reads `tight` or `exhausted`
-  moves the run to the first of the column's Runner-up and Backup whose
-  pool has headroom; with neither, `tight` moves it to the Cost
-  column's Pick and `exhausted` to the column's Backup. That option's
-  model, platform and dials are the ones checked below; print which
-  column and rank it is.
+  and older ladders Model / Backup rows with no Runner-up). I pick the
+  option: the session I opened is my choice, so never choose a column
+  for me, and never read the Usage-pool status table or a **Runs:**
+  line (ladders before roadmodel 0.2.106 carry one) to decide. Find
+  the option you are, and check its model, platform and dials below;
+  print which column and rank it is.
 - You are its Model on its Platform, or a newer version in the same
   line (Opus 5 → Opus 5.5, Fable 5 → Fable 5.1, GPT-6 Sol → GPT-6.1
-  Sol): continue, and say so on the line. In a ladder, any
-  option on its own platform continues too; when it is not the one
-  the rule selects, say which one is.
+  Sol): continue, and say so on the line. In a ladder, every option
+  on its own platform continues.
 - You are its Backup on the backup's platform: continue — I have
   switched to it — and say so on the line.
 - Anything else — a different line, an older version, another
   surface: STOP and tell me how to switch (Claude Code: `/model <M>`,
   then `/roadmap-phase {{N}}` again; elsewhere: the model picker and
-  reasoning setting). Do not write the roadmap on a model it did not
+  reasoning setting), listing a ladder's options for me to choose
+  from. Do not write the roadmap on a model it did not
   intend.
 - You cannot see your own reasoning dial (Codex's is the rollout's
   `"effort"`; print it). `/roadmap-phase` sets Claude
@@ -119,16 +115,18 @@ problem-solving (the model selector's Steps 1 and 2 in
 `@planning/model-selector.txt`, against `@planning/user-context.md`).
 Where `roadmodel` is installed, the Settings are the ladder
 `roadmodel ladder --category <c> --complexity <x> [--novel]` prints for
-that classification (MCP tool: `roadmap_settings`), pasted as printed
-with its **Runs:** line. It carries the full recommendation /recommend
-shows: Cost, Balanced and Quality, each ranked three deep (the Pick,
-the Runner-up, and a Backup from another maker), each option on one
-its own level, AA Index and price. The step's runner picks the column from the
-usage pools on the day, so the roadmap needs no refresh when a pool
-tightens. Its models are always the latest version of their series.
-The Model rationale explains the classification and what sets the
-columns apart for the step; the Summary Table row and the step's
-selection block restate the column the **Runs:** line names.
+that classification (MCP tool: `roadmap_settings`), pasted as printed.
+It carries the full recommendation /recommend shows: Cost, Balanced
+and Quality, each ranked three deep (the Pick, the Runner-up, and a
+Backup from another maker), each option with its own level, AA Index
+and price, every usage pool read at headroom. It names no column to
+run: I pick the option. Its models are always the latest version of
+their series. The Model rationale explains the classification and,
+on the step's merits alone, the option that fits it best and what the
+other columns trade against it; never which column runs, a usage
+pool's state, which subscription has slack, or the Budget priority,
+and no user-context rule keyed to them. The Summary Table row and the
+step's selection block restate that best-fit option.
 
 Where `roadmodel` cannot be reached, run the model selector as the
 engine instead (prices from `@planning/model-tier-cost-scale.md`,

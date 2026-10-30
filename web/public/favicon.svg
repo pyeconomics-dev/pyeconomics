@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="25 25 250 250" width="250" height="250" role="img" aria-label="pyeconomics">
+  <rect x="25" y="25" width="250" height="250" rx="48" fill="#63C1FF"/>
+  <path d="M45 225 C95 225 110 70 150 70 S205 225 255 225" fill="none" stroke="#1E1E1E" stroke-width="16" stroke-linecap="round"/>
+  <path d="M150 85 V225" stroke="#1E1E1E" stroke-width="7" stroke-dasharray="14 12"/>
+</svg>

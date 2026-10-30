@@ -1,0 +1,67 @@
+---
+// web/src/pages/index.astro
+// The home page. Its counts and domains come from the registry export, so a
+// new model shows here with no web code.
+import Math from "@/components/Math.astro";
+import { buttonVariants } from "@/components/ui/button";
+import Base from "@/layouts/Base.astro";
+import { DOCUMENTATION, REPOSITORY } from "@/lib/links";
+import { domains, registryData, version } from "@/lib/site-data";
+
+const models = registryData.models.length;
+const sections = domains();
+const prerelease = /(a|b|rc|dev)\d/.test(version);
+const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyeconomics";
+---
+
+<Base
+  title="pyeconomics"
+  description="Open-source economics and finance models with cited formulas and tested values, and economic data from its originators."
+>
+  <section class="flex flex-col gap-6">
+    <h1 class="text-4xl font-bold tracking-tight">pyeconomics</h1>
+    <p class="max-w-2xl text-lg">
+      Open-source economics and finance models: {models} models in {sections.length} domains, each
+      with cited formulas, tested values and units, and a catalog of economic data read from the
+      bodies that publish it.
+    </p>
+    <div class="flex flex-wrap gap-3">
+      <a href={DOCUMENTATION} class={buttonVariants({ className: "no-underline" })}>
+        Read the documentation
+      </a>
+      <a
+        href={REPOSITORY}
+        class={buttonVariants({ variant: "outline", className: "text-foreground no-underline" })}
+      >
+        View the source on GitHub
+      </a>
+    </div>
+    <pre class="w-fit rounded-md border-l-4 border-brand bg-muted px-4 py-3"><code>{install}</code></pre>
+  </section>
+
+  <section class="mt-12 flex flex-col gap-4" aria-labelledby="formulas">
+    <h2 id="formulas" class="text-2xl font-semibold">Formulas you can read</h2>
+    <p class="max-w-2xl">
+      Every formula is rendered as MathML when the site is built, so it reads well in any browser
+      and with a screen reader. The present value of a future amount, for example:
+    </p>
+    <Math latex={String.raw`PV = \frac{FV}{(1 + r)^{n}}`} display />
+  </section>
+
+  <section class="mt-12 flex flex-col gap-4" aria-labelledby="domains">
+    <h2 id="domains" class="text-2xl font-semibold">Domains</h2>
+    <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        sections.map(([domain, count]) => (
+          <li class="rounded-md border px-4 py-3">
+            <span class="font-medium">{domain.replaceAll("_", " ")}</span>
+            <span class="text-muted-foreground">
+              {" "}
+              · {count} {count === 1 ? "model" : "models"}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
