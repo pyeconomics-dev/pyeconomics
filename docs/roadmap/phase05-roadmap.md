@@ -2768,9 +2768,9 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
 
 ---
 
-## Step 4 — Staging Site on Cloudflare
+## Step 4 — Staging Site on Cloudflare ✅
 
-**Status:** Not started
+**Status:** Complete — PR #225 (2026-10-30)
 
 > **Goal:** Put the site behind a real Cloudflare edge from the start, so
 > every later web step is verified where it will run. Extend the edge
@@ -2822,6 +2822,8 @@ with the service token from the maintainer's keyring.
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-10-30: Quality Pick — Opus 5.5 · XHigh.
 
 **Conversation:** New
 
@@ -11592,7 +11594,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Launch baseline, fixes         | GPT-6.1 Sol    | Complete — PR #219 |
 | 2    | ADR-0013                       | Opus 5.5       | Complete — PR #221 |
 | 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
-| 4    | Staging site                   | Sonnet 5.5     | Not started        |
+| 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Not started        |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
