@@ -7476,3 +7476,17 @@ invariant it protected, never deletes it, and adds one line here.
   `jupyter` in `Dockerfile`; `.roadmodel/`, `CLAUDE.local.md` and
   `planning/user-context.md` in `.dockerignore`), while keeping `start.sh` and
   all other 0.2.x legacy paths forbidden (ADR-0012 decision 19).
+
+## Post-merge addendum (2026-10-29) — Phase 5 changes to verify-phase01.sh
+
+- Harness (Phase 5 Step 1, issue #217): the script refuses a bash older
+  than 4 (exit 2, `verify needs bash >= 4`), because its associative
+  arrays need bash 4 and macOS's `/bin/bash` 3.2 stopped at the first check
+  and exited 0; its `EXIT` trap now keeps a crash's status. No check
+  changes; `tests/repo/test_verify_portability.py` holds both.
+
+- Static check 16 (Phase 5 Step 1, issue #213): `open_pr_heads` strips
+  carriage returns from `gh`'s output, which ends its lines with CRLF on
+  Windows, so an open pull request's branch is no longer reported as
+  unexpected. The invariant (origin holds only main, legacy, archive/ and
+  open-PR heads) is unchanged.

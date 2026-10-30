@@ -9690,3 +9690,11 @@ invariant it protected, never deletes it, and adds one line here.
   scripts, because the working tree's smoke script now imports
   `pyeconomics.data`, which `1.0.0a1` does not have. The core, extras and
   stable 0.2.6 installs and their assertions are unchanged.
+
+## Post-merge addendum (2026-10-29) — Phase 5 changes to verify-phase02.sh
+
+- Harness (Phase 5 Step 1, issue #217): the script refuses a bash older
+  than 4 (exit 2, `verify needs bash >= 4`), because its associative
+  arrays need bash 4 and macOS's `/bin/bash` 3.2 stopped at the first check
+  and exited 0; its `EXIT` trap now keeps a crash's status. No check
+  changes; `tests/repo/test_verify_portability.py` holds both.

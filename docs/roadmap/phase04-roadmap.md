@@ -9728,3 +9728,11 @@ staging service on Cloud Run, deployed through OIDC with secrets in Secret
 Manager, that its production deploy promotes; a health probe and a budget
 alert with a proven alarm; and `verify-phase04.sh` as the template for
 `verify-phase05.sh`._
+
+## Post-merge addendum (2026-10-29) — Phase 5 changes to verify-phase04.sh
+
+- Harness (Phase 5 Step 1, issue #217): the script refuses a bash older
+  than 4 (exit 2, `verify needs bash >= 4`), because its associative
+  arrays need bash 4 and macOS's `/bin/bash` 3.2 stopped at the first check
+  and exited 0; its `EXIT` trap now keeps a crash's status. No check
+  changes; `tests/repo/test_verify_portability.py` holds both.

@@ -9,6 +9,12 @@
 # Run from the repository. No credential or environment value is printed.
 
 set -uo pipefail
+# Associative arrays need bash 4; under macOS's /bin/bash 3.2 the script would
+# stop at its first check and exit 0 (#217), so refuse to run instead.
+[ "${BASH_VERSINFO[0]:-0}" -ge 4 ] || {
+  echo "verify needs bash >= 4 (brew install bash)" >&2
+  exit 2
+}
 REPO="${VERIFY_REPO:-pyeconomics-dev/pyeconomics}"
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 2
 cd "$ROOT" || exit 2
@@ -51,7 +57,9 @@ TMP="$(mktemp -d)"
 # Git Bash: a mixed path (E:/...) means the same directory to bash and to
 # native tools, which see paths unconverted under MSYS_NO_PATHCONV.
 if command -v cygpath > /dev/null 2>&1; then TMP="$(cygpath -m "$TMP")"; fi
-trap 'rm -rf "$TMP"' EXIT
+# Keep a crash's exit status: the trap's own status must not become the
+# script's (#217).
+trap 'rc=$?; rm -rf "$TMP"; exit $rc' EXIT
 
 # --------------------------------------------------------------------------
 # Reporting

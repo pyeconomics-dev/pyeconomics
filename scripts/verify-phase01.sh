@@ -22,6 +22,12 @@
 # It never prints a token, a secret value or the environment.
 
 set -uo pipefail
+# Associative arrays need bash 4; under macOS's /bin/bash 3.2 the script would
+# stop at its first check and exit 0 (#217), so refuse to run instead.
+[ "${BASH_VERSINFO[0]:-0}" -ge 4 ] || {
+  echo "verify needs bash >= 4 (brew install bash)" >&2
+  exit 2
+}
 
 REPO="${VERIFY_REPO:-pyeconomics-dev/pyeconomics}"
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || {
@@ -71,7 +77,9 @@ TMP="$(mktemp -d)"
 # Git Bash: a mixed path (E:/...) means the same directory to bash and to
 # native tools, which see paths unconverted under MSYS_NO_PATHCONV.
 if command -v cygpath > /dev/null 2>&1; then TMP="$(cygpath -m "$TMP")"; fi
-trap 'rm -rf "$TMP"' EXIT
+# Keep a crash's exit status: the trap's own status must not become the
+# script's (#217).
+trap 'rc=$?; rm -rf "$TMP"; exit $rc' EXIT
 
 # --------------------------------------------------------------------------
 # Reporting
@@ -332,10 +340,11 @@ c16() {
   [ -z "$bad" ] || fail "unexpected branches:$bad"
 }
 # Head branches of open pull requests, through the GitHub API (gh in CI
-# reads GH_TOKEN; locally, the maintainer's session).
+# reads GH_TOKEN; locally, the maintainer's session). gh on Windows can end
+# its lines with CRLF, which grep -x would never match (#213).
 open_pr_heads() {
   command -v gh > /dev/null 2>&1 || return 0
-  gh api "repos/$REPO/pulls?state=open&per_page=100" --paginate --jq '.[].head.ref' 2> /dev/null || true
+  { gh api "repos/$REPO/pulls?state=open&per_page=100" --paginate --jq '.[].head.ref' 2> /dev/null || true; } | tr -d '\r'
 }
 
 # Step 6 — ADRs
