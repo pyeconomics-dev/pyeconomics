@@ -42,7 +42,14 @@ scripts/legacy/    the 0.2.x fixture recorder, byte-exact: never edit
 .semgrep/          project semgrep rules and their tests
 docs/adr/          architecture decision records
 docs/roadmap/      the project and phase roadmaps: the ledger of what is done
-web/               placeholder for the Phase 5 site
+web/               the Astro site (Phase 5, ADR-0013 decision 2): its own Node
+                   project and lockfile beside tools/node/, its build data only
+                   from scripts/web/export_site_data.py
+syllabi/           syllabus crosswalks: a JSON Schema and one TOML file per
+                   syllabus version; Phase 5 seeds the 2027 CFA Program
+                   (decision 12), Phase 7 adds the rest
+packages/pyeconomics-app/  the uv workspace member whose wheel carries only
+                   the built site, behind the [app] extra (decision 16)
 planning/          roadmodel's planning kit, re-exported by its updater: never edit
 ```
 
@@ -459,6 +466,33 @@ decision 17):
   after changing the prompt, a request or the narrated card, rebuild them. The
   live run (`uv run pytest -m live --force-enable-socket tests/ai -s`) is the
   maintainer's, with their own keys, and its cost goes in the pull request.
+
+## Web rules
+
+From Phase 5 Step 3, which builds the site (ADR-0013). Each step that builds
+a part of the site adds its rules here.
+
+- No page is written by hand for one model. Every model page, calculator,
+  problem page and source entry is generated from the site data that
+  `scripts/web/export_site_data.py` exports from the registry and the
+  catalog, so a new model or provider appears with no web code. A
+  calculator renders the canonical bytes the API returns and downloads them
+  unchanged; a table, chart or summary goes beside them, never in their
+  place.
+- One Content Security Policy for every page (decision 9), built from
+  Astro's hashes and sent from `_headers` and by the local server. No page,
+  island or vendor adds `'unsafe-inline'` or `'unsafe-eval'` or loosens it;
+  `'wasm-unsafe-eval'` is the one exception, for search.
+- No third-party script: the only script not built from `web/` is the
+  analytics tracker decision 13 chose, served from our own origin at a
+  pinned version, in production builds only. A page talks only to the
+  origins decision 9 names.
+- No key, token, secret, internal hostname or `*.run.app` origin reaches
+  the bundle, a page or the generated client. The API is called on the
+  same origin.
+- A user's file is parsed in the browser (decision 11), and only the values
+  a run needs travel, in the run's body. The site keeps no input in
+  storage, the URL or analytics.
 
 ## Units
 

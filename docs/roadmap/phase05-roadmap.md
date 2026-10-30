@@ -285,7 +285,7 @@ except by a superseding ADR.
    a deployed API. Alternative: hand-written forms per field type.
 9. **Security headers.** One policy for every page, sent from `_headers`
    (and by the local server): `default-src 'self'`; `script-src 'self'
-   'wasm-unsafe-eval'` with Astro's build-wide hashes; `style-src 'self'`
+   'wasm-unsafe-eval'` with every page's Astro hashes; `style-src 'self'`
    with Astro's hashes; `img-src 'self' data:`; `font-src 'self'`;
    `connect-src 'self'` with the analytics collector and Sentry's ingest
    origin; `worker-src 'self' blob:`; `form-action 'self'` with the email
@@ -422,9 +422,12 @@ Cloud Storage volume mounts are GA for Cloud Run services and jobs;
 Always Free covers 5 GB-months of Standard storage in `us-central1`;
 Cloud Scheduler gives three free jobs per billing account. From Astro's:
 `security.csp` is stable since Astro 6, hashes the island runtime and
-every inlined script and style for the whole build, emits a meta element
-(an adapter alone can emit headers), and supports neither ClientRouter
-nor Shiki. From the vendors': Umami's Hobby plan, Buttondown's tiers,
+the inlined scripts and styles, emits a meta element on each page, sends
+a header only through an adapter with `staticHeaders` (Node, Netlify and
+Vercel have one; Cloudflare's does not, so a post-build step writes
+`_headers`), and supports neither ClientRouter nor Shiki. Plotly.js's
+`plotly.css` ships only in the `plotly.js` package's `dist/`, not in
+`plotly.js-basic-dist-min` (re-read for Step 2). From the vendors': Umami's Hobby plan, Buttondown's tiers,
 Sentry's Developer plan (5,000 errors a month), Grafana Cloud's free tier
 (10,000 series, 14-day retention) and Better Stack's free plan (ten
 monitors and heartbeats, one status page, 3-minute checks) as decisions
@@ -536,14 +539,14 @@ step time are the authority:
 | katex | 0.19.1 | MIT | formulas at build time (3) |
 | @rjsf/core, utils, validator-ajv8 | 6.11.0 | Apache-2.0 | forms (6) |
 | @rjsf/shadcn | 6.11.0 | MIT | form theme (6) |
-| plotly.js-basic-dist-min | 4.1.2 | MIT | charts, pinned to 4.1.1 (6) |
+| plotly.js | 4.2.0 | MIT | charts: `dist/plotly-basic.min.js` and `dist/plotly.css`, pinned to 4.1.1 (6) |
 | pagefind | 1.5.2 | MIT | search (7) |
 | @astrojs/sitemap, astro-og-canvas | 3.7.4, 0.13.2 | MIT | pages (5) |
 | vitest, @playwright/test | 5.0.5, 1.64.1 | MIT, Apache-2.0 | tests (3) |
 | @axe-core/playwright | 4.14.0 | MPL-2.0 | tests only (3) |
-| @lhci/cli | 0.15.1 | Apache-2.0 | Lighthouse 12.6.1 (3) |
+| @lhci/cli | 0.15.1 | Apache-2.0 | Lighthouse 12.6.1; upstream is 13.6.0, and LHCI last published 2025-06-25 (3) |
 | eslint, eslint-plugin-security | 10.13.0, 4.2.0 | MIT, Apache-2.0 | lint (3) |
-| wrangler | 4.155.0 | MIT OR Apache-2.0 | deploy, local edge (3) |
+| wrangler | 4.156.0 | MIT OR Apache-2.0 | deploy, local edge (3) |
 | @sentry/browser | 11.10.0 | MIT | browser errors (14) |
 | @mdn/mdn-http-observatory | 1.7.2 | MPL-2.0 | header scan only (19) |
 | sentry-sdk | 2.73.0 | MIT | `hosted` group (14) |
@@ -2237,8 +2240,8 @@ phase-boundary hygiene.
 > document, the error table and the source and concept summaries the site
 > reads into a git-ignored directory, and the TypeScript client generated
 > from that OpenAPI document; Astro's `security.csp` with no inlined
-> processed script or stylesheet, and a post-build step that copies its
-> build-wide hashes into `dist/_headers` with decision 9's other headers
+> processed script or stylesheet, and a post-build step that writes the
+> union of every page's hashes into `dist/_headers` with decision 9's other headers
 > and fails the build on `'unsafe-inline'`, `'unsafe-eval'` or a server
 > route; ESLint with `eslint-plugin-security` and accessibility rules,
 > Vitest, Playwright with axe at WCAG 2.2 AA and a CSP-violation listener,
@@ -2289,7 +2292,7 @@ page is built, tested and secured — above all a Content Security Policy
 with no unsafe sources across Astro's island runtime, React, the form
 library, the chart library, search and formulas, each of which has a known
 trap. Complexity is High; the step is not novel, because each trap has a
-documented way through (Astro's build-wide hashes, precompiled validators,
+documented way through (Astro's hashes in one header, precompiled validators,
 Plotly's stylesheet opt-out, MathML output). The ladder's Balanced column
 runs: Gemini 4 Argon on Antigravity at Effort High with Thinking on
 (Google AI Ultra; AA Intelligence Index 52.6), Runner-up Opus 5.5 on
@@ -2552,7 +2555,8 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
     - Facts read on 2026-10-29 (re-check at kickoff): astro
       7.4.4 needs Node 22.23.4 or later; security.csp is
       stable since Astro 6, emits a meta element per page
-      with sha256 hashes collected for the whole build, does
+      with sha256 hashes (its docs say for the scripts and
+      styles the page uses; re-read on 2026-10-29), does
       not work in dev, supports neither ClientRouter nor
       Shiki, and always inlines the island runtime (hashed);
       `vite.build.assetsInlineLimit: 0` and
@@ -2650,9 +2654,9 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
 
     <requirement>
       Headers (decision 9): `security.csp` enabled; a
-      post-build script reads the policy Astro wrote, which
-      is identical on every page, and writes dist/_headers:
-      for `/*` the full policy as a header (Astro's script
+      post-build script reads the policy Astro wrote on
+      every page and writes dist/_headers: for `/*` one
+      policy as a header (the union of every page's script
       and style hashes plus decision 9's directives,
       frame-ancestors included), Strict-Transport-Security,
       X-Content-Type-Options, Referrer-Policy,
@@ -4074,6 +4078,10 @@ phase-boundary hygiene.
       scatter; 401 kB gzipped) needs no eval, and with
       plotly.css loaded and the `plotly.js-style-global`
       no-inline-styles marker present it injects no style.
+      Only the `plotly.js` package ships plotly.css (in
+      dist/, beside dist/plotly-basic.min.js); the
+      `plotly.js-basic-dist-min` package does not
+      (plotly/plotly.js#7332, open on 2026-10-29).
 
     Files to read (every file before drafting):
     - docs/adr/0013-web-app-and-launch.md (decisions 8, 9
@@ -4150,7 +4158,9 @@ phase-boundary hygiene.
       version mcp/apps.py's PLOTLY_JS_VERSION names (a test
       holds the two equal), imported dynamically when a chart
       first renders, with plotly.css self-hosted and the
-      no-inline-styles marker in the layout.
+      no-inline-styles marker in the layout; both files come
+      from the `plotly.js` package's dist/ (ADR-0013
+      decision 8).
     </requirement>
 
     <requirement>
