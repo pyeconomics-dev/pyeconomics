@@ -1,7 +1,8 @@
 // web/src/lib/build-info.ts
-// The build's git commit for /version.json. The site reads no environment
+// The build's git commit for /version.json. The pages read no environment
 // variable at build time but this one: GIT_SHA, which a deploy sets to the
-// commit it builds; without it, the checkout's HEAD.
+// commit it builds; without it, the checkout's HEAD. (The post-build
+// scripts/headers.ts reads SITE_FLAVOUR, the deployment the build is for.)
 import { execFileSync } from "node:child_process";
 
 const SHA = /^[0-9a-f]{40}$/;

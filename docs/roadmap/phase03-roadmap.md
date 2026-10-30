@@ -12733,3 +12733,10 @@ as the template for `verify-phase04.sh`._
   arrays need bash 4 and macOS's `/bin/bash` 3.2 stopped at the first check
   and exited 0; its `EXIT` trap now keeps a crash's status. No check
   changes; `tests/repo/test_verify_portability.py` holds both.
+- Static check 78 (Phase 5 Step 4, 2026-10-30): `deploy-staging.yml`'s new
+  `site` job deploys the staging site with `CLOUDFLARE_API_TOKEN`, an
+  account-owned Cloudflare token holding the Editor role on the one Worker
+  `pyeconomics-web-staging`, stored in the protected `staging` environment.
+  The check now admits that one secret for `deploy-staging.yml` alone;
+  `staging-health.yml` keeps the Access service token set, and every other
+  workflow but `providers-live.yml` still reads `GITHUB_TOKEN` only.

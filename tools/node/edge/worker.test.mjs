@@ -1,12 +1,39 @@
 // tools/node/edge/worker.test.mjs
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-import worker, { forwardRequest } from "./worker.mjs";
+import worker, { API_PATHS, forwardRequest, handleRequest, isApiPath } from "./worker.mjs";
 
 const TEST_ORIGIN = "https://pyeconomics-api-staging-uc.a.run.app";
 const TEST_CREDENTIAL = `edge-test-${"x".repeat(26)}`;
+const SITE = "https://staging.pyeconomics.dev";
+
+// web/wrangler.jsonc, whose comments each take a whole line.
+function siteConfig() {
+  const text = readFileSync(new URL("../../../web/wrangler.jsonc", import.meta.url), "utf8");
+  const json = text
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("//"))
+    .join("\n");
+  return JSON.parse(json);
+}
+
+// The site Worker's ASSETS binding: records each request it answers.
+function makeStubAssets() {
+  const calls = [];
+  const assets = {
+    async fetch(request) {
+      calls.push(request.url);
+      return new Response("<!DOCTYPE html><title>Not found</title>", {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+    },
+  };
+  return { calls, assets };
+}
 
 function makeStubFetch(responseInit = {}) {
   const calls = [];
@@ -238,5 +265,177 @@ describe("edge worker", () => {
       EDGE_CREDENTIAL: TEST_CREDENTIAL,
     });
     assert.equal(insecureOrigin.status, 503);
+    assert.equal(insecureOrigin.headers.get("x-content-type-options"), "nosniff");
+  });
+
+  it("strips every cookie and every Access header, including the authenticated user's email", async () => {
+    const { calls, fetchStub } = makeStubFetch();
+    const request = new Request("https://staging-api.pyeconomics.dev/v1/models", {
+      headers: {
+        Cookie: "CF_Authorization=access-session; other=value",
+        "Cf-Access-Authenticated-User-Email": "maintainer@example.com",
+        "Cf-Access-Jwt-Assertion": "jwt-token",
+        "CF-Access-Future-Header": "anything",
+        Accept: "application/json",
+      },
+    });
+
+    await forwardRequest(request, { ORIGIN_URL: TEST_ORIGIN, EDGE_CREDENTIAL: TEST_CREDENTIAL }, fetchStub);
+
+    const forwarded = calls[0].init.headers;
+    assert.equal(forwarded.get("cookie"), null);
+    assert.deepEqual(
+      [...forwarded.keys()].filter((name) => name.startsWith("cf-access-")),
+      [],
+    );
+    assert.equal(forwarded.get("accept"), "application/json");
+    assert.equal(forwarded.get("x-pyeconomics-edge"), TEST_CREDENTIAL);
+  });
+
+  it("adds X-Content-Type-Options: nosniff to every forwarded response", async () => {
+    const { fetchStub } = makeStubFetch({
+      status: 404,
+      body: '{"status":404}',
+      headers: { "Content-Type": "application/problem+json", "X-Content-Type-Options": "sniff-me" },
+    });
+    const request = new Request("https://staging-api.pyeconomics.dev/v1/models/unknown");
+
+    const response = await forwardRequest(
+      request,
+      { ORIGIN_URL: TEST_ORIGIN, EDGE_CREDENTIAL: TEST_CREDENTIAL },
+      fetchStub,
+    );
+
+    assert.equal(response.status, 404);
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(response.headers.get("content-type"), "application/problem+json");
+  });
+});
+
+describe("site worker (ASSETS bound)", () => {
+  const env = (assets) => ({
+    ORIGIN_URL: TEST_ORIGIN,
+    EDGE_CREDENTIAL: TEST_CREDENTIAL,
+    ASSETS: assets,
+  });
+
+  it("names exactly the paths web/wrangler.jsonc runs the Worker first on", () => {
+    const config = siteConfig();
+    assert.deepEqual(config.assets.run_worker_first, [...API_PATHS]);
+    assert.equal(config.assets.binding, "ASSETS");
+    assert.equal(config.main, "../tools/node/edge/worker.mjs");
+    assert.equal(config.workers_dev, false);
+    assert.equal(config.preview_urls, false);
+  });
+
+  it("matches the API's paths as run_worker_first does", () => {
+    const api = ["/v1/", "/v1/models", "/v1/series/treasury:debt", "/mcp", "/healthz", "/version", "/openapi.json"];
+    for (const path of api) {
+      assert.equal(isApiPath(path), true, path);
+    }
+    const other = [
+      "/",
+      "/v1",
+      "/v2/models",
+      "/mcp/",
+      "/healthz/",
+      "/version.json",
+      "/versions",
+      "/openapi.json/x",
+      "/models/",
+      "//evil.example.com/v1/models",
+      "/x/v1/models",
+    ];
+    for (const path of other) {
+      assert.equal(isApiPath(path), false, path);
+    }
+  });
+
+  it("forwards each API path with the credential and without cookies or Access headers", async () => {
+    for (const path of ["/v1/models", "/mcp", "/version", "/openapi.json"]) {
+      const { calls, fetchStub } = makeStubFetch();
+      const { calls: assetCalls, assets } = makeStubAssets();
+      const request = new Request(`${SITE}${path}`, {
+        method: path === "/mcp" ? "POST" : "GET",
+        headers: {
+          Cookie: "CF_Authorization=access-session",
+          "CF-Access-Client-Id": "access-id",
+          "CF-Access-Client-Secret": "access-secret",
+          "Cf-Access-Authenticated-User-Email": "maintainer@example.com",
+          "CF-Connecting-IP": "203.0.113.9",
+        },
+        body: path === "/mcp" ? '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' : undefined,
+      });
+
+      const response = await handleRequest(request, env(assets), fetchStub);
+
+      assert.equal(response.status, 200, path);
+      assert.equal(response.headers.get("x-content-type-options"), "nosniff", path);
+      assert.deepEqual(assetCalls, [], path);
+      assert.equal(calls.length, 1, path);
+      assert.equal(calls[0].url, `${TEST_ORIGIN}${path}`, path);
+      const forwarded = calls[0].init.headers;
+      assert.equal(forwarded.get("x-pyeconomics-edge"), TEST_CREDENTIAL, path);
+      assert.equal(forwarded.get("cookie"), null, path);
+      assert.deepEqual([...forwarded.keys()].filter((name) => name.startsWith("cf-access-")), [], path);
+      assert.equal(forwarded.get("cf-connecting-ip"), "203.0.113.9", path);
+    }
+  });
+
+  it("still maps /healthz to the origin's /version", async () => {
+    const { calls, fetchStub } = makeStubFetch({
+      status: 200,
+      body: '{"git_sha":"deadbeef","mode":"hosted","pyeconomics":"1.0.0rc1.dev1"}',
+    });
+    const { calls: assetCalls, assets } = makeStubAssets();
+
+    const response = await handleRequest(new Request(`${SITE}/healthz`), env(assets), fetchStub);
+
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), '{"status":"ok"}');
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.deepEqual(assetCalls, []);
+    assert.equal(calls[0].url, `${TEST_ORIGIN}/version`);
+  });
+
+  it("never sends a non-API path to the origin: the assets answer it", async () => {
+    const paths = [
+      "/",
+      "/models/",
+      "/version.json",
+      "/no-such-page",
+      "/v1",
+      "/v2/models",
+      "/mcp/",
+      "/healthz/",
+      "//evil.example.com/v1/models",
+    ];
+    for (const path of paths) {
+      const { calls, fetchStub } = makeStubFetch();
+      const { calls: assetCalls, assets } = makeStubAssets();
+
+      const response = await handleRequest(
+        new Request(`${SITE}${path}`, { method: "POST", body: "{}" }),
+        env(assets),
+        fetchStub,
+      );
+
+      assert.equal(response.status, 404, path);
+      assert.equal(calls.length, 0, path);
+      assert.equal(assetCalls.length, 1, path);
+    }
+  });
+
+  it("forwards every path on the API-only Worker, which has no ASSETS binding", async () => {
+    const { calls, fetchStub } = makeStubFetch();
+
+    const response = await handleRequest(
+      new Request("https://staging-api.pyeconomics.dev/"),
+      { ORIGIN_URL: TEST_ORIGIN, EDGE_CREDENTIAL: TEST_CREDENTIAL },
+      fetchStub,
+    );
+
+    assert.equal(response.status, 200);
+    assert.equal(calls[0].url, `${TEST_ORIGIN}/`);
   });
 });

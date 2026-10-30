@@ -16,6 +16,11 @@
 //   (Cloudflare's limits);
 // - any server-rendered route in the build output, or a _headers file that
 //   came from public/ instead of from here.
+//
+// SITE_FLAVOUR names the deployment the build is for (ADR-0013 decision 4):
+// unset for a local build, which `wrangler dev`, Playwright and Lighthouse
+// serve; `staging` for staging.pyeconomics.dev, whose every response refuses
+// indexing. Any other value fails the build.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
@@ -252,10 +257,31 @@ export function headerPolicy(hashes: ReadonlyMap<string, ReadonlySet<string>>): 
   return policy;
 }
 
+/** The deployments a build can be made for. */
+export const FLAVOURS = ["local", "staging"] as const;
+export type Flavour = (typeof FLAVOURS)[number];
+
+/** Headers a flavour adds on every path: staging is never indexed. */
+export const FLAVOUR_HEADERS: ReadonlyMap<Flavour, Readonly<Record<string, string>>> = new Map([
+  ["local", {}],
+  ["staging", { "X-Robots-Tag": "noindex" }],
+]);
+
+/** Read SITE_FLAVOUR: unset or empty is a local build; an unknown value is an error. */
+export function siteFlavour(given: string | undefined = process.env.SITE_FLAVOUR): Flavour {
+  if (given === undefined || given === "") return "local";
+  const found = FLAVOURS.find((flavour) => flavour === given);
+  if (found === undefined) {
+    throw new Error(`SITE_FLAVOUR must be unset or one of ${FLAVOURS.join(", ")}`);
+  }
+  return found;
+}
+
 /** The _headers file: the policy and security headers on every path, and caching. */
-export function renderHeaders(policy: Policy): string {
+export function renderHeaders(policy: Policy, flavour: Flavour = "local"): string {
   const lines = ["/*", `  Content-Security-Policy: ${formatPolicy(policy)}`];
-  for (const [name, value] of Object.entries(SECURITY_HEADERS)) lines.push(`  ${name}: ${value}`);
+  const every = { ...SECURITY_HEADERS, ...FLAVOUR_HEADERS.get(flavour) };
+  for (const [name, value] of Object.entries(every)) lines.push(`  ${name}: ${value}`);
   lines.push("/_astro/*", `  Cache-Control: ${IMMUTABLE}`);
   return `${lines.join("\n")}\n`;
 }
@@ -291,7 +317,7 @@ export interface BuildReport {
 }
 
 /** Check a build output directory and return the _headers text it needs. */
-export function checkBuild(dist: string): BuildReport {
+export function checkBuild(dist: string, flavour: Flavour = "local"): BuildReport {
   const problems: string[] = [];
   const files = walk(dist);
   for (const name of SERVER_OUTPUT) {
@@ -317,7 +343,7 @@ export function checkBuild(dist: string): BuildReport {
   const policy = headerPolicy(union);
   const header = checkPolicy(policy);
   problems.push(...header.problems.map((problem) => `the header policy: ${problem}`));
-  const headers = renderHeaders(policy);
+  const headers = renderHeaders(policy, flavour);
   problems.push(...checkHeaders(headers));
   return { problems, pages: pages.length, headers };
 }
@@ -330,7 +356,14 @@ function main(): number {
     process.stderr.write("headers: no dist/ to check; run `npm run build`\n");
     return 1;
   }
-  const report = checkBuild(dist);
+  let flavour: Flavour;
+  try {
+    flavour = siteFlavour();
+  } catch (error) {
+    process.stderr.write(`headers: ${(error as Error).message}\n`);
+    return 1;
+  }
+  const report = checkBuild(dist, flavour);
   if (report.problems.length > 0) {
     process.stderr.write(
       `headers: the build breaks decision 9's policy (ADR-0013):\n${report.problems
@@ -344,7 +377,7 @@ function main(): number {
   writeFileSync(join(dist, "_headers"), report.headers);
   const longest = Math.max(...report.headers.split("\n").map((line) => line.length));
   process.stdout.write(
-    `headers: ${report.pages} pages checked; dist/_headers written (longest line ${longest} of ${MAX_LINE})\n`,
+    `headers: ${report.pages} pages checked; dist/_headers written for a ${flavour} build (longest line ${longest} of ${MAX_LINE})\n`,
   );
   return 0;
 }

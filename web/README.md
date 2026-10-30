@@ -38,6 +38,22 @@ Playwright and Lighthouse serve `dist/` with `wrangler dev` as Workers static
 assets, so `dist/_headers` applies exactly as on Cloudflare. Astro's Content
 Security Policy does not run in `astro dev`; test it on a build.
 
+## Deploy
+
+`wrangler.jsonc` puts the site and the API on one host (ADR-0013 decision 3):
+static assets serve every page, and the shared edge Worker
+(`../tools/node/edge/worker.mjs`) runs first only on `/v1/*`, `/mcp`,
+`/healthz`, `/version` and `/openapi.json`, forwarding them to Cloud Run. Its
+env-less configuration has no origin, so locally those paths answer `503`.
+`SITE_FLAVOUR=staging npm run build` adds `X-Robots-Tag: noindex` to every
+path; an unset `SITE_FLAVOUR` is a local build.
+
+Every merge to `main` deploys env `staging` (`staging.pyeconomics.dev`,
+behind Cloudflare Access) from `deploy-staging.yml`'s `site` job; nothing here
+deploys by hand except a change of route or custom domain. Deploy, rollback,
+the Access application and the token are in
+[docs/operations/staging.md](../docs/operations/staging.md).
+
 ## Rules
 
 The web rules in [AGENTS.md](../AGENTS.md) govern this directory: one policy
