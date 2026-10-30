@@ -1111,6 +1111,11 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
 - Fifteen domain sections, syllabus filters driven by the crosswalk tags,
   static full-text search (Pagefind), related models, and the public
   coverage matrix.
+- The filters' first data is a seed this phase creates in `syllabi/`, in
+  7.1's format: the 2027 CFA® Program topic areas for Levels I to III,
+  mapped to the launch catalog, factual names and links only, with neutral
+  slugs (ADR-0013 decision 12). Phase 7 adds the other syllabi and the rest
+  of the coverage.
 
 #### 5.4 Data explorer & user data
 
@@ -1165,8 +1170,12 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
 
 - Cloudflare: DNS, TLS, CDN, WAF, rate rules and static hosting for the
   site. Cloud Run: the production API service. A scheduled snapshot job
-  (Cloud Run job + Cloud Scheduler) writes Parquet snapshots of
-  hosted-safe sources to R2, with a heartbeat.
+  (Cloud Run job + Cloud Scheduler) writes gzip-compressed canonical-JSON
+  snapshots of the hosted-safe originators — the cache's frame codec, not
+  Parquet — to a private Cloud Storage bucket, versioned by run, mounted
+  into the job and, read-only, into the service, with a heartbeat (ADR-0013
+  decision 6: a volume mount needs no long-lived access key and no signing
+  code, which R2 would).
 - Sentry (frontend and backend), OpenTelemetry to Grafana Cloud, Better
   Stack uptime checks; budget alerts and a capped maximum instance count;
   the §5 runbooks published.
@@ -1179,8 +1188,13 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
   budget; feedback channels (GitHub Discussions, a newsletter and a
   waitlist with one processor) live; a priced "Pro" preview page — a fake
   door that records intent and sells nothing; the §5 Gate G2 metrics
-  recording; `1.0.0rc1` soaked in production-like conditions for a period
-  set in the Phase 5 roadmap.
+  recording; `1.0.0rc1` soaked in production, behind Cloudflare Access,
+  for seven days against fixed criteria, during which only security fixes
+  merge (ADR-0013 decision 18).
+- Web quality on a fixed sample of thirteen pages (ADR-0013 decision 19):
+  Lighthouse, the median of three mobile runs, at least 90 for
+  performance, accessibility, best practices and SEO, and no WCAG 2.2 AA
+  violation under axe.
 - Going live is a decision recorded in the PR, not a side effect of a
   merge.
 
@@ -1193,7 +1207,8 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
 **Acceptance criteria**
 - Every registered model has a prerendered page listed in the sitemap;
   Lighthouse scores at least 90 for performance, accessibility, best
-  practices and SEO on a page sample the Phase 5 roadmap fixes.
+  practices and SEO on the thirteen-page sample ADR-0013 decision 19
+  fixes.
 - Web calculator outputs equal the Python API's canonical outputs (the
   parity suite runs through the deployed API).
 - `pip install pyeconomics` installs 1.0.0, and `pyeconomics serve` serves
@@ -1519,6 +1534,11 @@ as backup.
   factual and link to the issuing body; no learning-outcome wording is
   stored. Curricula change yearly, so the mapping is data, never package
   structure.
+- Phase 5 creates `syllabi/` — its JSON Schema and one TOML file per
+  syllabus version — with one seed, the 2027 CFA Program topic areas for
+  Levels I to III mapped to the launch catalog (ADR-0013 decision 12).
+  This phase extends the 2027 file, adds 2026 and the other syllabi in the
+  same format, and completes the coverage matrix Phase 5 publishes.
 - A coverage matrix generated from the registry — syllabus topic × model
   family → planned, implemented or verified — published in the docs and
   the web app as the public measure of progress.
@@ -1801,15 +1821,16 @@ Phases 1–4 run on free tiers: a public GitHub repository (Actions,
 CodeQL, secret scanning), Read the Docs Community, and Cloud Run's free
 tier for staging. The hosted site adds cost from Phase 5; accounts and
 billing add more in Phase 8. Every figure below is a list price checked on
-2026-10-03; unknowns are TBD rather than guessed.
+2026-10-03, except the rows naming ADR-0013, checked on 2026-10-29;
+unknowns are TBD rather than guessed.
 
 | Service                                   | Hobby (through Phase 7, pre-revenue) | Pilot (~1k MAU, Phase 8)       | Growth (~10k MAU)               |
 |-------------------------------------------|--------------------------------------|--------------------------------|---------------------------------|
 | GitHub, Read the Docs (open source)       | $0                                   | $0                             | $0                              |
 | Domains (.com, .org, .io, .dev)           | TBD (annual)                         | TBD                            | TBD                             |
 | Cloudflare (DNS, CDN, WAF, static site)   | $0                                   | $0–5                           | $5 + usage TBD                  |
-| Cloud Run (API + snapshot job)            | $0 inside the free tier              | TBD                            | TBD                             |
-| Cloudflare R2 (snapshots, exports)        | $0 (10 GB free)                      | ~$0                            | ~$1.35 per 100 GB + operations  |
+| Cloud Run (API + snapshot job)            | $0 inside the free tier; production budget $10 with alerts and a $20 spend cap (ADR-0013 decision 5) | TBD                            | TBD                             |
+| Cloud Storage (snapshots; ADR-0013 decision 6) | $0 (5 GB-months Always Free; read 2026-10-29) | ~$0                    | TBD (Standard storage per GB-month + operations) |
 | Upstash Redis (rate limits, cache)        | $0 (500K commands/month; read 2026-10-23) | TBD ($0.20 per 100K commands; read 2026-10-23) | from $10                        |
 | Neon Postgres (Phase 8)                   | —                                    | TBD (usage-based, no minimum)  | ≈ $81 if always on; else TBD    |
 | WorkOS AuthKit (Phase 8)                  | —                                    | $0                             | $0 (+$125 per enterprise SSO connection) |
@@ -1817,7 +1838,9 @@ billing add more in Phase 8. Every figure below is a list price checked on
 | Sentry                                    | $0                                   | $0–26                          | $26 + overage TBD               |
 | Grafana Cloud                             | $0                                   | $0                             | $0–19 + usage TBD               |
 | Better Stack (uptime)                     | $0                                   | $0                             | $29                             |
-| **Total, fixed**                          | **≈ $0 + domains**                   | **≈ $0–31 + usage TBD**        | **≈ $150–175 + Cloud Run and usage TBD** |
+| Analytics: Umami Cloud (ADR-0013 decision 13) | $0 (Hobby: 100K events a month; read 2026-10-29) | $0–20 (Pro: 1M events, API) | $20 + usage TBD             |
+| Email: Buttondown (ADR-0013 decision 14)  | $9 (Basic: to 1,000 subscribers; read 2026-10-29) | $9–29 (to 5,000)    | $79–139 (10,000–20,000)         |
+| **Total, fixed**                          | **≈ $9 + domains**                   | **≈ $9–80 + usage TBD**        | **≈ $250–335 + Cloud Run and usage TBD** |
 
 Three optional costs sit outside the table: a trademark filing (about $1,000 in
 USPTO fees for two classes, plus attorney fees, TBD), counsel and CPA reviews
@@ -2074,9 +2097,9 @@ live".
 |---------------------------------|----------------------------------|-----------------------------------------------------------------------|----------------------------------------------------|-----------------------------------------------------------------|
 | PyPI packages (`pyeconomics`, `pyeconomics-app`) | TestPyPI, PyPI    | `v*` tag on `main` → release workflow, behind the protected `pypi` environment | The version installs from PyPI with attestations | Fresh-venv install, `pyeconomics --version`, smoke run          |
 | Documentation                   | Read the Docs `latest`, `stable` | Merge to `main` builds `latest`; a release tag builds `stable`        | `stable` serves the tagged version                 | Version banner; the docs doctest job                            |
-| Hosted web app (static)         | PR previews, production          | Merge to `main` builds a preview; a release tag deploys production (Phase 5+) | Production serves the release's build        | `/version.json` reports the SHA; synthetic page check           |
+| Hosted web app (static)         | staging (the preview), production | A pull request builds and tests the site without deploying; merge to `main` deploys staging on `staging.pyeconomics.dev` behind Cloudflare Access; a release tag deploys production (Phase 5+; ADR-0013 decision 4) | Production serves the release's build        | `/version.json` reports the SHA; synthetic page check           |
 | Hosted API (Cloud Run)          | staging, production              | Merge to `main` deploys staging; a release tag deploys production behind the protected `production` environment | `/version` reports the release | Synthetic model run — with a Cloudflare Access service token on staging |
-| Snapshot job (Cloud Run job)    | production                       | Ships with the API image; Cloud Scheduler runs it                     | The next scheduled run succeeds                    | Heartbeat check and per-dataset as-of dates                     |
+| Snapshot job (Cloud Run job)    | staging, production              | Ships with the API image; Cloud Scheduler runs it daily (ADR-0013 decision 6) | The next scheduled run succeeds                    | Heartbeat check and per-dataset as-of dates                     |
 | MCP server                      | PyPI (stdio), hosted endpoint, MCP Registry | Ships with the package and the API; registry entry updated per release | The registry lists the release            | MCP Inspector against the hosted endpoint                       |
 | Database (Phase 8)              | staging, production              | The deploy job applies migrations before the new revision takes traffic | Schema version matches the code                  | Migration status query                                          |
 | Excel add-in (Phase 8)          | Microsoft Marketplace            | Manual submission per release                                         | The marketplace lists the version                  | Install and run a function smoke test                           |
@@ -2115,7 +2138,11 @@ assumed to have happened.
 #### Data and schema migrations
 
 - There is no database before Phase 8; hosted data lives in versioned
-  Parquet snapshots in R2, which the snapshot job writes and the API reads.
+  snapshots — gzip-compressed canonical JSON in the cache's frame codec,
+  validated on read, one object per provider under each run's id, never
+  overwritten, with `current.json` naming the run served — in a private
+  Cloud Storage bucket, which the snapshot job writes and the API reads
+  through a read-only volume mount (ADR-0013 decision 6).
 - From Phase 8, migrations are part of the deploy path: applied by the
   deploy job in expand → deploy code → contract order, rehearsed on a Neon
   branch, and each with a written rollback. A merged migration that is not
@@ -2146,7 +2173,7 @@ reopen the issue or open a follow-up.
 | Documentation       | Rebuild the previous version or revert the docs commit           | Minutes                 |
 | Static site         | Redeploy the previous Cloudflare deployment                       | Minutes                 |
 | API                 | Route all traffic to the previous Cloud Run revision             | Minutes                 |
-| Snapshot job        | Re-run the previous image; snapshots are versioned in R2          | Minutes                 |
+| Snapshot job        | Re-run the previous image, or point `current.json` back at the last good run; each run's snapshots are kept under its own id in Cloud Storage (ADR-0013 decision 6) | Minutes |
 | Database (Phase 8)  | Down-migration, or Neon point-in-time restore                     | TBD                     |
 | Excel add-in        | Resubmit the previous manifest                                    | TBD (marketplace review) |
 
@@ -2628,12 +2655,13 @@ and an add-in built on PyXLL, which charges every end user $349 a year.
 |------|----------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------|---------|
 | G1   | Phase 1                    | Do licence and brand keep every option open?     | ADR-0004 and ADR-0009 accepted; domains registered; thanks.dev and `funding.json` live; GitHub Sponsors deferred to 8.1 (issue #68; maintainer, 2026-10-08) | Proceed |
 | G2   | Phase 5 launch             | Can demand be measured from day one?             | Cookie-less analytics, newsletter, waitlist with tier interest, a priced "Pro" preview (fake door), API and MCP usage, downloads and stars — all recording | Instrumentation verified live |
-| G3   | After 1.0.0; window set in the Phase 5 roadmap | Will people pay, and for what? | At least 1,000 waitlist or newsletter sign-ups, or 1,000 activated users in 90 days; and at least 30 upgrade-intent clicks or pre-orders; and at least 10 interviews in which users confirm they would pay | Go: Phase 8 builds billing and the Pro tier. No-go: sponsorship, education content and consulting continue; the core is unaffected |
+| G3   | The 90 days after the 1.0.0 announcement (ADR-0013 decision 19) | Will people pay, and for what? | At least 1,000 waitlist or newsletter sign-ups, or 1,000 activated users in 90 days; and at least 30 upgrade-intent clicks or pre-orders; and at least 10 interviews in which users confirm they would pay | Go: Phase 8 builds billing and the Pro tier. No-go: sponsorship, education content and consulting continue; the core is unaffected |
 | G4   | Inside Phase 8             | Is there pull beyond the Pro tier?               | At least 50 paying accounts, three consecutive months of recurring-revenue growth, and repeated requests for Excel or offline use | Excel add-in, `pyeconomics-pro`, study companion |
 | G5   | Inside Phase 8             | Is there enterprise demand?                      | At least three qualified enterprise requests, or one paid pilot                                        | Commercial licence, SLAs, courses |
 
 The thresholds are the maintainer's judgement, not industry benchmarks; the
-Phase 5 roadmap confirms or adjusts them before launch. For scale, sourced
+maintainer confirmed them and the window in ADR-0013 (decision 19) and
+confirms or adjusts them again at the launch readiness gate. For scale, sourced
 benchmarks put freemium free-to-paid conversion at 3–5% (good) with a 5%
 median for developer products and an 8% median in a 2026 survey, and
 developer-tool visitor-to-signup near 10%. Roughly 20,000 visitors, then,

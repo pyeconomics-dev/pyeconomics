@@ -4,7 +4,8 @@ These records hold the decisions every phase of the pyeconomics 1.0 rebuild
 builds on: what the project is, how it is packaged, versioned and licensed,
 how data licences are enforced, which web and documentation stacks it uses,
 what it is called, which Python versions it supports, how its data platform
-works, and how its programmatic surfaces serve it. Each one starts from the
+works, how its programmatic surfaces serve it, and how the web app,
+production and the public launch work. Each one starts from the
 recommended default in
 [ROADMAP §4 1.6](../roadmap/ROADMAP.md#16-architecture-decision-records) or the
 phase section it implements, and from the §5 section behind it.
@@ -25,6 +26,7 @@ phase section it implements, and from the §5 section behind it.
 | [0010](0010-python-support-policy.md) | Python support policy | Accepted | 2026-10-05 |
 | [0011](0011-data-platform.md) | Data platform | Accepted | 2026-10-14 |
 | [0012](0012-programmatic-surfaces.md) | Programmatic surfaces | Accepted | 2026-10-23 |
+| [0013](0013-web-app-and-launch.md) | Web app, hosting, data plane and launch | Accepted | 2026-10-29 |
 
 ADR-0008, the numerical conventions (decimal rates, units, bounds,
 compounding and day counts, tolerances, seeds, canonical JSON numbers and the
@@ -36,6 +38,11 @@ Step 2, before any provider code (ROADMAP §4 3.1). ADR-0012, the programmatic
 surfaces (the invocation path, canonical bytes, the error table, the CLI, the
 export formats, the REST and MCP shapes, hosted mode and the staging edge), was
 written in Phase 4 Step 2, before any framework code (ROADMAP §4 4.1–4.7).
+ADR-0013, the web app and the launch (the canonical domain, the site's URLs,
+the edge, production, the snapshot data plane, the security headers, the
+vendors and the personal data each one handles, the release, the soak and the
+growth gates), was written in Phase 5 Step 2, before any web code (ROADMAP §4
+5.1–5.10).
 
 ## Lifecycle
 
