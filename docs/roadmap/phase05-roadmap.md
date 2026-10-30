@@ -45,7 +45,7 @@ The phase lands in 20 layers:
    TypeScript, Tailwind, shadcn/ui and KaTeX; the layout and its notices;
    the site data exported from the registry; a strict Content Security
    Policy built from Astro's hashes into `_headers`; ESLint with security
-   rules, Vitest, Playwright with axe, Lighthouse CI, audits and a bundle
+   rules, Vitest, Playwright with axe, Lighthouse, audits and a bundle
    licence check in a required `web` job.
 4. **Staging site** — one Cloudflare Worker serving the site from static
    assets and forwarding only the API's paths to Cloud Run, on
@@ -559,8 +559,8 @@ step time are the authority:
 | @astrojs/sitemap, astro-og-canvas | 3.7.4, 0.13.2 | MIT | pages (5) |
 | vitest, @playwright/test | 5.0.5, 1.64.1 | MIT, Apache-2.0 | tests (3) |
 | @axe-core/playwright | 4.14.0 | MPL-2.0 | tests only (3) |
-| @lhci/cli | 0.15.1 | Apache-2.0 | Lighthouse 12.6.1; upstream is 13.6.0, and LHCI last published 2025-06-25 (3) |
-| eslint, eslint-plugin-security | 10.13.0, 4.2.0 | MIT, Apache-2.0 | lint (3) |
+| lighthouse, chrome-launcher | 13.6.0, 1.2.2 | Apache-2.0 | scores, driven by `web/scripts/lighthouse.ts`: @lhci/cli 0.15.1 (2025-06-25) bundles Lighthouse 12.6.1 and fails `npm audit` at high (extract-zip has no fixed version), found in Step 3 (3) |
+| eslint, eslint-plugin-security, eslint-plugin-jsx-a11y-x | 10.13.0, 4.2.0, 0.2.0 | MIT, Apache-2.0, MIT | lint; the jsx-a11y fork because eslint-plugin-jsx-a11y 6.10.2 peers on ESLint 9 at most (3) |
 | wrangler | 4.156.0 | MIT OR Apache-2.0 | deploy, local edge (3) |
 | @sentry/browser | 11.10.0 | MIT | browser errors (14) |
 | @mdn/mdn-http-observatory | 1.7.2 | MPL-2.0 | header scan only (19) |
@@ -2263,7 +2263,7 @@ phase-boundary hygiene.
 > and fails the build on `'unsafe-inline'`, `'unsafe-eval'` or a server
 > route; ESLint with `eslint-plugin-security` and accessibility rules,
 > Vitest, Playwright with axe at WCAG 2.2 AA and a CSP-violation listener,
-> and Lighthouse CI on decision 19's page sample, all served by `wrangler
+> and Lighthouse on decision 19's page sample, all served by `wrangler
 > dev` so headers behave as on Cloudflare; `npm audit` and a licence check
 > of the shipped bundle in the gate; Dependabot for `/web`; and a `web` job
 > in `ci.yml` that the aggregate `test` requires. Parent: ROADMAP §4 5.1;
@@ -2694,7 +2694,7 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
       jsx-a11y), Vitest, Playwright with @axe-core/playwright
       run with the wcag2a, wcag2aa, wcag21a, wcag21aa and
       wcag22aa tags and a listener that fails on any CSP
-      violation, and Lighthouse CI asserting decision 19's
+      violation, and Lighthouse asserting decision 19's
       scores on the sample pages that exist. Playwright and
       Lighthouse run against `wrangler dev` serving dist/ as
       Workers static assets, so _headers apply as on
@@ -2710,7 +2710,7 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
       watches /web; ci.yml gains a `web` job (Node from
       .nvmrc, `npm ci`, the export, astro check, lint,
       Vitest, build, the headers check, gitleaks over dist/,
-      Playwright with axe, Lighthouse CI, npm audit and the
+      Playwright with axe, Lighthouse, npm audit and the
       licence check), and the aggregate `test` job needs it.
       Every new action is pinned by SHA with permissions {}
       and passes actionlint and zizmor.
@@ -2751,7 +2751,7 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
   Playwright records no CSP violation on any page.
 - The `web` job passes every check — astro check, lint with the security
   and accessibility rules, Vitest, the headers check, gitleaks over
-  `dist/`, Playwright with axe at WCAG 2.2 AA, Lighthouse CI at the
+  `dist/`, Playwright with axe at WCAG 2.2 AA, Lighthouse at the
   decision-19 scores, `npm audit` and the shipped-bundle licence check —
   and the aggregate `test` requires it.
 - `npm audit` for `web/` runs in the prek gate, Dependabot watches `/web`,
@@ -3092,6 +3092,15 @@ conversation per phase-boundary hygiene.
     - web/ builds the static site with dist/_headers;
       Playwright and Lighthouse already run against
       `wrangler dev` with the static assets.
+    - Step 3 note: web/wrangler.jsonc is assets-only
+      (directory ./dist, 404-page, auto-trailing-slash,
+      workers_dev and preview_urls false, send_metrics
+      false). playwright.config.ts and
+      scripts/lighthouse.ts start `wrangler dev --ip
+      127.0.0.1 --port 8788` from it, with no env, so once
+      it names `main`, the default (env-less) config must
+      still serve the pages locally without the staging
+      origin or a secret.
     - The staging API Worker `pyeconomics-api-staging`
       (tools/node/edge/worker.mjs, wrangler.toml) serves
       staging-api.pyeconomics.dev behind Access and forwards
@@ -4102,6 +4111,19 @@ phase-boundary hygiene.
       dist/, beside dist/plotly-basic.min.js); the
       `plotly.js-basic-dist-min` package does not
       (plotly/plotly.js#7332, open on 2026-10-29).
+    - Step 3 notes: the first island inlines Astro's
+      runtime, which scripts/headers.ts hashes into
+      dist/_headers; every library an island imports
+      (@rjsf/*, plotly.js, the generated client's code)
+      belongs in `dependencies`, because the web job fails
+      when the client bundle holds a development
+      dependency (.astro/shipped-packages.json,
+      scripts/checks/web_licences.py --shipped). React SSR
+      writes a `style` prop as an inline style attribute,
+      which the headers check refuses: style with classes.
+      shadcn's `asChild` does not cross from an Astro page
+      into a React component. src/client/ is generated
+      from openapi.json by `npm run data`.
 
     Files to read (every file before drafting):
     - docs/adr/0013-web-app-and-launch.md (decisions 8, 9
@@ -8051,6 +8073,13 @@ conversation per phase-boundary hygiene.
       tasks in spawned worker processes.
     - The snapshot writer requests its heartbeat URL on
       completion (Step 8) when one is configured.
+    - Step 3 note: web/csp.config.ts is the one place a
+      policy source is added. Sentry's ingest origin joins
+      connect-src in both its DIRECTIVES and its ALLOWED
+      table (the post-build check refuses any source
+      ALLOWED lacks, and ALLOWED holds no Sentry origin
+      yet); @sentry/browser goes in `dependencies`, since
+      it ships.
     - Facts read on 2026-10-29 (re-check at kickoff):
       Sentry's free Developer plan gives one user, 5,000
       errors and 5 million spans a month with 30-day
@@ -11161,7 +11190,7 @@ hygiene.
       package and app builds and their allowlists); `--node`
       (web/: npm ci, the site data export, astro check, lint,
       Vitest, the build and headers check, Playwright with
-      axe, Lighthouse CI, npm audit and the licence check;
+      axe, Lighthouse, npm audit and the licence check;
       tools/node/: the client, the edge Worker tests and the
       Inspector); `--container` (the image build, scan and
       smoke, with the `hosted` group); `--security` (the

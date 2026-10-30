@@ -1,0 +1,19 @@
+---
+// web/src/pages/404.astro
+// The page Workers static assets serve, with status 404, for any path the
+// build did not write (not_found_handling "404-page" in wrangler.jsonc).
+import { buttonVariants } from "@/components/ui/button";
+import Base from "@/layouts/Base.astro";
+---
+
+<Base title="Page not found" description="The page you asked for does not exist on pyeconomics.">
+  <section class="flex flex-col gap-6">
+    <h1 class="text-4xl font-bold tracking-tight">Page not found</h1>
+    <p class="max-w-2xl text-lg">
+      There is no page at this address. It may have moved, or the link may have a typing error.
+    </p>
+    <div>
+      <a href="/" class={buttonVariants({ className: "no-underline" })}>Go to the home page</a>
+    </div>
+  </section>
+</Base>

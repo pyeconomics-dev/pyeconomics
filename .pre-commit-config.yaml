@@ -3,9 +3,10 @@
 # - the quality toolchain (ROADMAP §4 1.3): file hygiene, ruff format and
 #   lint, mypy, and the lock files' freshness;
 # - the per-step security gate (ROADMAP §5 "Per-step security gate"):
-#   secrets, SAST with the project's semgrep rules, the dependency audits
-#   (pip-audit, and npm audit for the tools/node workspace) and the runtime
-#   licence allowlist.
+#   secrets, SAST with the project's semgrep rules and, for web/, ESLint's
+#   security rules, the dependency audits (pip-audit, and npm audit for the
+#   tools/node workspace and web/) and the licence allowlists (the runtime
+#   closure, and what web/ ships to browsers).
 # It is fail-closed: never commit with SKIP or --no-verify. The CI workflows
 # run the same hooks by id, so local and CI cannot drift.
 #
@@ -124,6 +125,25 @@ repos:
         entry: npm audit --prefix tools/node --audit-level=high
         pass_filenames: false
         always_run: true
+      # The web app's own lockfile (web/, Phase 5 Step 3), the same way.
+      - id: npm-audit-web
+        name: npm audit (web, high and above)
+        language: system
+        entry: npm audit --prefix web --audit-level=high
+        pass_filenames: false
+        always_run: true
+
+  # SAST of the web app (web/, Phase 5 Step 3): ESLint with
+  # eslint-plugin-security, typescript-eslint and the jsx-a11y rules, no
+  # warning allowed. It needs web/'s tools: run `npm ci` in web/ once.
+  - repo: local
+    hooks:
+      - id: eslint-web
+        name: eslint (web, security and accessibility)
+        language: system
+        entry: npm run --prefix web lint
+        files: ^web/
+        pass_filenames: false
 
   # Dependency sources and licences.
   - repo: local
@@ -140,6 +160,14 @@ repos:
         entry: uv run --locked --all-extras python scripts/checks/licences.py
         pass_filenames: false
         always_run: true
+      # What the web app ships to browsers: its production tree in
+      # web/package-lock.json (Phase 5 Step 3).
+      - id: web-licences
+        name: web licence allowlist (what ships to browsers)
+        language: system
+        entry: uv run --locked python scripts/checks/web_licences.py
+        files: ^(web/package(-lock)?\.json|scripts/checks/web_licences\.py)$
+        pass_filenames: false
 
   # Workflow security: zizmor fails on any finding above Low. With GH_TOKEN
   # set (CI sets it) it also runs its online audits.

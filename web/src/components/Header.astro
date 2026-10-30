@@ -1,0 +1,31 @@
+---
+// web/src/components/Header.astro
+// The site header: the mark and wordmark, the main navigation (Step 7 adds the
+// model sections and the data explorer) and the search slot Step 7 fills with
+// Pagefind. The mark is the font-free brand SVG; the wordmark is text in the
+// system font.
+import { NAVIGATION } from "@/lib/links";
+---
+
+<header class="border-b">
+  <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-3">
+    <a href="/" class="flex items-center gap-2 text-foreground no-underline">
+      <img src="/favicon.svg" alt="" width="32" height="32" class="size-8" />
+      <span class="text-xl font-semibold tracking-tight">pyeconomics</span>
+    </a>
+    <nav aria-label="Main">
+      <ul class="flex flex-wrap items-center gap-4 text-sm">
+        {
+          NAVIGATION.map((link) => (
+            <li>
+              <a href={link.href} class="text-foreground hover:text-link">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div data-slot="search" class="contents"></div>
+  </div>
+</header>

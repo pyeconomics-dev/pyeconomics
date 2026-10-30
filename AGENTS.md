@@ -31,10 +31,12 @@ tests/             unit · golden · property · contract · parity · e2e
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
   parity/          the cross-surface parity suite and its stand-in world
   ai/              the AI narrative's tests and synthetic cassettes
+  web/             tests for scripts/web (the site data export)
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
 scripts/clients/   the clients job's helpers (retitle, smoke, compare)
 scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
 scripts/parity/    the parity job's helper (the installed wheel's surfaces)
+scripts/web/       the site data export the web app builds from
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
 tools/node/        the one Node workspace: the TypeScript client's generator and
                    the MCP Inspector
@@ -44,7 +46,9 @@ docs/adr/          architecture decision records
 docs/roadmap/      the project and phase roadmaps: the ledger of what is done
 web/               the Astro site (Phase 5, ADR-0013 decision 2): its own Node
                    project and lockfile beside tools/node/, its build data only
-                   from scripts/web/export_site_data.py
+                   from scripts/web/export_site_data.py; csp.config.ts holds
+                   the one policy, scripts/ the build's checks, tests/unit
+                   Vitest and tests/e2e Playwright
 syllabi/           syllabus crosswalks: a JSON Schema and one TOML file per
                    syllabus version; Phase 5 seeds the 2027 CFA Program
                    (decision 12), Phase 7 adds the rest
@@ -493,6 +497,47 @@ a part of the site adds its rules here.
 - A user's file is parsed in the browser (decision 11), and only the values
   a run needs travel, in the run's body. The site keeps no input in
   storage, the URL or analytics.
+
+From Phase 5 Step 3, which builds the web foundation:
+
+- Build the site with `npm ci && npm run data && npm run build` in `web/`
+  (Node from `web/.nvmrc`). `npm run data` runs
+  `scripts/web/export_site_data.py` through `uv run --locked --all-extras`
+  and generates the TypeScript client; both outputs are git-ignored and the
+  build refuses to start without them. Pages read the data only through
+  `web/src/lib/site-data.ts`. Install with `npm ci --ignore-scripts`.
+- `web/csp.config.ts` is the one place a policy source is added, and only a
+  source decision 9 allows (its `ALLOWED` table); Steps 14 and 15 add their
+  origins there. `scripts/headers.ts` runs after every build, writes the
+  union of every page's hashes into `dist/_headers` and fails on an unsafe
+  source, an unhashed inline script or style, a `style` or `on*` attribute,
+  a `javascript:` URL, another origin's script or stylesheet, a line over
+  2,000 characters or a server route. Never put a `_headers` file in
+  `web/public/`, and never loosen the policy for a page. Astro's policy does
+  not run in `astro dev`: test it on a build.
+- KaTeX renders MathML only, at build time, through `src/lib/math.ts`
+  (`throwOnError`, strict, and every trusted command refused), so a formula
+  ships no script or inline style. In an Astro attribute, write LaTeX as
+  ``String.raw`...` ``: a quoted attribute reads `\f` as a form feed.
+- `dependencies` in `web/package.json` are exactly what reaches browsers;
+  build and test tools are `devDependencies`. `scripts/checks/web_licences.py`
+  holds the production tree to MIT, BSD, Apache-2.0, ISC and 0BSD, and in
+  the web job also fails on any package in the client bundle
+  (`.astro/shipped-packages.json`) that is a development dependency.
+- shadcn/ui components are copied into `src/components/ui/`
+  (`components.json`, style `new-york`); a link styled as a button uses
+  `buttonVariants()` on the `<a>`, because `asChild` does not cross from an
+  Astro page into a React component. No web font, and the brand blue never
+  carries text on white (`--link` does).
+- Playwright (axe at WCAG 2.2 AA in light and dark, and a listener that fails
+  on any CSP violation or console error) and `scripts/lighthouse.ts`
+  (Lighthouse 13 directly: `@lhci/cli` fails `npm audit`) run against
+  `wrangler dev` on 127.0.0.1:8788, so `_headers` applies as on Cloudflare.
+  Stop any other server on that port first.
+- TypeScript stays on 6.0 in both Node projects while `astro check` refuses
+  7 (Dependabot ignores its major). ESLint uses `eslint-plugin-jsx-a11y-x`,
+  the fork `eslint-plugin-astro` supports on ESLint 10, with no warning
+  allowed; a suppression carries its reason.
 
 ## Units
 

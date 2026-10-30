@@ -35,6 +35,18 @@ docs/autoapi/
 docs/.jupyter_cache/
 /site/
 
+# The web app (Phase 5): its installed tools, build output, Astro's cache, the
+# test and Lighthouse reports, and the site data and client every build
+# regenerates (npm run data).
+web/node_modules/
+web/dist/
+web/.astro/
+web/src/data/generated/
+web/src/client/
+web/playwright-report/
+web/test-results/
+web/.lighthouse/
+
 # Secrets: environment files are never committed
 .env
 .env.*

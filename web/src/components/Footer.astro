@@ -1,0 +1,28 @@
+---
+// web/src/components/Footer.astro
+// The footer every page carries: the CFA® marks notice verbatim (ROADMAP §5
+// "CFA Institute marks and content"), the notice everything carries ("As is;
+// not investment advice"), and links to the disclaimers, the data sources and
+// their notices, the licence, the repository and the documentation.
+import { AS_IS_NOTICE, CFA_NOTICE, FOOTER_LINKS } from "@/lib/links";
+import { version } from "@/lib/site-data";
+---
+
+<footer class="mt-16 border-t text-sm text-muted-foreground">
+  <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8">
+    <p data-notice="as-is" class="font-medium text-foreground">{AS_IS_NOTICE}</p>
+    <p data-notice="cfa">{CFA_NOTICE}</p>
+    <nav aria-label="Footer">
+      <ul class="flex flex-wrap gap-x-6 gap-y-2">
+        {
+          FOOTER_LINKS.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <p>pyeconomics {version}</p>
+  </div>
+</footer>
