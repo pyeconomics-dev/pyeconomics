@@ -2241,9 +2241,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 3 — Web Foundation
+## Step 3 — Web Foundation ✅
 
-**Status:** Not started
+**Status:** Complete — PR #222 (2026-10-30)
 
 > **Goal:** Build the site's toolchain and the security every page
 > inherits. Create the Astro project in `web/` (ADR-0006, ADR-0013
@@ -2295,6 +2295,10 @@ every pull request; Step 4 deploys it to staging.
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
 the tokens the model uses at that level; * token use not yet measured, a typical
 model's at that level assumed.
+
+> Ran 2026-10-30: Balanced Runner-up — Opus 5.5 · High. The operator opened
+> the step on Claude Code (every pool read headroom); the Runs rule selected
+> the Balanced Pick, Gemini 4 Argon on Antigravity.
 
 **Conversation:** New
 
@@ -11639,7 +11643,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Launch baseline, fixes         | GPT-6.1 Sol    | Complete — PR #219 |
 | 2    | ADR-0013                       | Opus 5.5       | Complete — PR #221 |
-| 3    | Web foundation                 | Gemini 4 Argon | Not started        |
+| 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
 | 4    | Staging site                   | Sonnet 5.5     | Not started        |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Not started        |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
