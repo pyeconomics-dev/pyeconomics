@@ -248,14 +248,20 @@ except by a superseding ADR.
    `production` environment and `main` or `v*` refs; the deploy identity's
    role on the service alone (#211); deploys restore latest traffic
    (#210); its own Upstash database, edge credential, Access service token
-   and Cloudflare token; a $10 monthly budget with 50/90/100% alerts.
-   Alternative: production in the staging project (one blast radius).
+   and Cloudflare token; a $10 monthly budget with 50/90/100% alerts and,
+   accepted at Step 2, a $20 spend-cap budget that pauses Cloud Run (spend
+   caps reached GA for Cloud Run on 2026-10-12), and an exclusion filter
+   that drops Cloud Run's automatic request logs, which record each URL
+   with its query. Alternative: production in the staging project (one
+   blast radius).
 6. **Snapshot data plane.** A Cloud Run job — the same image in hosted mode
    — runs daily at 23:30 UTC, after the US end-of-day series publish, and
    writes one gzip-compressed canonical-JSON object per provider and run
-   (the cache's frame codec, validated on read) and `current.json` last,
-   into a private, versioned Cloud Storage bucket mounted read-write into
-   the job and read-only into the service. Cloud Storage volume mounts are
+   (the cache's frame codec, validated on read) under the run's id, never
+   overwriting an object, and `current.json` last, into a private Cloud
+   Storage bucket with soft delete (no Object Versioning, which Google no
+   longer recommends; accepted at Step 2) mounted read-write into the job
+   and read-only into the service. Cloud Storage volume mounts are
    GA for both, so no key, no request signing and no network code outside
    `data/transport/`. The set is computed: every hosted-safe originator
    candidate, never FRED, an aggregator or a storage-forbidden series. A
@@ -269,8 +275,9 @@ except by a superseding ADR.
 7. **Caching.** The edge Worker caches GET run responses with the Workers
    Cache API as the origin's `Cache-Control` allows (ADR-0012 decision 12:
    long for data-free runs, short for bound runs on storable hosted-safe
-   data), because a zone's Cache Rules do not cache what a Worker fetches
-   from an outside origin; POST runs and problems stay `no-store`;
+   data), so the rule lives in the Worker's tested code (a zone Cache Rule
+   could also cache the Worker's subrequest when it matches the origin's
+   URL, re-read at Step 2); POST runs and problems stay `no-store`;
    `/_astro/*` assets are immutable. No shared result cache: the
    in-process cache and the edge suffice at this scale.
 8. **Calculators.** RJSF 6 with its shadcn/ui theme renders each model's
@@ -329,32 +336,36 @@ except by a superseding ADR.
     until CFA Institute answers the URL question (Step 16). The coverage
     matrix is generated from the registry and `syllabi/`. Step 2 amends the
     parent roadmap.
-13. **Analytics.** Umami Cloud's free Hobby plan: 100,000 events a month
-    with custom events and properties, no cookies, and, by the vendor's
-    own statement, no consent banner needed. The tracker is served from our
-    origin at a pinned version and posts to Umami's collector; custom
+13. **Analytics.** Umami Cloud's free Hobby plan, chosen at Step 2:
+    100,000 events a month, one website, six months' retention, custom
+    events and properties, no cookies, its EU region, and no API, so the
+    ledger's analytics rows are manual. The tracker is served from our
+    origin at a pinned version and posts to `gateway.umami.is`; custom
     events come from a fixed allowlist whose properties never hold an
     input, value, query or address; production builds only. Alternatives:
     Plausible ($9 a month, EU-hosted) and GoatCounter (free for reasonable
     public use); Cloudflare Web Analytics is free but records no custom
     events, which Gate G2 needs.
 14. **Email processor.** One processor for the newsletter and the
-    waitlist: Buttondown — plain HTML forms that post straight to it with
-    no key, a `metadata__tier` field for tier interest, double opt-in by
-    default, a DPA, export and deletion — free to 100 subscribers and $9 a
-    month to 1,000. Alternative: Kit (free to 10,000 subscribers; its
-    tracking defaults need review). The maintainer chooses at Step 2.
+    waitlist: Buttondown on its Basic plan ($9 a month to 1,000), chosen
+    at Step 2, because subscriber metadata left the free plan in April
+    2026 — plain HTML forms that post straight to it by navigation with no
+    key, `metadata__list`, `metadata__source` and `metadata__tier` fields,
+    double opt-in (required), tracking off, a DPA, export and deletion.
+    Alternative: Kit (free to 10,000 subscribers; tracking shows as on).
 15. **Errors, telemetry and uptime.** Sentry's free Developer plan for
     errors (`sentry-sdk` on the backend, `@sentry/browser` in the islands
-    only; no personal data, no replay); OpenTelemetry metrics and sampled
+    only; no personal data, no replay; browser SDK 11 collects personal
+    data unless every `dataCollection` category is off); OpenTelemetry
+    metrics and sampled
     traces to Grafana Cloud's free tier through the project's own
     middleware (not the beta FastAPI instrumentation), flushed on shutdown;
     both from a `hosted` dependency group the image installs, never an
     extra. Better Stack's free plan for uptime monitors, the snapshot
     jobs' heartbeats (pinged through the data layer's transport, its host
     declared like a provider's) and the status page at
-    `status.pyeconomics.dev`, or the vendor's subdomain if the free plan
-    has no custom domain. An hourly `production-health.yml` and the budget
+    `status.pyeconomics.dev`, a custom subdomain the free plan allows. An
+    hourly `production-health.yml` and the budget
     alerts complete the alarms; each names its runbook.
 16. **Local app.** `packages/pyeconomics-app/`, a uv workspace member whose
     wheel carries only the built site; `[app]` pins it to the same version
@@ -427,11 +438,15 @@ a header only through an adapter with `staticHeaders` (Node, Netlify and
 Vercel have one; Cloudflare's does not, so a post-build step writes
 `_headers`), and supports neither ClientRouter nor Shiki. Plotly.js's
 `plotly.css` ships only in the `plotly.js` package's `dist/`, not in
-`plotly.js-basic-dist-min` (re-read for Step 2). From the vendors': Umami's Hobby plan, Buttondown's tiers,
+`plotly.js-basic-dist-min`. From the vendors': Umami's Hobby plan (one
+website, six months, no API), Buttondown's tiers (metadata on Basic),
 Sentry's Developer plan (5,000 errors a month), Grafana Cloud's free tier
 (10,000 series, 14-day retention) and Better Stack's free plan (ten
-monitors and heartbeats, one status page, 3-minute checks) as decisions
-13–15 state them.
+monitors and heartbeats, one status page on a custom subdomain, 3-minute
+checks) as decisions 13–15 state them. Step 2 re-read every fact here on
+2026-10-29 and ADR-0013 records the results with their sources; it
+corrected two: a zone Cache Rule can cache a Worker's subrequest to an
+outside origin, and a spend-cap budget can now pause Cloud Run.
 
 **Web rules.** Five rules hold for every step from Step 3 on:
 
@@ -2664,7 +2679,9 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
       `/_astro/*` a year's immutable Cache-Control. The
       script fails the build on 'unsafe-inline',
       'unsafe-eval', a missing directive, an inline script
-      or style Astro did not hash, or any server-rendered
+      or style Astro did not hash, a `_headers` line over
+      2,000 characters (Cloudflare's limit, 100 rules at
+      most; ADR-0013 decision 9), or any server-rendered
       route in the build output.
     </requirement>
 
@@ -4765,7 +4782,8 @@ hygiene.
 > snapshot with its retrieval time, refuses a series outside the set with a
 > new `not-in-snapshot` problem that points to local mode, and serves a
 > stale snapshot with a `stale_snapshot` warning rather than failing.
-> Provision the staging bucket (versioned, public access prevented), the
+> Provision the staging bucket (soft delete, no Object Versioning, public
+> access prevented; ADR-0013 decision 6), the
 > job's identity and provider keys in Secret Manager, the job, and a daily
 > Cloud Scheduler trigger; deploy the job's image with every staging deploy,
 > data before API; and write the snapshot runbooks. Parent: ROADMAP §3; §4
@@ -5576,7 +5594,11 @@ per phase-boundary hygiene.
       request body and answers POST runs `no-store`.
     - The XLSX and CSV parsers are permissive, maintained
       and audited (npm audit, the licence check); the
-      unmaintained npm `xlsx` package is not used.
+      unmaintained npm `xlsx` package (0.18.5 since 2022) is
+      not used. On 2026-10-29 `read-excel-file` 9.3.14 (MIT)
+      was current and parses in a Web Worker, whose CSP needs
+      are checked at kickoff; `exceljs` had no stable release
+      since 2023 (ADR-0013 decision 11).
     - Transforms are parsed by core.transforms'
       check_transform (bounded names, arguments and
       periods); text a caller sends never becomes code, and
@@ -7150,7 +7172,8 @@ phase-boundary hygiene.
 > edge credential, the job's provider keys); the snapshot bucket, job and
 > daily schedule from Step 8; the Cloud Run service `pyeconomics-api`
 > (minimum 0, maximum 3 instances); a $10 monthly budget with 50/90/100%
-> alerts; and in Cloudflare the Worker `pyeconomics-web` on
+> alerts, a $20 spend-cap budget that pauses Cloud Run, and an exclusion
+> filter for Cloud Run's request logs (ADR-0013 decision 5); and in Cloudflare the Worker `pyeconomics-web` on
 > `pyeconomics.dev` behind Access until Step 19, `www` and the `.com`,
 > `.org` and `.io` redirects prepared but off, HSTS on the zone, the
 > managed WAF ruleset, the Worker's edge cache for cacheable GET runs and
@@ -7545,7 +7568,10 @@ New conversation per phase-boundary hygiene.
       secret put EDGE_CREDENTIAL --env production` without
       display; the job's key secrets; the bucket, job and
       schedule as in Step 8; the budget with its Pub/Sub
-      topic, subscription and email recipients; the
+      topic, subscription and email recipients, the $20
+      spend-cap budget on Cloud Run, and the `_Default`
+      sink's exclusion filter for
+      `run.googleapis.com%2Frequests` (decision 5); the
       Cloudflare custom domain, Access application (the
       maintainer and the new `pyeconomics-production-ci`
       service token, expiry recorded), HSTS, the
@@ -7614,8 +7640,9 @@ New conversation per phase-boundary hygiene.
       identities and their exact roles, deploying by tag and
       by dispatch, the promotion gate, rolling back the API
       (and restoring latest traffic), the site (`wrangler
-      rollback`) and the data (restoring the previous
-      `current.json` from object versioning), the cutover
+      rollback`) and the data (pointing `current.json` at
+      an earlier run, decision 6), lifting a tripped spend
+      cap, the cutover
       (removing Access and enabling the redirects, Step
       19), rotating every production secret and token with
       its expiry, disabling a provider, a cost spike (lower
@@ -7647,7 +7674,8 @@ New conversation per phase-boundary hygiene.
   only Google-managed keys and service-level roles, the federation
   condition on the repository id, the `production` environment and `main`
   or `v*` refs, its own secrets, the bucket, job and daily schedule, the
-  service at minimum 0 and maximum 3, and the $10 budget with its alerts.
+  service at minimum 0 and maximum 3, the $10 budget with its alerts, the
+  $20 spend cap and the request-log exclusion.
 - Cloudflare serves `pyeconomics.dev` from `pyeconomics-web` behind Access,
   with HSTS, the managed ruleset, the Worker's GET-run cache and the rate
   rule covering production's API paths; the redirect rules exist, disabled.
@@ -8031,9 +8059,12 @@ conversation per phase-boundary hygiene.
       opentelemetry-sdk and the OTLP HTTP exporter 1.45.2
       (Apache-2.0); Better Stack's free plan gives 10
       monitors and heartbeats, one status page, 3-minute
-      checks and email alerts (whether the status page takes
-      a custom domain on the free plan is to be confirmed at
-      kickoff).
+      checks and email alerts, and its free status page takes
+      a custom subdomain (re-read at Step 2). Sentry's browser
+      SDK 11 removed `sendDefaultPii` and collects user
+      details, the IP address, cookies, headers and bodies
+      unless `dataCollection` turns each off (ADR-0013
+      decision 15).
 
     Files to read (every file before drafting):
     - docs/adr/0013-web-app-and-launch.md (decisions 9 and
@@ -8094,7 +8125,8 @@ conversation per phase-boundary hygiene.
 
     <requirement>
       Browser: @sentry/browser initialised in the calculator
-      and explorer islands only, `sendDefaultPii: false`, no
+      and explorer islands only, every `dataCollection`
+      category off (SDK 11; a test asserts it), no
       replay or tracing, URLs with query strings removed in
       beforeSend; its ingest origin joins connect-src
       (decision 9); the post-build headers check still
@@ -8541,13 +8573,18 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
       the maintainer confirmed in Step 2.
     - Facts read on 2026-10-29 (re-check at kickoff): Umami
       Cloud's free Hobby plan records 100,000 events a month
-      with custom events and properties, no cookies, US and
-      EU servers; Buttondown's plain form posts to
+      for one website with custom events and properties,
+      keeps six months and has no API (the ledger's analytics
+      rows are manual), sets no cookies, and collects at
+      `https://gateway.umami.is` through `data-host-url`; its
+      region (EU, decision 13) is fixed at sign-up.
+      Buttondown's plain form posts to
       `https://buttondown.com/api/emails/embed-subscribe/
       <username>` with no key (not by fetch), takes hidden
       `metadata__<key>` fields, requires double opt-in, is
-      free to 100 subscribers and $9 a month to 1,000, and
-      offers a DPA; pypistats.org's API gives recent
+      free to 100 subscribers and $9 a month to 1,000 (the
+      Basic plan decision 14 chose, which metadata needs),
+      and offers a DPA; pypistats.org's API gives recent
       downloads without a key.
 
     Files to read (every file before drafting):
@@ -8597,7 +8634,8 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
       Forms: /newsletter/ and a footer form post with `method
       post` to the processor's embed endpoint (form-action
       allows only it, decision 9), with an email input, a
-      hidden `metadata__source`, and on /pro/ a
+      hidden `metadata__list` and `metadata__source`, and on
+      /pro/ a
       `metadata__tier` choice (personal, commercial, team);
       each says what is collected, that confirmation is by
       email, and links the privacy policy. No JavaScript
@@ -9003,9 +9041,10 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       web/src/content/legal/data-flows.json, and a test fails
       when an origin in the CSP's connect-src or form-action,
       a vendor in decisions 13–15, or a log the service keeps
-      is missing from it; the policy states that GET runs'
-      URLs, inputs included, reach the host's request logs,
-      and that the calculator uses POST to keep inputs out.
+      is missing from it; the policy states that Cloud Run's
+      request logs are excluded (decision 5), so no URL is
+      kept, and that the calculator uses POST to keep inputs
+      out of URLs.
     - security.txt names the private vulnerability
       reporting route and SECURITY.md as its policy, expires
       within a year, and a test fails when fewer than 30 days

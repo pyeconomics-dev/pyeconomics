@@ -26,7 +26,7 @@ phase section it implements, and from the §5 section behind it.
 | [0010](0010-python-support-policy.md) | Python support policy | Accepted | 2026-10-05 |
 | [0011](0011-data-platform.md) | Data platform | Accepted | 2026-10-14 |
 | [0012](0012-programmatic-surfaces.md) | Programmatic surfaces | Accepted | 2026-10-23 |
-| [0013](0013-web-app-and-launch.md) | Web app, hosting, data plane and launch | Proposed | 2026-10-29 |
+| [0013](0013-web-app-and-launch.md) | Web app, hosting, data plane and launch | Accepted | 2026-10-29 |
 
 ADR-0008, the numerical conventions (decimal rates, units, bounds,
 compounding and day counts, tolerances, seeds, canonical JSON numbers and the

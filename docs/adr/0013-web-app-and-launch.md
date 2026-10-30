@@ -1,6 +1,6 @@
 # ADR-0013: Web app, hosting, data plane and launch
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-29
 - Deciders: Nathan Ramos, CFA (maintainer)
 - Parent: ROADMAP §4 5.1–5.10; §5 "Release & deployment strategy",
@@ -713,8 +713,22 @@ Bad:
   decision 4); §4 5.9 and the phase's acceptance criteria (the soak and the
   Lighthouse sample, decisions 18 and 19); and §5's Gate G3 row (its
   window, decision 19).
+- The maintainer accepted the twenty decisions, with the values in this
+  record, on 2026-10-29 in Phase 5 Step 2 (pull request #221), answering
+  one batched question with every recommendation:
+  - all twenty decisions, with the re-read's changes listed below,
+    including the two additions to decision 5 (the $20 spend cap and the
+    request-log exclusion);
+  - Buttondown on its Basic plan as the email processor (decision 14),
+    over Buttondown Free and Kit Free;
+  - Umami Cloud's free Hobby plan as the analytics provider (decision 13),
+    over Umami Pro, Plausible Business and GoatCounter;
+  - Gate G3's window, the 90 days after the 1.0.0 announcement, and ROADMAP
+    §5's thresholds as drafted (decision 19), to be confirmed again at
+    Step 18.
+- No decision was amended in place while the record read Proposed.
 - The re-read of 2026-10-29 changed these drafted defaults of the Phase 5
-  roadmap, each put to the maintainer:
+  roadmap, each accepted by the maintainer:
   - decision 5: the spend-cap budget (new on 2026-10-12) and the request-log
     exclusion are additions;
   - decision 6: run-named objects with soft delete replace Object
