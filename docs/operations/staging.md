@@ -440,7 +440,9 @@ both Cloudflare Workers: the API-only Worker and the site's
 - **Used by:** the Service Auth policy of both Access applications,
   `pyeconomics-staging-api` (`staging-api.pyeconomics.dev`) and
   `pyeconomics-staging-site` (`staging.pyeconomics.dev`). A replacement token
-  must be added to both policies before the old one is deleted.
+  must be added to both policies before the old one is deleted. The site's
+  application has its own two policies: `staging-site-ci` (Service Auth, this
+  token) and `staging-site-maintainer` (Allow, the maintainer's email).
 
 To rotate the service token:
 
