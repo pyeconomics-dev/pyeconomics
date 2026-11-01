@@ -475,7 +475,7 @@ To rotate the service token:
 - **Scope:** *Specified Workers* = `pyeconomics-web-staging`, role *Editor*;
   no other permission, no IP filter (GitHub-hosted runners have no fixed
   addresses)
-- **Created:** `2026-10-30`
+- **Created:** `2026-11-01`
 - **Expires:** `2027-10-27` (rotated with the Access service token; at least 14
   days before expiry)
 
@@ -587,7 +587,7 @@ or (http.request.uri.path eq "/openapi.json")
   `429` for `10 seconds`.
 - `wildcard` is case-insensitive, so the rule also counts `/V1/...`, which the
   Worker never runs on (the assets answer it with the 404 page).
-- Re-expressed on 2026-10-30 (Phase 5 Step 4); it previously matched every
+- Re-expressed on 2026-11-01 (Phase 5 Step 4); it previously matched every
   path. Cloudflare's counters lag: a single sub-second burst can pass, so a
   burst test sends waves of 30 requests to `/v1/models` 1.5 seconds apart
   until the edge answers `429` (an HTML block page, not the origin's
