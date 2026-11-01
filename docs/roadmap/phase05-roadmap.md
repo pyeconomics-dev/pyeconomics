@@ -3065,7 +3065,11 @@ conversation per phase-boundary hygiene.
       Editor role, nothing else (amended at kickoff,
       2026-10-30: per-Worker roles shipped 2026-09-15, so the
       drafted account-wide Workers Scripts edit plus zone
-      Workers Routes edit was broader than needed); it lives
+      Workers Routes edit was broader than needed; amended
+      after merge, 2026-11-01: per-Worker roles granted
+      nothing through the API, so the token holds account-wide
+      Workers Scripts: Edit with no zone permission, issue
+      #231 narrows it again); it lives
       only in the protected `staging` environment, set by
       `gh secret set CLOUDFLARE_API_TOKEN --env staging` from
       a prompt; the maintainer records its expiry date in the
@@ -7504,9 +7508,12 @@ New conversation per phase-boundary hygiene.
       `pyeconomics-web-local`, so no deploy without an env
       can reach it); this step adds its custom domain and
       ORIGIN_URL once the Access application exists. Staging's
-      token is account-owned, scoped to Specified Workers =
-      pyeconomics-web-staging with the Editor role, so it can
-      never touch production. A per-Worker role needs the
+      token was meant to hold Editor on pyeconomics-web-staging
+      alone, but per-Worker roles granted nothing through the
+      API on 2026-11-01, so it holds account-wide Workers
+      Scripts: Edit and could deploy production: settle issue
+      #231 (narrow it, or isolate production) before production
+      gets a token. A per-Worker role needs the
       Worker to exist first and Custom Domains support no
       per-Worker role, while `wrangler deploy` rewrites the
       custom domain on every run (and in CI overrides a DNS
