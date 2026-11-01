@@ -21,6 +21,7 @@ import {
   headerPolicy,
   parsePolicy,
   renderHeaders,
+  siteFlavour,
 } from "../../scripts/headers.ts";
 
 const SCRIPT = "console.log(1)";
@@ -203,6 +204,15 @@ describe("headerPolicy and renderHeaders", () => {
       expect(text).toContain(`\n  ${name}`);
     }
     expect(text).toContain("\n/_astro/*\n  Cache-Control: public, max-age=31536000, immutable\n");
+    expect(text).not.toContain("X-Robots-Tag");
+    expect(checkHeaders(text)).toEqual([]);
+  });
+
+  it("refuses indexing on every path of a staging build", () => {
+    const text = renderHeaders(headerPolicy(new Map()), "staging");
+    const [every] = text.split("\n/_astro/*\n");
+    expect(every).toContain("\n  X-Robots-Tag: noindex");
+    expect(every).toContain("\n  X-Content-Type-Options: nosniff");
     expect(checkHeaders(text)).toEqual([]);
   });
 
@@ -212,6 +222,18 @@ describe("headerPolicy and renderHeaders", () => {
     ]);
     const rules = Array.from({ length: 101 }, (_, i) => `/p${i}\n  X-A: b`).join("\n");
     expect(checkHeaders(rules)).toEqual(["_headers has 101 rules, over 100"]);
+  });
+});
+
+describe("siteFlavour", () => {
+  it("reads unset or empty as a local build and accepts staging", () => {
+    expect(siteFlavour(undefined)).toBe("local");
+    expect(siteFlavour("")).toBe("local");
+    expect(siteFlavour("staging")).toBe("staging");
+  });
+
+  it.each(["production", "Staging", "staging ", "preview"])("refuses %j", (value) => {
+    expect(() => siteFlavour(value)).toThrow(/SITE_FLAVOUR must be unset or one of local, staging/);
   });
 });
 
@@ -242,6 +264,12 @@ describe("checkBuild", () => {
       expect(checkBuild(root).problems.join()).toMatch(/server-rendered route/);
     },
   );
+
+  it("writes the flavour's headers", () => {
+    const root = build({ "index.html": page(meta()) });
+    expect(checkBuild(root).headers).not.toContain("X-Robots-Tag");
+    expect(checkBuild(root, "staging").headers).toContain("\n  X-Robots-Tag: noindex\n");
+  });
 
   it("refuses a _headers file copied from public/ and a build with no page", () => {
     expect(checkBuild(build({ "index.html": page(meta()), _headers: "" })).problems).toEqual([

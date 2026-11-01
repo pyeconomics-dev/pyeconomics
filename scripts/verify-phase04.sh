@@ -463,6 +463,12 @@ c64() {
 import re
 from pathlib import Path
 staging_secrets = {"GITHUB_TOKEN", "CF_ACCESS_CLIENT_ID", "CF_ACCESS_CLIENT_SECRET"}
+# Phase 5 Step 4: deploy-staging.yml's site job deploys with the staging
+# environment's Cloudflare API token, which no other workflow may read.
+staging_sets = {
+    "deploy-staging.yml": staging_secrets | {"CLOUDFLARE_API_TOKEN"},
+    "staging-health.yml": staging_secrets,
+}
 for path in Path(".github/workflows").glob("*.yml"):
     if path.name == "providers-live.yml":
         continue
@@ -470,8 +476,8 @@ for path in Path(".github/workflows").glob("*.yml"):
     body = "\n".join(line for line in path.read_text(encoding="utf-8").splitlines() if not line.lstrip().startswith("#"))
     assert not re.search(r"\bsecrets\s*\[|toJSON\(secrets\)", body), path.name
     names = re.findall(r"\bsecrets\.([A-Za-z_][A-Za-z_0-9]*)", body)
-    if path.name in {"deploy-staging.yml", "staging-health.yml"}:
-        assert set(names) <= staging_secrets, path.name
+    if path.name in staging_sets:
+        assert set(names) <= staging_sets[path.name], path.name
         assert re.search(r"^\s+environment:\s*(?:staging\s*$|\n\s+name:\s*staging\s*$)", body, re.M), path.name
     else:
         assert set(names) <= {"GITHUB_TOKEN"}, path.name

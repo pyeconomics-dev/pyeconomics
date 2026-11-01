@@ -1,4 +1,15 @@
 // tools/node/edge/worker.mjs
+//
+// The edge Worker (ADR-0012 decision 20; ADR-0013 decision 3). One module
+// serves two Workers: staging-api.pyeconomics.dev, where it forwards every
+// path to the Cloud Run origin, and the site (web/wrangler.jsonc), where an
+// ASSETS binding holds the built pages and Cloudflare runs this module first
+// only on API_PATHS (run_worker_first); every other request, found or not,
+// is the assets'. Should one reach the module anyway, it answers from the
+// assets: only the API's paths ever reach the origin.
+
+/** The API's paths, as web/wrangler.jsonc's run_worker_first lists them. */
+export const API_PATHS = Object.freeze(["/v1/*", "/mcp", "/healthz", "/version", "/openapi.json"]);
 
 const HOP_BY_HOP_HEADERS = Object.freeze([
   "connection",
@@ -11,13 +22,17 @@ const HOP_BY_HOP_HEADERS = Object.freeze([
   "upgrade",
 ]);
 
-const STRIPPED_REQUEST_HEADERS = Object.freeze([
-  "cf-access-client-id",
-  "cf-access-client-secret",
-  "cf-access-jwt-assertion",
-  "host",
-  "x-pyeconomics-edge",
-]);
+// The browser's cookies (Access's CF_Authorization among them) and every
+// header Access adds or reads (cf-access-*) stay at the edge.
+const STRIPPED_REQUEST_HEADERS = Object.freeze(["cookie", "host", "x-pyeconomics-edge"]);
+const STRIPPED_REQUEST_PREFIX = "cf-access-";
+
+/** Whether a request path is one of API_PATHS, matched as Cloudflare does. */
+export function isApiPath(pathname) {
+  return API_PATHS.some((pattern) =>
+    pattern.endsWith("/*") ? pathname.startsWith(pattern.slice(0, -1)) : pathname === pattern,
+  );
+}
 
 function connectionTokens(headers) {
   const raw = headers.get("connection");
@@ -41,6 +56,11 @@ function buildForwardHeaders(requestHeaders, credential) {
   for (const name of STRIPPED_REQUEST_HEADERS) {
     headers.delete(name);
   }
+  for (const name of [...headers.keys()]) {
+    if (name.startsWith(STRIPPED_REQUEST_PREFIX)) {
+      headers.delete(name);
+    }
+  }
   const clientIp = requestHeaders.get("cf-connecting-ip");
   if (clientIp !== null && clientIp.trim().length > 0) {
     headers.set("CF-Connecting-IP", clientIp.trim());
@@ -59,6 +79,8 @@ function buildResponseHeaders(upstreamHeaders) {
   for (const name of HOP_BY_HOP_HEADERS) {
     headers.delete(name);
   }
+  // _headers applies to asset responses only, so forwarded ones get it here.
+  headers.set("X-Content-Type-Options", "nosniff");
   return headers;
 }
 
@@ -79,13 +101,14 @@ function misconfiguredResponse() {
     type: "https://pyeconomics.dev/problems/service-unavailable",
     title: "Service unavailable",
     status: 503,
-    detail: "The staging edge Worker is missing required configuration.",
+    detail: "The edge Worker is missing required configuration.",
   });
   return new Response(body, {
     status: 503,
     headers: {
       "Cache-Control": "no-store",
       "Content-Type": "application/problem+json",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }
@@ -145,8 +168,19 @@ export async function forwardRequest(request, env, fetchImpl = globalThis.fetch)
   });
 }
 
+/**
+ * Answer one request: from the assets when the Worker has them and the path is
+ * not the API's, otherwise from the origin.
+ */
+export async function handleRequest(request, env, fetchImpl = globalThis.fetch) {
+  if (env?.ASSETS && !isApiPath(new URL(request.url).pathname)) {
+    return env.ASSETS.fetch(request);
+  }
+  return forwardRequest(request, env, fetchImpl);
+}
+
 export default {
   async fetch(request, env) {
-    return forwardRequest(request, env);
+    return handleRequest(request, env);
   },
 };

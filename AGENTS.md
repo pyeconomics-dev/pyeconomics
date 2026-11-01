@@ -539,6 +539,27 @@ From Phase 5 Step 3, which builds the web foundation:
   the fork `eslint-plugin-astro` supports on ESLint 10, with no warning
   allowed; a suppression carries its reason.
 
+From Phase 5 Step 4, which puts the site on staging:
+
+- One edge Worker module, `tools/node/edge/worker.mjs`, serves both
+  `staging-api.pyeconomics.dev` and the site. In `web/wrangler.jsonc` it runs
+  first only on its `API_PATHS` (`run_worker_first`; `worker.test.mjs` holds
+  the two equal), and with an `ASSETS` binding it sends no other path to the
+  origin. It strips every cookie and `cf-access-*` header, adds the edge
+  credential from a Worker secret and `nosniff` to what it returns. After a
+  change to it merges, redeploy the API-only Worker from `main` by hand
+  (`docs/operations/staging.md`).
+- The env-less `web/wrangler.jsonc` is what `wrangler dev` serves: no origin,
+  no secret. Env `staging` deploys only from `deploy-staging.yml`'s `site`
+  job, with `wrangler versions upload` and `versions deploy` under
+  `CLOUDFLARE_API_TOKEN`, an Editor token on that one Worker that cannot touch
+  routes, custom domains or DNS; `wrangler deploy` (which rewrites the custom
+  domain) is the maintainer's. Only the steps that call Wrangler get the token.
+- `SITE_FLAVOUR` names the deployment a build is for, read by
+  `scripts/headers.ts`: unset is local, `staging` adds `X-Robots-Tag:
+  noindex`, and any other value fails the build. A new flavour joins
+  `FLAVOURS` and `FLAVOUR_HEADERS` there with its tests.
+
 ## Units
 
 Rates, returns, yields and percentages are decimals in every API (`0.05`, not

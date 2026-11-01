@@ -2768,9 +2768,9 @@ XHigh. Cost runs GPT-6.1 Sol at Intelligence High (50.2) and Quality Opus
 
 ---
 
-## Step 4 — Staging Site on Cloudflare
+## Step 4 — Staging Site on Cloudflare ✅
 
-**Status:** Not started
+**Status:** Complete — PR #225 (2026-10-30)
 
 > **Goal:** Put the site behind a real Cloudflare edge from the start, so
 > every later web step is verified where it will run. Extend the edge
@@ -2822,6 +2822,8 @@ with the service token from the maintainer's keyring.
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-10-30: Quality Pick — Opus 5.5 · XHigh.
 
 **Conversation:** New
 
@@ -3058,12 +3060,16 @@ conversation per phase-boundary hygiene.
     PR, or `main`.
 
     THIS STEP ALSO:
-    - The Cloudflare API token is scoped to editing this
-      account's Workers and this zone's Worker routes and
-      custom domains, nothing else; it lives only in the
-      protected `staging` environment, set by `gh secret set
-      CLOUDFLARE_API_TOKEN --env staging` from a prompt; the
-      maintainer records its expiry date in the runbook.
+    - The Cloudflare API token is account-owned and scoped
+      to Specified Workers = pyeconomics-web-staging with the
+      Editor role, nothing else (amended at kickoff,
+      2026-10-30: per-Worker roles shipped 2026-09-15, so the
+      drafted account-wide Workers Scripts edit plus zone
+      Workers Routes edit was broader than needed); it lives
+      only in the protected `staging` environment, set by
+      `gh secret set CLOUDFLARE_API_TOKEN --env staging` from
+      a prompt; the maintainer records its expiry date in the
+      runbook.
     - The Worker runs only on the API's paths, adds the edge
       credential from a Worker secret, strips hop-by-hop
       headers, never forwards a cookie or an Access header to
@@ -3153,8 +3159,11 @@ conversation per phase-boundary hygiene.
     <requirement>
       Kickoff, ONE batched request to the maintainer with
       every command and its effect: create the API token
-      (Workers Scripts edit on the account; Workers Routes
-      edit on the pyeconomics.dev zone) and store it with
+      (amended 2026-10-30: Editor on the one Worker, created
+      after the secret put below makes the Worker; the
+      maintainer's one `wrangler deploy --env staging`
+      attaches the custom domain once Access exists) and
+      store it with
       `gh secret set CLOUDFLARE_API_TOKEN --env staging`;
       set CLOUDFLARE_ACCOUNT_ID as an environment variable;
       pipe the existing staging edge credential into
@@ -3195,8 +3204,12 @@ conversation per phase-boundary hygiene.
       job (needs: deploy), in the `staging` environment
       with contents: read only: `npm ci`, the site data
       export from the merge commit, the staging build,
-      `npx wrangler deploy --env staging` with the scoped
-      token; then verify with the service token:
+      `npx wrangler versions upload --env staging` and
+      `versions deploy <id>@100%` with the scoped token
+      (amended 2026-10-30: `wrangler deploy` rewrites the
+      custom domain on every run, which a per-Worker token
+      may not do, and in CI overrides a DNS record unasked);
+      then verify with the service token:
       /version.json equals the commit, `/` answers 200 with
       the exact CSP from dist/_headers and `X-Robots-Tag:
       noindex`, `/v1/models` answers 200 through the same
@@ -3594,6 +3607,15 @@ hygiene.
     - Every merge deploys the API and then the staging site
       through deploy-staging.yml to staging.pyeconomics.dev
       behind Access; /version.json reports the build's SHA.
+    - Step 4 note: web/scripts/headers.ts reads SITE_FLAVOUR
+      (FLAVOURS, FLAVOUR_HEADERS, siteFlavour): unset is a
+      local build, which Playwright and Lighthouse serve and
+      which must stay indexable for Lighthouse's SEO audit;
+      `staging` adds `X-Robots-Tag: noindex` on every path;
+      any other value fails the build. The indexing
+      requirement below adds the `production` flavour (which
+      reads the version) and robots.txt there, and staging's
+      `Disallow: /`, without changing the local build.
     - registry.json holds 50 models in 13 domains, each with
       the 23 describe() keys, example_result and
       example_figure. Problem rows live in
@@ -7477,6 +7499,29 @@ New conversation per phase-boundary hygiene.
     - The site's production flavour refuses indexing for a
       pre-release version and allows it for a final one
       (Step 5); web/wrangler.jsonc declares env `production`.
+    - Step 4 note: env `production` holds only its name,
+      `pyeconomics-web` (the env-less name is
+      `pyeconomics-web-local`, so no deploy without an env
+      can reach it); this step adds its custom domain and
+      ORIGIN_URL once the Access application exists. Staging's
+      token is account-owned, scoped to Specified Workers =
+      pyeconomics-web-staging with the Editor role, so it can
+      never touch production. A per-Worker role needs the
+      Worker to exist first and Custom Domains support no
+      per-Worker role, while `wrangler deploy` rewrites the
+      custom domain on every run (and in CI overrides a DNS
+      record unasked): so the maintainer creates
+      pyeconomics-web with `wrangler secret put
+      EDGE_CREDENTIAL --env production` and attaches the
+      domain by one `wrangler deploy --env production` after
+      Access exists, then scopes the production token the same
+      way, and the `site` job deploys with `wrangler versions
+      upload` and `versions deploy` as deploy-staging.yml's
+      does. The rate rule already matches the API's paths on
+      every host. The API-only staging Worker
+      (tools/node/edge/wrangler.toml) is redeployed by hand
+      after the shared module changes; the decision-7 cache
+      change below is such a change.
     - pyeconomics-app publishes with pyeconomics from
       release.yml (Step 10); no `v1.0.0rc1*` tag exists.
     - Facts read on 2026-10-29 (re-check at kickoff): the
@@ -11008,8 +11053,13 @@ hygiene.
     bundle licence check.
     Step 4 (staging site) — wrangler.jsonc's
     run_worker_first list with workers.dev off; the Worker's
-    tests; deploy-staging.yml's site job with rollback;
-    staging-health probing the site.
+    tests; deploy-staging.yml's site job with rollback,
+    deploying by `wrangler versions upload` and `versions
+    deploy` (never `wrangler deploy` in CI), with
+    CLOUDFLARE_API_TOKEN only in the steps that call
+    Wrangler; staging-health probing the site; `--live`
+    bursts staging.pyeconomics.dev's /v1/models in waves
+    of 30 until the edge answers 429.
     Step 5 (pages) — the model route; the problem pages'
     test; robots and sitemap by version; the released-page
     ledger and its test.
@@ -11544,7 +11594,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Launch baseline, fixes         | GPT-6.1 Sol    | Complete — PR #219 |
 | 2    | ADR-0013                       | Opus 5.5       | Complete — PR #221 |
 | 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
-| 4    | Staging site                   | Sonnet 5.5     | Not started        |
+| 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Not started        |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |

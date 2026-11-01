@@ -1,20 +1,47 @@
 // web/wrangler.jsonc
-// The site as Workers static assets (ADR-0013 decisions 3 and 4). In Step 3 it
-// is served only by `wrangler dev`, so Playwright and Lighthouse see the
-// headers dist/_headers sets exactly as Cloudflare sends them. Step 4 adds
-// the shared Worker (`main`, run_worker_first on the API's paths) and the
-// staging and production environments. Version and preview URLs on
-// workers.dev are public, so both stay off.
+// The site and the API on one host (ADR-0013 decisions 3 and 4). Workers
+// static assets serve every page and file, with the headers dist/_headers
+// sets; the shared edge Worker (tools/node/edge/worker.mjs, which also serves
+// staging-api.pyeconomics.dev alone) runs first only on the API's paths and
+// forwards them to Cloud Run with the edge credential. Because the list names
+// paths, every other request is the assets', the 404 page when no file
+// matches; should one reach the Worker anyway, it answers from the assets,
+// never from the origin.
+//
+// The env-less configuration is what `wrangler dev` serves for Playwright and
+// Lighthouse: no origin and no secret, so the API's paths answer 503 there.
+// Its name is not a deployed Worker's. Env `staging` is deployed by
+// deploy-staging.yml; env `production` is declared for Phase 5 Step 13, which
+// adds its custom domain and origin once its Access application exists.
+// Version and preview URLs on workers.dev are public, so both stay off; a
+// change to routes or to them is the maintainer's `wrangler deploy`, because
+// CI's token may only upload and deploy versions of the staging Worker.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "pyeconomics-web",
+  "name": "pyeconomics-web-local",
+  "main": "../tools/node/edge/worker.mjs",
   "compatibility_date": "2026-10-29",
   "workers_dev": false,
   "preview_urls": false,
   "send_metrics": false,
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    // tools/node/edge/worker.mjs's API_PATHS; worker.test.mjs holds them equal.
+    "run_worker_first": ["/v1/*", "/mcp", "/healthz", "/version", "/openapi.json"],
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
+  },
+  "env": {
+    "staging": {
+      "name": "pyeconomics-web-staging",
+      "routes": [{ "pattern": "staging.pyeconomics.dev", "custom_domain": true }],
+      "vars": {
+        "ORIGIN_URL": "https://pyeconomics-api-staging-129496897969.us-central1.run.app"
+      }
+    },
+    "production": {
+      "name": "pyeconomics-web"
+    }
   }
 }

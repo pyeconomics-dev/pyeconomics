@@ -6,10 +6,15 @@
 # decision 20).
 #
 # - Only on schedule (hourly) and workflow_dispatch, never on a pull request.
+# - The `deployed` job, with `actions: read` and no secret, reads the commit of
+#   the newest successful `deploy-staging.yml` run on `main`, and of any run
+#   in progress (a deploy may be mid-verification when the probe runs).
 # - The `probe` job runs in the protected `staging` environment (`main` only),
 #   calls `/healthz`, `/version` and one data-free model run through the edge,
-#   and fails when `simulate_failure` is true (the synthetic alarm proof of
-#   Step 16).
+#   then checks the site on `staging.pyeconomics.dev` (Phase 5 Step 4):
+#   `/version.json` reports the deployed commit and `/` carries the policy and
+#   refuses indexing. It fails when `simulate_failure` is true (the synthetic
+#   alarm proof of Step 16).
 # - The `report` job is the only job with `issues: write`: on failure it opens
 #   one issue labelled `staging-health` and closes older open `staging-health`
 #   issues as superseded, while the workflow run itself fails so GitHub
@@ -36,8 +41,46 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  deployed:
+    name: find the deployed commit
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      newest: ${{ steps.runs.outputs.newest }}
+      running: ${{ steps.runs.outputs.running }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      - name: Read the newest successful and the running deploy-staging commits
+        id: runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          newest=$(gh run list --workflow deploy-staging.yml --branch main --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // ""')
+          running=$(gh run list --workflow deploy-staging.yml --branch main --status in_progress \
+            --json headSha --jq '[.[].headSha] | join(" ")')
+          if [[ ! "$newest" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::No successful deploy-staging run on main."
+            exit 1
+          fi
+          echo "newest=${newest}" >> "$GITHUB_OUTPUT"
+          echo "running=${running}" >> "$GITHUB_OUTPUT"
+
   probe:
     name: probe staging through the edge
+    needs: deployed
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: staging
@@ -49,9 +92,12 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Probe /healthz, /version and a data-free run through the edge
+      - name: Probe the API through the edge and the site on its host
         env:
           STAGING_HOST: ${{ vars.STAGING_HOST }}
+          STAGING_SITE_HOST: ${{ vars.STAGING_SITE_HOST }}
+          DEPLOYED_SHA: ${{ needs.deployed.outputs.newest }}
+          RUNNING_SHAS: ${{ needs.deployed.outputs.running }}
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
           SIMULATE_FAILURE: ${{ inputs.simulate_failure && '1' || '' }}
@@ -69,22 +115,27 @@ jobs:
 
           host = os.environ["STAGING_HOST"].strip()
           base = f"https://{host}"
+          site = f"https://{os.environ['STAGING_SITE_HOST'].strip()}"
           headers = {
               "CF-Access-Client-Id": os.environ["CF_ACCESS_CLIENT_ID"].strip(),
               "CF-Access-Client-Secret": os.environ["CF_ACCESS_CLIENT_SECRET"].strip(),
               "User-Agent": "pyeconomics-staging-health/1.0",
           }
 
-          def call(path: str, *, method: str = "GET", body: bytes | None = None):
+          def fetch(url: str, *, method: str = "GET", body: bytes | None = None):
               req_headers = dict(headers)
               if body is not None:
                   req_headers["Content-Type"] = "application/json"
-              req = urllib.request.Request(f"{base}{path}", data=body, headers=req_headers, method=method)
+              req = urllib.request.Request(url, data=body, headers=req_headers, method=method)
               try:
                   with urllib.request.urlopen(req, timeout=30) as resp:
-                      return resp.status, resp.read()
+                      return resp.status, resp.headers, resp.read()
               except urllib.error.HTTPError as exc:
-                  return exc.code, exc.read()
+                  return exc.code, exc.headers, exc.read()
+
+          def call(path: str, *, method: str = "GET", body: bytes | None = None):
+              status, _, payload = fetch(f"{base}{path}", method=method, body=body)
+              return status, payload
 
           status, payload = call("/healthz")
           assert status == 200, f"/healthz returned {status}"
@@ -106,16 +157,31 @@ jobs:
           assert run_doc.get("model_id") == "foundations.time_value", run_doc.get("model_id")
           assert math.isclose(float(run_doc["outputs"]["future_value"]), 1000.0 * (1.05**10), rel_tol=1e-12)
 
+          # The site: the newest successful deploy's commit (or a deploy still
+          # verifying), decision 9's policy and no indexing.
+          accepted = {os.environ["DEPLOYED_SHA"].strip(), *os.environ.get("RUNNING_SHAS", "").split()}
+          status, _, payload = fetch(f"{site}/version.json")
+          assert status == 200, f"site /version.json returned {status}"
+          site_sha = json.loads(payload).get("git_sha")
+          assert site_sha in accepted, (
+              f"site /version.json reports {site_sha}, not the newest successful deploy's {os.environ['DEPLOYED_SHA']}"
+          )
+          status, site_headers, _ = fetch(f"{site}/")
+          assert status == 200, f"site / returned {status}"
+          policy = site_headers.get("Content-Security-Policy", "")
+          assert "default-src 'self'" in policy and "frame-ancestors 'none'" in policy, "site / lacks its policy"
+          assert site_headers.get("X-Robots-Tag") == "noindex", "site / does not refuse indexing"
+
           if os.environ.get("SIMULATE_FAILURE") == "1":
               print("::error::Simulated staging-health probe failure requested via workflow_dispatch.", file=sys.stderr)
               sys.exit(1)
 
-          print(f"Staging probe succeeded at git_sha={version_doc['git_sha']}.")
+          print(f"Staging probe succeeded: API at {version_doc['git_sha']}, site at {site_sha}.")
           PY
 
   report:
     name: report the probe failure
-    needs: probe
+    needs: [deployed, probe]
     if: failure()
     runs-on: ubuntu-latest
     timeout-minutes: 10
