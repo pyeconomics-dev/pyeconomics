@@ -144,17 +144,19 @@ gcloud run services add-iam-policy-binding pyeconomics-api-staging \
   `STAGING_SITE_HOST`, `ORIGIN_URL`, `RATELIMIT_SECRET_VERSION`,
   `EDGE_SECRET_VERSION`, `CLOUDFLARE_ACCOUNT_ID`) as environment variables.
 - **Cloudflare API token (`CLOUDFLARE_API_TOKEN`):** an account-owned token
-  scoped to *Specified Workers* = `pyeconomics-web-staging` with the *Editor*
-  role, and nothing else: no zone, DNS, route, custom-domain, Access or
-  account permission, and no other Worker (the API-only Worker and, from Step
-  13, production are out of its reach). Editor uploads, deploys and rolls back
-  versions of that Worker and cannot delete it. Custom Domains do not support
-  per-Worker roles, and `wrangler deploy` rewrites the Worker's custom domain
-  on every run, so CI deploys with `wrangler versions upload` and `wrangler
-  versions deploy`; a change to routes, `workers_dev` or `preview_urls` is the
-  maintainer's own `wrangler deploy` (section 2). In `deploy-staging.yml` only
-  the steps that call Wrangler receive it, never `npm ci`, the data export or
-  the build.
+  holding the legacy permission group *Workers Scripts: Edit* on the whole
+  account, and nothing else: no zone, DNS, route, custom-domain or Access
+  permission. It was meant to hold *Editor* on `pyeconomics-web-staging`
+  alone, but on 2026-11-01 Cloudflare's per-Worker roles granted nothing
+  through the API (every Worker endpoint answered `401 [10000]`), and the new
+  account-wide *Workers* role could not be saved (issue #231). So it can
+  deploy any Worker in the account, the API-only Worker included; issue #231
+  narrows it again, and Step 13 must settle it before production exists.
+  `wrangler deploy` rewrites the Worker's custom domain on every run, so CI
+  deploys with `wrangler versions upload` and `wrangler versions deploy`; a
+  change to routes, `workers_dev` or `preview_urls` is the maintainer's own
+  `wrangler deploy` (section 2). In `deploy-staging.yml` only the steps that
+  call Wrangler receive it, never `npm ci`, the data export or the build.
 
 ---
 
@@ -474,9 +476,11 @@ To rotate the service token:
 ### 3.4 Rotating the Cloudflare API token (`CLOUDFLARE_API_TOKEN`)
 
 - **Token name:** `pyeconomics-web-staging-deploy` (account-owned)
-- **Scope:** *Specified Workers* = `pyeconomics-web-staging`, role *Editor*;
-  no other permission, no IP filter (GitHub-hosted runners have no fixed
-  addresses)
+- **Scope:** *Entire account* · *Workers Scripts* (Legacy) · *Edit*; no other
+  permission, no IP filter (GitHub-hosted runners have no fixed addresses).
+  Narrow it to *Specified Workers* = `pyeconomics-web-staging` · *Editor* once
+  per-Worker roles work through the API (issue #231): editing the policy keeps
+  the token's value, so the secret needs no change
 - **Created:** `2026-11-01`
 - **Expires:** `2027-10-27` (rotated with the Access service token; at least 14
   days before expiry)
@@ -500,8 +504,9 @@ To rotate it:
    gh workflow run deploy-staging.yml --ref main
    ```
 
-A token that leaks can upload and deploy versions of the staging site's Worker
-only: no other Worker, route, DNS record or Access setting. Roll it at once,
+A token that leaks can upload, deploy, create and delete any Worker in the
+account, the API-only Worker included, but no route, DNS record or Access
+setting. Roll it at once,
 then redeploy the newest good commit (`gh workflow run deploy-staging.yml
 --ref main`) or roll back by hand (section 2).
 

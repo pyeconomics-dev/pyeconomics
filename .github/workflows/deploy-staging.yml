@@ -21,11 +21,12 @@
 #   builds the staging flavour of the site from this commit and deploys it,
 #   with the shared edge Worker, to `pyeconomics-web-staging` on
 #   `staging.pyeconomics.dev` behind Access. `CLOUDFLARE_API_TOKEN` is an
-#   account-owned token holding the Editor role on that one Worker: it uploads
-#   and deploys versions (`wrangler versions upload`, then `versions deploy`)
-#   and rolls back, and cannot touch routes, custom domains, DNS or any other
-#   Worker, so `wrangler deploy`, which rewrites the custom domain, stays the
-#   maintainer's. Only the steps that call Wrangler see the token. The job
+#   account-owned token holding Workers Scripts: Edit (issue #231: per-Worker
+#   roles grant nothing through the API yet): it uploads and deploys versions
+#   (`wrangler versions upload`, then `versions deploy`) and rolls back, and
+#   holds no route, custom-domain, DNS or Access permission, so `wrangler
+#   deploy`, which rewrites the custom domain, stays the maintainer's. Only
+#   the steps that call Wrangler see the token. The job
 #   verifies the site through Access and, on failure, returns the Worker to
 #   the version it served before and fails.
 
