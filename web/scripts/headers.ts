@@ -262,7 +262,10 @@ export const FLAVOURS = ["local", "staging"] as const;
 export type Flavour = (typeof FLAVOURS)[number];
 
 /** Headers a flavour adds on every path: staging is never indexed. */
-export const FLAVOUR_HEADERS: ReadonlyMap<Flavour, Readonly<Record<string, string>>> = new Map([
+export const FLAVOUR_HEADERS: ReadonlyMap<Flavour, Readonly<Record<string, string>>> = new Map<
+  Flavour,
+  Readonly<Record<string, string>>
+>([
   ["local", {}],
   ["staging", { "X-Robots-Tag": "noindex" }],
 ]);
