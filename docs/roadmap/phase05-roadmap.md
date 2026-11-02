@@ -3781,9 +3781,9 @@ hygiene.
 
 ---
 
-## Step 6 — Calculators and Web Parity
+## Step 6 — Calculators and Web Parity ✅
 
-**Status:** Not started
+**Status:** Complete — PR #235 (2026-11-01)
 
 > **Goal:** Put a working calculator on every model page and prove it
 > returns the Python API's bytes. Add a React island (ADR-0013 decision 8)
@@ -3838,6 +3838,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY: a schema-driven form over fifty
 real schemas (the largest 32 KB, with nested calculations), a chart port
@@ -11679,7 +11681,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
 | 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
-| 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
+| 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
