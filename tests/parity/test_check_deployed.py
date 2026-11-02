@@ -120,7 +120,72 @@ def test_a_byte_difference_fails_and_names_the_case(
     assert check.main([str(golden), "https://staging.pyeconomics.dev"]) == 1
     out = capsys.readouterr().out
     assert "differs  fixed_income.duration::toy" in out
+    assert "not canonical JSON" in out
     assert "1 difference(s)" in out
+
+
+RESULT = {
+    "inputs": {"rate": 0.05, "when": "2026-01-15"},
+    "manifest": {
+        "dependencies": {"numpy": "2.5.3"},
+        "result_sha256": "a" * 64,
+        "package_version": "1.0.0",
+    },
+    "outputs": {"npv": 9859.423412459382, "weights": [0.015238095238095488, 1]},
+    "warnings": [],
+}
+
+
+def answer(**changes: object) -> bytes:
+    """Return RESULT's canonical bytes, with some paths (``a__b``) replaced."""
+    document = json.loads(json.dumps(RESULT))
+    for path, value in changes.items():
+        *parents, last = path.split("__")
+        node = document
+        for part in parents:
+            node = node[part]
+        node[last] = value
+    return canonical_json(document)
+
+
+def test_numbers_in_their_last_digits_and_their_hash_read_close() -> None:
+    moved = answer(
+        outputs__npv=9859.423412459375,
+        outputs__weights=[0.015238095238095441, 1.0],
+        manifest__result_sha256="b" * 64,
+    )
+    verdict, lines = check.compare(answer(), moved)
+    assert verdict == "close"
+    assert [line.split(":")[0] for line in lines] == [
+        "outputs.npv",
+        "outputs.weights[0]",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("changes", "what"),
+    [
+        ({"outputs__npv": 9859.43}, "outputs.npv"),
+        ({"manifest__dependencies": {"numpy": "2.5.4"}}, "manifest.dependencies"),
+        ({"inputs__when": "2026-01-16"}, "inputs.when"),
+        ({"warnings": [{"code": "x", "message": "y"}]}, "warnings"),
+        ({"outputs__weights": [0.015238095238095488]}, "outputs.weights"),
+        ({"manifest__result_sha256": "b" * 64}, "manifest.result_sha256"),
+    ],
+)
+def test_anything_but_a_last_digit_differs(changes: dict[str, Any], what: str) -> None:
+    verdict, lines = check.compare(answer(), answer(**changes))
+    assert verdict == "differs"
+    assert any(line.startswith(what) for line in lines), lines
+
+
+def test_a_problem_must_match_exactly() -> None:
+    problem = ("invalid-input", 422, "rate is too high")
+    assert check.compare(problem, problem) == ("same", [])
+    assert (
+        check.compare(problem, ("invalid-input", 422, "rate is high"))[0] == "differs"
+    )
+    assert check.compare(answer(), problem)[0] == "differs"
 
 
 def test_the_access_token_is_sent_and_never_printed(

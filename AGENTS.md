@@ -658,7 +658,11 @@ From Phase 5 Step 6, which builds the calculators:
 - Playwright's calculator tests forward `/v1/` to `tests/web/e2e_api.py`
   (hosted mode over the catalog world, port 8799); never point it at a real
   cache. `scripts/parity/check_deployed.py` checks a deployed API from the
-  same commit's wheel with the container's extras (`deploy-staging.yml`).
+  same commit's wheel with the container's extras (`deploy-staging.yml`):
+  the same bytes, or the same JSON in which only numbers differ, within a
+  relative 1e-9, with the result hash following them, because NumPy and
+  OpenBLAS choose kernels by CPU. Everything else stays exact, and the web
+  parity suite, on one machine, stays byte for byte.
 
 ## Units
 

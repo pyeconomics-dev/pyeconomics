@@ -15,6 +15,19 @@ versions are installed, the same commit's wheel under Python 3.14 with
 ``uv.lock``'s versions and the container's extras, because a result's manifest
 records its dependencies' versions (``deploy-staging.yml`` does).
 
+The same versions do not give the same bits on another CPU: NumPy's SIMD
+loops and OpenBLAS choose their kernels by the processor, so a model that
+solves a matrix, finds polynomial roots or sums a long array can round its
+last digits differently on Cloud Run than on the machine checking it (Phase 5
+Step 6 found three of thirteen cases so). Bytes that differ are therefore read
+as JSON and compared field by field: every key, string, flag, null, list
+length, version, input and warning must be equal, and only numbers may differ,
+by at most :data:`RELATIVE` of their size (or :data:`ABSOLUTE` near zero), with
+the result's own hash, which covers those numbers, allowed to follow them. Such
+a case reads ``close`` and counts how many numbers moved; anything else
+``differs``. The web parity suite, which compares surfaces on one machine,
+stays byte for byte.
+
 A deployment behind Cloudflare Access (staging) needs its service token:
 ``CF_ACCESS_CLIENT_ID`` and ``CF_ACCESS_CLIENT_SECRET`` in the environment,
 sent as Access's headers and never printed. The base URL is ``https://``, or
@@ -51,6 +64,12 @@ ATTEMPTS: Final = 4
 LONGEST_WAIT: Final = 30
 RETRIED: Final = frozenset({429, 502, 503, 504})
 USER_AGENT: Final = "pyeconomics-parity-check/1.0"
+#: How far a number may move between two CPUs' kernels: relative to its size,
+#: and absolutely near zero. Real drift (a version, a formula) moves far more.
+RELATIVE: Final = 1e-9
+ABSOLUTE: Final = 1e-12
+#: The hash of a result's outputs, which follows any number that moved.
+RESULT_HASH: Final = "manifest.result_sha256"
 #: Each environment variable of the Access service token, and its header's name.
 ACCESS: Final = {
     "CF_ACCESS_CLIENT_ID": "CF-Access-Client-Id",
@@ -159,6 +178,65 @@ def deployed_answer(base: str, model: str, body: bytes) -> Answer:
     raise AssertionError(msg)
 
 
+def _number(value: object) -> bool:
+    return isinstance(value, int | float) and not isinstance(value, bool)
+
+
+def _walk(
+    expected: object, found: object, path: str, moved: list[str], unlike: list[str]
+) -> None:
+    """Sort each difference into a number that moved within tolerance, or not."""
+    if isinstance(expected, dict) and isinstance(found, dict):
+        if expected.keys() != found.keys():
+            unlike.append(f"{path or '.'}: keys {sorted(expected)} != {sorted(found)}")
+            return
+        for key in expected:
+            _walk(expected[key], found[key], f"{path}.{key}".lstrip("."), moved, unlike)
+    elif isinstance(expected, list) and isinstance(found, list):
+        if len(expected) != len(found):
+            unlike.append(f"{path}: {len(expected)} items != {len(found)}")
+            return
+        for index, (left, right) in enumerate(zip(expected, found, strict=True)):
+            _walk(left, right, f"{path}[{index}]", moved, unlike)
+    elif _number(expected) and _number(found):
+        left, right = float(expected), float(found)  # type: ignore[arg-type]
+        if left != right:
+            close = abs(left - right) <= max(
+                RELATIVE * max(abs(left), abs(right)), ABSOLUTE
+            )
+            (moved if close else unlike).append(f"{path}: {left!r} != {right!r}")
+    elif expected != found:
+        unlike.append(f"{path}: {expected!r} != {found!r}")
+
+
+def compare(expected: Answer, found: Answer) -> tuple[str, list[str]]:
+    """Compare two answers: ``same``, ``close`` or ``differs``, with what moved.
+
+    ``close`` is a result whose bytes differ only in numbers within
+    :data:`RELATIVE` (or :data:`ABSOLUTE`) and the hash that covers them.
+    """
+    if found == expected:
+        return "same", []
+    if not (isinstance(expected, bytes) and isinstance(found, bytes)):
+        return "differs", [f"{_describe(expected)} != {_describe(found)}"]
+    try:
+        left, right = json.loads(expected), json.loads(found)
+    except ValueError:
+        return "differs", ["the deployed answer is not JSON"]
+    # A whole-number double reads back as an int (core/canonical.py).
+    if canonical_json(json.loads(found, parse_int=float)) != found:
+        return "differs", ["the deployed answer is not canonical JSON"]
+    moved: list[str] = []
+    unlike: list[str] = []
+    _walk(left, right, "", moved, unlike)
+    hash_moved = [line for line in unlike if line.startswith(f"{RESULT_HASH}:")]
+    if moved and hash_moved:
+        unlike = [line for line in unlike if line not in hash_moved]
+    if unlike:
+        return "differs", unlike
+    return "close", moved
+
+
 def _describe(answer: Answer) -> str:
     if isinstance(answer, bytes):
         return f"{len(answer)} bytes"
@@ -187,13 +265,14 @@ def main(argv: list[str]) -> int:
     for model, case, inputs in chosen:
         expected = python_answer(model, inputs)
         found = deployed_answer(base, model, canonical_json(inputs))
-        same = found == expected
-        differences += not same
-        _say(
-            f"{'same' if same else 'differs':8} {model}::{case}: {_describe(expected)}"
+        verdict, lines = compare(expected, found)
+        differences += verdict == "differs"
+        note = (
+            f", {len(lines)} number(s) in the last digits" if verdict == "close" else ""
         )
-        if not same:
-            _say(f"         deployed: {_describe(found)}")
+        _say(f"{verdict:8} {model}::{case}: {_describe(expected)}{note}")
+        for line in lines[:5] if verdict == "differs" else []:
+            _say(f"         {line}")
     _say(f"{len(chosen)} cases through {base}, {differences} difference(s)")
     return 1 if differences else 0
 
