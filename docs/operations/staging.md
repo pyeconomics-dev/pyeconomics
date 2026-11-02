@@ -78,6 +78,13 @@ Worker pyeconomics-web-staging (web/wrangler.jsonc, env staging)
   to Playwright and Lighthouse; there the API's paths answer `503`.
 - `workers_dev` and `preview_urls` are `false` on both Workers: version URLs on
   `workers.dev` are public and would bypass Access.
+- Cloudflare Web Analytics' Real User Measurements stay **Disabled** for the
+  `pyeconomics.dev` zone (Web Analytics → Manage site → Real User Measurements
+  (RUM) → Disable; set 2026-11-02, Phase 5 Step 6). Their automatic setup
+  injects a beacon script from `static.cloudflareinsights.com` into every HTML
+  page of every subdomain. The policy blocks it, but each page then records two
+  CSP violations, which fail the site job's browser check, and ADR-0013
+  decision 13 chose Umami for analytics.
 
 ### Why Cloud Run IAM allows unauthenticated invocations
 

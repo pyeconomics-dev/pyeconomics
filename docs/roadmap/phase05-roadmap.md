@@ -7554,6 +7554,14 @@ New conversation per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 12):
 
+    - Step 6 note: Cloudflare Web Analytics' Real User
+      Measurements were enabled for the pyeconomics.dev zone,
+      injecting static.cloudflareinsights.com's beacon into
+      every page; the maintainer set them to Disable on
+      2026-11-02 (docs/operations/staging.md). The setting is
+      zone-wide, so production inherits it: confirm it still
+      reads Disable before the first production deploy, whose
+      browser check fails on the beacon's CSP violations.
     - Step 6 note: deploy-staging.yml's deploy job runs
       scripts/parity/check_deployed.py through the edge from
       a venv of the commit's wheel with the container's
