@@ -197,8 +197,10 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
    - Authenticated `GET /v1/series/fred:UNRATE` returns `403`
      (`licence-refused`) with the source's `terms` URL.
    - `scripts/parity/check_deployed.py` (Phase 5 Step 6) posts the first golden
-     case of each domain through the edge and requires the wheel's bytes for
-     each. Run it by hand from a venv of the same commit's wheel:
+     case of each domain through the edge and requires the wheel's answer for
+     each: the same bytes, or the same JSON whose numbers differ only in their
+     last digits (within a relative 1e-9; NumPy and OpenBLAS round differently
+     on Cloud Run's CPU than on the runner's), the result hash following them. Run it by hand from a venv of the same commit's wheel:
      `python -I scripts/parity/check_deployed.py tests/golden
      https://staging-api.pyeconomics.dev`, with `CF_ACCESS_CLIENT_ID` and
      `CF_ACCESS_CLIENT_SECRET` set.

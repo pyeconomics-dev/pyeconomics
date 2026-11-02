@@ -4329,6 +4329,16 @@ phase-boundary hygiene.
   `/models/fixed-income/duration/`'s calculator and gets the result, and
   `scripts/parity/check_deployed.py` passes for one golden case per domain
   through the staging API.
+
+> Note 2026-11-02 (spec rot, found at the deployed check): the same commit's
+> wheel at `uv.lock`'s versions does not give the same bits on another CPU.
+> NumPy's SIMD loops and OpenBLAS choose their kernels by processor, so three
+> of thirteen cases (factor-model tests, capital budgeting, Black-Litterman)
+> differed in their last digits between the runner and Cloud Run.
+> `check_deployed.py` now requires the same bytes, or the same JSON in which
+> only numbers differ, within a relative 1e-9, with the result hash following
+> them. Every version, input, string, warning and list stays exact. The web
+> parity suite compares surfaces on one machine and stays byte for byte.
 - **Security gate clean** (always the final criterion): the pre-commit
   security gate passed on this step's diff — secret/PII scan clean, SAST
   clean, dependency audit clean — no validator compiles in the browser,
