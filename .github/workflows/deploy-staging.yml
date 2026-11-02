@@ -498,6 +498,7 @@ jobs:
           import json
           import os
           import pathlib
+          import re
           import time
           import urllib.error
           import urllib.request
@@ -557,6 +558,31 @@ jobs:
           assert headers.get("Content-Security-Policy") == expected_policy, "/ policy differs from dist/_headers"
           assert headers.get("X-Robots-Tag") == "noindex", "/ does not refuse indexing"
           assert headers.get("X-Content-Type-Options") == "nosniff"
+
+          # 3b. A model page and a problem page answer the same way, robots.txt
+          # refuses every path, and the sitemap lists every model's page.
+          for path in ("/models/fixed-income/duration/", "/problems/invalid-input/"):
+              status, headers, _ = request(path, access)
+              assert status == 200, f"{path} returned {status}"
+              assert headers.get("Content-Security-Policy") == expected_policy, f"{path} policy differs"
+              assert headers.get("X-Robots-Tag") == "noindex", f"{path} does not refuse indexing"
+          status, _, body = request("/robots.txt", access)
+          assert status == 200 and b"Disallow: /\n" in body, f"/robots.txt returned {status}: {body[:80]!r}"
+          status, _, body = request("/sitemap-index.xml", access)
+          assert status == 200, f"/sitemap-index.xml returned {status}"
+          production = "https://pyeconomics.dev"
+          listed = []
+          for location in re.findall(r"<loc>([^<]+)</loc>", body.decode("utf-8")):
+              assert location.startswith(f"{production}/"), f"the sitemap index lists {location}"
+              status, _, sitemap = request(location[len(production):], access)
+              assert status == 200, f"{location} returned {status}"
+              listed += re.findall(r"<loc>([^<]+)</loc>", sitemap.decode("utf-8"))
+          models = json.loads(generated.read_text(encoding="utf-8"))["models"]
+          expected_pages = {
+              f"{production}/models/{m['id'].replace('_', '-').replace('.', '/')}/" for m in models
+          }
+          assert expected_pages <= set(listed), f"the sitemap lacks {sorted(expected_pages - set(listed))[:3]}"
+          print(f"The sitemap lists all {len(expected_pages)} model pages.")
 
           # 4. The API answers on the same host, through the shared edge Worker.
           status, headers, body = request("/v1/models", access)

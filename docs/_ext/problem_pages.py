@@ -6,10 +6,11 @@
 Every surface reports a failure as an RFC 9457 problem whose ``type`` is
 ``https://pyeconomics.dev/problems/<slug>`` (ADR-0012 decision 4). Until Phase 5
 makes those addresses resolve, this page lists each one: its title, HTTP status,
-exit code and error class, under a heading whose anchor is the slug. The page
-comes from :data:`pyeconomics.surfaces.problems.ROWS`, so it cannot drift from the
-table; it is written to ``problems.md`` in the source directory, which git
-ignores, and the build blocks the network.
+exit code, error class, what it means and what to do, under a heading whose
+anchor is the slug. The page comes from :data:`pyeconomics.surfaces.problems.ROWS`
+and :mod:`pyeconomics.surfaces.problem_guide`, as the site's problem pages do, so
+it cannot drift from the table; it is written to ``problems.md`` in the source
+directory, which git ignores, and the build blocks the network.
 """
 
 from __future__ import annotations
@@ -18,23 +19,14 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from pyeconomics.surfaces.problem_guide import EXIT_CODES, GUIDES
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from pyeconomics.surfaces.problems import Row
 
 _SLUG = re.compile(r"[a-z][a-z0-9-]{0,63}")
-_EXIT_CODES = (
-    (0, "success"),
-    (1, "internal error"),
-    (2, "usage"),
-    (3, "invalid input"),
-    (4, "no defined result"),
-    (5, "not found"),
-    (6, "not permitted (a licence refusal)"),
-    (7, "data unavailable"),
-    (8, "missing extra"),
-)
 
 
 def _class(row: Row) -> str:
@@ -43,18 +35,25 @@ def _class(row: Row) -> str:
     return f"`{row.error}`"
 
 
+def _guide(row: Row) -> str:
+    guide = GUIDES.get(row.slug)
+    if guide is None:
+        return ""
+    return f"\n{guide.meaning}\n\n**What to do:** {guide.action}\n"
+
+
 def render(rows: Sequence[Row]) -> str:
     """Return the Markdown page for the error table."""
     table = "\n".join(
         f"| `{row.slug}` | {row.title} | {row.status} | {row.exit_code} |"
         for row in rows
     )
-    codes = "\n".join(f"- `{code}`: {meaning}" for code, meaning in _EXIT_CODES)
+    codes = "\n".join(f"- `{code}`: {meaning}" for code, meaning in EXIT_CODES.items())
     sections = "\n".join(
         f"## {row.slug}\n\n"
         f"**{row.title}.** HTTP {row.status}; exit code {row.exit_code}; "
         f"raised as {_class(row)}.\n\n"
-        f"Type: `{row.type_uri}`\n"
+        f"Type: `{row.type_uri}`\n" + _guide(row)
         for row in rows
     )
     return (

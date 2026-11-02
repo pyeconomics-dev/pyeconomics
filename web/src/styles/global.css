@@ -98,8 +98,11 @@
     outline-offset: 2px;
   }
 
-  /* MathML from KaTeX: a display formula scrolls rather than overflowing. */
-  .katex-display {
-    @apply my-4 block overflow-x-auto;
+  /*
+   * MathML from KaTeX: a display formula (math display="block", inside its
+   * span.katex) sits on its own line and scrolls rather than overflowing.
+   */
+  .katex:has(> math[display="block"]) {
+    @apply my-4 block max-w-full overflow-x-auto;
   }
 }

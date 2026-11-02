@@ -5,7 +5,7 @@
 
 The site gains a model, a problem or a source only through this export, so
 Phase 6's providers and Phase 7's models reach it with no web code. It writes
-five canonical JSON files (RFC 8785, no trailing newline) into a git-ignored
+six canonical JSON files (RFC 8785, no trailing newline) into a git-ignored
 directory, ``web/src/data/generated/`` by default:
 
 - ``registry.json``: every model, from
@@ -13,11 +13,16 @@ directory, ``web/src/data/generated/`` by default:
 - ``openapi.json``: the REST API's OpenAPI document, from which the site's
   TypeScript client is generated (it needs the ``server`` extra);
 - ``problems.json``: the error table, one entry per problem slug, in the
-  table's order;
+  table's order, with what it means, what to do and, where the problem points
+  to local mode, the command (``surfaces.problem_guide``), and what each exit
+  code means;
 - ``sources.json``: every provider's licence class, terms page, attribution,
   notice and whether hosted mode serves it, sorted by id;
 - ``concepts.json``: every catalog concept with its unit, frequency and
-  candidates, and whether hosted mode can serve it, sorted by id.
+  candidates, and whether hosted mode can serve it, sorted by id;
+- ``surfaces.json``: where each model is reached beside its page: its REST
+  route and methods (read back from ``openapi.json``), its MCP tool when it is
+  a headline model, and its command line, sorted by id.
 
 Everything comes from metadata: the export makes no request, reads no key and
 no setting, and holds no clock, host name, user name or path, so two runs on
@@ -32,6 +37,7 @@ Usage, from anywhere (``npm run data`` in ``web/`` runs it):
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
@@ -39,7 +45,7 @@ from typing import TYPE_CHECKING, Any, Final
 from pyeconomics.core.canonical import canonical_json
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from pyeconomics.data import CandidateInfo, Concept
     from pyeconomics.data.providers.base import ProviderInfo
@@ -55,11 +61,14 @@ FILES: Final = (
     "problems.json",
     "sources.json",
     "concepts.json",
+    "surfaces.json",
 )
 
 
 def problems_document() -> dict[str, Any]:
     """Describe the error table: one entry per slug, in the table's order."""
+    from pyeconomics.surfaces.budgets import local_command  # noqa: PLC0415
+    from pyeconomics.surfaces.problem_guide import EXIT_CODES, GUIDES  # noqa: PLC0415
     from pyeconomics.surfaces.problems import ROWS  # noqa: PLC0415
 
     return {
@@ -72,9 +81,15 @@ def problems_document() -> dict[str, Any]:
                 "exit_code": row.exit_code,
                 "type": row.type_uri,
                 "error": row.error_name,
+                "meaning": GUIDES[row.slug].meaning,
+                "action": GUIDES[row.slug].action,
+                "local_command": (
+                    local_command("<model-id>") if GUIDES[row.slug].local else None
+                ),
             }
             for row in ROWS
         ],
+        "exit_codes": {str(code): meaning for code, meaning in EXIT_CODES.items()},
     }
 
 
@@ -149,6 +164,38 @@ def concepts_document() -> dict[str, Any]:
     return {"format": SITE_DATA_FORMAT, "concepts": [_concept(c) for c in concepts]}
 
 
+def surfaces_document(openapi: Mapping[str, Any]) -> dict[str, Any]:
+    """Describe where each model is reached beside its page, sorted by id.
+
+    Raises
+    ------
+    RegistryError
+        If the OpenAPI document has no run route for a model.
+    """
+    from pyeconomics import registry  # noqa: PLC0415
+    from pyeconomics.core.errors import RegistryError  # noqa: PLC0415
+    from pyeconomics.mcp.headline import HEADLINE  # noqa: PLC0415
+    from pyeconomics.mcp.tools import tool_name  # noqa: PLC0415
+
+    models = []
+    for model_id in sorted(registry.ids()):
+        route = f"/v1/models/{model_id}/run"
+        operations = openapi["paths"].get(route)
+        if not operations:
+            msg = f"{model_id}: openapi.json has no run route {route}"
+            raise RegistryError(msg, problems=(msg,))
+        models.append(
+            {
+                "id": model_id,
+                "rest": route,
+                "methods": sorted(method.upper() for method in operations),
+                "mcp_tool": tool_name(model_id) if model_id in HEADLINE else None,
+                "cli": f"pyeconomics models run {model_id}",
+            }
+        )
+    return {"format": SITE_DATA_FORMAT, "models": models}
+
+
 def _write_openapi(path: Path) -> None:
     from pyeconomics.core._optional import import_optional  # noqa: PLC0415
 
@@ -159,7 +206,7 @@ def _write_openapi(path: Path) -> None:
 
 
 def write_site_data(out: Path, *, figures: bool = True) -> tuple[Path, ...]:
-    """Write the five site data files into ``out``; return their paths.
+    """Write the six site data files into ``out``; return their paths.
 
     Parameters
     ----------
@@ -180,10 +227,12 @@ def write_site_data(out: Path, *, figures: bool = True) -> tuple[Path, ...]:
     out.mkdir(parents=True, exist_ok=True)
     write_registry(out / "registry.json", figures=figures)
     _write_openapi(out / "openapi.json")
+    openapi = json.loads((out / "openapi.json").read_bytes())
     documents = {
         "problems.json": problems_document(),
         "sources.json": sources_document(),
         "concepts.json": concepts_document(),
+        "surfaces.json": surfaces_document(openapi),
     }
     for name, document in documents.items():
         (out / name).write_bytes(canonical_json(document))

@@ -1,0 +1,32 @@
+---
+// web/src/components/Breadcrumbs.astro
+// The trail from the home page to this one, the same trail the page's
+// BreadcrumbList JSON-LD names. The last crumb is the page itself.
+import type { Crumb } from "@/lib/structured-data";
+
+interface Props {
+  trail: readonly Crumb[];
+}
+
+const { trail } = Astro.props;
+---
+
+<nav aria-label="Breadcrumb" class="mb-6 text-sm text-muted-foreground">
+  <ol class="flex flex-wrap gap-x-2 gap-y-1">
+    {
+      trail.map((crumb, index) =>
+        index === trail.length - 1 ? (
+          <li>
+            <span aria-current="page" class="text-foreground">
+              {crumb.name}
+            </span>
+          </li>
+        ) : (
+          <li class="after:ml-2 after:content-['/']">
+            <a href={crumb.path}>{crumb.name}</a>
+          </li>
+        ),
+      )
+    }
+  </ol>
+</nav>

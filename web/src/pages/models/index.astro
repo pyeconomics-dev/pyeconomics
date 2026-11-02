@@ -1,0 +1,55 @@
+---
+// web/src/pages/models/index.astro
+// Every model, by domain. Minimal until Step 7 builds the sections, filters and
+// search around it.
+import { getCollection } from "astro:content";
+
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { domainPath, domainSegment, domainTitle, modelPath } from "@/lib/models";
+import { MODELS_INDEX } from "@/lib/pages";
+import type { Model } from "@/lib/registry-schema";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const byDomain = new Map<string, Model[]>();
+for (const { data } of await getCollection("models")) {
+  byDomain.set(data.domain, [...(byDomain.get(data.domain) ?? []), data]);
+}
+const domains = [...byDomain].sort(([a], [b]) => a.localeCompare(b));
+const total = domains.reduce((sum, [, models]) => sum + models.length, 0);
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: "Models", path: "/models/" },
+];
+---
+
+<Base
+  title={MODELS_INDEX.title}
+  description={MODELS_INDEX.description}
+  jsonLd={webPage("/models/", MODELS_INDEX.title, MODELS_INDEX.description, trail)}
+>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">Models</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    {total} models in {domains.length} domains. Each page has the model's formula, its variables with units
+    and bounds, a worked example, its evidence status and its citations.
+  </p>
+  {
+    domains.map(([domain, models]) => (
+      <section class="mt-10" aria-labelledby={`domain-${domainSegment(domain)}`}>
+        <h2 id={`domain-${domainSegment(domain)}`} class="text-2xl font-semibold">
+          <a href={domainPath(domain)}>{domainTitle(domain)}</a>
+        </h2>
+        <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+          {models
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .map((model) => (
+              <li>
+                <a href={modelPath(model.id)}>{model.title}</a>
+              </li>
+            ))}
+        </ul>
+      </section>
+    ))
+  }
+</Base>

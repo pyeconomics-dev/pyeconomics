@@ -1,0 +1,65 @@
+---
+// web/src/pages/problems/[slug].astro
+// One page per row of the error table (problems.json, from surfaces/problems.py
+// ROWS and surfaces/problem_guide.py), so every problem's type URI,
+// https://pyeconomics.dev/problems/<slug>, answers with what the problem means
+// and what to do, and the local-mode command where the problem points to
+// local mode (ADR-0012 decision 4; ADR-0013 decision 1).
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { PROBLEMS_INDEX } from "@/lib/pages";
+import { exitCodes, problemData, type ProblemEntry } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+export function getStaticPaths() {
+  return problemData.map((problem) => ({ params: { slug: problem.slug }, props: { problem } }));
+}
+
+interface Props {
+  problem: ProblemEntry;
+}
+
+const { problem } = Astro.props;
+const path = `/problems/${problem.slug}/`;
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: PROBLEMS_INDEX.title, path: "/problems/" },
+  { name: problem.title, path },
+];
+---
+
+<Base title={problem.title} description={problem.meaning} jsonLd={webPage(path, problem.title, problem.meaning, trail)}>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">{problem.title}</h1>
+  <dl class="mt-6 grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
+    <dt class="text-muted-foreground">Type</dt>
+    <dd><code class="break-all">{problem.type}</code></dd>
+    <dt class="text-muted-foreground">HTTP status</dt>
+    <dd>{problem.status}</dd>
+    <dt class="text-muted-foreground">Exit code</dt>
+    <dd>{problem.exit_code} ({exitCodes.get(problem.exit_code) ?? "unknown"})</dd>
+    <dt class="text-muted-foreground">Raised as</dt>
+    <dd><code>{problem.error}</code></dd>
+  </dl>
+  <section class="mt-10 flex flex-col gap-3" aria-labelledby="meaning">
+    <h2 id="meaning" class="text-2xl font-semibold">What it means</h2>
+    <p class="max-w-3xl">{problem.meaning}</p>
+  </section>
+  <section class="mt-10 flex flex-col gap-3" aria-labelledby="action">
+    <h2 id="action" class="text-2xl font-semibold">What to do</h2>
+    <p class="max-w-3xl">{problem.action}</p>
+    {
+      problem.local_command && (
+        <Fragment>
+          <p>On your own machine, put the inputs in a JSON file and run:</p>
+          <pre class="w-fit max-w-full overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm" role="region" tabindex="0" aria-label="Local command"><code>{problem.local_command}</code></pre>
+        </Fragment>
+      )
+    }
+  </section>
+  <p class="mt-10 max-w-3xl text-sm text-muted-foreground">
+    Every pyeconomics surface reports a failure as a problem in the form of RFC 9457: its type, title,
+    HTTP status and detail, and the exit code the command line returns. A problem never holds a key, a
+    file path, a host or an upstream URL. <a href="/problems/">Every problem type</a>.
+  </p>
+</Base>

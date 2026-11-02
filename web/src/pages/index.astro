@@ -6,6 +6,8 @@ import Math from "@/components/Math.astro";
 import { buttonVariants } from "@/components/ui/button";
 import Base from "@/layouts/Base.astro";
 import { DOCUMENTATION, REPOSITORY } from "@/lib/links";
+import { domainPath, domainTitle } from "@/lib/models";
+import { HOME } from "@/lib/pages";
 import { domains, registryData, version } from "@/lib/site-data";
 
 const models = registryData.models.length;
@@ -14,10 +16,7 @@ const prerelease = /(a|b|rc|dev)\d/.test(version);
 const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyeconomics";
 ---
 
-<Base
-  title="pyeconomics"
-  description="Open-source economics and finance models with cited formulas and tested values, and economic data from its originators."
->
+<Base title={HOME.title} description={HOME.description}>
   <section class="flex flex-col gap-6">
     <h1 class="text-4xl font-bold tracking-tight">pyeconomics</h1>
     <p class="max-w-2xl text-lg">
@@ -50,11 +49,14 @@ const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyec
 
   <section class="mt-12 flex flex-col gap-4" aria-labelledby="domains">
     <h2 id="domains" class="text-2xl font-semibold">Domains</h2>
+    <p><a href="/models/">Every model, by domain</a></p>
     <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {
         sections.map(([domain, count]) => (
           <li class="rounded-md border px-4 py-3">
-            <span class="font-medium">{domain.replaceAll("_", " ")}</span>
+            <a href={domainPath(domain)} class="font-medium">
+              {domainTitle(domain)}
+            </a>
             <span class="text-muted-foreground">
               {" "}
               · {count} {count === 1 ? "model" : "models"}

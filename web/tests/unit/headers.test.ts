@@ -12,6 +12,7 @@ import { DIRECTIVES, metaDirectives } from "../../csp.config.ts";
 import {
   MAX_LINE,
   attributes,
+  buildVersion,
   checkBuild,
   checkHeaders,
   checkPage,
@@ -19,9 +20,12 @@ import {
   formatPolicy,
   hashSource,
   headerPolicy,
+  indexable,
+  isFinalRelease,
   parsePolicy,
   renderHeaders,
   siteFlavour,
+  startTags,
 } from "../../scripts/headers.ts";
 
 const SCRIPT = "console.log(1)";
@@ -122,6 +126,22 @@ describe("checkPolicy", () => {
   });
 });
 
+describe("startTags", () => {
+  it("reads a > inside a quoted value as part of the tag", () => {
+    expect(startTags('<p>a < b</p><meta content="x <script> y>" name=d><a href=\'q>r\' onclick=z>')).toEqual([
+      "<p>",
+      '<meta content="x <script> y>" name=d>',
+      "<a href='q>r' onclick=z>",
+    ]);
+    expect(startTags('<a title=x"y onclick=z>')).toEqual(['<a title=x"y onclick=z>']);
+  });
+
+  it("lets no attribute hide after a value holding >", () => {
+    const problems = checkPage(page(meta(), '<main><meta name="description" content="a>b" onclick="x"></main>')).problems;
+    expect(problems).toContain("an event-handler attribute (onclick)");
+  });
+});
+
 describe("checkPage", () => {
   it("accepts a page whose inline script and style are hashed", () => {
     const head = meta([hashSource(SCRIPT)], [hashSource(STYLE)]);
@@ -208,8 +228,8 @@ describe("headerPolicy and renderHeaders", () => {
     expect(checkHeaders(text)).toEqual([]);
   });
 
-  it("refuses indexing on every path of a staging build", () => {
-    const text = renderHeaders(headerPolicy(new Map()), "staging");
+  it("refuses indexing on every path of a build that must not be indexed", () => {
+    const text = renderHeaders(headerPolicy(new Map()), false);
     const [every] = text.split("\n/_astro/*\n");
     expect(every).toContain("\n  X-Robots-Tag: noindex");
     expect(every).toContain("\n  X-Content-Type-Options: nosniff");
@@ -226,14 +246,44 @@ describe("headerPolicy and renderHeaders", () => {
 });
 
 describe("siteFlavour", () => {
-  it("reads unset or empty as a local build and accepts staging", () => {
+  it("reads unset or empty as a local build and accepts staging and production", () => {
     expect(siteFlavour(undefined)).toBe("local");
     expect(siteFlavour("")).toBe("local");
     expect(siteFlavour("staging")).toBe("staging");
+    expect(siteFlavour("production")).toBe("production");
   });
 
-  it.each(["production", "Staging", "staging ", "preview"])("refuses %j", (value) => {
-    expect(() => siteFlavour(value)).toThrow(/SITE_FLAVOUR must be unset or one of local, staging/);
+  it.each(["Production", "Staging", "staging ", "preview"])("refuses %j", (value) => {
+    expect(() => siteFlavour(value)).toThrow(/SITE_FLAVOUR must be unset or one of local, staging, production/);
+  });
+});
+
+describe("indexable", () => {
+  it.each(["1.0.0", "1.0", "2.3.4.post1"])("is a final release: %s", (version) => {
+    expect(isFinalRelease(version)).toBe(true);
+  });
+
+  it.each(["1.0.0rc1", "1.0.0rc1.dev1", "1.0.0a2", "1.0.0b1", "1.0.0.dev3", "1.0.0+local", "v1.0.0", ""])(
+    "is not a final release: %j",
+    (version) => {
+      expect(isFinalRelease(version)).toBe(false);
+    },
+  );
+
+  it("indexes a local build and a final release's production build, never staging", () => {
+    expect(indexable("local", "1.0.0rc1.dev1")).toBe(true);
+    expect(indexable("staging", "1.0.0")).toBe(false);
+    expect(indexable("production", "1.0.0rc1")).toBe(false);
+    expect(indexable("production", "1.0.0")).toBe(true);
+  });
+
+  it("reads the version the site data was exported from", () => {
+    const root = mkdtempSync(join(tmpdir(), "pyeconomics-version-"));
+    mkdirSync(join(root, "src", "data", "generated"), { recursive: true });
+    writeFileSync(join(root, "src", "data", "generated", "registry.json"), '{"pyeconomics":"1.0.0"}');
+    expect(buildVersion(root)).toBe("1.0.0");
+    writeFileSync(join(root, "src", "data", "generated", "registry.json"), "{}");
+    expect(() => buildVersion(root)).toThrow(/names no pyeconomics version/);
   });
 });
 
@@ -265,10 +315,10 @@ describe("checkBuild", () => {
     },
   );
 
-  it("writes the flavour's headers", () => {
+  it("writes noindex only for a build that must not be indexed", () => {
     const root = build({ "index.html": page(meta()) });
     expect(checkBuild(root).headers).not.toContain("X-Robots-Tag");
-    expect(checkBuild(root, "staging").headers).toContain("\n  X-Robots-Tag: noindex\n");
+    expect(checkBuild(root, false).headers).toContain("\n  X-Robots-Tag: noindex\n");
   });
 
   it("refuses a _headers file copied from public/ and a build with no page", () => {

@@ -1,0 +1,62 @@
+---
+// web/src/pages/models/[domain]/index.astro
+// A domain's models, each with its summary, evidence status and cost class.
+// Minimal until Step 7 builds the navigation and filters around it.
+import { getCollection } from "astro:content";
+
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { domainPath, domainSegment, domainTitle, modelPath } from "@/lib/models";
+import { domainDescription } from "@/lib/pages";
+import type { Model } from "@/lib/registry-schema";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+export async function getStaticPaths() {
+  const byDomain = new Map<string, Model[]>();
+  for (const { data } of await getCollection("models")) {
+    byDomain.set(data.domain, [...(byDomain.get(data.domain) ?? []), data]);
+  }
+  return [...byDomain].map(([domain, models]) => ({
+    params: { domain: domainSegment(domain) },
+    props: { domain, models: models.sort((a, b) => a.id.localeCompare(b.id)) },
+  }));
+}
+
+interface Props {
+  domain: string;
+  models: Model[];
+}
+
+const { domain, models } = Astro.props;
+const title = domainTitle(domain);
+const description = domainDescription(domain, models.length);
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: "Models", path: "/models/" },
+  { name: title, path: domainPath(domain) },
+];
+---
+
+<Base title={title} description={description} jsonLd={webPage(domainPath(domain), title, description, trail)}>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">{title}</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    {models.length}
+    {models.length === 1 ? "model" : "models"} in this domain.
+  </p>
+  <ul class="mt-8 flex flex-col gap-4">
+    {
+      models.map((model) => (
+        <li class="rounded-md border px-4 py-3">
+          <h2 class="text-lg font-semibold">
+            <a href={modelPath(model.id)}>{model.title}</a>
+          </h2>
+          <p class="mt-1">{model.summary}</p>
+          <p class="mt-2 text-sm text-muted-foreground">
+            Evidence: {model.evidence ?? "not declared"} · Cost class: {model.cost ?? "not declared"}
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+</Base>

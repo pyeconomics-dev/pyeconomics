@@ -1,0 +1,334 @@
+---
+// web/src/components/models/ModelPage.astro
+// One model's page, generated from its registry.json entry (Phase 5 Step 5;
+// ADR-0013 decision 2). The sections, in order: summary, formula, variables,
+// worked example, assumptions, limitations, evidence, data (a bound model
+// only), citations, changelog, and where else to use the model. Step 6 adds the
+// calculator island and Step 7 the syllabus tags.
+//
+// Card text is trusted repository content, and it still reaches HTML only
+// through Astro's escaping: no value is rendered with set:html except a
+// formula, which KaTeX renders at build time as MathML with no command trusted
+// (src/lib/math.ts), and the page's JSON-LD, which escapes every character that
+// could end its element (src/lib/structured-data.ts). No script ships.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Math from "@/components/Math.astro";
+import VariablesTable from "@/components/models/VariablesTable.astro";
+import Base from "@/layouts/Base.astro";
+import {
+  COST_MEANING,
+  EVIDENCE_MEANING,
+  cardOrder,
+  dataProfiles,
+  describe,
+  docsUrl,
+  domainPath,
+  domainTitle,
+  modelPath,
+  pretty,
+  referenceLink,
+  variables,
+} from "@/lib/models";
+import type { Model } from "@/lib/registry-schema";
+import { conceptData, sourceData, type SurfaceEntry } from "@/lib/site-data";
+import { modelPage, type Crumb } from "@/lib/structured-data";
+
+interface Props {
+  model: Model;
+  surface: SurfaceEntry;
+}
+
+const { model, surface } = Astro.props;
+const path = modelPath(model.id);
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: "Models", path: "/models/" },
+  { name: domainTitle(model.domain), path: domainPath(model.domain) },
+  { name: model.title, path },
+];
+const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
+const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
+const profiles = dataProfiles(model.bindings, conceptData, sourceData);
+const example = model.examples[0];
+const result = model.example_result;
+const sectionClass = "mt-12 flex flex-col gap-4";
+const headingClass = "text-2xl font-semibold";
+const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
+---
+
+<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)}>
+  <Breadcrumbs trail={trail} />
+  <article>
+    <section id="summary" data-section="summary" class="flex flex-col gap-4" aria-labelledby="model-title">
+      <h1 id="model-title" class="text-4xl font-bold tracking-tight">{model.title}</h1>
+      <p class="max-w-3xl text-lg">{model.summary}</p>
+      <dl class="grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
+        <dt class="text-muted-foreground">Model id</dt>
+        <dd><code>{model.id}</code>, version {model.version}</dd>
+        <dt class="text-muted-foreground">Domain</dt>
+        <dd><a href={domainPath(model.domain)}>{domainTitle(model.domain)}</a></dd>
+        <dt class="text-muted-foreground">Evidence</dt>
+        <dd>{model.evidence ?? "not declared"}</dd>
+        <dt class="text-muted-foreground">Cost class</dt>
+        <dd>{model.cost ? `${model.cost}: ${COST_MEANING[model.cost]}` : "not declared"}</dd>
+        {
+          model.extra && (
+            <Fragment>
+              <dt class="text-muted-foreground">Needs</dt>
+              <dd>
+                <code>pip install "pyeconomics[{model.extra}]"</code>
+              </dd>
+            </Fragment>
+          )
+        }
+      </dl>
+    </section>
+
+    <section id="formula" data-section="formula" class={sectionClass} aria-labelledby="formula-heading">
+      <h2 id="formula-heading" class={headingClass}>Formula</h2>
+      {model.formula.map((latex) => <Math latex={latex} display />)}
+    </section>
+
+    <section id="variables" data-section="variables" class={sectionClass} aria-labelledby="variables-heading">
+      <h2 id="variables-heading" class={headingClass}>Variables</h2>
+      <p class="max-w-3xl">
+        Rates, returns and yields are decimals: 0.05 is five percent. Bounds in brackets include
+        their end; in parentheses they exclude it.
+      </p>
+      <h3 class="text-xl font-semibold">Inputs</h3>
+      {
+        inputs.map((table) => (
+          <VariablesTable
+            table={table}
+            caption={table.calculation ? `Inputs of the calculation ${table.calculation}` : "Inputs"}
+          />
+        ))
+      }
+      <h3 class="text-xl font-semibold">Outputs</h3>
+      {
+        outputs.map((table) => (
+          <VariablesTable
+            table={table}
+            caption={table.calculation ? `Outputs of the calculation ${table.calculation}` : "Outputs"}
+          />
+        ))
+      }
+    </section>
+
+    <section
+      id="worked-example"
+      data-section="worked-example"
+      class={sectionClass}
+      aria-labelledby="example-heading"
+    >
+      <h2 id="example-heading" class={headingClass}>Worked example</h2>
+      {example?.note && <p class="max-w-3xl">{example.note}</p>}
+      <p>
+        Example <code>{example?.name}</code>. Inputs:
+      </p>
+      <pre class={preClass} role="region" tabindex="0" aria-label="Example inputs"><code>{pretty(example?.inputs)}</code></pre>
+      {
+        result ? (
+          <Fragment>
+            <p>Outputs:</p>
+            <pre class={preClass} role="region" tabindex="0" aria-label="Example outputs"><code>{pretty(result.outputs)}</code></pre>
+            {result.warnings.length > 0 && (
+              <Fragment>
+                <p>Warnings:</p>
+                <ul class="list-disc pl-6">
+                  {result.warnings.map((warning) => (
+                    <li>
+                      <code>{warning.code}</code>: {warning.message}
+                    </li>
+                  ))}
+                </ul>
+              </Fragment>
+            )}
+          </Fragment>
+        ) : (
+          <p>
+            The outputs are not shown here: the model needs the <code>{model.extra}</code> extra, which
+            the build that wrote this page could not install.
+          </p>
+        )
+      }
+    </section>
+
+    <section id="assumptions" data-section="assumptions" class={sectionClass} aria-labelledby="assumptions-heading">
+      <h2 id="assumptions-heading" class={headingClass}>Assumptions</h2>
+      {
+        model.assumptions.length > 0 ? (
+          <ul class="flex max-w-3xl list-disc flex-col gap-1 pl-6">
+            {model.assumptions.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>None.</p>
+        )
+      }
+    </section>
+
+    <section id="limitations" data-section="limitations" class={sectionClass} aria-labelledby="limitations-heading">
+      <h2 id="limitations-heading" class={headingClass}>Limitations</h2>
+      {
+        model.limitations.length > 0 ? (
+          <ul class="flex max-w-3xl list-disc flex-col gap-1 pl-6">
+            {model.limitations.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>None.</p>
+        )
+      }
+    </section>
+
+    <section id="evidence" data-section="evidence" class={sectionClass} aria-labelledby="evidence-heading">
+      <h2 id="evidence-heading" class={headingClass}>Evidence</h2>
+      <p class="max-w-3xl">
+        Status: <strong>{model.evidence ?? "not declared"}</strong>.{" "}
+        {model.evidence && EVIDENCE_MEANING[model.evidence]}
+      </p>
+      <p class="max-w-3xl text-sm text-muted-foreground">
+        Every model declares one status: standard (textbook consensus), practitioner (a widely used
+        convention), contested (under active debate), rejected (failed out of sample) or historical (a
+        superseded methodology).
+      </p>
+    </section>
+
+    {
+      profiles.length > 0 && (
+        <section id="data" data-section="data" class={sectionClass} aria-labelledby="data-heading">
+          <h2 id="data-heading" class={headingClass}>
+            Data
+          </h2>
+          <p class="max-w-3xl">
+            This model reads data through bindings: each bound field names a catalog concept, and the
+            sources listed can fill it, in the order they are tried. The hosted service reads only
+            hosted-safe sources; every source is available when you run pyeconomics yourself.
+          </p>
+          {profiles.map((profile) => (
+            <div class="overflow-x-auto" role="region" aria-label={`Profile ${profile.profile}`} tabindex="0">
+              <table class="w-full border-collapse text-left text-sm">
+                <caption class="mb-2 text-left font-medium">
+                  Profile <code>{profile.profile}</code>
+                </caption>
+                <thead>
+                  <tr class="border-b">
+                    <th scope="col" class="py-2 pr-4">
+                      Field
+                    </th>
+                    <th scope="col" class="py-2 pr-4">
+                      Concept
+                    </th>
+                    <th scope="col" class="py-2 pr-4">
+                      Read as
+                    </th>
+                    <th scope="col" class="py-2">
+                      Sources (licence class; hosted)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.rows.map((row) => (
+                    <tr class="border-b align-top">
+                      <th scope="row" class="py-2 pr-4 font-normal">
+                        <code>{row.field}</code>
+                        {row.shape && <span class="block text-muted-foreground">{row.shape}</span>}
+                      </th>
+                      <td class="py-2 pr-4">
+                        {row.conceptTitle}
+                        <span class="block text-muted-foreground">
+                          <code>{row.concept}</code>
+                        </span>
+                      </td>
+                      <td class="py-2 pr-4">
+                        {row.rule}; {row.vintage}
+                        {row.transform && (
+                          <span class="block">
+                            transform <code>{row.transform}</code>
+                          </span>
+                        )}
+                      </td>
+                      <td class="py-2">
+                        <ul>
+                          {row.sources.map((source) => (
+                            <li>
+                              {source.name} ({source.licence}; {source.hosted ? "hosted" : "not hosted"})
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </section>
+      )
+    }
+
+    <section id="citations" data-section="citations" class={sectionClass} aria-labelledby="citations-heading">
+      <h2 id="citations-heading" class={headingClass}>Citations</h2>
+      <ol class="flex max-w-3xl list-decimal flex-col gap-2 pl-6">
+        {
+          model.references.map((reference) => {
+            const link = referenceLink(reference);
+            return (
+              <li>
+                {reference.citation}
+                {link && (
+                  <Fragment>
+                    {" "}
+                    <a href={link}>
+                      {reference.doi ? `doi:${reference.doi}` : link}
+                    </a>
+                  </Fragment>
+                )}
+                {reference.locator && <Fragment> ({reference.locator})</Fragment>}
+                {reference.isbn && <Fragment>. ISBN {reference.isbn}</Fragment>}
+              </li>
+            );
+          })
+        }
+      </ol>
+    </section>
+
+    <section id="changelog" data-section="changelog" class={sectionClass} aria-labelledby="changelog-heading">
+      <h2 id="changelog-heading" class={headingClass}>Changelog</h2>
+      <ul class="flex max-w-3xl list-disc flex-col gap-1 pl-6">
+        {
+          model.changelog.map((entry) => (
+            <li>
+              Version {entry.version}: {entry.note}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="use-it-elsewhere" data-section="use-it-elsewhere" class={sectionClass} aria-labelledby="elsewhere-heading">
+      <h2 id="elsewhere-heading" class={headingClass}>Use it elsewhere</h2>
+      <dl class="grid max-w-3xl grid-cols-1 gap-y-3 sm:grid-cols-[auto_1fr] sm:gap-x-6">
+        <dt class="font-medium">Documentation</dt>
+        <dd><a href={docsUrl(model.id)}>The model's reference page</a></dd>
+        <dt class="font-medium">REST API</dt>
+        <dd><code>{surface.methods.join(" or ")} {surface.rest}</code></dd>
+        {
+          surface.mcp_tool && (
+            <Fragment>
+              <dt class="font-medium">MCP tool</dt>
+              <dd>
+                <code>{surface.mcp_tool}</code>
+              </dd>
+            </Fragment>
+          )
+        }
+        <dt class="font-medium">Command line</dt>
+        <dd><code>{surface.cli} --help</code></dd>
+      </dl>
+    </section>
+  </article>
+</Base>

@@ -505,7 +505,8 @@ From Phase 5 Step 3, which builds the web foundation:
   `scripts/web/export_site_data.py` through `uv run --locked --all-extras`
   and generates the TypeScript client; both outputs are git-ignored and the
   build refuses to start without them. Pages read the data only through
-  `web/src/lib/site-data.ts`. Install with `npm ci --ignore-scripts`.
+  `web/src/lib/site-data.ts` and the `models` content collection (Step 5).
+  Install with `npm ci --ignore-scripts`.
 - `web/csp.config.ts` is the one place a policy source is added, and only a
   source decision 9 allows (its `ALLOWED` table); Steps 14 and 15 add their
   origins there. `scripts/headers.ts` runs after every build, writes the
@@ -558,9 +559,53 @@ From Phase 5 Step 4, which puts the site on staging:
   custom domain) is the maintainer's. Only the steps that call Wrangler get the
   token.
 - `SITE_FLAVOUR` names the deployment a build is for, read by
-  `scripts/headers.ts`: unset is local, `staging` adds `X-Robots-Tag:
-  noindex`, and any other value fails the build. A new flavour joins
-  `FLAVOURS` and `FLAVOUR_HEADERS` there with its tests.
+  `scripts/headers.ts`: unset is local (always indexable, for Lighthouse's
+  SEO audit), `staging` is never indexed, `production` is indexed only when
+  the site data's version is a final release (`indexable()`), and any other
+  value fails the build. A build that must not be indexed sends
+  `X-Robots-Tag: noindex` on every path and `scripts/indexing.ts` writes
+  `Disallow: /` into `robots.txt`. A new flavour joins `FLAVOURS` and
+  `indexable()` there with its tests.
+
+From Phase 5 Step 5, which generates the model and problem pages:
+
+- Model pages come from the `models` content collection
+  (`src/content.config.ts`), each `registry.json` entry validated by
+  `ModelSchema` (`src/lib/registry-schema.ts`, REGISTRY_SCHEMA's keys); a
+  registry change the pages cannot render fails the build. A page's derived
+  values (URLs, variables tables, bound data, evidence words) live in
+  `src/lib/models.ts` and `src/lib/paths.ts`; `tests/unit/models.test.ts`
+  holds every variables table equal to the model's card. A model's page is
+  `ModelPage.astro`, the one place its sections are laid out; Step 6 adds the
+  calculator island there.
+- Card text reaches HTML only through Astro's escaping: never `set:html` a
+  registry string. The two exceptions are a formula (`Math.astro`, KaTeX's
+  MathML) and JSON-LD, written with `jsonLdText` so no text can close its
+  `<script type="application/ld+json">`. `tests/unit/model-page.test.ts`
+  renders a hostile toy card through Astro's container API and finds no
+  element or handler from it.
+- A problem page's text comes from `pyeconomics.surfaces.problem_guide`
+  (`GUIDES`, one per row of `problems.ROWS`, held equal by a test), exported
+  in `problems.json`; a new error-table row needs its guide.
+- Every page, the 404 page aside, gets a canonical link, Open Graph and
+  Twitter tags and a 1200x630 image drawn at build time
+  (`src/pages/og/[...slug].ts`, astro-og-canvas, the Noto Sans files of
+  `@fontsource/noto-sans` and the repository's mark: nothing is fetched); a
+  generated page joins `sitePages()` in `src/lib/pages.ts`.
+- `scripts/indexing.ts` runs after `headers.ts`: it writes `robots.txt` and
+  `_redirects` (every model alias's page, 301 to its model's) and fails on a
+  page the sitemap misses or a path in `web/released-pages.json` that neither
+  builds nor redirects. A shipped page never disappears: retire one with a
+  redirect, never by deleting it from the ledger. Never put `robots.txt` or
+  `_redirects` in `web/public/`.
+- `npm run test:dist` (Vitest, `tests/site/`) runs over the built `dist/`:
+  page counts, sections, MathML, JSON-LD, social images, internal links and
+  markup. A link to a page a later step builds goes in its `PLANNED` table
+  with that step, which removes the row when the page exists. Playwright
+  checks every page's headers and layout, and axe and the keyboard only on
+  its `SAMPLE`.
+- Git Bash heredocs collapse `\\` and the editor tools may write ` ` as
+  the character itself: check escapes in TypeScript written either way.
 
 ## Units
 

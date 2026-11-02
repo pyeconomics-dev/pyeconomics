@@ -9,10 +9,11 @@ import concepts from "@/data/generated/concepts.json?raw";
 import problems from "@/data/generated/problems.json?raw";
 import registry from "@/data/generated/registry.json?raw";
 import sources from "@/data/generated/sources.json?raw";
+import surfaces from "@/data/generated/surfaces.json?raw";
 
 /** The registry format this site reads (`REGISTRY_FORMAT`). */
 export const REGISTRY_FORMAT = 1;
-/** The format of problems.json, sources.json and concepts.json. */
+/** The format of problems.json, sources.json, concepts.json and surfaces.json. */
 export const SITE_DATA_FORMAT = 1;
 
 /** One model, as registry.json describes it; later steps read more keys. */
@@ -38,6 +39,24 @@ export interface ProblemEntry {
   exit_code: number;
   type: string;
   error: string;
+  /** What the problem means (surfaces/problem_guide.py). */
+  meaning: string;
+  /** What to do about it. */
+  action: string;
+  /** The local-mode command, where the problem points to local mode. */
+  local_command: string | null;
+}
+
+/** Where a model is reached beside its page. */
+export interface SurfaceEntry {
+  id: string;
+  /** The REST API's run route. */
+  rest: string;
+  methods: string[];
+  /** The MCP tool of its own, for a headline model. */
+  mcp_tool: string | null;
+  /** The command that runs it. */
+  cli: string;
 }
 
 export interface SourceEntry {
@@ -95,12 +114,19 @@ function parse<T extends { format: number }>(text: string, name: string, format:
 /** Every model, sorted by id. */
 export const registryData = parse<Registry>(registry, "registry.json", REGISTRY_FORMAT);
 
+const problemDocument = parse<{
+  format: number;
+  problems: ProblemEntry[];
+  exit_codes: Record<string, string>;
+}>(problems, "problems.json", SITE_DATA_FORMAT);
+
 /** The error table, one entry per slug. */
-export const problemData = parse<{ format: number; problems: ProblemEntry[] }>(
-  problems,
-  "problems.json",
-  SITE_DATA_FORMAT,
-).problems;
+export const problemData = problemDocument.problems;
+
+/** What each command-line exit code means, by code. */
+export const exitCodes: ReadonlyMap<number, string> = new Map(
+  Object.entries(problemDocument.exit_codes).map(([code, meaning]) => [Number(code), meaning]),
+);
 
 /** Every provider, sorted by id. */
 export const sourceData = parse<{ format: number; sources: SourceEntry[] }>(
@@ -115,6 +141,13 @@ export const conceptData = parse<{ format: number; concepts: ConceptEntry[] }>(
   "concepts.json",
   SITE_DATA_FORMAT,
 ).concepts;
+
+/** Where each model is reached beside its page, sorted by id. */
+export const surfaceData = parse<{ format: number; models: SurfaceEntry[] }>(
+  surfaces,
+  "surfaces.json",
+  SITE_DATA_FORMAT,
+).models;
 
 /** The pyeconomics version the data was exported from. */
 export const version = registryData.pyeconomics;
