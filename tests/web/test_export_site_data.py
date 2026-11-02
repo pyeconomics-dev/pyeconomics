@@ -130,8 +130,91 @@ def test_surfaces_name_each_models_route_tool_and_command() -> None:
         "methods": ["GET", "POST"],
         "mcp_tool": "fixed_income_duration",
         "cli": "pyeconomics models run fixed_income.duration",
+        "profiles": [],
     }
     assert {i for i, m in models.items() if m["mcp_tool"]} == set(HEADLINE)
+
+
+def test_surfaces_say_which_bound_fields_hosted_mode_can_serve() -> None:
+    openapi: dict[str, Any] = {
+        "paths": {f"/v1/models/{i}/run": {"post": {}} for i in registry.ids()}
+    }
+    models = {m["id"]: m for m in export.surfaces_document(openapi)["models"]}
+    cape = models["equity.cape"]["profiles"]
+    assert [p["profile"] for p in cape] == ["default", "nominal"]
+    default = cape[0]
+    assert default["hosted"] is False
+    fields = {f["field"]: f["hosted"] for f in default["fields"]}
+    assert fields["price"] is False  # Shiller's data is library-only
+    assert fields["real_yield"] is True  # Treasury's is hosted-safe
+    policy = next(
+        p for p in models["macro.policy_rule"]["profiles"] if p["profile"] == "default"
+    )
+    assert policy["hosted"] is True
+    for model in registry.models():
+        profiles = models[model.id]["profiles"]
+        bound = {(b.profile, b.field) for b in model.spec.bindings}
+        listed = {(p["profile"], f["field"]) for p in profiles for f in p["fields"]}
+        assert listed == bound
+        for profile in profiles:
+            assert profile["hosted"] is all(f["hosted"] for f in profile["fields"])
+
+
+GOLDEN_TOML = """model = "fixed_income.duration"
+
+[[cases]]
+id = "dated"
+
+[cases.inputs]
+calculation = "macaulay_modified"
+settlement = 2026-01-15
+maturity = 2036-01-15
+coupon_rate = 0.045
+yield_to_maturity = 0.045
+
+[[cases]]
+id = "refused"
+inputs = { calculation = "macaulay_modified", coupon_rate = 7.0 }
+"""
+
+
+def golden_dir(root: Path) -> Path:
+    (root / "golden" / "fixed_income").mkdir(parents=True)
+    (root / "golden" / "fixed_income" / "duration.toml").write_text(
+        GOLDEN_TOML, encoding="utf-8"
+    )
+    return root / "golden"
+
+
+def test_golden_holds_each_cases_json_inputs_and_the_python_apis_answer(
+    tmp_path: Path,
+) -> None:
+    import pyeconomics  # noqa: PLC0415
+
+    document = export.golden_document(golden_dir(tmp_path))
+    assert document["format"] == export.SITE_DATA_FORMAT
+    dated, refused = document["cases"]
+    assert dated["model"] == "fixed_income.duration"
+    assert dated["case"] == "dated"
+    assert dated["inputs"]["settlement"] == "2026-01-15"
+    assert dated["status"] == 200
+    assert (
+        dated["body"]
+        == pyeconomics.run("fixed_income.duration", dated["inputs"]).to_json()
+    )
+    assert refused["status"] == 422
+    problem = json.loads(refused["body"])
+    assert problem["type"].endswith("/invalid-input")
+
+
+def test_golden_reads_every_case_of_the_repository() -> None:
+    import tomllib  # noqa: PLC0415
+
+    files = sorted(export.GOLDEN.rglob("*.toml"))
+    expected = sum(len(tomllib.loads(f.read_text("utf-8"))["cases"]) for f in files)
+    assert expected >= 354
+    # Counting is enough here: the web parity suite runs every case.
+    assert len(files) == len(set(registry.ids()))
 
 
 def test_surfaces_refuse_a_model_with_no_run_route() -> None:
@@ -153,7 +236,8 @@ def test_write_site_data_writes_canonical_files_and_removes_stale_ones(
 ) -> None:
     (tmp_path / "stale.json").write_text("{}")
     (tmp_path / "keep.txt").write_text("not ours")
-    written = export.write_site_data(tmp_path, figures=False)
+    golden = golden_dir(tmp_path / "source")
+    written = export.write_site_data(tmp_path, figures=False, golden=golden)
     assert [path.name for path in written] == list(export.FILES)
     assert not (tmp_path / "stale.json").exists()
     assert (tmp_path / "keep.txt").exists()
@@ -167,8 +251,12 @@ def test_write_site_data_writes_canonical_files_and_removes_stale_ones(
     assert read(tmp_path / "openapi.json")["openapi"].startswith("3.1")
     surfaces = read(tmp_path / "surfaces.json")["models"]
     assert [m["id"] for m in surfaces] == [m.id for m in registry.models()]
+    assert [c["case"] for c in read(tmp_path / "golden.json")["cases"]] == [
+        "dated",
+        "refused",
+    ]
     first = {path.name: path.read_bytes() for path in written}
-    export.write_site_data(tmp_path, figures=False)
+    export.write_site_data(tmp_path, figures=False, golden=golden)
     assert {path.name: path.read_bytes() for path in written} == first
 
 

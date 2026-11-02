@@ -14,7 +14,7 @@ Node comes from `.nvmrc` (24); Python from the repository's `uv` environment.
 
 ```sh
 npm ci --ignore-scripts
-npm run data     # export the registry, OpenAPI, errors, sources, concepts and surfaces; generate the client
+npm run data     # export the site data and golden cases; precompile the validators; generate the client
 npm run build    # astro build, then scripts/headers.ts (dist/_headers) and scripts/indexing.ts
 ```
 
@@ -30,15 +30,34 @@ redirects.
 
 `npm run data` writes `src/data/generated/` and `src/client/`, both
 git-ignored: every build regenerates them from the registry and the catalog,
-so a new model or source reaches the site with no web code.
+so a new model or source reaches the site with no web code. It runs
+`../scripts/web/compile_validators.mjs` after the export, which precompiles
+each model's input-schema validator into `src/data/generated/validators/`;
+the build stops on a validator that is missing or stale.
+
+## Calculators
+
+Every model page carries a calculator (`src/components/calculator/`), a React
+island hydrated when it scrolls into view. It loads its model's module (the
+precompiled validators, the input schema and the examples), renders the
+schema with RJSF and its shadcn/ui theme, and posts the inputs' JSON to
+`POST /v1/models/<id>/run` on the site's own origin through the generated
+client (`src/lib/run-request.ts`). The answer's bytes are kept as received:
+the outputs table, the chart (`src/lib/figure.ts`, a port of `figure_of`,
+drawn by Plotly.js's basic bundle, loaded only with the first chart), the
+sources panel, the downloads (`?format=`) and the snippets for Python, the
+command line, curl and MCP sit beside them. A bound model offers live data
+(`?profile=`) where hosted mode can serve every field it binds.
 
 ## Check
 
 ```sh
 npm run check       # astro check (TypeScript 6, strict)
 npm run lint        # ESLint: security, TypeScript and accessibility rules, no warnings
-npm test            # Vitest (tests/unit), including the model page rendered through Astro's container
+npm test            # Vitest (tests/unit): the model page, every model's form, the figures, the snippets
 npm run test:dist   # Vitest over the built dist/ (tests/site): pages, sections, links, JSON-LD, images
+npm run test:parity # every golden case through the calculators' request builder, and each snippet kind,
+                    # against a local `pyeconomics serve` the suite starts (tests/parity)
 npx playwright install chromium
 npm run e2e         # Playwright with axe and the CSP-violation listener (tests/e2e)
 npm run lighthouse  # Lighthouse on ADR-0013 decision 19's sample pages
@@ -47,7 +66,14 @@ npm run licences    # what ships to browsers passes the permissive allowlist
 
 Playwright and Lighthouse serve `dist/` with `wrangler dev` as Workers static
 assets, so `dist/_headers` applies exactly as on Cloudflare. Astro's Content
-Security Policy does not run in `astro dev`; test it on a build.
+Security Policy does not run in `astro dev`; test it on a build. The
+calculator tests forward the page's `/v1/` requests to
+`../tests/web/e2e_api.py`, the REST app in hosted mode over the catalog
+world's stand-in providers, which Playwright starts on port 8799: live data,
+its sources and a CSV's attribution block need no network or key.
+`npx playwright test --config playwright.staging.config.ts` runs the duration
+calculator on staging through Access (`CF_ACCESS_CLIENT_ID` and
+`CF_ACCESS_CLIENT_SECRET`).
 
 ## Deploy
 

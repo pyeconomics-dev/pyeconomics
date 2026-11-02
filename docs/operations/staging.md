@@ -167,8 +167,9 @@ gcloud run services add-iam-policy-binding pyeconomics-api-staging \
 Every push to `main` triggers `.github/workflows/deploy-staging.yml` (which can
 also be triggered manually with `gh workflow run deploy-staging.yml --ref main`):
 
-1. Builds the wheel in a clean virtual environment and records the canonical
-   bytes of `pyeconomics.run("foundations.time_value", ...)`.
+1. Builds the wheel in a clean virtual environment with the container's extras
+   at `uv.lock`'s versions and records the canonical bytes of
+   `pyeconomics.run("foundations.time_value", ...)`.
 2. Builds the production container image with `--build-arg GIT_SHA=$GITHUB_SHA`.
 3. Scans the image with Trivy (`ghcr.io/aquasecurity/trivy:0.69.3` pinned by
    digest), failing the build on any fixable `CRITICAL` or `HIGH` vulnerability.
@@ -195,6 +196,12 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
      and Treasury attribution.
    - Authenticated `GET /v1/series/fred:UNRATE` returns `403`
      (`licence-refused`) with the source's `terms` URL.
+   - `scripts/parity/check_deployed.py` (Phase 5 Step 6) posts the first golden
+     case of each domain through the edge and requires the wheel's bytes for
+     each. Run it by hand from a venv of the same commit's wheel:
+     `python -I scripts/parity/check_deployed.py tests/golden
+     https://staging-api.pyeconomics.dev`, with `CF_ACCESS_CLIENT_ID` and
+     `CF_ACCESS_CLIENT_SECRET` set.
 6. If any deployment or verification step fails, the workflow automatically
    executes `gcloud run services update-traffic` to route `100%` of traffic back
    to `PREVIOUS_REVISION` and fails the run. That pins traffic to the named
@@ -223,6 +230,9 @@ After the API job succeeds, the same run's `site` job (Phase 5 Step 4):
    `200` with exactly the Content-Security-Policy in `dist/_headers`,
    `X-Robots-Tag: noindex` and `nosniff`, and `/v1/models` and `/healthz`
    answer `200` on the same host, the API's response carrying `nosniff`.
+   Then a browser (Playwright, `web/playwright.staging.config.ts`) fills the
+   duration page's calculator and runs it against the staging API on the same
+   origin, failing on any CSP violation or console error (Phase 5 Step 6).
 5. On any failure after the upload began, rolls the Worker back to the version
    recorded in step 2 (`wrangler rollback <id> --env staging --yes`) and fails.
 

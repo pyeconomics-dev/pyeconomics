@@ -43,6 +43,7 @@ def lock(**packages: dict[str, Any]) -> dict[str, Any]:
             "license": "MIT",
             "dev": True,
         },
+        "node_modules/plotly.js": {"version": "4.1.1", "license": "MIT", "dev": True},
     }
     entries.update({f"node_modules/{name}": entry for name, entry in packages.items()})
     return {"lockfileVersion": 3, "packages": entries}
@@ -159,9 +160,13 @@ def test_the_shipped_bundle_holds_only_production_packages() -> None:
         react={"version": "19.3.1", "license": "MIT"},
         katex={"version": "0.19.1", "license": "MIT", "dev": True},
     )
-    report, failures = web_licences.check(entries, ["react", "@astrojs/react"])
+    report, failures = web_licences.check(
+        entries, ["react", "@astrojs/react", "plotly.js"]
+    )
     assert failures == []
     assert "  shipped @astrojs/react: build output, its licence checked" in report
+    # plotly.js's prebuilt dist files ship; its source tree is not checked.
+    assert "  shipped plotly.js: build output, its licence checked" in report
     _, failures = web_licences.check(entries, ["react", "katex"])
     assert failures == [
         (

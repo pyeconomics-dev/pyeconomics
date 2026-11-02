@@ -27,8 +27,12 @@
 #   holds no route, custom-domain, DNS or Access permission, so `wrangler
 #   deploy`, which rewrites the custom domain, stays the maintainer's. Only
 #   the steps that call Wrangler see the token. The job
-#   verifies the site through Access and, on failure, returns the Worker to
-#   the version it served before and fails.
+#   verifies the site through Access, runs the duration page's calculator in
+#   a browser against the staging API (Phase 5 Step 6) and, on failure,
+#   returns the Worker to the version it served before and fails.
+# - The deploy job also checks one golden case per domain through the edge
+#   against the wheel's Python API (scripts/parity/check_deployed.py; Phase 5
+#   Step 6, ADR-0013 decision 8) before it counts the API deployed.
 
 name: deploy-staging
 
@@ -84,12 +88,17 @@ jobs:
           python-version: "3.14"
           enable-cache: true
 
+      # The venv holds the container's extras at uv.lock's versions (a result's
+      # manifest records its dependencies' versions), so its runs are the
+      # deployed API's: the run below and check_deployed.py's golden cases.
       - name: Build the wheel and compute expected run bytes in a clean venv
         shell: bash
         run: |
           set -euo pipefail
           uv build --no-config --wheel
-          uv export --no-config --frozen --no-dev --no-emit-project --output-file "$RUNNER_TEMP/requirements.txt"
+          uv export --no-config --frozen --no-dev --no-emit-project \
+            --extra server --extra mcp --extra econometrics --extra plot --extra sdmx \
+            --output-file "$RUNNER_TEMP/requirements.txt"
           uv venv "$RUNNER_TEMP/wheel-venv"
           uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --require-hashes --requirement "$RUNNER_TEMP/requirements.txt"
           uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --no-deps dist/*.whl
@@ -366,6 +375,22 @@ jobs:
           print("All origin and edge staging checks passed.")
           PY
 
+      # Phase 5 Step 6 (ADR-0013 decision 8): the first golden case of each
+      # domain through the edge, compared with the wheel's Python API in the
+      # venv above. The working directory is outside the checkout, so the
+      # installed wheel answers, never the source tree.
+      - name: Check one golden case per domain through the deployed API
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          golden="$PWD/tests/golden"
+          check="$PWD/scripts/parity/check_deployed.py"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -I "$check" "$golden" "https://${STAGING_HOST}"
+
       - name: Route traffic back to the previous revision on failure
         if: failure() && steps.previous.outputs.previous_revision != ''
         env:
@@ -593,6 +618,21 @@ jobs:
           assert status == 200 and json.loads(body) == {"status": "ok"}, f"/healthz returned {status}"
           print("All staging site checks passed.")
           PY
+
+      # Phase 5 Step 6: a browser fills the duration page's calculator and runs
+      # it against the staging API on the same origin, through Access.
+      - name: Install Playwright's Chromium
+        working-directory: web
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Run the duration calculator on staging in a browser
+        working-directory: web
+        env:
+          STAGING_BASE_URL: https://${{ vars.STAGING_SITE_HOST }}
+          GIT_SHA: ${{ github.sha }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: npx --no-install playwright test --config playwright.staging.config.ts
 
       - name: Return the Worker to the previous version on failure
         if: failure() && steps.previous.outputs.previous_version != '' && steps.release.outcome != 'skipped'

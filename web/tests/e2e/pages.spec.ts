@@ -1,13 +1,16 @@
 // web/tests/e2e/pages.spec.ts
 // Every page the build wrote, and the 404 page, served as Cloudflare serves
 // them: decision 9's headers, the layout's notices and landmarks, and no
-// inline style or executable inline script. A sample (decision 19's pages
-// that exist, a model page per cost class, a bound model, models with a
-// chart, and a problem page) is also checked for a skip link with a visible
-// focus, no WCAG 2.2 AA violation under axe in light and dark, and no Content
-// Security Policy violation or console error.
+// inline style, and no executable inline script but the island runtime the
+// policy hashes. A sample (decision 19's pages that exist, a model page per
+// cost class, a bound model, models with a chart, and a problem page) is also
+// checked for a skip link with a visible focus, no WCAG 2.2 AA violation under
+// axe in light and dark, and no Content Security Policy violation or console
+// error; the calculator's own states (before and after a run) are axe-checked
+// in calculator.spec.ts.
 import AxeBuilder from "@axe-core/playwright";
 
+import { hashSource } from "../../scripts/headers.ts";
 import { AS_IS_NOTICE, CFA_NOTICE, FOOTER_LINKS } from "../../src/lib/links.ts";
 import { expect, headerPolicy, pages, test } from "./support.ts";
 
@@ -64,8 +67,11 @@ for (const path of [...pages(), NOT_FOUND]) {
       await expect(footer.getByRole("link", { name: link.label, exact: true })).toHaveAttribute("href", link.href);
     }
     expect(await page.locator("[style]").count()).toBe(0);
-    // The one inline script a page may hold is its JSON-LD, which no browser executes.
-    expect(await page.locator('script:not([src]):not([type="application/ld+json"])').count()).toBe(0);
+    // Inline scripts: the JSON-LD, which no browser executes, and on a model
+    // page the calculator island's runtime, whose every script the policy hashes.
+    const inline = await page.locator('script:not([src]):not([type="application/ld+json"])').allTextContents();
+    if (!/^\/models\/[^/]+\/[^/]+\/$/.test(path)) expect(inline).toEqual([]);
+    for (const text of inline) expect(policy).toContain(hashSource(text));
   });
 }
 
@@ -111,9 +117,18 @@ test("formulas render as MathML with no inline style", async ({ page }) => {
   }
 });
 
-test("a model page ships no script, and its JSON-LD is not executed", async ({ page, watch }) => {
+test("a model page loads no script file until its calculator is in view, and its JSON-LD is not executed", async ({
+  page,
+  watch,
+}) => {
+  const loaded: string[] = [];
+  page.on("request", (request) => {
+    if (request.resourceType() === "script") loaded.push(new URL(request.url()).pathname);
+  });
   await page.goto("/models/macro/policy-rule/");
+  await page.waitForLoadState("load");
   expect(await page.locator("script[src]").count()).toBe(0);
+  expect(loaded).toEqual([]);
   const block = await page.locator('script[type="application/ld+json"]').textContent();
   expect((JSON.parse(block ?? "{}") as { "@type"?: string })["@type"]).toBe("WebPage");
   expect(watch.violations).toEqual([]);

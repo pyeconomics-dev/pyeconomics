@@ -44,10 +44,15 @@ if TYPE_CHECKING:
 ALLOWED: Final = ("MIT", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "ISC", "0BSD")
 _ALLOWED: Final = {licence.casefold() for licence in ALLOWED}
 
-#: Build tools whose own code reaches pages, and what of it does.
+#: Build tools whose own code reaches pages, and what of it does. plotly.js is
+#: one (Phase 5 Step 6): the calculators load only two prebuilt files from its
+#: dist/, the basic bundle and its stylesheet (ADR-0013 decision 8), while its
+#: dependency tree, which builds those files from source, ships nothing and
+#: holds licences the allowlist refuses.
 BUILD_OUTPUT: Final = {
     "astro": "the island runtime Astro inlines into pages",
     "@astrojs/react": "the React client renderer in the client bundle",
+    "plotly.js": "its prebuilt dist/plotly-basic.min.js and dist/plotly.css",
 }
 
 ROOT: Final = Path(__file__).resolve().parents[2]

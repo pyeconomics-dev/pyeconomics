@@ -1,20 +1,23 @@
 // web/scripts/lighthouse.ts
 // Lighthouse on decision 19's page sample (ADR-0013): for each sample page the
-// build wrote, three mobile runs against `wrangler dev`, and the median score
-// of each category must be at least 90. It drives Lighthouse 13 directly in
-// Playwright's Chromium: @lhci/cli 0.15.1, last published in June 2025,
+// build wrote, three mobile runs against `wrangler dev`, each in a Chrome of
+// its own, and the median score of each category must be at least 90. It
+// drives Lighthouse 13 directly in Playwright's Chromium: @lhci/cli 0.15.1,
+// last published in June 2025,
 // bundles Lighthouse 12.6.1 and a dependency tree that fails `npm audit` at
-// high. Reports go to .lighthouse/ (git-ignored), one JSON file per run.
+// high. Reports go to .lighthouse/ (git-ignored), one JSON file per run, and
+// the trace of the first runs that hold a long task no script accounts for.
 //
 // Usage, after `npm run build`: npm run lighthouse
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "@playwright/test";
 import * as chromeLauncher from "chrome-launcher";
-import lighthouse from "lighthouse";
+import lighthouse, { type RunnerResult } from "lighthouse";
 
 const WEB = fileURLToPath(new URL("..", import.meta.url));
 const PORT = 8788;
@@ -40,6 +43,21 @@ export const SAMPLE = [
 ] as const;
 
 export const CATEGORIES = ["performance", "accessibility", "best-practices", "seo"] as const;
+
+/** The traces kept of runs with a long task no script accounts for. */
+export const MAX_TRACES = 3;
+
+/**
+ * Whether a run's long tasks include one Lighthouse attributes to no script
+ * and longer than 300 ms. In Phase 5 Step 6 a shared Chrome showed one in most
+ * CI runs: V8 walking a reused renderer's heap as the page loaded, a cost of
+ * the measurement, which is why each run now has a Chrome of its own. The
+ * reports keep such a run's trace (`<report>.trace.json.gz`) to say what it is.
+ */
+export function unattributed(details: unknown): boolean {
+  const items = (details as { items?: { url?: string; duration?: number }[] } | undefined)?.items ?? [];
+  return items.some((item) => item.url === "Unattributable" && (item.duration ?? 0) > 300);
+}
 
 /** The median of an odd number of scores. */
 export function median(scores: readonly number[]): number {
@@ -94,6 +112,30 @@ function stop(server: ChildProcess): void {
   }
 }
 
+/**
+ * One Lighthouse run in a Chrome of its own, as the Lighthouse command line
+ * runs: a shared Chrome puts every run of the origin in one renderer process,
+ * whose heap the next run pays for.
+ */
+async function measure(url: string): Promise<RunnerResult> {
+  const chrome = await chromeLauncher.launch({
+    chromePath: chromium.executablePath(),
+    chromeFlags: ["--headless=new", "--no-sandbox"],
+  });
+  try {
+    const result = await lighthouse(url, {
+      port: chrome.port,
+      output: "json",
+      logLevel: "error",
+      onlyCategories: [...CATEGORIES],
+    });
+    if (!result) throw new Error(`Lighthouse returned nothing for ${url}`);
+    return result;
+  } finally {
+    chrome.kill();
+  }
+}
+
 async function main(): Promise<number> {
   const pages = built(join(WEB, "dist"));
   if (pages.length === 0) {
@@ -105,26 +147,23 @@ async function main(): Promise<number> {
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
   mkdirSync(reports, { recursive: true });
   const server = await serve();
-  const chrome = await chromeLauncher.launch({
-    chromePath: chromium.executablePath(),
-    chromeFlags: ["--headless=new", "--no-sandbox"],
-  });
   const failures: string[] = [];
+  let traces = 0;
   try {
     for (const path of pages) {
       const scores = new Map<string, number[]>(CATEGORIES.map((category) => [category, []]));
       for (let run = 1; run <= RUNS; run += 1) {
-        const result = await lighthouse(`${ORIGIN}${path}`, {
-          port: chrome.port,
-          output: "json",
-          logLevel: "error",
-          onlyCategories: [...CATEGORIES],
-        });
-        if (!result) throw new Error(`Lighthouse returned nothing for ${path}`);
+        const result = await measure(`${ORIGIN}${path}`);
         const name = `${path.replaceAll("/", "_") || "_"}run${run}.json`;
         // A name built from a fixed sample path, under .lighthouse/.
         // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
         writeFileSync(join(reports, name), String(result.report));
+        if (traces < MAX_TRACES && unattributed(result.lhr.audits["long-tasks"]?.details)) {
+          traces += 1;
+          // The same fixed name, with the trace that shows what the task was.
+          // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
+          writeFileSync(join(reports, `${name}.trace.json.gz`), gzipSync(JSON.stringify(result.artifacts.Trace)));
+        }
         const found = new Map(Object.entries(result.lhr.categories));
         for (const category of CATEGORIES) {
           scores.get(category)?.push(found.get(category)?.score ?? 0);
@@ -138,7 +177,6 @@ async function main(): Promise<number> {
       process.stdout.write(`lighthouse ${path}: ${line} (median of ${RUNS} mobile runs)\n`);
     }
   } finally {
-    chrome.kill();
     stop(server);
   }
   if (failures.length > 0) {

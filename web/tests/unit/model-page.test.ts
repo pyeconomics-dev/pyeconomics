@@ -3,8 +3,13 @@
 // Astro's container API with a toy model whose every text field plants a
 // <script> element and an onerror= attribute: the page holds neither, only
 // their escaped text, because card text reaches HTML through Astro's escaping
-// alone. A formula that plants HTML fails instead of rendering.
+// alone. A formula that plants HTML fails instead of rendering. The page's one
+// island, the calculator, is rendered with React's container renderer: its
+// props carry card text only inside a quoted attribute, and the only scripts
+// beside the JSON-LD are Astro's island runtime, which carries none.
+import { getContainerRenderer } from "@astrojs/react/container-renderer";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
+import { loadRenderers } from "astro:container";
 import { describe, expect, it } from "vitest";
 
 import ModelPage from "@/components/models/ModelPage.astro";
@@ -61,10 +66,11 @@ const SURFACE = {
   methods: ["GET", "POST"],
   mcp_tool: null,
   cli: "pyeconomics models run toy.hostile",
+  profiles: [],
 };
 
 async function render(model: Model): Promise<string> {
-  const container = await AstroContainer.create();
+  const container = await AstroContainer.create({ renderers: await loadRenderers([getContainerRenderer()]) });
   return container.renderToString(ModelPage, {
     props: { model, surface: SURFACE },
     request: new Request("https://pyeconomics.dev/models/toy/hostile/"),
@@ -80,7 +86,15 @@ describe("the model page", () => {
   it("holds no <script> element and no event-handler attribute from card text", async () => {
     const html = await render(TOY);
     const found = tags(html);
-    expect(found.filter((tag) => /^<script\b/i.test(tag))).toEqual(['<script type="application/ld+json">']);
+    // The JSON-LD block, then Astro's island runtime: plain inline scripts with no attribute.
+    expect(found.filter((tag) => /^<script\b/i.test(tag) && tag !== "<script>")).toEqual([
+      '<script type="application/ld+json">',
+    ]);
+    // Card text in the island's props stays inside a quoted attribute value,
+    // which Astro writes with every double quote escaped.
+    const outsideAttributes = html.replace(/="[^"]*"/g, '=""');
+    expect(outsideAttributes).not.toContain(SCRIPT);
+    expect(outsideAttributes).not.toContain(IMAGE);
     for (const tag of found) {
       expect(tag.toLowerCase().startsWith("<img") && attributes(tag).get("src") === "x", tag).toBe(false);
       for (const name of attributes(tag).keys()) expect(name, tag).not.toMatch(/^on/);
@@ -105,6 +119,7 @@ describe("the model page", () => {
       "summary",
       "formula",
       "variables",
+      "calculator",
       "worked-example",
       "assumptions",
       "limitations",

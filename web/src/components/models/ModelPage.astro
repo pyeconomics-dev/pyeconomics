@@ -2,19 +2,24 @@
 // web/src/components/models/ModelPage.astro
 // One model's page, generated from its registry.json entry (Phase 5 Step 5;
 // ADR-0013 decision 2). The sections, in order: summary, formula, variables,
-// worked example, assumptions, limitations, evidence, data (a bound model
-// only), citations, changelog, and where else to use the model. Step 6 adds the
-// calculator island and Step 7 the syllabus tags.
+// calculator, worked example, assumptions, limitations, evidence, data (a
+// bound model only), citations, changelog, and where else to use the model.
+// Step 7 adds the syllabus tags.
 //
 // Card text is trusted repository content, and it still reaches HTML only
 // through Astro's escaping: no value is rendered with set:html except a
 // formula, which KaTeX renders at build time as MathML with no command trusted
 // (src/lib/math.ts), and the page's JSON-LD, which escapes every character that
-// could end its element (src/lib/structured-data.ts). No script ships.
+// could end its element (src/lib/structured-data.ts). The one script is the
+// calculator island (Phase 5 Step 6), hydrated when it scrolls into view
+// (client:visible): its props are small, and it loads its model's schema,
+// examples and precompiled validators as a chunk of their own.
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Math from "@/components/Math.astro";
+import Calculator from "@/components/calculator/Calculator";
 import VariablesTable from "@/components/models/VariablesTable.astro";
 import Base from "@/layouts/Base.astro";
+import { calculatorProps } from "@/lib/calculator";
 import {
   COST_MEANING,
   EVIDENCE_MEANING,
@@ -30,7 +35,7 @@ import {
   variables,
 } from "@/lib/models";
 import type { Model } from "@/lib/registry-schema";
-import { conceptData, sourceData, type SurfaceEntry } from "@/lib/site-data";
+import { conceptData, problemData, sourceData, type SurfaceEntry } from "@/lib/site-data";
 import { modelPage, type Crumb } from "@/lib/structured-data";
 
 interface Props {
@@ -49,6 +54,7 @@ const trail: Crumb[] = [
 const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
 const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
 const profiles = dataProfiles(model.bindings, conceptData, sourceData);
+const calculator = calculatorProps(model, surface, problemData, sourceData, conceptData);
 const example = model.examples[0];
 const result = model.example_result;
 const sectionClass = "mt-12 flex flex-col gap-4";
@@ -113,6 +119,21 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           />
         ))
       }
+    </section>
+
+    <section id="calculator" data-section="calculator" class={sectionClass} aria-labelledby="calculator-heading">
+      <h2 id="calculator-heading" class={headingClass}>Calculator</h2>
+      <p class="max-w-3xl">
+        Run the model on your own inputs, starting from its example. Rates are decimals. The run goes to the
+        pyeconomics API on this site: your values travel only in the request, and nothing is stored.
+      </p>
+      <Calculator client:visible {...calculator} />
+      <noscript>
+        <p class="max-w-3xl">
+          The calculator needs JavaScript. The worked example below shows the model's inputs and outputs, and the
+          REST API, the command line and the Python package run it too.
+        </p>
+      </noscript>
     </section>
 
     <section

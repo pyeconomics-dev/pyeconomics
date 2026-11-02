@@ -554,7 +554,8 @@ step time are the authority:
 | katex | 0.19.1 | MIT | formulas at build time (3) |
 | @rjsf/core, utils, validator-ajv8 | 6.11.0 | Apache-2.0 | forms (6) |
 | @rjsf/shadcn | 6.11.0 | MIT | form theme (6) |
-| plotly.js | 4.2.0 | MIT | charts: `dist/plotly-basic.min.js` and `dist/plotly.css`, pinned to 4.1.1 (6) |
+| @rjsf/validator-ajv8's ajv, ajv-formats | 8.20.0, 2.1.1 | MIT | the precompiled validators' runtime, direct `dependencies` so web/node_modules/ajv is 8, not ESLint's 6, found in Step 6 (6) |
+| plotly.js | 4.2.0 | MIT | charts: `dist/plotly-basic.min.js` and `dist/plotly.css`, pinned to 4.1.1; a `devDependency` in `web_licences.py`'s `BUILD_OUTPUT`, because its source tree (gl-mat4 Zlib, color-space Unlicense, sax BlueOak, two unlicensed) fails the allowlist and never ships, found in Step 6 (6) |
 | pagefind | 1.5.2 | MIT | search (7) |
 | @astrojs/sitemap, astro-og-canvas | 3.7.4, 0.13.2 | MIT | pages (5) |
 | vitest, @playwright/test | 5.0.5, 1.64.1 | MIT, Apache-2.0 | tests (3) |
@@ -3780,9 +3781,9 @@ hygiene.
 
 ---
 
-## Step 6 — Calculators and Web Parity
+## Step 6 — Calculators and Web Parity ✅
 
-**Status:** Not started
+**Status:** Complete — PR #235 (2026-11-01)
 
 > **Goal:** Put a working calculator on every model page and prove it
 > returns the Python API's bytes. Add a React island (ADR-0013 decision 8)
@@ -3837,6 +3838,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY: a schema-driven form over fifty
 real schemas (the largest 32 KB, with nested calculations), a chart port
@@ -4636,6 +4639,13 @@ hygiene.
 
     Current state (post-Phase-5 Step 6):
 
+    - Step 6 note: each model page's calculator section
+      (data-section="calculator") is an island hydrated when
+      visible; its loading text and its form are not page
+      content, so mark the section data-pagefind-ignore
+      when Pagefind indexes pages. pages.spec.ts requires a
+      model page to load no script file until the
+      calculator is in view: keep it so for any new island.
     - Every model has a page with its calculator; /models/
       and the 13 domain index pages are minimal; problem
       pages, the sitemap and the ledger exist; the staging
@@ -5661,6 +5671,14 @@ per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 8):
 
+    - Step 6 note: src/lib/run-request.ts keeps a response's
+      bytes (a clone, through the generated client) and its
+      problem; ResultPanel's Source and src/lib/results.ts
+      DATA_WARNINGS render data_sources records, so the
+      explorer's charts can reuse them. tests/web/e2e_api.py
+      serves the catalog world's stand-ins in hosted mode
+      for Playwright: extend it for /v1/series rather than
+      letting a test reach a provider.
     - Staging's hosted series and bound runs read
       snapshots; a series outside the snapshot set answers
       404 not-in-snapshot. The site data export writes
@@ -6129,6 +6147,14 @@ Sol at Intelligence High (50.2) and Quality Opus 5.5 at Effort XHigh
 
     Current state (post-Phase-5 Step 9):
 
+    - Step 6 note: the calculator offers live data only
+      where surfaces.json's profiles say hosted mode serves
+      every bound field, and otherwise names the CLI command
+      (Calculator.tsx, data-live="unserved"). In local mode
+      (GET /version's mode) every profile is servable:
+      offer them all and replace that message. The island
+      posts to its own origin, so `pyeconomics serve`
+      serving dist/ needs no client change.
     - The site in web/ is complete for the launch: model
       pages, calculators, navigation, search, the coverage
       matrix and the data explorer, deployed to staging on
@@ -7518,6 +7544,13 @@ New conversation per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 12):
 
+    - Step 6 note: deploy-staging.yml's deploy job runs
+      scripts/parity/check_deployed.py through the edge from
+      a venv of the commit's wheel with the container's
+      extras, and its site job runs
+      web/playwright.staging.config.ts (STAGING_BASE_URL and
+      the Access headers). deploy-production.yml repeats
+      both against production with its own Access token.
     - Staging runs the API, the snapshot job and the site
       (staging.pyeconomics.dev, behind Access) from
       deploy-staging.yml on every merge: job, then API, then
@@ -8075,6 +8108,12 @@ conversation per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 13):
 
+    - Step 6 note: the calculators post users' inputs in
+      run bodies, and a field's value can appear in a
+      validation message; browser error reporting keeps
+      request bodies, queries and form values out (every
+      dataCollection category off), and its ingest origin
+      joins csp.config.ts DIRECTIVES and ALLOWED connect-src.
     - Production runs privately: deploy-production.yml
       (dispatch from main or a v* tag, approved) deploys the
       snapshot job, the API and the site behind Access; the
@@ -11642,7 +11681,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
 | 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
-| 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
+| 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
