@@ -17,7 +17,7 @@ from toy_models import mean_return, variant, zero_coupon
 
 from pyeconomics import registry
 from pyeconomics.core import Registry
-from pyeconomics.core.cards import ModelCard
+from pyeconomics.core.cards import CURRICULUM_NOTE, ModelCard
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -145,3 +145,31 @@ def test_setup_hook(generator: ModuleType, tmp_path: Path) -> None:
         assert generator.setup(app)["parallel_read_safe"]
         app.callback(app)
         generator.check_pages(tmp_path / "reference" / "models", registry.ids())
+
+
+def test_a_page_lists_its_models_syllabus_tags(
+    generator: ModuleType, tmp_path: Path
+) -> None:
+    syllabi = generator.syllabus_loader().load()
+    section = generator.curriculum_section("fixed_income.duration", syllabi)
+    assert section.startswith(
+        "2027 CFA® Program topic areas whose formulas this model implements"
+    )
+    assert "- [Level I: Fixed Income](https://www.cfainstitute.org/" in section
+    assert "- [Level II: Fixed Income](https://www.cfainstitute.org/" in section
+    assert section.endswith("see {doc}`/notices`.")
+    catalog = Registry.from_models(zero_coupon)
+    generator.write_pages(tmp_path, catalog, syllabi)
+    page = (tmp_path / "fixed_income" / "toy_zero_coupon.md").read_text("utf-8")
+    assert CURRICULUM_NOTE not in page
+    assert (
+        "## Curriculum mapping\n\nNo syllabus topic is mapped to this model yet" in page
+    )
+    assert "https://pyeconomics.dev/coverage/" in page
+
+
+def test_every_registered_models_page_lists_its_tags(generator: ModuleType) -> None:
+    syllabi = generator.syllabus_loader().load()
+    for model_id in registry.ids():
+        section = generator.curriculum_section(model_id, syllabi)
+        assert "- [Level " in section, model_id

@@ -2,9 +2,13 @@
 // web/src/components/models/ModelPage.astro
 // One model's page, generated from its registry.json entry (Phase 5 Step 5;
 // ADR-0013 decision 2). The sections, in order: summary, formula, variables,
-// calculator, worked example, assumptions, limitations, evidence, data (a
-// bound model only), citations, changelog, and where else to use the model.
-// Step 7 adds the syllabus tags.
+// calculator, worked example, assumptions, limitations, evidence, syllabus
+// (its topic tags from syllabi/, each linking to the issuing body), data (a
+// bound model only), citations, changelog, related models (computed at build
+// time: src/lib/catalog.ts relatedModels) and where else to use the model.
+// Search indexes the page (data-pagefind-body on its main landmark) with the
+// model's domain and summary as its result's text; the calculator's loading
+// text and form are not page content, so search ignores that section.
 //
 // Card text is trusted repository content, and it still reaches HTML only
 // through Astro's escaping: no value is rendered with set:html except a
@@ -20,6 +24,7 @@ import Calculator from "@/components/calculator/Calculator";
 import VariablesTable from "@/components/models/VariablesTable.astro";
 import Base from "@/layouts/Base.astro";
 import { calculatorProps } from "@/lib/calculator";
+import { relatedModels, topicsOf } from "@/lib/catalog";
 import {
   COST_MEANING,
   EVIDENCE_MEANING,
@@ -35,15 +40,17 @@ import {
   variables,
 } from "@/lib/models";
 import type { Model } from "@/lib/registry-schema";
-import { conceptData, problemData, sourceData, type SurfaceEntry } from "@/lib/site-data";
+import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
 import { modelPage, type Crumb } from "@/lib/structured-data";
 
 interface Props {
   model: Model;
   surface: SurfaceEntry;
+  /** Every model, for the related models. */
+  models: readonly Model[];
 }
 
-const { model, surface } = Astro.props;
+const { model, surface, models } = Astro.props;
 const path = modelPath(model.id);
 const trail: Crumb[] = [
   { name: "Home", path: "/" },
@@ -55,6 +62,9 @@ const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
 const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
 const profiles = dataProfiles(model.bindings, conceptData, sourceData);
 const calculator = calculatorProps(model, surface, problemData, sourceData, conceptData);
+const topics = topicsOf(model.id, syllabusData);
+const syllabi = syllabusData.filter((syllabus) => topics.some((entry) => entry.syllabus.id === syllabus.id));
+const related = relatedModels(model, models, syllabusData);
 const example = model.examples[0];
 const result = model.example_result;
 const sectionClass = "mt-12 flex flex-col gap-4";
@@ -62,17 +72,18 @@ const headingClass = "text-2xl font-semibold";
 const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 ---
 
-<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)}>
+<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)} searchable>
   <Breadcrumbs trail={trail} />
   <article>
     <section id="summary" data-section="summary" class="flex flex-col gap-4" aria-labelledby="model-title">
       <h1 id="model-title" class="text-4xl font-bold tracking-tight">{model.title}</h1>
-      <p class="max-w-3xl text-lg">{model.summary}</p>
+      <p class="max-w-3xl text-lg" data-pagefind-meta="summary">{model.summary}</p>
+      <span hidden data-pagefind-meta="kind:Model"></span>
       <dl class="grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
         <dt class="text-muted-foreground">Model id</dt>
         <dd><code>{model.id}</code>, version {model.version}</dd>
         <dt class="text-muted-foreground">Domain</dt>
-        <dd><a href={domainPath(model.domain)}>{domainTitle(model.domain)}</a></dd>
+        <dd><a href={domainPath(model.domain)} data-pagefind-meta="domain">{domainTitle(model.domain)}</a></dd>
         <dt class="text-muted-foreground">Evidence</dt>
         <dd>{model.evidence ?? "not declared"}</dd>
         <dt class="text-muted-foreground">Cost class</dt>
@@ -121,7 +132,13 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
       }
     </section>
 
-    <section id="calculator" data-section="calculator" class={sectionClass} aria-labelledby="calculator-heading">
+    <section
+      id="calculator"
+      data-section="calculator"
+      class={sectionClass}
+      aria-labelledby="calculator-heading"
+      data-pagefind-ignore="all"
+    >
       <h2 id="calculator-heading" class={headingClass}>Calculator</h2>
       <p class="max-w-3xl">
         Run the model on your own inputs, starting from its example. Rates are decimals. The run goes to the
@@ -216,6 +233,41 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         convention), contested (under active debate), rejected (failed out of sample) or historical (a
         superseded methodology).
       </p>
+    </section>
+
+    <section id="syllabus" data-section="syllabus" class={sectionClass} aria-labelledby="syllabus-heading">
+      <h2 id="syllabus-heading" class={headingClass}>Syllabus</h2>
+      {
+        syllabi.length > 0 ? (
+          syllabi.map((syllabus) => (
+            <Fragment>
+              <p class="max-w-3xl">
+                The {syllabus.title}'s topic areas whose formulas this model implements, as factual tags. Each links
+                to {syllabus.issuer}'s page for its level; pyeconomics holds none of the curriculum's text.
+              </p>
+              <ul class="flex max-w-3xl flex-col gap-1">
+                {topics
+                  .filter((entry) => entry.syllabus.id === syllabus.id)
+                  .map(({ level, topic }) => (
+                    <li data-topic={topic.id}>
+                      <a href={topic.url}>
+                        {level.title}: {topic.title}
+                      </a>{" "}
+                      <span class="text-sm text-muted-foreground">
+                        (<a href={`/models/?topic=${topic.id}`}>models for this topic area</a>)
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </Fragment>
+          ))
+        ) : (
+          <p class="max-w-3xl">
+            No syllabus topic is mapped to this model yet. The <a href="/coverage/">coverage matrix</a> shows what is
+            mapped.
+          </p>
+        )
+      }
     </section>
 
     {
@@ -329,6 +381,26 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         }
       </ul>
     </section>
+
+    {
+      related.length > 0 && (
+        <section id="related" data-section="related" class={sectionClass} aria-labelledby="related-heading">
+          <h2 id="related-heading" class={headingClass}>
+            Related models
+          </h2>
+          <ul class="grid max-w-3xl gap-3 sm:grid-cols-2">
+            {related.map((other) => (
+              <li class="rounded-md border px-4 py-3" data-related={other.id}>
+                <a href={modelPath(other.id)} class="font-medium">
+                  {other.title}
+                </a>
+                <span class="block text-sm text-muted-foreground">{domainTitle(other.domain)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
 
     <section id="use-it-elsewhere" data-section="use-it-elsewhere" class={sectionClass} aria-labelledby="elsewhere-heading">
       <h2 id="elsewhere-heading" class={headingClass}>Use it elsewhere</h2>

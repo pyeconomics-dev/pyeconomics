@@ -18,9 +18,11 @@ const trail: Crumb[] = [
   title={PROBLEMS_INDEX.title}
   description={PROBLEMS_INDEX.description}
   jsonLd={webPage("/problems/", PROBLEMS_INDEX.title, PROBLEMS_INDEX.description, trail)}
+  searchable
 >
   <Breadcrumbs trail={trail} />
   <h1 class="text-4xl font-bold tracking-tight">Problem types</h1>
+  <span hidden data-pagefind-meta="kind:Problem"></span>
   <p class="mt-4 max-w-3xl text-lg">
     Every pyeconomics surface reports a failure as a problem in the form of RFC 9457. Its type is the
     address of one of these pages.

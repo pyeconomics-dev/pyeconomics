@@ -4347,9 +4347,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 7 — Navigation, Search, Syllabus Seed and Coverage Matrix
+## Step 7 — Navigation, Search, Syllabus Seed and Coverage Matrix ✅
 
-**Status:** Not started
+**Status:** Complete — PR #240 (2026-11-02)
 
 > **Goal:** Make the catalog findable. Build the fifteen domain sections of
 > ROADMAP §4 7.2 — the thirteen populated domains and `micro` and
@@ -4399,6 +4399,8 @@ out), the output part scaled by the tokens the model writes at that level.
 **Conversation:** New
 
 > Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
+
+> Ran 2026-11-02: Quality Runner-up — Opus 5.5 · High.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY: navigation
 and filter components, a build-time search index, a small data format with
@@ -5681,6 +5683,15 @@ per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 8):
 
+    - Step 7 note: /data/ joins src/lib/links.ts NAVIGATION,
+      src/lib/pages.ts sitePages() and the pages.spec.ts
+      sample. Pass `searchable` to Base.astro (and a
+      data-pagefind-meta="kind:..." marker) if its pages
+      should be searched, and keep an island's loading text
+      data-pagefind-ignore. Every page now carries the
+      header's search island, so the island runtime is in
+      every policy; a new island on a model page must still
+      load no script before it is in view.
     - Step 6 note: src/lib/run-request.ts keeps a response's
       bytes (a clone, through the generated client) and its
       problem; ResultPanel's Source and src/lib/results.ts
@@ -9163,6 +9174,17 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       /sources/ and the licence, which do not exist yet; the
       status page, Discussions, the newsletter, the waitlist,
       the Pro preview and analytics are live behind Access.
+    - Step 7 note: Step 7's requirement names source and
+      legal pages among those search indexes: pass
+      `searchable` to Base.astro on /sources/ and the
+      /legal/ pages, with a data-pagefind-meta="kind:Source"
+      or "kind:Legal" marker; scripts/search-index.ts and
+      tests/site/ then count them. tests/site/ fails on
+      `cfa` in any URL path or query value the site writes
+      and on "CFA" not written as "CFA® Program" on a page's
+      first use; if CFA Institute's answer (asked here)
+      allows the mark in URLs, change those tests and the
+      syllabi/ id rule (scripts/web/syllabi.py) together.
     - Step 5 note: web/tests/site/site.test.ts holds a
       PLANNED table of the internal links whose pages do not
       exist yet (/legal/disclaimers/ and /sources/, naming
@@ -11700,7 +11722,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
-| 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
+| 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |

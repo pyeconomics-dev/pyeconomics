@@ -1,62 +1,103 @@
 ---
 // web/src/pages/models/[domain]/index.astro
-// A domain's models, each with its summary, evidence status and cost class.
-// Minimal until Step 7 builds the navigation and filters around it.
+// One page per domain section of src/lib/paths.ts DOMAINS, in ROADMAP §4
+// 7.2's order (ADR-0013 decision 10). A populated section lists its models
+// grouped by evidence status, each with its summary, cost class and data
+// needs. A planned section (`micro`, `alternatives`) says which phase brings
+// its models and links the coverage matrix. A registry domain DOMAINS lacks
+// fails the build (domainOf), and so does a section that is neither planned
+// nor holds a model.
 import { getCollection } from "astro:content";
 
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Base from "@/layouts/Base.astro";
-import { domainPath, domainSegment, domainTitle, modelPath } from "@/lib/models";
+import { catalogOrder, dataNeeds } from "@/lib/catalog";
+import { DOMAINS, EVIDENCE_MEANING, domainOf, domainPath, domainSegment, modelPath, type Domain } from "@/lib/models";
 import { domainDescription } from "@/lib/pages";
-import type { Model } from "@/lib/registry-schema";
+import { EVIDENCE, type Model } from "@/lib/registry-schema";
 import { webPage, type Crumb } from "@/lib/structured-data";
 
 export async function getStaticPaths() {
-  const byDomain = new Map<string, Model[]>();
-  for (const { data } of await getCollection("models")) {
-    byDomain.set(data.domain, [...(byDomain.get(data.domain) ?? []), data]);
-  }
-  return [...byDomain].map(([domain, models]) => ({
-    params: { domain: domainSegment(domain) },
-    props: { domain, models: models.sort((a, b) => a.id.localeCompare(b.id)) },
-  }));
+  const all = (await getCollection("models")).map(({ data }) => data);
+  for (const model of all) domainOf(model.domain);
+  return DOMAINS.map((domain) => {
+    const models = catalogOrder(all.filter((model) => model.domain === domain.id));
+    if (models.length === 0 && !domain.planned) {
+      throw new Error(`the ${domain.id} section has no model and is not planned (src/lib/paths.ts DOMAINS)`);
+    }
+    return { params: { domain: domainSegment(domain.id) }, props: { domain, models } };
+  });
 }
 
 interface Props {
-  domain: string;
+  domain: Domain;
   models: Model[];
 }
 
 const { domain, models } = Astro.props;
-const title = domainTitle(domain);
+const path = domainPath(domain.id);
 const description = domainDescription(domain, models.length);
 const trail: Crumb[] = [
   { name: "Home", path: "/" },
   { name: "Models", path: "/models/" },
-  { name: title, path: domainPath(domain) },
+  { name: domain.title, path },
 ];
+const groups = [...EVIDENCE, null]
+  .map((evidence) => ({ evidence, models: models.filter((model) => model.evidence === evidence) }))
+  .filter((group) => group.models.length > 0);
+const words = (model: Model) =>
+  [
+    `Cost class: ${model.cost ?? "not declared"}`,
+    dataNeeds(model) === "bound" ? "reads data through bindings" : "data-free",
+    ...(model.extra ? [`needs the ${model.extra} extra`] : []),
+  ].join(" · ");
 ---
 
-<Base title={title} description={description} jsonLd={webPage(domainPath(domain), title, description, trail)}>
+<Base title={domain.title} description={description} jsonLd={webPage(path, domain.title, description, trail)} searchable>
   <Breadcrumbs trail={trail} />
-  <h1 class="text-4xl font-bold tracking-tight">{title}</h1>
-  <p class="mt-4 max-w-3xl text-lg">
-    {models.length}
-    {models.length === 1 ? "model" : "models"} in this domain.
-  </p>
-  <ul class="mt-8 flex flex-col gap-4">
-    {
-      models.map((model) => (
-        <li class="rounded-md border px-4 py-3">
-          <h2 class="text-lg font-semibold">
-            <a href={modelPath(model.id)}>{model.title}</a>
-          </h2>
-          <p class="mt-1">{model.summary}</p>
-          <p class="mt-2 text-sm text-muted-foreground">
-            Evidence: {model.evidence ?? "not declared"} · Cost class: {model.cost ?? "not declared"}
-          </p>
-        </li>
-      ))
-    }
-  </ul>
+  <h1 class="text-4xl font-bold tracking-tight">{domain.title}</h1>
+  <span hidden data-pagefind-meta="kind:Domain"></span>
+  {
+    models.length === 0 ? (
+      <section class="mt-6 flex max-w-3xl flex-col gap-4" data-empty-domain={domain.id}>
+        <p class="text-lg">
+          This section is planned. Its first models arrive in {domain.planned}, with the other domain batches of
+          the roadmap.
+        </p>
+        <p>
+          The <a href="/coverage/">coverage matrix</a> shows what the catalog covers today and what is still to
+          come.
+        </p>
+      </section>
+    ) : (
+      <Fragment>
+        <p class="mt-4 max-w-3xl text-lg">
+          {models.length} {models.length === 1 ? "model" : "models"} in this section, grouped by evidence status.{" "}
+          <a href={`/models/?domain=${domainSegment(domain.id)}`}>Filter them</a> by syllabus topic, cost class or
+          tag.
+        </p>
+        {groups.map((group) => (
+          <section class="mt-10" aria-labelledby={`evidence-${group.evidence ?? "none"}`}>
+            <h2 id={`evidence-${group.evidence ?? "none"}`} class="text-2xl font-semibold">
+              {group.evidence ? `${group.evidence.charAt(0).toUpperCase()}${group.evidence.slice(1)}` : "Not declared"}
+            </h2>
+            {group.evidence && <p class="mt-1 text-sm text-muted-foreground">{EVIDENCE_MEANING[group.evidence]}</p>}
+            <ul class="mt-4 flex flex-col gap-4">
+              {group.models.map((model) => (
+                <li class="rounded-md border px-4 py-3" data-model={model.id}>
+                  <h3 class="text-lg font-semibold">
+                    <a href={modelPath(model.id)}>{model.title}</a>
+                  </h3>
+                  <p class="mt-1">{model.summary}</p>
+                  <p class="mt-2 text-sm text-muted-foreground">
+                    {words(model)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </Fragment>
+    )
+  }
 </Base>

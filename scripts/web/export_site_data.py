@@ -5,7 +5,7 @@
 
 The site gains a model, a problem or a source only through this export, so
 Phase 6's providers and Phase 7's models reach it with no web code. It writes
-seven canonical JSON files (RFC 8785, no trailing newline) into a git-ignored
+eight canonical JSON files (RFC 8785, no trailing newline) into a git-ignored
 directory, ``web/src/data/generated/`` by default:
 
 - ``registry.json``: every model, from
@@ -26,6 +26,10 @@ directory, ``web/src/data/generated/`` by default:
   profile's fields with whether hosted mode can serve each one (a field whose
   concept has a hosted-safe source), so a calculator offers live data only
   where the hosted site can read it (ADR-0013 decision 11). Sorted by id;
+- ``syllabi.json``: every syllabus crosswalk in ``syllabi/`` (the 2027 CFA®
+  Program seed first), its levels, topics and the models each topic covers,
+  through ``scripts/web/syllabi.py``, which refuses an unknown model id and any
+  text longer than a topic name (ADR-0013 decision 12);
 - ``golden.json``: every golden case (``tests/golden/``, read with
   ``tomllib``) with its inputs as JSON and the answer the Python API gives in
   this environment: the status and the canonical bytes of the result, or of
@@ -47,6 +51,7 @@ Usage, from anywhere (``npm run data`` in ``web/`` runs it):
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 import tomllib
@@ -57,6 +62,7 @@ from pyeconomics.core.canonical import canonical_json
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+    from types import ModuleType
 
     from pyeconomics.core.model import Model
     from pyeconomics.data import CandidateInfo, Concept
@@ -75,6 +81,7 @@ FILES: Final = (
     "sources.json",
     "concepts.json",
     "surfaces.json",
+    "syllabi.json",
     "golden.json",
 )
 
@@ -237,6 +244,40 @@ def surfaces_document(openapi: Mapping[str, Any]) -> dict[str, Any]:
     return {"format": SITE_DATA_FORMAT, "models": models}
 
 
+def syllabus_loader() -> ModuleType:
+    """Return ``scripts/web/syllabi.py``, the one loader of ``syllabi/``.
+
+    It is loaded by its path, so this script works however it is started.
+    """
+    loaded = sys.modules.get("syllabi")
+    if loaded is not None:
+        return loaded
+    path = Path(__file__).resolve().with_name("syllabi.py")
+    spec = importlib.util.spec_from_file_location("syllabi", path)
+    if spec is None or spec.loader is None:  # pragma: no cover - a fixed file
+        msg = f"cannot load {path}"
+        raise ImportError(msg)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["syllabi"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def syllabi_document() -> dict[str, Any]:
+    """Describe every syllabus crosswalk, sorted by id.
+
+    Raises
+    ------
+    ValueError
+        A ``SyllabusError`` naming every problem with the files in ``syllabi/``.
+    """
+    syllabi = syllabus_loader().load()
+    return {
+        "format": SITE_DATA_FORMAT,
+        "syllabi": [syllabus.to_json() for syllabus in syllabi],
+    }
+
+
 def _answer(model_id: str, inputs: Mapping[str, Any]) -> tuple[int, str]:
     """Return the Python API's answer to a run: its status and canonical text."""
     import pyeconomics  # noqa: PLC0415
@@ -288,7 +329,7 @@ def _write_openapi(path: Path) -> None:
 def write_site_data(
     out: Path, *, figures: bool = True, golden: Path = GOLDEN
 ) -> tuple[Path, ...]:
-    """Write the seven site data files into ``out``; return their paths.
+    """Write the eight site data files into ``out``; return their paths.
 
     Parameters
     ----------
@@ -317,6 +358,7 @@ def write_site_data(
         "sources.json": sources_document(),
         "concepts.json": concepts_document(),
         "surfaces.json": surfaces_document(openapi),
+        "syllabi.json": syllabi_document(),
         "golden.json": golden_document(golden),
     }
     for name, document in documents.items():

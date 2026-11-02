@@ -1,0 +1,251 @@
+# syllabi/analyst-program-2027.toml
+# The 2027 CFA® Program's topic areas for Levels I to III, mapped to the
+# launch catalog (ADR-0013 decision 12). Factual names and links to the issuing
+# body only: no learning-outcome wording, reading title or exam content, and a
+# neutral id. Topic names read from cfainstitute.org on the date in `checked`;
+# the mapping was drafted from the topic names and each model's card and
+# reviewed by the maintainer on 2026-11-02 (Phase 5 Step 7). The format is
+# syllabi/schema.json; scripts/web/syllabi.py validates it.
+
+format = 1
+id = "analyst-program-2027"
+title = "2027 CFA® Program"
+issuer = "CFA Institute"
+site = "https://www.cfainstitute.org/"
+url = "https://www.cfainstitute.org/programs/cfa-program/curriculum"
+checked = "2026-11-02"
+
+[[levels]]
+level = 1
+title = "Level I"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[levels]]
+level = 2
+title = "Level II"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[levels]]
+level = 3
+title = "Level III"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l1-ethics"
+level = 1
+title = "Ethical and Professional Standards"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-quantitative-methods"
+level = 1
+title = "Quantitative Methods"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-economics"
+level = 1
+title = "Economics"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-financial-statement-analysis"
+level = 1
+title = "Financial Statement Analysis"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-corporate-finance"
+level = 1
+title = "Corporate Finance"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-equities"
+level = 1
+title = "Equities"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-fixed-income"
+level = 1
+title = "Fixed Income"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-derivatives-risk"
+level = 1
+title = "Derivatives and Risk Management"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-alternative-investments"
+level = 1
+title = "Alternative Investments"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l1-portfolio-construction"
+level = 1
+title = "Portfolio Construction"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-i-exam"
+
+[[topics]]
+id = "l2-ethics"
+level = 2
+title = "Ethical and Professional Standards"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-quantitative-methods"
+level = 2
+title = "Quantitative Methods"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-economics"
+level = 2
+title = "Economics"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-financial-statement-analysis"
+level = 2
+title = "Financial Statement Analysis"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-corporate-finance"
+level = 2
+title = "Corporate Finance"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-equities"
+level = 2
+title = "Equities"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-fixed-income"
+level = 2
+title = "Fixed Income"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-derivatives-risk"
+level = 2
+title = "Derivatives and Risk Management"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-alternative-investments"
+level = 2
+title = "Alternative Investments"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l2-portfolio-construction"
+level = 2
+title = "Portfolio Construction"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-ii-exam"
+
+[[topics]]
+id = "l3-asset-allocation"
+level = 3
+title = "Asset Allocation"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-portfolio-construction"
+level = 3
+title = "Portfolio Construction"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-performance-measurement"
+level = 3
+title = "Performance Measurement"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-derivatives-risk"
+level = 3
+title = "Derivatives and Risk Management"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-ethics"
+level = 3
+title = "Ethical and Professional Standards"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-portfolio-management-pathway"
+level = 3
+title = "Portfolio Management pathway"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-private-markets-pathway"
+level = 3
+title = "Private Markets pathway"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[[topics]]
+id = "l3-private-wealth-pathway"
+level = 3
+title = "Private Wealth pathway"
+url = "https://www.cfainstitute.org/programs/cfa-program/candidate-resources/level-iii-exam"
+
+[models]
+"accounting.financial_ratios" = ["l1-financial-statement-analysis"]
+"accounting.scoring_models" = ["l1-financial-statement-analysis", "l2-financial-statement-analysis"]
+"asset_pricing.factor_model_tests" = ["l2-portfolio-construction"]
+"asset_pricing.factor_regression" = ["l1-equities", "l1-portfolio-construction", "l2-quantitative-methods", "l2-portfolio-construction"]
+"corporate.capital_budgeting" = ["l1-corporate-finance"]
+"corporate.cost_of_capital" = ["l1-corporate-finance", "l2-corporate-finance"]
+"corporate.leverage" = ["l1-corporate-finance"]
+"derivatives.binomial_tree" = ["l1-derivatives-risk", "l2-derivatives-risk"]
+"derivatives.black_scholes_merton" = ["l2-derivatives-risk"]
+"derivatives.forwards" = ["l1-economics", "l1-derivatives-risk", "l2-derivatives-risk"]
+"derivatives.futures_fx_options" = ["l2-derivatives-risk"]
+"derivatives.interest_rate_swap" = ["l1-derivatives-risk", "l2-derivatives-risk"]
+"econometrics.garch" = ["l2-quantitative-methods"]
+"econometrics.ols" = ["l1-quantitative-methods", "l2-quantitative-methods"]
+"econometrics.time_series" = ["l2-quantitative-methods"]
+"equity.cape" = ["l2-equities", "l3-asset-allocation"]
+"equity.dividend_discount" = ["l1-equities", "l2-equities"]
+"equity.free_cash_flow" = ["l2-equities"]
+"equity.implied_risk_premium" = ["l2-equities", "l3-asset-allocation"]
+"fixed_income.bond_pricing" = ["l1-fixed-income"]
+"fixed_income.convexity" = ["l1-fixed-income"]
+"fixed_income.credit_spread" = ["l1-fixed-income", "l2-fixed-income"]
+"fixed_income.curve_bootstrap" = ["l1-fixed-income", "l2-fixed-income"]
+"fixed_income.curve_fitting" = ["l2-fixed-income"]
+"fixed_income.duration" = ["l1-fixed-income", "l2-fixed-income"]
+"fixed_income.interest_rate_tree" = ["l2-fixed-income"]
+"fixed_income.money_market" = ["l1-fixed-income"]
+"foundations.hypothesis_tests" = ["l1-quantitative-methods"]
+"foundations.returns" = ["l1-quantitative-methods"]
+"foundations.risk_statistics" = ["l1-quantitative-methods"]
+"foundations.simulation" = ["l1-quantitative-methods"]
+"foundations.time_value" = ["l1-quantitative-methods"]
+"international.parity_conditions" = ["l1-economics", "l2-economics"]
+"macro.debt_dynamics" = ["l1-economics"]
+"macro.neutral_rate" = ["l1-economics", "l3-asset-allocation"]
+"macro.okun_law" = ["l1-economics"]
+"macro.output_gap" = ["l1-economics", "l3-asset-allocation"]
+"macro.phillips_curve" = ["l1-economics"]
+"macro.policy_rule" = ["l1-economics", "l3-asset-allocation"]
+"macro.recession_probability" = ["l1-economics", "l3-asset-allocation"]
+"macro.solow_growth" = ["l2-economics", "l3-asset-allocation"]
+"performance.brinson_attribution" = ["l3-performance-measurement"]
+"performance.return_measurement" = ["l1-quantitative-methods", "l3-performance-measurement"]
+"performance.risk_adjusted" = ["l1-portfolio-construction", "l2-portfolio-construction", "l3-performance-measurement"]
+"portfolio.black_litterman" = ["l3-asset-allocation"]
+"portfolio.mean_variance" = ["l1-portfolio-construction", "l3-asset-allocation"]
+"portfolio.risk_based_allocation" = ["l3-asset-allocation"]
+"portfolio.utility" = ["l1-portfolio-construction"]
+"risk.value_at_risk" = ["l2-portfolio-construction"]
+"risk.var_backtest" = ["l2-portfolio-construction"]

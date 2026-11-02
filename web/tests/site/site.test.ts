@@ -4,7 +4,11 @@
 // MathML; one page per row of the error table; a canonical link, Open Graph
 // tags, a 1200x630 social image and parseable schema.org JSON-LD on every
 // page; every internal link resolving; no markup from card text; and the
-// sitemap and robots.txt naming every page.
+// sitemap and robots.txt naming every page. Step 7's navigation: the header's
+// fifteen domain sections and breadcrumbs on every page, the planned
+// sections' empty states, the coverage matrix's counts held to the registry
+// and the seed, the search index, no `cfa` in any of the site's URLs, and the
+// CFA® mark used as an adjective with ® on first use.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,12 +16,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
-import { ORIGIN, modelPath } from "@/lib/paths";
+import { DOMAINS, ORIGIN, domainPath, modelPath } from "@/lib/paths";
 import { ogImagePath } from "@/lib/pages";
-import { problemData, registryData } from "@/lib/site-data";
+import { problemData, registryData, syllabusData } from "@/lib/site-data";
 
 const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
-const MODEL_PAGE = /^\/models\/[^/]+\/[^/]+\/$/;
 
 /**
  * Internal links to pages a later step builds, each with that step. Step 16
@@ -38,9 +41,11 @@ const SECTIONS = [
   "assumptions",
   "limitations",
   "evidence",
+  "syllabus",
   "data",
   "citations",
   "changelog",
+  "related",
   "use-it-elsewhere",
 ];
 
@@ -106,9 +111,9 @@ describe("the build", () => {
     expect(problems.sort()).toEqual(problemData.map((problem) => problem.slug).sort());
   });
 
-  it("writes the models index, every domain index and the problems index", () => {
-    const domains = new Set(registryData.models.map((model) => model.domain.replaceAll("_", "-")));
-    for (const path of ["/", "/models/", "/problems/", ...[...domains].map((d) => `/models/${d}/`)]) {
+  it("writes the models index, all fifteen domain pages, search, coverage and the problems index", () => {
+    expect(DOMAINS).toHaveLength(15);
+    for (const path of ["/", "/models/", "/search/", "/coverage/", "/problems/", ...DOMAINS.map((d) => domainPath(d.id))]) {
       expect(PAGES, path).toContain(path);
     }
   });
@@ -128,7 +133,9 @@ describe("every model page", () => {
 
     it(`${model.id} carries one calculator island, hydrated when visible, and Plotly's style marker`, () => {
       const page = html(modelPath(model.id));
-      const islands = tags(page).filter((tag) => tag.startsWith("<astro-island"));
+      const islands = tags(page).filter(
+        (tag) => tag.startsWith("<astro-island") && /\/Calculator\./.test(attributes(tag).get("component-url") ?? ""),
+      );
       expect(islands).toHaveLength(1);
       const island = attributes(islands[0] ?? "");
       expect(island.get("client")).toBe("visible");
@@ -194,18 +201,20 @@ describe("every page", () => {
     for (const planned of PLANNED.keys()) expect(resolves(planned), `${planned} now builds: remove it from PLANNED`).toBe(false);
   });
 
-  it("holds no markup from card text: no script but its JSON-LD and the island's, no handler, style or frame", () => {
+  it("holds no markup from card text: no script but its JSON-LD and the islands', no handler, style or frame", () => {
     for (const path of [...PAGES, "/404.html"]) {
       const page = path.endsWith(".html") ? readFileSync(join(DIST, path), "utf8") : html(path);
-      // A model page's calculator island: Astro's runtime, inline and hashed in
-      // the page's policy (checkPage, the post-build check, finds no problem),
-      // and its one style element; no other page ships either.
-      const island = MODEL_PAGE.test(path);
-      if (island) expect(checkPage(page).problems, path).toEqual([]);
+      // Every page has the header's search island: Astro's runtime, inline and
+      // hashed in the page's policy (checkPage, the post-build check, finds no
+      // problem), and its one style element. The only forms are the search
+      // forms and the /models/ filters.
+      expect(checkPage(page).problems, path).toEqual([]);
       for (const tag of tags(page)) {
         const name = /^<([a-zA-Z][a-zA-Z0-9-]*)/.exec(tag)?.[1]?.toLowerCase() ?? "";
-        const runtime = island && (tag === "<script>" || tag === "<style>");
-        if (!runtime) expect(["iframe", "object", "embed", "style", "form", "base"], `${path}: ${tag}`).not.toContain(name);
+        const runtime = tag === "<script>" || tag === "<style>";
+        const form = attributes(tag);
+        const known = name === "form" && (form.get("role") === "search" || form.get("aria-label") === "Filter models");
+        if (!runtime && !known) expect(["iframe", "object", "embed", "style", "form", "base"], `${path}: ${tag}`).not.toContain(name);
         if (name === "script" && !runtime) expect(attributes(tag).get("type"), `${path}: ${tag}`).toBe("application/ld+json");
         if (name === "img") expect(attributes(tag).get("src"), `${path}: ${tag}`).toBe("/favicon.svg");
         for (const attribute of attributes(tag).keys()) {
@@ -219,6 +228,134 @@ describe("every page", () => {
     const page = readFileSync(join(DIST, "404.html"), "utf8");
     expect(meta(page, "robots")).toBe("noindex");
     expect(page).not.toContain('rel="canonical"');
+  });
+});
+
+/** A page's text as a reader sees it: no head, script, style, tag or attribute. */
+function text(page: string): string {
+  return page
+    .replace(/<head[\s\S]*?<\/head>/, "")
+    .replace(/<script[\s\S]*?<\/script>/g, "")
+    .replace(/<style[\s\S]*?<\/style>/g, "")
+    .replace(/<[^>]*>/g, " ")
+    .replaceAll("&#174;", "®")
+    .replaceAll("&reg;", "®")
+    .replace(/\s+/g, " ");
+}
+
+/** Every page's file, the 404 page's included. */
+const DOCUMENTS = [...PAGES.map((path) => `${path.slice(1)}index.html`), "404.html"];
+
+describe("navigation", () => {
+  it("puts the fifteen domain sections in the header of every page, in order, with breadcrumbs", () => {
+    const expected = DOMAINS.map((domain) => domainPath(domain.id));
+    for (const file of DOCUMENTS) {
+      const page = readFileSync(join(DIST, file), "utf8");
+      for (const list of ["data-domains-row", "data-domains-menu"]) {
+        const start = page.indexOf(list);
+        expect(start, `${file}: ${list}`).toBeGreaterThan(0);
+        const block = page.slice(start, page.indexOf("</ul>", start));
+        const links = [...block.matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
+        expect(links, `${file}: ${list}`).toEqual(expected);
+      }
+      expect(page, file).toContain('<nav aria-label="Breadcrumb"');
+    }
+  });
+
+  it("lists each populated domain's models, and gives micro and alternatives a Phase 7 empty state", () => {
+    for (const domain of DOMAINS) {
+      const page = html(domainPath(domain.id));
+      const models = registryData.models.filter((model) => model.domain === domain.id).map((model) => model.id);
+      const listed = [...page.matchAll(/data-model="([^"]+)"/g)].map((match) => match[1]);
+      expect(listed.sort(), domain.id).toEqual(models.sort());
+      if (domain.planned) {
+        expect(models, domain.id).toEqual([]);
+        expect(page).toContain(`data-empty-domain="${domain.id}"`);
+        expect(text(page)).toContain(`Its first models arrive in ${domain.planned}`);
+        expect(page).toContain('href="/coverage/"');
+      }
+    }
+    expect(DOMAINS.filter((domain) => domain.planned).map((domain) => domain.id)).toEqual(["micro", "alternatives"]);
+  });
+
+  it("renders every model in the /models/ list before any filter runs", () => {
+    const listed = [...html("/models/").matchAll(/data-model="([^"]+)"/g)].map((match) => match[1]);
+    expect(listed.sort()).toEqual(registryData.models.map((model) => model.id).sort());
+  });
+
+  it("publishes a coverage matrix whose counts are the registry's and the seed's", () => {
+    const page = html("/coverage/");
+    const seed = syllabusData[0];
+    const models = new Map(Object.entries(seed?.models ?? {}));
+    for (const topic of seed?.topics ?? []) {
+      const count = [...models.values()].filter((topics) => topics.includes(topic.id)).length;
+      expect(page, topic.id).toContain(`data-topic="${topic.id}" data-count="${String(count)}"`);
+    }
+    const covered = new Set([...models.values()].flat()).size;
+    expect(page).toContain(`data-coverage-covered="${String(covered)}" data-coverage-total="${String(seed?.topics.length)}"`);
+    for (const domain of DOMAINS) {
+      const count = registryData.models.filter((model) => model.domain === domain.id).length;
+      expect(page, domain.id).toContain(`data-domain="${domain.id}" data-count="${String(count)}"`);
+    }
+    expect(text(page)).toContain("Planned: Phase 7");
+  });
+
+  it("ships Pagefind's index, its API and worker, and none of its UI bundles", () => {
+    const entry = JSON.parse(readFileSync(join(DIST, "pagefind", "pagefind-entry.json"), "utf8")) as {
+      languages: Record<string, { page_count: number }>;
+    };
+    const searchable = DOCUMENTS.filter((file) => readFileSync(join(DIST, file), "utf8").includes("data-pagefind-body"));
+    expect(Object.values(entry.languages).reduce((sum, language) => sum + language.page_count, 0)).toBe(searchable.length);
+    expect(searchable).not.toContain("404.html");
+    for (const model of registryData.models) expect(searchable).toContain(`${modelPath(model.id).slice(1)}index.html`);
+    for (const file of ["pagefind/pagefind.js", "pagefind/pagefind-worker.js"]) expect(FILES).toContain(file);
+    expect(FILES.filter((file) => /^pagefind\/pagefind-(ui|modular-ui|component-ui|highlight)/.test(file))).toEqual([]);
+  });
+});
+
+describe("CFA Institute's marks", () => {
+  it("never puts cfa in a path or query value of the site's own URLs", () => {
+    const found: string[] = [];
+    const check = (where: string, url: string) => {
+      const own = url.startsWith("/") ? !url.startsWith("//") : url === ORIGIN || url.startsWith(`${ORIGIN}/`);
+      if (!own) return;
+      const parsed = new URL(url, ORIGIN);
+      const values = [...parsed.searchParams.values()];
+      if (/cfa/i.test(decodeURIComponent(parsed.pathname)) || values.some((value) => /cfa/i.test(value))) {
+        found.push(`${where}: ${url}`);
+      }
+    };
+    for (const file of DOCUMENTS) {
+      const page = readFileSync(join(DIST, file), "utf8");
+      for (const tag of tags(page)) {
+        const values = attributes(tag);
+        for (const name of ["href", "src", "action", "content"]) {
+          const value = values.get(name);
+          if (value) check(file, value);
+        }
+      }
+      // The islands' props, which carry each result's path.
+      for (const match of page.matchAll(/&quot;(\/[^&]*)&quot;/g)) check(`${file} (props)`, match[1] ?? "");
+    }
+    for (const file of FILES.filter((name) => /^sitemap-\d+\.xml$/.test(name))) {
+      for (const match of readFileSync(join(DIST, file), "utf8").matchAll(/<loc>([^<]*)<\/loc>/g)) check(file, match[1] ?? "");
+    }
+    for (const line of readFileSync(join(DIST, "_redirects"), "utf8").split("\n").filter(Boolean)) {
+      for (const part of line.split(" ").slice(0, 2)) check("_redirects", part);
+    }
+    expect(found).toEqual([]);
+  });
+
+  it("uses the mark as an adjective, with ® on first use, beside the non-affiliation notice", () => {
+    const ALLOWED = /^CFA(® Program|® and Chartered Financial Analyst®| Program| Institute)/;
+    for (const file of DOCUMENTS) {
+      const words = text(readFileSync(join(DIST, file), "utf8"));
+      const uses = [...words.matchAll(/CFA/g)].map((match) => words.slice(match.index, match.index + 40));
+      for (const use of uses) expect(use, file).toMatch(ALLOWED);
+      const marks = uses.filter((use) => !use.startsWith("CFA Institute"));
+      expect(marks[0]?.startsWith("CFA®"), file).toBe(true);
+      expect(words, file).toContain("pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute.");
+    }
   });
 });
 

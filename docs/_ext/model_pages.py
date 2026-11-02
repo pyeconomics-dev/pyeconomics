@@ -1,20 +1,38 @@
 # docs/_ext/model_pages.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""Generate documentation from the installed model registry."""
+"""Generate documentation from the installed model registry.
+
+Each model's page is its card. When the syllabus crosswalks are given (the
+builder hook loads them from ``syllabi/`` through ``scripts/web/syllabi.py``,
+the loader the site data export uses too), the card's curriculum note is
+replaced by the model's topic tags, each a title and a link to the issuing
+body's page (ADR-0013 decision 12).
+"""
 
 from __future__ import annotations
 
+import importlib.util
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
-from pyeconomics.core.cards import ModelCard
+from pyeconomics.core.cards import CURRICULUM_NOTE, ModelCard
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from types import ModuleType
+
     from pyeconomics.core.binding import CandidateNote
     from pyeconomics.core.model import Model
+
+#: The one loader of ``syllabi/``, beside the site data export.
+SYLLABUS_LOADER = Path(__file__).resolve().parents[2] / "scripts" / "web" / "syllabi.py"
+
+#: Where the coverage matrix is published (ADR-0013 decision 12).
+COVERAGE_URL = "https://pyeconomics.dev/coverage/"
 
 
 class Catalog(Protocol):
@@ -55,11 +73,61 @@ def _candidates(model: Model[Any, Any]) -> dict[str, tuple[CandidateNote, ...]] 
     return candidate_notes(model)
 
 
-def write_pages(root: Path, catalog: Catalog) -> tuple[Path, ...]:
+def syllabus_loader() -> ModuleType:
+    """Return ``scripts/web/syllabi.py``, loaded by its path."""
+    loaded = sys.modules.get("syllabi")
+    if loaded is not None:
+        return loaded
+    spec = importlib.util.spec_from_file_location("syllabi", SYLLABUS_LOADER)
+    if spec is None or spec.loader is None:  # pragma: no cover - a fixed file
+        message = f"cannot load {SYLLABUS_LOADER}"
+        raise ImportError(message)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["syllabi"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def curriculum_section(model_id: str, syllabi: Sequence[Any]) -> str:
+    """Return the curriculum section's text: each syllabus's tags for the model.
+
+    Each syllabus that maps the model gets a line naming it (its title carries
+    the issuer's mark as an adjective) and one linked item per topic; a model
+    no syllabus maps says so and points to the coverage matrix.
+    """
+    blocks: list[str] = []
+    for syllabus in syllabi:
+        topics = syllabus.topics_of(model_id)
+        if not topics:
+            continue
+        items = [
+            f"- [{syllabus.level(topic.level).title}: {topic.title}]({topic.url})"
+            for topic in topics
+        ]
+        blocks.append(
+            f"{syllabus.title} topic areas whose formulas this model implements, "
+            f"as factual tags linking to {syllabus.issuer}:\n\n" + "\n".join(items)
+        )
+    if not blocks:
+        return (
+            "No syllabus topic is mapped to this model yet; the coverage matrix is "
+            f"at <{COVERAGE_URL}>."
+        )
+    blocks.append(
+        "pyeconomics is not affiliated with any issuing body; see {doc}`/notices`."
+    )
+    return "\n\n".join(blocks)
+
+
+def write_pages(
+    root: Path, catalog: Catalog, syllabi: Sequence[Any] = ()
+) -> tuple[Path, ...]:
     """Write cards and indexes; remove stale generated Markdown only.
 
     ``root`` is the dedicated, ignored generation directory. Validate ids before
-    any filesystem changes, so a malformed registry cannot escape it.
+    any filesystem changes, so a malformed registry cannot escape it. With
+    ``syllabi`` (loaded :class:`syllabi.Syllabus` objects), each card's
+    curriculum note becomes the model's topic tags.
     """
     model_ids = catalog.ids()
     if len(set(model_ids)) != len(model_ids) or any(
@@ -74,9 +142,12 @@ def write_pages(root: Path, catalog: Catalog) -> tuple[Path, ...]:
     for model_id in sorted(model_ids):
         domain, _, name = model_id.partition(".")
         model = catalog.get(model_id)
-        pages[Path(domain, *name.split(".")).with_suffix(".md")] = ModelCard.from_model(
-            model, _candidates(model)
-        ).to_markdown()
+        markdown = ModelCard.from_model(model, _candidates(model)).to_markdown()
+        if syllabi:
+            markdown = markdown.replace(
+                CURRICULUM_NOTE, curriculum_section(model_id, syllabi), 1
+            )
+        pages[Path(domain, *name.split(".")).with_suffix(".md")] = markdown
         domains[domain].append(name.replace(".", "/"))
     for domain, names in sorted(domains.items()):
         pages[Path(domain, "index.md")] = (
@@ -112,7 +183,11 @@ def setup(app: Any) -> dict[str, object]:  # noqa: ANN401
     def generate(application: Any) -> None:  # noqa: ANN401
         try:
             registry.validate()
-            write_pages(Path(application.srcdir) / "reference" / "models", registry)
+            write_pages(
+                Path(application.srcdir) / "reference" / "models",
+                registry,
+                syllabus_loader().load(),
+            )
         except ValueError as error:
             raise ExtensionError(str(error)) from error
 

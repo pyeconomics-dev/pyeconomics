@@ -1,0 +1,141 @@
+---
+// web/src/pages/coverage/index.astro
+// /coverage/, the coverage matrix (ROADMAP §4 7.1; ADR-0013 decision 12),
+// generated from the registry and syllabi/ at build time, never edited by
+// hand (src/lib/catalog.ts coverage()). The first view lists each syllabus's
+// topic areas by level with the models that implement them; every registered
+// model meets the model definition of done, so each is verified, and a topic
+// no model covers yet is Phase 7's. The second view counts the models of each
+// domain section, the planned ones included. tests/site/ holds its counts to
+// the registry and the seed.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { coverage } from "@/lib/catalog";
+import { domainPath } from "@/lib/models";
+import { COVERAGE } from "@/lib/pages";
+import { registryData, syllabusData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+import { parseModels } from "@/lib/registry-schema";
+
+const matrix = coverage(parseModels(registryData), syllabusData);
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: COVERAGE.title, path: "/coverage/" },
+];
+const populated = matrix.domains.filter((entry) => entry.count > 0).length;
+const planned = matrix.domains.filter((entry) => entry.count === 0);
+---
+
+<Base
+  title={COVERAGE.title}
+  description={COVERAGE.description}
+  jsonLd={webPage("/coverage/", COVERAGE.title, COVERAGE.description, trail)}
+>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">Coverage</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    What the catalog covers today: {matrix.models} models in {populated} of {matrix.domains.length} domains. Every model
+    meets the definition of done (a model card, citations, cited golden cases, property tests, units and bounds), so
+    each one listed here is verified. This page is generated from the registry and the syllabus crosswalks each time the
+    site is built.
+  </p>
+
+  {
+    matrix.syllabi.map((entry) => (
+      <section class="mt-12 flex flex-col gap-4" aria-labelledby={`syllabus-${entry.syllabus.id}`} data-syllabus={entry.syllabus.id}>
+        <h2 id={`syllabus-${entry.syllabus.id}`} class="text-2xl font-semibold">
+          By topic area: {entry.syllabus.title}
+        </h2>
+        <p class="max-w-3xl">
+          The topic areas of the <a href={entry.syllabus.url}>{entry.syllabus.title}</a>, as {entry.syllabus.issuer}{" "}
+          publishes them, are factual tags: pyeconomics implements formulas commonly covered there, and holds none of the
+          curriculum's text. <span data-coverage-covered={entry.covered} data-coverage-total={entry.total}>
+            {entry.covered} of {entry.total} topic areas
+          </span>{" "}
+          have at least one model, and {entry.mapped} models are mapped. The topic areas with none are planned for Phase
+          7, which adds the remaining coverage and the other syllabi. Topic names checked {entry.syllabus.checked}.
+        </p>
+        {entry.levels.map((level) => (
+          <div class="overflow-x-auto" role="region" aria-label={`${entry.syllabus.title}, ${level.level.title}`} tabindex="0">
+            <table class="w-full border-collapse text-left text-sm" data-level={level.level.level}>
+              <caption class="mb-2 text-left text-lg font-semibold">
+                <a href={level.level.url}>{level.level.title}</a>
+              </caption>
+              <thead>
+                <tr class="border-b">
+                  <th scope="col" class="w-1/3 py-2 pr-4">
+                    Topic area
+                  </th>
+                  <th scope="col" class="py-2 pr-4">
+                    Models
+                  </th>
+                  <th scope="col" class="py-2">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {level.topics.map((row) => (
+                  <tr class="border-b align-top" data-topic={row.topic.id} data-count={row.models.length}>
+                    <th scope="row" class="py-2 pr-4 font-normal">
+                      <a href={row.topic.url}>{row.topic.title}</a>
+                    </th>
+                    <td class="py-2 pr-4">
+                      {row.models.length > 0 ? (
+                        <ul class="flex flex-col gap-1">
+                          {row.models.map((model) => (
+                            <li>
+                              <a href={model.path}>{model.title}</a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span class="text-muted-foreground">None yet</span>
+                      )}
+                    </td>
+                    <td class="py-2">
+                      {row.models.length > 0 ? `${row.models.length} verified` : "Planned: Phase 7"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </section>
+    ))
+  }
+
+  <section class="mt-12 flex flex-col gap-4" aria-labelledby="by-domain">
+    <h2 id="by-domain" class="text-2xl font-semibold">By domain</h2>
+    <p class="max-w-3xl">
+      The fifteen domain sections. {planned.length > 0 && `${planned.map((entry) => entry.domain.title).join(" and ")} ${planned.length === 1 ? "is" : "are"} planned.`}
+    </p>
+    <div class="overflow-x-auto" role="region" aria-label="Models by domain" tabindex="0">
+      <table class="w-full border-collapse text-left text-sm" data-domains-table="">
+        <thead>
+          <tr class="border-b">
+            <th scope="col" class="py-2 pr-4">Domain</th>
+            <th scope="col" class="py-2 pr-4">Models</th>
+            <th scope="col" class="py-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            matrix.domains.map((entry) => (
+              <tr class="border-b" data-domain={entry.domain.id} data-count={entry.count}>
+                <th scope="row" class="py-2 pr-4 font-normal">
+                  <a href={domainPath(entry.domain.id)}>{entry.domain.title}</a>
+                </th>
+                <td class="py-2 pr-4">{entry.count}</td>
+                <td class="py-2">
+                  {entry.count > 0 ? `${entry.count} verified` : `Planned: ${entry.domain.planned ?? "a later phase"}`}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Base>

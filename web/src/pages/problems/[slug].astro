@@ -28,9 +28,15 @@ const trail: Crumb[] = [
 ];
 ---
 
-<Base title={problem.title} description={problem.meaning} jsonLd={webPage(path, problem.title, problem.meaning, trail)}>
+<Base
+  title={problem.title}
+  description={problem.meaning}
+  jsonLd={webPage(path, problem.title, problem.meaning, trail)}
+  searchable
+>
   <Breadcrumbs trail={trail} />
   <h1 class="text-4xl font-bold tracking-tight">{problem.title}</h1>
+  <span hidden data-pagefind-meta="kind:Problem"></span>
   <dl class="mt-6 grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
     <dt class="text-muted-foreground">Type</dt>
     <dd><code class="break-all">{problem.type}</code></dd>

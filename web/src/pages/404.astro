@@ -2,11 +2,18 @@
 // web/src/pages/404.astro
 // The page Workers static assets serve, with status 404, for any path the
 // build did not write (not_found_handling "404-page" in wrangler.jsonc).
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import { buttonVariants } from "@/components/ui/button";
 import Base from "@/layouts/Base.astro";
 ---
 
 <Base title="Page not found" description="The page you asked for does not exist on pyeconomics." noindex>
+  <Breadcrumbs
+    trail={[
+      { name: "Home", path: "/" },
+      { name: "Page not found", path: "/404/" },
+    ]}
+  />
   <section class="flex flex-col gap-6">
     <h1 class="text-4xl font-bold tracking-tight">Page not found</h1>
     <p class="max-w-2xl text-lg">

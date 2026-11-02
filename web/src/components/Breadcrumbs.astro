@@ -1,7 +1,8 @@
 ---
 // web/src/components/Breadcrumbs.astro
 // The trail from the home page to this one, the same trail the page's
-// BreadcrumbList JSON-LD names. The last crumb is the page itself.
+// BreadcrumbList JSON-LD names. The last crumb is the page itself. Search
+// leaves the trail out of a page's text (data-pagefind-ignore).
 import type { Crumb } from "@/lib/structured-data";
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 const { trail } = Astro.props;
 ---
 
-<nav aria-label="Breadcrumb" class="mb-6 text-sm text-muted-foreground">
+<nav aria-label="Breadcrumb" class="mb-6 text-sm text-muted-foreground" data-pagefind-ignore="">
   <ol class="flex flex-wrap gap-x-2 gap-y-1">
     {
       trail.map((crumb, index) =>

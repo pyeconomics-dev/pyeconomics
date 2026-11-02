@@ -6,7 +6,9 @@
 // alone. A formula that plants HTML fails instead of rendering. The page's one
 // island, the calculator, is rendered with React's container renderer: its
 // props carry card text only inside a quoted attribute, and the only scripts
-// beside the JSON-LD are Astro's island runtime, which carries none.
+// beside the JSON-LD are Astro's island runtime, which carries none. A second
+// hostile model shares its tags, so the related models render hostile titles
+// too.
 import { getContainerRenderer } from "@astrojs/react/container-renderer";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { loadRenderers } from "astro:container";
@@ -21,9 +23,9 @@ const IMAGE = '<img src="x" onerror="alert(2)">';
 const HOSTILE = `${SCRIPT} ${IMAGE}`;
 
 const TOY: Model = {
-  id: "toy.hostile",
+  id: "foundations.hostile",
   version: 1,
-  domain: "toy",
+  domain: "foundations",
   title: `Hostile ${HOSTILE}`,
   summary: `A summary ${HOSTILE}`,
   tags: [HOSTILE],
@@ -50,7 +52,7 @@ const TOY: Model = {
   output_schema: { type: "object", properties: { value: { type: "number", description: HOSTILE } } },
   card: `# Hostile\n\n${HOSTILE}\n`,
   example_result: {
-    model_id: "toy.hostile",
+    model_id: "foundations.hostile",
     model_version: 1,
     inputs: { rate: HOSTILE },
     outputs: { value: HOSTILE },
@@ -60,20 +62,35 @@ const TOY: Model = {
   example_figure: null,
 };
 
+const TWIN: Model = { ...TOY, id: "foundations.hostile_twin", title: `Twin ${HOSTILE}` };
+
 const SURFACE = {
-  id: "toy.hostile",
-  rest: "/v1/models/toy.hostile/run",
+  id: "foundations.hostile",
+  rest: "/v1/models/foundations.hostile/run",
   methods: ["GET", "POST"],
   mcp_tool: null,
-  cli: "pyeconomics models run toy.hostile",
+  cli: "pyeconomics models run foundations.hostile",
   profiles: [],
 };
 
+/**
+ * The client directives the page uses: the container knows Astro's own, and
+ * the header's search box uses the site's `client:interaction`. Their code is
+ * not under test, so each is a placeholder.
+ */
+const DIRECTIVES = new Map(
+  ["idle", "load", "media", "only", "visible", "interaction"].map((name) => [name, `/* ${name} */`]),
+);
+
 async function render(model: Model): Promise<string> {
-  const container = await AstroContainer.create({ renderers: await loadRenderers([getContainerRenderer()]) });
+  const container = await AstroContainer.create({
+    renderers: await loadRenderers([getContainerRenderer()]),
+    // A partial manifest: the container fills every other field with its default.
+    manifest: { clientDirectives: DIRECTIVES } as never,
+  });
   return container.renderToString(ModelPage, {
-    props: { model, surface: SURFACE },
-    request: new Request("https://pyeconomics.dev/models/toy/hostile/"),
+    props: { model, surface: SURFACE, models: [model, TWIN] },
+    request: new Request("https://pyeconomics.dev/models/foundations/hostile/"),
   });
 }
 
@@ -101,6 +118,7 @@ describe("the model page", () => {
     }
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     expect(html).toContain("&lt;img");
+    expect(html).toContain('data-related="foundations.hostile_twin"');
   });
 
   it("writes the JSON-LD so no text can close its element", async () => {
@@ -124,8 +142,10 @@ describe("the model page", () => {
       "assumptions",
       "limitations",
       "evidence",
+      "syllabus",
       "citations",
       "changelog",
+      "related",
       "use-it-elsewhere",
     ]);
     expect(html).toContain("<math");

@@ -22,6 +22,7 @@ export const REQUIRED = [
   "src/data/generated/sources.json",
   "src/data/generated/concepts.json",
   "src/data/generated/surfaces.json",
+  "src/data/generated/syllabi.json",
   "src/client/index.ts",
 ] as const;
 
@@ -73,8 +74,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     process.stderr.write(
       `The site data is missing (${absent.join(", ")}).\n` +
         "Run `npm run data` in web/ first: it exports the registry, the OpenAPI document, the\n" +
-        "error table, the sources, the concepts and each model's surfaces, precompiles each\n" +
-        "model's validator, and generates the TypeScript client.\n",
+        "error table, the sources, the concepts, each model's surfaces and the syllabus\n" +
+        "crosswalks, precompiles each model's validator, and generates the TypeScript client.\n",
     );
     process.exit(1);
   }

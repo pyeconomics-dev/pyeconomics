@@ -222,11 +222,21 @@ def test_surfaces_refuse_a_model_with_no_run_route() -> None:
         export.surfaces_document({"paths": {}})
 
 
+def test_syllabi_come_from_the_one_loader() -> None:
+    document = export.syllabi_document()
+    assert document["format"] == export.SITE_DATA_FORMAT
+    (syllabus,) = document["syllabi"]
+    assert syllabus["id"] == "analyst-program-2027"
+    assert sorted(syllabus["models"]) == sorted(registry.ids())
+    assert export.syllabus_loader() is export.syllabus_loader()
+
+
 def test_documents_are_deterministic() -> None:
     for build in (
         export.problems_document,
         export.sources_document,
         export.concepts_document,
+        export.syllabi_document,
     ):
         assert canonical_json(build()) == canonical_json(build())
 
@@ -249,6 +259,8 @@ def test_write_site_data_writes_canonical_files_and_removes_stale_ones(
     assert [m["id"] for m in document["models"]] == [m.id for m in registry.models()]
     assert all(m["example_figure"] is None for m in document["models"])
     assert read(tmp_path / "openapi.json")["openapi"].startswith("3.1")
+    syllabi = read(tmp_path / "syllabi.json")["syllabi"]
+    assert [s["id"] for s in syllabi] == ["analyst-program-2027"]
     surfaces = read(tmp_path / "surfaces.json")["models"]
     assert [m["id"] for m in surfaces] == [m.id for m in registry.models()]
     assert [c["case"] for c in read(tmp_path / "golden.json")["cases"]] == [

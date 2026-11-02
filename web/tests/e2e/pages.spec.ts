@@ -2,7 +2,7 @@
 // Every page the build wrote, and the 404 page, served as Cloudflare serves
 // them: decision 9's headers, the layout's notices and landmarks, and no
 // inline style, and no executable inline script but the island runtime the
-// policy hashes. A sample (decision 19's pages that exist, a model page per
+// policy hashes (every page has the header's search island). A sample (decision 19's pages that exist, a model page per
 // cost class, a bound model, models with a chart, and a problem page) is also
 // checked for a skip link with a visible focus, no WCAG 2.2 AA violation under
 // axe in light and dark, and no Content Security Policy violation or console
@@ -31,6 +31,10 @@ const SAMPLE = [
   "/models/econometrics/garch/",
   // instant, reads no data
   "/models/derivatives/black-scholes-merton/",
+  // a planned section's empty state
+  "/models/micro/",
+  "/search/",
+  "/coverage/",
   // light, with a chart
   "/models/econometrics/ols/",
   "/problems/",
@@ -67,10 +71,11 @@ for (const path of [...pages(), NOT_FOUND]) {
       await expect(footer.getByRole("link", { name: link.label, exact: true })).toHaveAttribute("href", link.href);
     }
     expect(await page.locator("[style]").count()).toBe(0);
-    // Inline scripts: the JSON-LD, which no browser executes, and on a model
-    // page the calculator island's runtime, whose every script the policy hashes.
+    // Inline scripts: the JSON-LD, which no browser executes, and the islands'
+    // runtime (the header's search box on every page), whose every script the
+    // policy hashes.
     const inline = await page.locator('script:not([src]):not([type="application/ld+json"])').allTextContents();
-    if (!/^\/models\/[^/]+\/[^/]+\/$/.test(path)) expect(inline).toEqual([]);
+    expect(inline.length).toBeGreaterThan(0);
     for (const text of inline) expect(policy).toContain(hashSource(text));
   });
 }

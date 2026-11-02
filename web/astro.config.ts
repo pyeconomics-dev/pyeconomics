@@ -11,11 +11,15 @@
 // dist/_headers. shippedPackages() records the npm packages the client bundle
 // holds, for the licence check of what ships. @astrojs/sitemap lists every page
 // on the production origin (sitemap-index.xml), except the 404 page, which is
-// not a page anyone should land on from a search.
+// not a page anyone should land on from a search. `client:interaction`
+// (src/directives/interaction.ts) hydrates an island when a visitor first
+// reaches for it: the header's search box, so no page loads a script for it.
+import { fileURLToPath } from "node:url";
+
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import type { AstroUserConfig } from "astro";
+import type { AstroIntegration, AstroUserConfig } from "astro";
 import { defineConfig } from "astro/config";
 
 import { DIRECTIVES, metaDirectives } from "./csp.config.ts";
@@ -25,6 +29,21 @@ import shippedPackages from "./scripts/shipped-packages.ts";
 // csp.config.ts is one of Astro's, and scripts/headers.ts checks the result.
 type Csp = Exclude<NonNullable<NonNullable<AstroUserConfig["security"]>["csp"]>, boolean>;
 type Directive = NonNullable<Csp["directives"]>[number];
+
+/** Registers `client:interaction`. */
+function interactionDirective(): AstroIntegration {
+  return {
+    name: "pyeconomics:interaction-directive",
+    hooks: {
+      "astro:config:setup": ({ addClientDirective }) => {
+        addClientDirective({
+          name: "interaction",
+          entrypoint: fileURLToPath(new URL("./src/directives/interaction.ts", import.meta.url)),
+        });
+      },
+    },
+  };
+}
 
 export default defineConfig({
   site: "https://pyeconomics.dev",
@@ -36,7 +55,7 @@ export default defineConfig({
   },
   devToolbar: { enabled: false },
   markdown: { syntaxHighlight: false },
-  integrations: [react(), sitemap({ filter: (page) => !page.endsWith("/404/") })],
+  integrations: [react(), interactionDirective(), sitemap({ filter: (page) => !page.endsWith("/404/") })],
   vite: {
     plugins: [tailwindcss(), shippedPackages()],
     build: { assetsInlineLimit: 0 },

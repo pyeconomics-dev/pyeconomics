@@ -6,7 +6,7 @@
 A :class:`ModelCard` has the sections ROADMAP section 5 asks of a model: the
 title and summary, the formula (LaTeX), a variables table for the inputs and the
 outputs, assumptions, limitations, the evidence status and what it means, a worked
-example, references, a curriculum-mapping placeholder, the changelog and a
+example, references, a curriculum-mapping note, the changelog and a
 notice. A model that declares data bindings gains a "Data" section after the
 variables: each binding's concept, transform, as-of rule and vintage policy, and,
 when the caller supplies them, the licence classes and notices of the sources that
@@ -57,8 +57,13 @@ __all__ = [
 #: The fixed notice that closes every card.
 NOTICE: Final = "Educational and informational use only; not investment advice."
 
-#: The curriculum-mapping section until Phase 7 supplies crosswalks.
-CURRICULUM_NOTE: Final = "Not yet mapped; syllabus crosswalks arrive in Phase 7."
+#: The curriculum-mapping section. The syllabus crosswalks are repository data
+#: (``syllabi/``) the wheel does not carry, so the card points to the pages that
+#: list a model's tags; the documentation's page replaces this line with them.
+CURRICULUM_NOTE: Final = (
+    "Syllabus topic tags are repository data (syllabi/), listed on this model's "
+    "pages at pyeconomics.dev and in the documentation."
+)
 
 #: What each evidence status tells a reader (ROADMAP section 5).
 EVIDENCE_MEANING: Final = {
