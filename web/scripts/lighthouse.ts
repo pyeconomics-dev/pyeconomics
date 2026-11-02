@@ -1,9 +1,9 @@
 // web/scripts/lighthouse.ts
 // Lighthouse on decision 19's page sample (ADR-0013): for each sample page the
 // build wrote, three mobile runs against `wrangler dev`, each in a Chrome of
-// its own, and the median score of each category must be at least 90. It
-// drives Lighthouse 13 directly in Playwright's Chromium: @lhci/cli 0.15.1,
-// last published in June 2025,
+// its own after one uncounted warm-up run, and the median score of each
+// category must be at least 90. It drives Lighthouse 13 directly in
+// Playwright's Chromium: @lhci/cli 0.15.1, last published in June 2025,
 // bundles Lighthouse 12.6.1 and a dependency tree that fails `npm audit` at
 // high. Reports go to .lighthouse/ (git-ignored), one JSON file per run, and
 // the trace of the first runs that hold a long task no script accounts for.
@@ -150,6 +150,9 @@ async function main(): Promise<number> {
   const failures: string[] = [];
   let traces = 0;
   try {
+    // One uncounted run first: a fresh runner's first Chrome loads its binary
+    // and builds its font caches, which slowed the first page's runs in CI.
+    await measure(`${ORIGIN}${pages[0] ?? "/"}`);
     for (const path of pages) {
       const scores = new Map<string, number[]>(CATEGORIES.map((category) => [category, []]));
       for (let run = 1; run <= RUNS; run += 1) {
