@@ -633,8 +633,9 @@ From Phase 5 Step 6, which builds the calculators:
   utilities only, imported `?inline`) as a constructed stylesheet, because
   Astro links a dynamic import's CSS in the page head. `global.css` leaves
   the calculator's sources out (`@source not`); never `@source` the theme
-  there. CI's Lighthouse runs the sample in rounds (`schedule()`), because a
-  runner's busy spells come in runs of consecutive measurements.
+  there. `scripts/lighthouse.ts` gives each run a Chrome of its own: a
+  shared Chrome reuses one renderer for the origin, and V8 walking its heap
+  at each load showed in CI as a long unattributed task.
 - A run goes through `src/lib/run-request.ts` (the generated client, POST, the
   inputs' JSON) and its bytes are kept as received; "copy JSON" and the JSON
   download hand them over, and every other download is the same POST with

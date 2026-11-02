@@ -9,7 +9,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { CATEGORIES, SAMPLE, built, median, schedule, unattributed } from "../../scripts/lighthouse.ts";
+import { CATEGORIES, SAMPLE, built, median, unattributed } from "../../scripts/lighthouse.ts";
 import { packageOf, packagesOf } from "../../scripts/shipped-packages.ts";
 
 describe("packageOf", () => {
@@ -50,17 +50,6 @@ describe("the Lighthouse runner", () => {
     expect(unattributed({ items: [{ url: "Unattributable", duration: 120 }] })).toBe(false);
     expect(unattributed({ items: [{ url: "http://127.0.0.1:8788/", duration: 600 }] })).toBe(false);
     expect(unattributed(undefined)).toBe(false);
-  });
-
-  it("runs the sample in rounds, so a page's runs are spread over the whole measurement", () => {
-    expect(schedule(["/", "/a/"], 3).map(({ path, run }) => `${path}${String(run)}`)).toEqual([
-      "/1",
-      "/a/1",
-      "/2",
-      "/a/2",
-      "/3",
-      "/a/3",
-    ]);
   });
 
   it("measures decision 19's thirteen pages in all four categories", () => {
