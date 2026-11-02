@@ -3294,9 +3294,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Generated Model Pages
+## Step 5 — Generated Model Pages ✅
 
-**Status:** Not started
+**Status:** Complete — PR #233 (2026-11-01)
 
 > **Goal:** Give every registered model a prerendered page generated from
 > the registry, and make the problem-type URIs resolve. Add an Astro
@@ -3351,6 +3351,8 @@ out), the output part scaled by the tokens the model writes at that level.
 **Conversation:** New
 
 > Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
+
+> Ran 2026-11-01: Quality Runner-up — Opus 5.5 · High.
 
 **Model rationale:** Coding is PRIMARY: a content collection, page and
 component templates, a handful of build-time generators (formulas, Open
@@ -11639,7 +11641,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | ADR-0013                       | Opus 5.5       | Complete — PR #221 |
 | 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
 | 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
-| 5    | Generated model pages          | GPT-6.1 Sol    | Not started        |
+| 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
