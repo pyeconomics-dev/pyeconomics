@@ -4347,9 +4347,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 7 — Navigation, Search, Syllabus Seed and Coverage Matrix
+## Step 7 — Navigation, Search, Syllabus Seed and Coverage Matrix ✅
 
-**Status:** Not started
+**Status:** Complete — PR #240 (2026-11-02)
 
 > **Goal:** Make the catalog findable. Build the fifteen domain sections of
 > ROADMAP §4 7.2 — the thirteen populated domains and `micro` and
@@ -4399,6 +4399,8 @@ out), the output part scaled by the tokens the model writes at that level.
 **Conversation:** New
 
 > Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
+
+> Ran 2026-11-02: Quality Runner-up — Opus 5.5 · High.
 
 **Model rationale:** Coding is PRIMARY and knowledge SECONDARY: navigation
 and filter components, a build-time search index, a small data format with
@@ -11720,7 +11722,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
 | 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
-| 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
+| 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |
