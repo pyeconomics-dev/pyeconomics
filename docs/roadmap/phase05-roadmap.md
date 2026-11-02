@@ -3294,9 +3294,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Generated Model Pages
+## Step 5 — Generated Model Pages ✅
 
-**Status:** Not started
+**Status:** Complete — PR #233 (2026-11-01)
 
 > **Goal:** Give every registered model a prerendered page generated from
 > the registry, and make the problem-type URIs resolve. Add an Astro
@@ -3351,6 +3351,8 @@ out), the output part scaled by the tokens the model writes at that level.
 **Conversation:** New
 
 > Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
+
+> Ran 2026-11-01: Quality Runner-up — Opus 5.5 · High.
 
 **Model rationale:** Coding is PRIMARY: a content collection, page and
 component templates, a handful of build-time generators (formulas, Open
@@ -3676,9 +3678,11 @@ hygiene.
 
     <requirement>
       KaTeX renders every formula at build time; the build
-      fails on any KaTeX error; the KaTeX stylesheet and
-      fonts are self-hosted. A model page ships no
-      JavaScript but the islands later steps add.
+      fails on any KaTeX error. Its output is MathML only
+      (decision 9; Step 3's src/lib/math.ts), which needs no
+      KaTeX stylesheet or font, so none is loaded from
+      anywhere. A model page ships no JavaScript but the
+      islands later steps add.
     </requirement>
 
     <requirement>
@@ -4092,6 +4096,17 @@ phase-boundary hygiene.
       with its sections, JSON-LD and image; the staging site
       deploys on every merge and reaches the staging API on
       the same origin (decision 3).
+    - Step 5 note: a model page is one component,
+      web/src/components/models/ModelPage.astro (sections in
+      order, each a <section data-section="...">); the
+      calculator island goes there, and tests/site/site.test.ts
+      SECTIONS and tests/unit/model-page.test.ts gain its
+      section. Each model's REST route, methods, MCP tool and
+      CLI command come from surfaces.json (site-data.ts
+      surfaceData). An island is the first script a page
+      ships: the e2e test that counts inline scripts allows
+      only the JSON-LD block, and Playwright runs axe only on
+      pages.spec.ts SAMPLE (add the calculator's states there).
     - The REST API: POST /v1/models/{id}/run takes the raw
       body and answers Result.to_json()'s bytes; a bound run
       takes ?profile=, ?as_of=, ?vintage=, ?concept= and
@@ -4625,6 +4640,16 @@ hygiene.
       and the 13 domain index pages are minimal; problem
       pages, the sitemap and the ledger exist; the staging
       site deploys on every merge.
+    - Step 5 note: /models/, /models/<domain>/ and /problems/
+      are web/src/pages/models/index.astro,
+      models/[domain]/index.astro and problems/index.astro;
+      every generated page is listed in src/lib/pages.ts
+      sitePages() (its social image and title come from
+      there), so a new page such as /search/, /coverage/ or
+      /data/ joins sitePages() and the sample in
+      tests/e2e/pages.spec.ts. Domain names are
+      src/lib/paths.ts domainTitle() until the fifteen
+      sections replace them.
     - Model tags are topic words. Every card's curriculum
       section reads "Not yet mapped; syllabus crosswalks
       arrive in Phase 7" (core/cards.py, CURRICULUM_NOTE).
@@ -9081,6 +9106,12 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       /sources/ and the licence, which do not exist yet; the
       status page, Discussions, the newsletter, the waitlist,
       the Pro preview and analytics are live behind Access.
+    - Step 5 note: web/tests/site/site.test.ts holds a
+      PLANNED table of the internal links whose pages do not
+      exist yet (/legal/disclaimers/ and /sources/, naming
+      this step); the test fails once a planned page builds,
+      so this step removes both rows, and every new page joins
+      src/lib/pages.ts sitePages() for its social image.
     - Every provider carries its licence class, terms page,
       attribution and notices (sources.json in the site
       data); exports carry them per file (Phase 4); the
@@ -9587,6 +9618,14 @@ hygiene.
       publishes server.json on a published release.
       deploy-production.yml deploys a non-`.dev` `v*` tag
       after the maintainer's approval.
+    - Step 5 note: web/released-pages.json is
+      {"format": 1, "pages": [...]}, each a page path with a
+      trailing slash, sorted and unique
+      (scripts/indexing.ts parseLedger); its first entries are
+      every index.html path the candidate's production build
+      wrote (the sitemap's paths). A production build reads
+      SITE_FLAVOUR=production and indexes only a final
+      release's version: 1.0.0rc1 builds refuse indexing.
     - ADR-0003: from 1.0.0 a breaking change needs 2.0.0;
       removals follow one minor release of warnings; model
       ids are permanent. The Public-API rule in this roadmap
@@ -11602,7 +11641,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | ADR-0013                       | Opus 5.5       | Complete — PR #221 |
 | 3    | Web foundation                 | Gemini 4 Argon | Complete — PR #222 |
 | 4    | Staging site                   | Sonnet 5.5     | Complete — PR #225 |
-| 5    | Generated model pages          | GPT-6.1 Sol    | Not started        |
+| 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Not started        |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Not started        |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |

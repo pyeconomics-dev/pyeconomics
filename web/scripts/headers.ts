@@ -19,8 +19,11 @@
 //
 // SITE_FLAVOUR names the deployment the build is for (ADR-0013 decision 4):
 // unset for a local build, which `wrangler dev`, Playwright and Lighthouse
-// serve; `staging` for staging.pyeconomics.dev, whose every response refuses
-// indexing. Any other value fails the build.
+// serve and which stays indexable for Lighthouse's SEO audit; `staging` for
+// staging.pyeconomics.dev, whose every response refuses indexing; `production`
+// for pyeconomics.dev, which refuses indexing unless the site data's version
+// is a final release (src/data/generated/registry.json). Any other value fails
+// the build. scripts/indexing.ts writes the matching robots.txt.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
@@ -35,6 +38,8 @@ import {
   IMMUTABLE,
   SECURITY_HEADERS,
 } from "../csp.config.ts";
+
+const WEB = fileURLToPath(new URL("..", import.meta.url));
 
 /** Cloudflare's limits on a _headers file (ADR-0013 decision 9). */
 export const MAX_LINE = 2000;
@@ -96,6 +101,42 @@ function decode(value: string): string {
 
 const SPACE = /\s/;
 const NAME_END = /[\s=/>]/;
+const LETTER = /[a-zA-Z]/;
+
+/**
+ * Every start tag in markup with no comments, scripts or styles left in it,
+ * as the HTML tokenizer reads them: a `>` inside a quoted attribute value
+ * (page text in a <meta> content, say) does not end the tag, so no attribute
+ * after it can hide. A scanner, like attributes(), so nothing backtracks.
+ */
+export function startTags(markup: string): string[] {
+  const found: string[] = [];
+  let at = markup.indexOf("<");
+  while (at >= 0) {
+    if (!LETTER.test(markup.charAt(at + 1))) {
+      at = markup.indexOf("<", at + 1);
+      continue;
+    }
+    let end = at + 1;
+    let quote = "";
+    let afterEquals = false;
+    while (end < markup.length) {
+      const char = markup.charAt(end);
+      if (quote) {
+        if (char === quote) quote = "";
+      } else if (char === ">") {
+        break;
+      } else if ((char === '"' || char === "'") && afterEquals) {
+        quote = char;
+      }
+      if (!SPACE.test(char)) afterEquals = !quote && char === "=";
+      end += 1;
+    }
+    found.push(markup.slice(at, end + 1));
+    at = markup.indexOf("<", end + 1);
+  }
+  return found;
+}
 
 /**
  * Read a tag's attributes as the HTML tokenizer does: names lowercased,
@@ -193,10 +234,11 @@ export function checkPage(html: string): PageReport {
   const markup = html.replace(/<!--[\s\S]*?-->/g, "");
   const scripts = [...markup.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
   const styles = [...markup.matchAll(/<style\b([^>]*)>([\s\S]*?)<\/style\s*>/gi)];
-  const tags = markup
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "<script>")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "<style>")
-    .match(/<[a-zA-Z][^>]*>/g) ?? [];
+  const tags = startTags(
+    markup
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "<script>")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "<style>"),
+  );
 
   const metas = tags
     .map((tag) => attributes(tag))
@@ -258,17 +300,39 @@ export function headerPolicy(hashes: ReadonlyMap<string, ReadonlySet<string>>): 
 }
 
 /** The deployments a build can be made for. */
-export const FLAVOURS = ["local", "staging"] as const;
+export const FLAVOURS = ["local", "staging", "production"] as const;
 export type Flavour = (typeof FLAVOURS)[number];
 
-/** Headers a flavour adds on every path: staging is never indexed. */
-export const FLAVOUR_HEADERS: ReadonlyMap<Flavour, Readonly<Record<string, string>>> = new Map<
-  Flavour,
-  Readonly<Record<string, string>>
->([
-  ["local", {}],
-  ["staging", { "X-Robots-Tag": "noindex" }],
-]);
+/** The header every path of a build that must not be indexed carries. */
+export const NOINDEX: Readonly<Record<string, string>> = { "X-Robots-Tag": "noindex" };
+
+/** A final release: a version with no pre-release, development or local part. */
+export function isFinalRelease(version: string): boolean {
+  const parts = version.split(".");
+  if (parts.at(-1)?.startsWith("post") && parts.length > 1) parts[parts.length - 1] = parts.at(-1)?.slice(4) ?? "";
+  return parts.every((part) => /^\d+$/.test(part));
+}
+
+/**
+ * Whether a build may be indexed: a local build, which Lighthouse audits for
+ * SEO, and a production build of a final release. Staging never is, and
+ * neither is a production build of a pre-release (decision 4).
+ */
+export function indexable(flavour: Flavour, version: string): boolean {
+  if (flavour === "local") return true;
+  if (flavour === "staging") return false;
+  return isFinalRelease(version);
+}
+
+/** The pyeconomics version the site data was exported from. */
+export function buildVersion(web: string = WEB): string {
+  const path = join(web, "src", "data", "generated", "registry.json");
+  // A fixed path under web/, written by `npm run data`.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
+  const document = JSON.parse(readFileSync(path, "utf8")) as { pyeconomics?: unknown };
+  if (typeof document.pyeconomics !== "string") throw new Error(`${path} names no pyeconomics version`);
+  return document.pyeconomics;
+}
 
 /** Read SITE_FLAVOUR: unset or empty is a local build; an unknown value is an error. */
 export function siteFlavour(given: string | undefined = process.env.SITE_FLAVOUR): Flavour {
@@ -280,10 +344,13 @@ export function siteFlavour(given: string | undefined = process.env.SITE_FLAVOUR
   return found;
 }
 
-/** The _headers file: the policy and security headers on every path, and caching. */
-export function renderHeaders(policy: Policy, flavour: Flavour = "local"): string {
+/**
+ * The _headers file: the policy and security headers on every path, noindex
+ * on every path of a build that must not be indexed, and caching.
+ */
+export function renderHeaders(policy: Policy, index = true): string {
   const lines = ["/*", `  Content-Security-Policy: ${formatPolicy(policy)}`];
-  const every = { ...SECURITY_HEADERS, ...FLAVOUR_HEADERS.get(flavour) };
+  const every = { ...SECURITY_HEADERS, ...(index ? {} : NOINDEX) };
   for (const [name, value] of Object.entries(every)) lines.push(`  ${name}: ${value}`);
   lines.push("/_astro/*", `  Cache-Control: ${IMMUTABLE}`);
   return `${lines.join("\n")}\n`;
@@ -320,7 +387,7 @@ export interface BuildReport {
 }
 
 /** Check a build output directory and return the _headers text it needs. */
-export function checkBuild(dist: string, flavour: Flavour = "local"): BuildReport {
+export function checkBuild(dist: string, index = true): BuildReport {
   const problems: string[] = [];
   const files = walk(dist);
   for (const name of SERVER_OUTPUT) {
@@ -346,13 +413,13 @@ export function checkBuild(dist: string, flavour: Flavour = "local"): BuildRepor
   const policy = headerPolicy(union);
   const header = checkPolicy(policy);
   problems.push(...header.problems.map((problem) => `the header policy: ${problem}`));
-  const headers = renderHeaders(policy, flavour);
+  const headers = renderHeaders(policy, index);
   problems.push(...checkHeaders(headers));
   return { problems, pages: pages.length, headers };
 }
 
 function main(): number {
-  const dist = fileURLToPath(new URL("../dist", import.meta.url));
+  const dist = join(WEB, "dist");
   // The build output directory, a fixed path.
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
   if (!existsSync(dist)) {
@@ -360,13 +427,15 @@ function main(): number {
     return 1;
   }
   let flavour: Flavour;
+  let index: boolean;
   try {
     flavour = siteFlavour();
+    index = indexable(flavour, buildVersion());
   } catch (error) {
     process.stderr.write(`headers: ${(error as Error).message}\n`);
     return 1;
   }
-  const report = checkBuild(dist, flavour);
+  const report = checkBuild(dist, index);
   if (report.problems.length > 0) {
     process.stderr.write(
       `headers: the build breaks decision 9's policy (ADR-0013):\n${report.problems
@@ -380,7 +449,7 @@ function main(): number {
   writeFileSync(join(dist, "_headers"), report.headers);
   const longest = Math.max(...report.headers.split("\n").map((line) => line.length));
   process.stdout.write(
-    `headers: ${report.pages} pages checked; dist/_headers written for a ${flavour} build (longest line ${longest} of ${MAX_LINE})\n`,
+    `headers: ${report.pages} pages checked; dist/_headers written for a ${flavour} build, ${index ? "indexable" : "noindex"} (longest line ${longest} of ${MAX_LINE})\n`,
   );
   return 0;
 }

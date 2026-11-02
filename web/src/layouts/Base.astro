@@ -3,19 +3,31 @@
 // The layout every page uses: one stylesheet, the header, a main landmark the
 // skip link targets, and the footer with the notices. It loads no script and
 // no web font; Astro adds each page's Content Security Policy as a <meta>
-// element, and dist/_headers sends the same policy as a header.
+// element, and dist/_headers sends the same policy as a header. Each page gets
+// a canonical link on the production origin, Open Graph and Twitter card tags
+// with the social image drawn for it at build time (src/pages/og/), and the
+// page's schema.org JSON-LD, if it has any, in a script no browser executes.
+// The 404 page is neither canonical nor indexable.
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
+import { ORIGIN } from "@/lib/models";
+import { ogImagePath } from "@/lib/pages";
+import { jsonLdText } from "@/lib/structured-data";
 import "@/styles/global.css";
 
 interface Props {
   title: string;
   description: string;
+  /** schema.org JSON-LD for the page. */
+  jsonLd?: Record<string, unknown>;
+  /** A page that must not be indexed and has no canonical address (the 404 page). */
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, jsonLd, noindex = false } = Astro.props;
 const pageTitle = title === "pyeconomics" ? title : `${title} · pyeconomics`;
-const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const canonical = new URL(Astro.url.pathname, ORIGIN).href;
+const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
 ---
 
 <!doctype html>
@@ -25,9 +37,30 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    {canonical && <link rel="canonical" href={canonical} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
+    {
+      !noindex && (
+        <Fragment>
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content="pyeconomics" />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:url" content={canonical} />
+          <meta property="og:image" content={image} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={title} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={title} />
+          <meta name="twitter:description" content={description} />
+          <meta name="twitter:image" content={image} />
+        </Fragment>
+      )
+    }
+    {jsonLd && <script is:inline type="application/ld+json" set:html={jsonLdText(jsonLd)} />}
   </head>
   <body class="flex min-h-screen flex-col">
     <a

@@ -690,10 +690,15 @@ jobs:
         run: npm test
       # The build runs scripts/headers.ts, which writes dist/_headers and fails
       # on an unsafe source, an unhashed inline script or style, an inline
-      # style attribute, a line over 2,000 characters or a server route.
+      # style attribute, a line over 2,000 characters or a server route;
+      # scripts/indexing.ts then writes robots.txt and _redirects and fails on a
+      # released page that neither builds nor redirects, or one the sitemap misses.
       - name: Build the site and check its headers
         working-directory: web
         run: npm run build
+      - name: Vitest over the built site (pages, sections, links, JSON-LD, images)
+        working-directory: web
+        run: npm run test:dist
       - name: Scan the build output for secrets with gitleaks
         shell: bash
         run: |

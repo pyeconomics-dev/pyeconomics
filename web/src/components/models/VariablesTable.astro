@@ -1,0 +1,43 @@
+---
+// web/src/components/models/VariablesTable.astro
+// One variables table: each field's name, unit, bounds and description, as the
+// model card writes them (src/lib/models.ts variables()). Every value is text
+// Astro escapes. The table scrolls on a narrow screen, so its region is
+// focusable and named for keyboard users.
+import type { VariableTable } from "@/lib/models";
+
+interface Props {
+  table: VariableTable;
+  caption: string;
+}
+
+const { table, caption } = Astro.props;
+---
+
+<div class="overflow-x-auto" role="region" aria-label={caption} tabindex="0">
+  <table class="w-full border-collapse text-left text-sm">
+    <caption class="mb-2 text-left font-medium">{caption}</caption>
+    <thead>
+      <tr class="border-b">
+        <th scope="col" class="py-2 pr-4">Name</th>
+        <th scope="col" class="py-2 pr-4">Unit</th>
+        <th scope="col" class="py-2 pr-4">Bounds</th>
+        <th scope="col" class="py-2">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        table.rows.map((row) => (
+          <tr class="border-b align-top">
+            <th scope="row" class="py-2 pr-4 font-normal">
+              <code>{row.name}</code>
+            </th>
+            <td class="py-2 pr-4">{row.unit}</td>
+            <td class="py-2 pr-4 whitespace-nowrap">{row.bounds}</td>
+            <td class="py-2">{row.description}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

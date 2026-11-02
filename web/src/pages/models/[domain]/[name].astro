@@ -1,0 +1,35 @@
+---
+// web/src/pages/models/[domain]/[name].astro
+// One page per model of the `models` collection, at the URL decision 2 derives
+// from its permanent id: fixed_income.bond_pricing is
+// /models/fixed-income/bond-pricing/. A model with no entry in surfaces.json
+// fails the build rather than a page missing its routes.
+import { getCollection } from "astro:content";
+
+import ModelPage from "@/components/models/ModelPage.astro";
+import { domainSegment } from "@/lib/models";
+import type { Model } from "@/lib/registry-schema";
+import { surfaceData, type SurfaceEntry } from "@/lib/site-data";
+
+export async function getStaticPaths() {
+  const surfaces = new Map(surfaceData.map((surface) => [surface.id, surface]));
+  return (await getCollection("models")).map(({ data }) => {
+    const surface = surfaces.get(data.id);
+    if (!surface) throw new Error(`${data.id} has no entry in surfaces.json; run \`npm run data\``);
+    const [, name = ""] = data.id.split(".");
+    return {
+      params: { domain: domainSegment(data.domain), name: name.replaceAll("_", "-") },
+      props: { model: data, surface },
+    };
+  });
+}
+
+interface Props {
+  model: Model;
+  surface: SurfaceEntry;
+}
+
+const { model, surface } = Astro.props;
+---
+
+<ModelPage model={model} surface={surface} />

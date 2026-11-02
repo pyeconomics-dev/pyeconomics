@@ -37,6 +37,13 @@ export default defineConfig(
     ...jsxA11y.configs.strict,
   },
   {
+    // A table or code block that scrolls on a narrow screen is a named region
+    // keyboard users can focus to scroll (WCAG 2.1.1; axe's
+    // scrollable-region-focusable), the one non-interactive role given a tabindex.
+    files: ["**/*.astro"],
+    rules: { "astro/jsx-a11y/no-noninteractive-tabindex": ["error", { roles: ["region"], tags: [] }] },
+  },
+  {
     languageOptions: {
       globals: { ...globals.node },
     },

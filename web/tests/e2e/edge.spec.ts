@@ -34,7 +34,15 @@ test("a path matching no asset is the 404 page, even when it is not a navigation
 });
 
 test("pages and files are the assets', with the policy and no X-Robots-Tag", async ({ request }) => {
-  for (const path of ["/", "/version.json"]) {
+  for (const path of [
+    "/",
+    "/version.json",
+    "/models/fixed-income/duration/",
+    "/problems/invalid-input/",
+    "/robots.txt",
+    "/sitemap-index.xml",
+    "/og/index.png",
+  ]) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);
     const headers = response.headers();

@@ -1,0 +1,55 @@
+---
+// web/src/pages/problems/index.astro
+// Every problem type of the error table, with its HTTP status and exit code,
+// each linking to its own page.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { PROBLEMS_INDEX } from "@/lib/pages";
+import { problemData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: PROBLEMS_INDEX.title, path: "/problems/" },
+];
+---
+
+<Base
+  title={PROBLEMS_INDEX.title}
+  description={PROBLEMS_INDEX.description}
+  jsonLd={webPage("/problems/", PROBLEMS_INDEX.title, PROBLEMS_INDEX.description, trail)}
+>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">Problem types</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    Every pyeconomics surface reports a failure as a problem in the form of RFC 9457. Its type is the
+    address of one of these pages.
+  </p>
+  <div class="mt-8 overflow-x-auto" role="region" aria-label="Problem types" tabindex="0">
+    <table class="w-full border-collapse text-left text-sm">
+      <thead>
+        <tr class="border-b">
+          <th scope="col" class="py-2 pr-4">Problem</th>
+          <th scope="col" class="py-2 pr-4">HTTP status</th>
+          <th scope="col" class="py-2">Exit code</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          problemData.map((problem) => (
+            <tr class="border-b">
+              <th scope="row" class="py-2 pr-4 font-normal">
+                <a href={`/problems/${problem.slug}/`}>{problem.title}</a>
+                <span class="block text-muted-foreground">
+                  <code>{problem.slug}</code>
+                </span>
+              </th>
+              <td class="py-2 pr-4">{problem.status}</td>
+              <td class="py-2">{problem.exit_code}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</Base>

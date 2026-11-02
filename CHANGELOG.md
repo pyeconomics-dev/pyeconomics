@@ -46,6 +46,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- `pyeconomics.surfaces.problem_guide`: what each problem type means and what to
+  do about it (`GUIDES`, one `Guide` per slug of the error table, held equal to
+  it by a test) and what each command-line exit code means (`EXIT_CODES`). The
+  documentation's problem types page and the site's pages at
+  `https://pyeconomics.dev/problems/<slug>` are generated from it.
 - `pyeconomics.surfaces`, the framework-free core the command line, REST API,
   MCP server and exports will share (ADR-0012): `invoke(model_id, inputs, *,
   bind=None, mode=None)`, the one way a surface runs a model, returning the same

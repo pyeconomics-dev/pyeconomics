@@ -11,17 +11,20 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import pytest
+
 from pyeconomics import registry
 from pyeconomics.core.canonical import canonical_json
-from pyeconomics.core.errors import MissingOptionalDependencyError
+from pyeconomics.core.errors import MissingOptionalDependencyError, RegistryError
 from pyeconomics.data import catalog
 from pyeconomics.data import registry as provider_registry
+from pyeconomics.mcp.headline import HEADLINE
+from pyeconomics.surfaces.budgets import local_command
+from pyeconomics.surfaces.problem_guide import EXIT_CODES, GUIDES
 from pyeconomics.surfaces.problems import ROWS
 
 if TYPE_CHECKING:
     from types import ModuleType
-
-    import pytest
 
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "web" / "export_site_data.py"
 
@@ -60,7 +63,13 @@ def test_problems_hold_every_row_in_table_order() -> None:
         "exit_code": 3,
         "type": "https://pyeconomics.dev/problems/invalid-input",
         "error": "InputError",
+        "meaning": GUIDES["invalid-input"].meaning,
+        "action": GUIDES["invalid-input"].action,
+        "local_command": None,
     }
+    budget = next(p for p in document["problems"] if p["slug"] == "budget-exceeded")
+    assert budget["local_command"] == local_command("<model-id>")
+    assert document["exit_codes"] == {str(k): v for k, v in EXIT_CODES.items()}
 
 
 def test_sources_come_from_metadata_without_a_key_or_a_setting(
@@ -106,6 +115,30 @@ def test_concepts_carry_candidates_and_hosted_availability() -> None:
         assert concept["hosted"] is any(c["hosted"] for c in concept["candidates"])
 
 
+def test_surfaces_name_each_models_route_tool_and_command() -> None:
+    openapi: dict[str, Any] = {
+        "paths": {
+            f"/v1/models/{i}/run": {"get": {}, "post": {}} for i in registry.ids()
+        }
+    }
+    document = export.surfaces_document(openapi)
+    models = {entry["id"]: entry for entry in document["models"]}
+    assert list(models) == sorted(registry.ids())
+    assert models["fixed_income.duration"] == {
+        "id": "fixed_income.duration",
+        "rest": "/v1/models/fixed_income.duration/run",
+        "methods": ["GET", "POST"],
+        "mcp_tool": "fixed_income_duration",
+        "cli": "pyeconomics models run fixed_income.duration",
+    }
+    assert {i for i, m in models.items() if m["mcp_tool"]} == set(HEADLINE)
+
+
+def test_surfaces_refuse_a_model_with_no_run_route() -> None:
+    with pytest.raises(RegistryError, match="has no run route"):
+        export.surfaces_document({"paths": {}})
+
+
 def test_documents_are_deterministic() -> None:
     for build in (
         export.problems_document,
@@ -132,6 +165,8 @@ def test_write_site_data_writes_canonical_files_and_removes_stale_ones(
     assert [m["id"] for m in document["models"]] == [m.id for m in registry.models()]
     assert all(m["example_figure"] is None for m in document["models"])
     assert read(tmp_path / "openapi.json")["openapi"].startswith("3.1")
+    surfaces = read(tmp_path / "surfaces.json")["models"]
+    assert [m["id"] for m in surfaces] == [m.id for m in registry.models()]
     first = {path.name: path.read_bytes() for path in written}
     export.write_site_data(tmp_path, figures=False)
     assert {path.name: path.read_bytes() for path in written} == first

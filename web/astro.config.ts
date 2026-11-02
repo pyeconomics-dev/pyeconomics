@@ -9,8 +9,11 @@
 // used, because Astro's policy supports neither. scripts/headers.ts runs after
 // the build and writes the same policy, with every page's hashes, into
 // dist/_headers. shippedPackages() records the npm packages the client bundle
-// holds, for the licence check of what ships.
+// holds, for the licence check of what ships. @astrojs/sitemap lists every page
+// on the production origin (sitemap-index.xml), except the 404 page, which is
+// not a page anyone should land on from a search.
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import type { AstroUserConfig } from "astro";
 import { defineConfig } from "astro/config";
@@ -33,7 +36,7 @@ export default defineConfig({
   },
   devToolbar: { enabled: false },
   markdown: { syntaxHighlight: false },
-  integrations: [react()],
+  integrations: [react(), sitemap({ filter: (page) => !page.endsWith("/404/") })],
   vite: {
     plugins: [tailwindcss(), shippedPackages()],
     build: { assetsInlineLimit: 0 },

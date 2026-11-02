@@ -1,15 +1,13 @@
 // web/vitest.config.ts
-// Unit tests (tests/unit/): the headers step, the policy's configuration, the
-// formulas, the site data and the build info, in Node. The pages themselves
-// are tested built and served, by Playwright (tests/e2e/).
-import { fileURLToPath } from "node:url";
+// Unit tests (tests/unit/): the build scripts, the policy's configuration, the
+// formulas, the site data, what a model page derives from its entry, and the
+// model page itself rendered through Astro's container API, in Node. Astro's
+// own Vite configuration compiles .astro components for them. The built site
+// is tested by vitest.dist.config.ts (tests/site/) and, served, by Playwright
+// (tests/e2e/).
+import { getViteConfig } from "astro/config";
 
-import { defineConfig } from "vitest/config";
-
-export default defineConfig({
-  resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
-  },
+export default getViteConfig({
   test: {
     include: ["tests/unit/**/*.test.ts"],
     environment: "node",
