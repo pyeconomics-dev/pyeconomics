@@ -730,6 +730,9 @@ jobs:
           path: |
             web/playwright-report
             web/.lighthouse
+          # .lighthouse is a hidden directory, which upload-artifact skips
+          # unless asked (found in Phase 5 Step 6: no report had been uploaded).
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14
       - name: npm audit (high and above)
