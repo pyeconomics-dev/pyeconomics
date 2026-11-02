@@ -1,14 +1,17 @@
 // web/scripts/lighthouse.ts
 // Lighthouse on decision 19's page sample (ADR-0013): for each sample page the
 // build wrote, three mobile runs against `wrangler dev`, in three rounds over
-// the sample, and the median score of each category must be at least 90. It drives Lighthouse 13 directly in
-// Playwright's Chromium: @lhci/cli 0.15.1, last published in June 2025,
+// the sample, and the median score of each category must be at least 90. It
+// drives Lighthouse 13 directly in Playwright's Chromium: @lhci/cli 0.15.1,
+// last published in June 2025,
 // bundles Lighthouse 12.6.1 and a dependency tree that fails `npm audit` at
-// high. Reports go to .lighthouse/ (git-ignored), one JSON file per run.
+// high. Reports go to .lighthouse/ (git-ignored), one JSON file per run, and
+// the trace of the first runs that hold a long task no script accounts for.
 //
 // Usage, after `npm run build`: npm run lighthouse
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,6 +53,19 @@ export const CATEGORIES = ["performance", "accessibility", "best-practices", "se
  */
 export function schedule(pages: readonly string[], runs: number): { path: string; run: number }[] {
   return Array.from({ length: runs }, (_, index) => pages.map((path) => ({ path, run: index + 1 }))).flat();
+}
+
+/** The traces kept of runs with a long task no script accounts for. */
+export const MAX_TRACES = 3;
+
+/**
+ * Whether a run's long tasks include one Lighthouse attributes to no script
+ * and longer than 300 ms: the task CI runners showed in Phase 5 Step 6, whose
+ * trace the reports keep (as `<report>.trace.json.gz`) to say what it is.
+ */
+export function unattributed(details: unknown): boolean {
+  const items = (details as { items?: { url?: string; duration?: number }[] } | undefined)?.items ?? [];
+  return items.some((item) => item.url === "Unattributable" && (item.duration ?? 0) > 300);
 }
 
 /** The median of an odd number of scores. */
@@ -121,6 +137,7 @@ async function main(): Promise<number> {
     chromeFlags: ["--headless=new", "--no-sandbox"],
   });
   const failures: string[] = [];
+  let traces = 0;
   const scores = new Map(
     pages.map((path) => [path, new Map<string, number[]>(CATEGORIES.map((category) => [category, []]))]),
   );
@@ -137,6 +154,12 @@ async function main(): Promise<number> {
       // A name built from a fixed sample path, under .lighthouse/.
       // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
       writeFileSync(join(reports, name), String(result.report));
+      if (traces < MAX_TRACES && unattributed(result.lhr.audits["long-tasks"]?.details)) {
+        traces += 1;
+        // The same fixed name, with the trace that shows what the task was.
+        // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
+        writeFileSync(join(reports, `${name}.trace.json.gz`), gzipSync(JSON.stringify(result.artifacts.Trace)));
+      }
       const found = new Map(Object.entries(result.lhr.categories));
       for (const category of CATEGORIES) {
         scores.get(path)?.get(category)?.push(found.get(category)?.score ?? 0);
