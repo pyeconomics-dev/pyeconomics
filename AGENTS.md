@@ -31,12 +31,15 @@ tests/             unit · golden · property · contract · parity · e2e
   fixtures/legacy/ 0.2.x characterization fixtures, byte-exact: never edit
   parity/          the cross-surface parity suite and its stand-in world
   ai/              the AI narrative's tests and synthetic cassettes
-  web/             tests for scripts/web (the site data export)
+  web/             tests for scripts/web (the site data export), and e2e_api.py,
+                   the API the web app's Playwright tests run against
 scripts/checks/    the gate's own checks (licences, lock index, dist contents …)
 scripts/clients/   the clients job's helpers (retitle, smoke, compare)
 scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
-scripts/parity/    the parity job's helper (the installed wheel's surfaces)
-scripts/web/       the site data export the web app builds from
+scripts/parity/    the parity job's helper (the installed wheel's surfaces) and
+                   check_deployed.py (a deployed API against the wheel)
+scripts/web/       the site data export the web app builds from, the
+                   calculators' validator compiler and their MCP snippet runner
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
 tools/node/        the one Node workspace: the TypeScript client's generator and
                    the MCP Inspector
@@ -603,9 +606,50 @@ From Phase 5 Step 5, which generates the model and problem pages:
   markup. A link to a page a later step builds goes in its `PLANNED` table
   with that step, which removes the row when the page exists. Playwright
   checks every page's headers and layout, and axe and the keyboard only on
-  its `SAMPLE`.
+  its `SAMPLE` (the calculator's states in `calculator.spec.ts`).
 - Git Bash heredocs collapse `\\` and the editor tools may write ` ` as
   the character itself: check escapes in TypeScript written either way.
+
+From Phase 5 Step 6, which builds the calculators:
+
+- A model's calculator is one island, `src/components/calculator/
+  Calculator.tsx`, `client:visible` in `ModelPage.astro`, with small props
+  (`calculatorProps`). It loads its model's module from
+  `src/data/generated/validators/` (`src/lib/validators.ts`): the validators
+  `scripts/web/compile_validators.mjs` precompiled with RJSF's
+  compileSchemaValidators on Ajv's 2020-12 class, the schema they were
+  compiled from, a family's member schemas and the examples. Never compile a
+  validator in the browser or import Ajv's compiler there; `require-data.ts`
+  fails the build on a missing or stale validator. The compiled schema drops
+  only `$schema` (RJSF rewrites a 2020-12 schema's $refs, which breaks the
+  precompiled root check), each option RJSF validates while choosing a
+  oneOf's or anyOf's option is compiled too, and a family's form validates
+  against its calculation's member. `tests/unit/forms.test.tsx` renders every
+  model's form with each example: a schema RJSF asks about without a
+  compiled validator fails it.
+- A run goes through `src/lib/run-request.ts` (the generated client, POST, the
+  inputs' JSON) and its bytes are kept as received; "copy JSON" and the JSON
+  download hand them over, and every other download is the same POST with
+  `?format=`. Server text reaches the page as React text only, and an
+  `https://` terms page is the only link a result supplies.
+- Charts are `src/lib/figure.ts` (held equal to every `example_figure`) on
+  Plotly.js's basic bundle, imported only when a chart renders, with
+  `plotly.css` as a same-origin link and the no-inline-styles marker in the
+  island. `plotly.js` is a devDependency listed in `web_licences.py`'s
+  `BUILD_OUTPUT`: only its prebuilt `dist/` files ship, and its source tree
+  holds licences the allowlist refuses. Its version follows
+  `PLOTLY_JS_VERSION` (`tests/unit/figure.test.ts`).
+- Live data posts `?profile=` (and `?as_of=`) without the fields the profile
+  binds, only where `surfaces.json`'s profiles say hosted mode serves every
+  bound field of the chosen calculation; elsewhere the page names the fields.
+- `golden.json` (the export) holds every golden case's inputs and the Python
+  API's bytes; `npm run test:parity` sends each through `runModel` to a local
+  `pyeconomics serve` and runs every snippet kind for one model per domain. A
+  difference is a bug in the side that changed the bytes.
+- Playwright's calculator tests forward `/v1/` to `tests/web/e2e_api.py`
+  (hosted mode over the catalog world, port 8799); never point it at a real
+  cache. `scripts/parity/check_deployed.py` checks a deployed API from the
+  same commit's wheel with the container's extras (`deploy-staging.yml`).
 
 ## Units
 
