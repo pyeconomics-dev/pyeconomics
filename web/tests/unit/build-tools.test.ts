@@ -9,7 +9,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { CATEGORIES, SAMPLE, built, median } from "../../scripts/lighthouse.ts";
+import { CATEGORIES, SAMPLE, built, median, schedule } from "../../scripts/lighthouse.ts";
 import { packageOf, packagesOf } from "../../scripts/shipped-packages.ts";
 
 describe("packageOf", () => {
@@ -43,6 +43,17 @@ describe("the Lighthouse runner", () => {
   it("takes the median of three runs", () => {
     expect(median([0.91, 0.5, 1])).toBe(0.91);
     expect(() => median([])).toThrow(/no scores/);
+  });
+
+  it("runs the sample in rounds, so a page's runs are spread over the whole measurement", () => {
+    expect(schedule(["/", "/a/"], 3).map(({ path, run }) => `${path}${String(run)}`)).toEqual([
+      "/1",
+      "/a/1",
+      "/2",
+      "/a/2",
+      "/3",
+      "/a/3",
+    ]);
   });
 
   it("measures decision 19's thirteen pages in all four categories", () => {
