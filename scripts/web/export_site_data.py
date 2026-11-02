@@ -5,7 +5,7 @@
 
 The site gains a model, a problem or a source only through this export, so
 Phase 6's providers and Phase 7's models reach it with no web code. It writes
-six canonical JSON files (RFC 8785, no trailing newline) into a git-ignored
+seven canonical JSON files (RFC 8785, no trailing newline) into a git-ignored
 directory, ``web/src/data/generated/`` by default:
 
 - ``registry.json``: every model, from
@@ -22,11 +22,21 @@ directory, ``web/src/data/generated/`` by default:
   candidates, and whether hosted mode can serve it, sorted by id;
 - ``surfaces.json``: where each model is reached beside its page: its REST
   route and methods (read back from ``openapi.json``), its MCP tool when it is
-  a headline model, and its command line, sorted by id.
+  a headline model, and its command line; and, for a bound model, each data
+  profile's fields with whether hosted mode can serve each one (a field whose
+  concept has a hosted-safe source), so a calculator offers live data only
+  where the hosted site can read it (ADR-0013 decision 11). Sorted by id;
+- ``golden.json``: every golden case (``tests/golden/``, read with
+  ``tomllib``) with its inputs as JSON and the answer the Python API gives in
+  this environment: the status and the canonical bytes of the result, or of
+  the problem a failed run becomes. The web parity suite
+  (``web/tests/parity/``) sends each case through the calculator's own request
+  builder and requires these bytes (ADR-0013 decision 8).
 
-Everything comes from metadata: the export makes no request, reads no key and
-no setting, and holds no clock, host name, user name or path, so two runs on
-one installation write the same bytes. A stale ``.json`` file in the output
+Everything but ``golden.json`` comes from metadata, and ``golden.json`` from
+runs that read no data: the export makes no request, reads no key and no
+setting, and holds no clock, host name, user name or path, so two runs on one
+installation write the same bytes. A stale ``.json`` file in the output
 directory is removed.
 
 Usage, from anywhere (``npm run data`` in ``web/`` runs it):
@@ -39,6 +49,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
@@ -47,6 +58,7 @@ from pyeconomics.core.canonical import canonical_json
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
+    from pyeconomics.core.model import Model
     from pyeconomics.data import CandidateInfo, Concept
     from pyeconomics.data.providers.base import ProviderInfo
 
@@ -55,6 +67,7 @@ SITE_DATA_FORMAT: Final = 1
 
 ROOT: Final = Path(__file__).resolve().parents[2]
 DEFAULT_OUT: Final = ROOT / "web" / "src" / "data" / "generated"
+GOLDEN: Final = ROOT / "tests" / "golden"
 FILES: Final = (
     "registry.json",
     "openapi.json",
@@ -62,6 +75,7 @@ FILES: Final = (
     "sources.json",
     "concepts.json",
     "surfaces.json",
+    "golden.json",
 )
 
 
@@ -164,6 +178,32 @@ def concepts_document() -> dict[str, Any]:
     return {"format": SITE_DATA_FORMAT, "concepts": [_concept(c) for c in concepts]}
 
 
+def hosted_profiles(model: Model[Any, Any]) -> list[dict[str, Any]]:
+    """Each data profile of a model, in declared order, with its bound fields.
+
+    A field is ``hosted`` when hosted mode can read its concept: one of the
+    concept's candidates is usable there. A profile is ``hosted`` when every
+    one of its fields is.
+    """
+    from pyeconomics.data import candidates_by_mode  # noqa: PLC0415
+    from pyeconomics.data.modes import Mode  # noqa: PLC0415
+
+    profiles: dict[str, list[dict[str, Any]]] = {}
+    for binding in model.spec.bindings:
+        hosted = bool(candidates_by_mode(binding.concept)[Mode.HOSTED])
+        profiles.setdefault(binding.profile, []).append(
+            {"field": binding.field, "hosted": hosted}
+        )
+    return [
+        {
+            "profile": profile,
+            "hosted": all(field["hosted"] for field in fields),
+            "fields": fields,
+        }
+        for profile, fields in profiles.items()
+    ]
+
+
 def surfaces_document(openapi: Mapping[str, Any]) -> dict[str, Any]:
     """Describe where each model is reached beside its page, sorted by id.
 
@@ -191,9 +231,49 @@ def surfaces_document(openapi: Mapping[str, Any]) -> dict[str, Any]:
                 "methods": sorted(method.upper() for method in operations),
                 "mcp_tool": tool_name(model_id) if model_id in HEADLINE else None,
                 "cli": f"pyeconomics models run {model_id}",
+                "profiles": hosted_profiles(registry.get(model_id)),
             }
         )
     return {"format": SITE_DATA_FORMAT, "models": models}
+
+
+def _answer(model_id: str, inputs: Mapping[str, Any]) -> tuple[int, str]:
+    """Return the Python API's answer to a run: its status and canonical text."""
+    import pyeconomics  # noqa: PLC0415
+    from pyeconomics.surfaces.problems import problem_for  # noqa: PLC0415
+
+    try:
+        result = pyeconomics.run(model_id, dict(inputs))
+    except Exception as error:  # noqa: BLE001 - every failure is an answer
+        made = problem_for(error)
+        return made.status, made.to_json().decode("utf-8")
+    return 200, result.to_json()
+
+
+def golden_document(golden: Path = GOLDEN) -> dict[str, Any]:
+    """Every golden case with its JSON inputs and the Python API's answer.
+
+    The cases are in the order of their files' paths, then of each file; the
+    inputs are the case's TOML values as JSON (a date as its ISO text), which
+    is what a calculator posts.
+    """
+    cases = []
+    for path in sorted(golden.rglob("*.toml")):
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+        model_id = str(data["model"])
+        for case in data["cases"]:
+            inputs = dict(case["inputs"])
+            status, body = _answer(model_id, inputs)
+            cases.append(
+                {
+                    "model": model_id,
+                    "case": str(case["id"]),
+                    "inputs": json.loads(canonical_json(inputs)),
+                    "status": status,
+                    "body": body,
+                }
+            )
+    return {"format": SITE_DATA_FORMAT, "cases": cases}
 
 
 def _write_openapi(path: Path) -> None:
@@ -205,8 +285,10 @@ def _write_openapi(path: Path) -> None:
     write_openapi(path)
 
 
-def write_site_data(out: Path, *, figures: bool = True) -> tuple[Path, ...]:
-    """Write the six site data files into ``out``; return their paths.
+def write_site_data(
+    out: Path, *, figures: bool = True, golden: Path = GOLDEN
+) -> tuple[Path, ...]:
+    """Write the seven site data files into ``out``; return their paths.
 
     Parameters
     ----------
@@ -216,6 +298,8 @@ def write_site_data(out: Path, *, figures: bool = True) -> tuple[Path, ...]:
     figures
         Include each model's example figure in ``registry.json`` (the ``plot``
         extra); ``False`` writes ``null`` for every figure.
+    golden
+        The golden files ``golden.json`` is written from.
 
     Raises
     ------
@@ -233,6 +317,7 @@ def write_site_data(out: Path, *, figures: bool = True) -> tuple[Path, ...]:
         "sources.json": sources_document(),
         "concepts.json": concepts_document(),
         "surfaces.json": surfaces_document(openapi),
+        "golden.json": golden_document(golden),
     }
     for name, document in documents.items():
         (out / name).write_bytes(canonical_json(document))

@@ -10,6 +10,7 @@ import problems from "@/data/generated/problems.json?raw";
 import registry from "@/data/generated/registry.json?raw";
 import sources from "@/data/generated/sources.json?raw";
 import surfaces from "@/data/generated/surfaces.json?raw";
+import type { HostedProfile } from "@/lib/calculator";
 
 /** The registry format this site reads (`REGISTRY_FORMAT`). */
 export const REGISTRY_FORMAT = 1;
@@ -57,6 +58,8 @@ export interface SurfaceEntry {
   mcp_tool: string | null;
   /** The command that runs it. */
   cli: string;
+  /** Each data profile's bound fields and whether hosted mode can serve them. */
+  profiles: HostedProfile[];
 }
 
 export interface SourceEntry {

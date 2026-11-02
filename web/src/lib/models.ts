@@ -53,9 +53,11 @@ export interface VariableTable {
   rows: Variable[];
 }
 
-type Node = Readonly<Record<string, unknown>>;
+/** A JSON Schema node. */
+export type Node = Readonly<Record<string, unknown>>;
 
-function isNode(value: unknown): value is Node {
+/** Whether a value is a JSON object. */
+export function isNode(value: unknown): value is Node {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -73,7 +75,8 @@ export function formatG(value: number): string {
   return strip(value.toFixed(Math.max(0, 5 - exponent)));
 }
 
-function bounds(node: Node): string {
+/** A field's bounds as the card writes them: `[0, 1]`, `(0, inf]`, or an array's length. */
+export function bounds(node: Node): string {
   const items = node.items;
   if (isNode(items)) {
     const parts: string[] = [];
@@ -98,7 +101,8 @@ function bounds(node: Node): string {
   );
 }
 
-function unit(node: Node): string {
+/** A field's unit as the card writes it: its x-unit, `flag` or `text`. */
+export function unit(node: Node): string {
   const items = node.items;
   const inner = isNode(items) ? unit(items) : "";
   if ("x-unit" in node) return String(node["x-unit"]);
@@ -108,7 +112,7 @@ function unit(node: Node): string {
 }
 
 /** Look through an optional field's `anyOf` with null. */
-function unwrap(node: Node): Node {
+export function unwrap(node: Node): Node {
   const options = node.anyOf;
   if (Array.isArray(options)) {
     const rest = options.filter((option): option is Node => isNode(option) && option.type !== "null");
@@ -121,7 +125,7 @@ function unwrap(node: Node): Node {
 }
 
 /** A schema's object schemas, each with its calculation when it is a union. */
-function members(schema: Node): [string | null, Node][] {
+export function members(schema: Node): [string | null, Node][] {
   const definitions = isNode(schema.$defs) ? schema.$defs : {};
   const options = schema.oneOf;
   if (!Array.isArray(options) || options.length === 0) return [[null, schema]];

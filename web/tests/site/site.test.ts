@@ -11,12 +11,13 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { attributes, startTags } from "../../scripts/headers.ts";
+import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
 import { ORIGIN, modelPath } from "@/lib/paths";
 import { ogImagePath } from "@/lib/pages";
 import { problemData, registryData } from "@/lib/site-data";
 
 const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
+const MODEL_PAGE = /^\/models\/[^/]+\/[^/]+\/$/;
 
 /**
  * Internal links to pages a later step builds, each with that step. Step 16
@@ -32,6 +33,7 @@ const SECTIONS = [
   "summary",
   "formula",
   "variables",
+  "calculator",
   "worked-example",
   "assumptions",
   "limitations",
@@ -123,6 +125,17 @@ describe("every model page", () => {
       expect(formulas.length).toBe(model.formula.length);
       expect(page).not.toMatch(/katex-error|ParseError|katex-html/);
     });
+
+    it(`${model.id} carries one calculator island, hydrated when visible, and Plotly's style marker`, () => {
+      const page = html(modelPath(model.id));
+      const islands = tags(page).filter((tag) => tag.startsWith("<astro-island"));
+      expect(islands).toHaveLength(1);
+      const island = attributes(islands[0] ?? "");
+      expect(island.get("client")).toBe("visible");
+      expect(island.get("component-url")).toMatch(/^\/_astro\/Calculator\.[\w-]+\.js$/);
+      expect(island.get("props")).toContain(model.id);
+      expect(page).toContain('<div id="plotly.js-style-global" class="no-inline-styles" hidden="">');
+    });
   }
 });
 
@@ -181,13 +194,19 @@ describe("every page", () => {
     for (const planned of PLANNED.keys()) expect(resolves(planned), `${planned} now builds: remove it from PLANNED`).toBe(false);
   });
 
-  it("holds no markup from card text: no script but its JSON-LD, no handler, style or frame", () => {
+  it("holds no markup from card text: no script but its JSON-LD and the island's, no handler, style or frame", () => {
     for (const path of [...PAGES, "/404.html"]) {
       const page = path.endsWith(".html") ? readFileSync(join(DIST, path), "utf8") : html(path);
+      // A model page's calculator island: Astro's runtime, inline and hashed in
+      // the page's policy (checkPage, the post-build check, finds no problem),
+      // and its one style element; no other page ships either.
+      const island = MODEL_PAGE.test(path);
+      if (island) expect(checkPage(page).problems, path).toEqual([]);
       for (const tag of tags(page)) {
         const name = /^<([a-zA-Z][a-zA-Z0-9-]*)/.exec(tag)?.[1]?.toLowerCase() ?? "";
-        expect(["iframe", "object", "embed", "style", "form", "base"], `${path}: ${tag}`).not.toContain(name);
-        if (name === "script") expect(attributes(tag).get("type"), `${path}: ${tag}`).toBe("application/ld+json");
+        const runtime = island && (tag === "<script>" || tag === "<style>");
+        if (!runtime) expect(["iframe", "object", "embed", "style", "form", "base"], `${path}: ${tag}`).not.toContain(name);
+        if (name === "script" && !runtime) expect(attributes(tag).get("type"), `${path}: ${tag}`).toBe("application/ld+json");
         if (name === "img") expect(attributes(tag).get("src"), `${path}: ${tag}`).toBe("/favicon.svg");
         for (const attribute of attributes(tag).keys()) {
           expect(attribute, `${path}: ${tag}`).not.toMatch(/^on|^style$|^srcdoc$/);

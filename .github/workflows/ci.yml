@@ -629,10 +629,14 @@ jobs:
           "$RUNNER_TEMP/parity/bin/python" -I "$check" "$golden" "$RUNNER_TEMP/parity/bin/pyeconomics"
 
   # Phase 5 Step 3 (ADR-0013 decisions 2, 9 and 19): the web app in web/, on
-  # the Node of web/.nvmrc. The site data is exported twice and must not
-  # change; then astro check, ESLint with the security and accessibility rules
-  # (the eslint-web hook), Vitest, the build with its post-build headers check,
-  # gitleaks over dist/, Playwright with axe and the CSP-violation listener,
+  # the Node of web/.nvmrc. The site data and the calculators' precompiled
+  # validators are exported twice and must not change; then astro check,
+  # ESLint with the security and accessibility rules (the eslint-web hook),
+  # Vitest, the build with its post-build headers check, the web parity suite
+  # (Phase 5 Step 6: every golden case through the calculators' request
+  # builder, and each snippet kind for one model per domain, against a local
+  # `pyeconomics serve`), gitleaks over dist/, Playwright with axe and the
+  # CSP-violation listener (the calculators against tests/web/e2e_api.py),
   # Lighthouse at decision 19's scores (both against `wrangler dev`, so
   # dist/_headers applies as on Cloudflare), npm audit (the npm-audit-web
   # hook) and the licence check of what ships to browsers.
@@ -677,7 +681,7 @@ jobs:
         run: |
           set -euo pipefail
           npm run data
-          sha256sum src/data/generated/*.json > "$RUNNER_TEMP/site-data.sha256"
+          sha256sum src/data/generated/*.json src/data/generated/validators/*.js > "$RUNNER_TEMP/site-data.sha256"
           npm run data
           sha256sum --check --strict "$RUNNER_TEMP/site-data.sha256"
       - name: astro check
@@ -699,6 +703,9 @@ jobs:
       - name: Vitest over the built site (pages, sections, links, JSON-LD, images)
         working-directory: web
         run: npm run test:dist
+      - name: Web parity (every golden case through the calculators' request builder, and the snippets)
+        working-directory: web
+        run: npm run test:parity
       - name: Scan the build output for secrets with gitleaks
         shell: bash
         run: |

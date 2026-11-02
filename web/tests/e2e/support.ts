@@ -3,7 +3,10 @@
 // dist/, and a fixture that records every Content Security Policy violation
 // and console error a page raises. The listener is installed through the
 // DevTools protocol before any page script runs, which the policy cannot
-// block, and a test fails if anything was recorded.
+// block, and a test fails if anything was recorded. The `api` fixture sends a
+// page's /v1/ requests, which `wrangler dev`'s edge Worker cannot forward (it
+// has no origin), to the local API on API_PORT (tests/web/e2e_api.py) and
+// hands the page its answer unchanged, so the browser still sees one origin.
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +14,10 @@ import { fileURLToPath } from "node:url";
 import { test as base, expect } from "@playwright/test";
 
 export const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
+
+/** The port of the API the calculators' requests are forwarded to. */
+export const API_PORT = 8799;
+const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
 
 /** The policy dist/_headers sends on every path. */
 export function headerPolicy(): string {
@@ -48,7 +55,28 @@ interface Watch {
   errors: string[];
 }
 
-export const test = base.extend<{ watch: Watch }>({
+/** The API requests a page made, as the forwarding fixture saw them. */
+export interface ApiLog {
+  requests: { method: string; url: string; contentType: string | null; body: string | null }[];
+}
+
+export const test = base.extend<{ watch: Watch; api: ApiLog }>({
+  api: async ({ page }, use) => {
+    const log: ApiLog = { requests: [] };
+    await page.route("**/v1/**", async (route) => {
+      const request = route.request();
+      const url = new URL(request.url());
+      log.requests.push({
+        method: request.method(),
+        url: `${url.pathname}${url.search}`,
+        contentType: request.headers()["content-type"] ?? null,
+        body: request.postData(),
+      });
+      const response = await route.fetch({ url: `${API_ORIGIN}${url.pathname}${url.search}` });
+      await route.fulfill({ response });
+    });
+    await use(log);
+  },
   watch: [
     async ({ page }, use) => {
       const watch: Watch = { violations: [], errors: [] };

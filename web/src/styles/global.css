@@ -8,6 +8,8 @@
  * and links use the darker --link blue, which passes WCAG 2.2 AA.
  */
 @import "tailwindcss";
+/* The calculators' form theme (@rjsf/shadcn) is styled with Tailwind classes. */
+@source "../../node_modules/@rjsf/shadcn/lib";
 
 :root {
   --radius: 0.625rem;
