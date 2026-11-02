@@ -8,8 +8,13 @@
  * and links use the darker --link blue, which passes WCAG 2.2 AA.
  */
 @import "tailwindcss";
-/* The calculators' form theme (@rjsf/shadcn) is styled with Tailwind classes. */
-@source "../../node_modules/@rjsf/shadcn/lib";
+@import "./tokens.css";
+/*
+ * The calculators' form and its theme (@rjsf/shadcn) have a stylesheet of their
+ * own, calculator.css, which loads with the form: no page carries their
+ * classes before a calculator renders.
+ */
+@source not "../components/calculator";
 
 :root {
   --radius: 0.625rem;
@@ -53,32 +58,6 @@
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
   }
-}
-
-@theme inline {
-  --color-brand: var(--brand);
-  --color-brand-ink: var(--brand-ink);
-  --color-link: var(--link);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @layer base {

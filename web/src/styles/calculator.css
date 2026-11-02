@@ -1,0 +1,15 @@
+/* web/src/styles/calculator.css */
+/*
+ * The calculators' stylesheet (Phase 5 Step 6): Tailwind's utilities for the
+ * form (src/components/calculator) and its theme (@rjsf/shadcn) only, with the
+ * site's tokens. CalculatorForm.tsx imports it as text (?inline) and adopts it
+ * as a constructed stylesheet when the form loads, so no page links it;
+ * global.css leaves these sources out.
+ * Its custom properties and base styles are global.css's.
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "./tokens.css";
+@source "../components/calculator";
+@source "../components/ui";
+@source "../../node_modules/@rjsf/shadcn/lib";

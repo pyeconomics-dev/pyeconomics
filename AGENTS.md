@@ -627,6 +627,14 @@ From Phase 5 Step 6, which builds the calculators:
   against its calculation's member. `tests/unit/forms.test.tsx` renders every
   model's form with each example: a schema RJSF asks about without a
   compiled validator fails it.
+- No page carries the form's code or styles before it renders: the island
+  `Calculator.tsx` is a shell that imports `CalculatorForm.tsx` dynamically,
+  and the form adopts `src/styles/calculator.css` (its and the theme's
+  utilities only, imported `?inline`) as a constructed stylesheet, because
+  Astro links a dynamic import's CSS in the page head. `global.css` leaves
+  the calculator's sources out (`@source not`); never `@source` the theme
+  there. CI's Lighthouse runs the sample in rounds (`schedule()`), because a
+  runner's busy spells come in runs of consecutive measurements.
 - A run goes through `src/lib/run-request.ts` (the generated client, POST, the
   inputs' JSON) and its bytes are kept as received; "copy JSON" and the JSON
   download hand them over, and every other download is the same POST with
