@@ -10,11 +10,12 @@ import problems from "@/data/generated/problems.json?raw";
 import registry from "@/data/generated/registry.json?raw";
 import sources from "@/data/generated/sources.json?raw";
 import surfaces from "@/data/generated/surfaces.json?raw";
+import syllabi from "@/data/generated/syllabi.json?raw";
 import type { HostedProfile } from "@/lib/calculator";
 
 /** The registry format this site reads (`REGISTRY_FORMAT`). */
 export const REGISTRY_FORMAT = 1;
-/** The format of problems.json, sources.json, concepts.json and surfaces.json. */
+/** The format of problems.json, sources.json, concepts.json, surfaces.json and syllabi.json. */
 export const SITE_DATA_FORMAT = 1;
 
 /** One model, as registry.json describes it; later steps read more keys. */
@@ -103,6 +104,37 @@ export interface ConceptEntry {
   hosted: boolean;
 }
 
+/** One level of a syllabus. */
+export interface SyllabusLevel {
+  level: number;
+  title: string;
+  url: string;
+}
+
+/** One topic area of one level: a neutral id, its title and its issuer's page. */
+export interface SyllabusTopic {
+  id: string;
+  level: number;
+  title: string;
+  url: string;
+}
+
+/** One syllabus crosswalk from syllabi/ (ADR-0013 decision 12). */
+export interface SyllabusEntry {
+  /** A neutral id: no mark. */
+  id: string;
+  /** The displayed name, with the issuer's mark as an adjective. */
+  title: string;
+  issuer: string;
+  site: string;
+  url: string;
+  checked: string;
+  levels: SyllabusLevel[];
+  topics: SyllabusTopic[];
+  /** Per model id, the topic ids it implements. */
+  models: Record<string, string[]>;
+}
+
 function parse<T extends { format: number }>(text: string, name: string, format: number): T {
   const document = JSON.parse(text) as T;
   if (document.format !== format) {
@@ -151,6 +183,13 @@ export const surfaceData = parse<{ format: number; models: SurfaceEntry[] }>(
   "surfaces.json",
   SITE_DATA_FORMAT,
 ).models;
+
+/** Every syllabus crosswalk, sorted by id. */
+export const syllabusData = parse<{ format: number; syllabi: SyllabusEntry[] }>(
+  syllabi,
+  "syllabi.json",
+  SITE_DATA_FORMAT,
+).syllabi;
 
 /** The pyeconomics version the data was exported from. */
 export const version = registryData.pyeconomics;

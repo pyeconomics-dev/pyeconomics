@@ -15,7 +15,7 @@ Node comes from `.nvmrc` (24); Python from the repository's `uv` environment.
 ```sh
 npm ci --ignore-scripts
 npm run data     # export the site data and golden cases; precompile the validators; generate the client
-npm run build    # astro build, then scripts/headers.ts (dist/_headers) and scripts/indexing.ts
+npm run build    # astro build, then scripts/headers.ts (dist/_headers), scripts/indexing.ts and scripts/search-index.ts
 ```
 
 The build generates a page for every model (`/models/<domain>/<name>/`, from
@@ -26,7 +26,20 @@ Graph tags, schema.org JSON-LD and a social image drawn at build time under
 `robots.txt` and `_redirects` (each model alias's page to its model's) and
 fails on a page the sitemap misses or a path in `released-pages.json`, the
 ledger of every page a release has served, that neither builds nor
-redirects.
+redirects. `scripts/search-index.ts` last runs Pagefind over the pages marked
+searchable (model, domain and problem pages) and writes the index into
+`dist/pagefind/`, which `/search/` and the header's search box query in the
+browser.
+
+## Navigation, filters and coverage
+
+The header lists the fifteen domain sections (`src/lib/paths.ts` `DOMAINS`);
+`/models/` filters every model by domain, syllabus level and topic, evidence,
+cost class, data needs and tag, keeping the filters in the query string; each
+model page lists its syllabus tags and related models; and `/coverage/` is the
+coverage matrix. All of it is computed at build time from the registry and
+`syllabi/` (`src/lib/catalog.ts`), whose one loader is
+`../scripts/web/syllabi.py`.
 
 `npm run data` writes `src/data/generated/` and `src/client/`, both
 git-ignored: every build regenerates them from the registry and the catalog,

@@ -1,26 +1,31 @@
 ---
 // web/src/pages/index.astro
 // The home page. Its counts and domains come from the registry export, so a
-// new model shows here with no web code.
+// new model shows here with no web code; the domain sections are listed in
+// ROADMAP §4 7.2's order, the planned ones marked.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Math from "@/components/Math.astro";
 import { buttonVariants } from "@/components/ui/button";
 import Base from "@/layouts/Base.astro";
 import { DOCUMENTATION, REPOSITORY } from "@/lib/links";
-import { domainPath, domainTitle } from "@/lib/models";
+import { DOMAINS, domainPath } from "@/lib/models";
 import { HOME } from "@/lib/pages";
 import { domains, registryData, version } from "@/lib/site-data";
 
 const models = registryData.models.length;
-const sections = domains();
+const counts = new Map(domains());
+const sections = DOMAINS.map((domain) => ({ domain, count: counts.get(domain.id) ?? 0 }));
+const populated = sections.filter((section) => section.count > 0).length;
 const prerelease = /(a|b|rc|dev)\d/.test(version);
 const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyeconomics";
 ---
 
 <Base title={HOME.title} description={HOME.description}>
+  <Breadcrumbs trail={[{ name: "Home", path: "/" }]} />
   <section class="flex flex-col gap-6">
     <h1 class="text-4xl font-bold tracking-tight">pyeconomics</h1>
     <p class="max-w-2xl text-lg">
-      Open-source economics and finance models: {models} models in {sections.length} domains, each
+      Open-source economics and finance models: {models} models in {populated} domains, each
       with cited formulas, tested values and units, and a catalog of economic data read from the
       bodies that publish it.
     </p>
@@ -49,17 +54,20 @@ const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyec
 
   <section class="mt-12 flex flex-col gap-4" aria-labelledby="domains">
     <h2 id="domains" class="text-2xl font-semibold">Domains</h2>
-    <p><a href="/models/">Every model, by domain</a></p>
+    <p>
+      <a href="/models/">Every model, with filters</a> · <a href="/search/">Search</a> ·{" "}
+      <a href="/coverage/">What the catalog covers</a>
+    </p>
     <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {
-        sections.map(([domain, count]) => (
+        sections.map(({ domain, count }) => (
           <li class="rounded-md border px-4 py-3">
-            <a href={domainPath(domain)} class="font-medium">
-              {domainTitle(domain)}
+            <a href={domainPath(domain.id)} class="font-medium">
+              {domain.title}
             </a>
             <span class="text-muted-foreground">
               {" "}
-              · {count} {count === 1 ? "model" : "models"}
+              · {count > 0 ? `${String(count)} ${count === 1 ? "model" : "models"}` : `planned: ${domain.planned ?? "later"}`}
             </span>
           </li>
         ))

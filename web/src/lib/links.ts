@@ -1,7 +1,8 @@
 // web/src/lib/links.ts
-// The site's fixed links: the header's main navigation, which Step 7 fills
-// with the model sections and the data explorer, and the footer's links to
-// the notices, the licence, the repository and the documentation.
+// The site's fixed links: the header's main navigation (the domain sections
+// beside it come from src/lib/paths.ts DOMAINS; Step 9 adds the data
+// explorer), and the footer's links to the notices, the licence, the
+// repository and the documentation.
 
 export interface Link {
   label: string;
@@ -16,6 +17,9 @@ export const LICENCE = `${REPOSITORY}/blob/main/LICENSE`;
 
 /** The header's main navigation. */
 export const NAVIGATION: readonly Link[] = [
+  { label: "Models", href: "/models/" },
+  { label: "Coverage", href: "/coverage/" },
+  { label: "Search", href: "/search/" },
   { label: "Documentation", href: DOCUMENTATION },
   { label: "GitHub", href: REPOSITORY },
 ];

@@ -7,7 +7,17 @@
 // Pure functions over the site data: nothing here reads a file or reaches the
 // browser.
 import { DOCUMENTATION } from "@/lib/links";
-export { ORIGIN, domainPath, domainSegment, domainTitle, idOfPath, modelPath } from "@/lib/paths";
+export {
+  DOMAINS,
+  ORIGIN,
+  domainOf,
+  domainPath,
+  domainSegment,
+  domainTitle,
+  idOfPath,
+  modelPath,
+  type Domain,
+} from "@/lib/paths";
 import type { Binding, Cost, Evidence, Model, Reference } from "@/lib/registry-schema";
 import type { ConceptEntry, SourceEntry } from "@/lib/site-data";
 

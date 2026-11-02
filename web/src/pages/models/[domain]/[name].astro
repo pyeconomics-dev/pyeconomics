@@ -13,13 +13,14 @@ import { surfaceData, type SurfaceEntry } from "@/lib/site-data";
 
 export async function getStaticPaths() {
   const surfaces = new Map(surfaceData.map((surface) => [surface.id, surface]));
-  return (await getCollection("models")).map(({ data }) => {
+  const models = (await getCollection("models")).map(({ data }) => data);
+  return models.map((data) => {
     const surface = surfaces.get(data.id);
     if (!surface) throw new Error(`${data.id} has no entry in surfaces.json; run \`npm run data\``);
     const [, name = ""] = data.id.split(".");
     return {
       params: { domain: domainSegment(data.domain), name: name.replaceAll("_", "-") },
-      props: { model: data, surface },
+      props: { model: data, surface, models },
     };
   });
 }
@@ -27,9 +28,10 @@ export async function getStaticPaths() {
 interface Props {
   model: Model;
   surface: SurfaceEntry;
+  models: Model[];
 }
 
-const { model, surface } = Astro.props;
+const { model, surface, models } = Astro.props;
 ---
 
-<ModelPage model={model} surface={surface} />
+<ModelPage model={model} surface={surface} models={models} />

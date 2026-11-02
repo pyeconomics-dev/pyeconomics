@@ -1,26 +1,30 @@
 ---
 // web/src/pages/models/index.astro
-// Every model, by domain. Minimal until Step 7 builds the sections, filters and
-// search around it.
+// Every model, with the filters of ADR-0013 decision 10: domain, syllabus
+// level and topic, evidence status, cost class, data needs and tag. The build
+// computes each model's values and the facets from the registry and syllabi/
+// (src/lib/catalog.ts); the island (ModelFilters.tsx) renders the whole list
+// on the server, so the page lists every model without JavaScript, and
+// filters it in the browser, keeping the filters in the query string. The
+// filters are the page's first content, so the island hydrates on load.
 import { getCollection } from "astro:content";
 
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import ModelFilters from "@/components/models/ModelFilters";
 import Base from "@/layouts/Base.astro";
-import { domainPath, domainSegment, domainTitle, modelPath } from "@/lib/models";
+import { facets, filterModels } from "@/lib/catalog";
+import { DOMAINS } from "@/lib/models";
 import { MODELS_INDEX } from "@/lib/pages";
-import type { Model } from "@/lib/registry-schema";
+import { syllabusData } from "@/lib/site-data";
 import { webPage, type Crumb } from "@/lib/structured-data";
 
-const byDomain = new Map<string, Model[]>();
-for (const { data } of await getCollection("models")) {
-  byDomain.set(data.domain, [...(byDomain.get(data.domain) ?? []), data]);
-}
-const domains = [...byDomain].sort(([a], [b]) => a.localeCompare(b));
-const total = domains.reduce((sum, [, models]) => sum + models.length, 0);
+const models = (await getCollection("models")).map(({ data }) => data);
+const populated = DOMAINS.filter((domain) => models.some((model) => model.domain === domain.id)).length;
 const trail: Crumb[] = [
   { name: "Home", path: "/" },
   { name: "Models", path: "/models/" },
 ];
+const syllabus = syllabusData[0];
 ---
 
 <Base
@@ -31,25 +35,18 @@ const trail: Crumb[] = [
   <Breadcrumbs trail={trail} />
   <h1 class="text-4xl font-bold tracking-tight">Models</h1>
   <p class="mt-4 max-w-3xl text-lg">
-    {total} models in {domains.length} domains. Each page has the model's formula, its variables with units
-    and bounds, a worked example, its evidence status and its citations.
+    {models.length} models in {populated} domains. Each page has the model's formula, its variables with units and
+    bounds, a calculator, a worked example, its evidence status and its citations.
   </p>
   {
-    domains.map(([domain, models]) => (
-      <section class="mt-10" aria-labelledby={`domain-${domainSegment(domain)}`}>
-        <h2 id={`domain-${domainSegment(domain)}`} class="text-2xl font-semibold">
-          <a href={domainPath(domain)}>{domainTitle(domain)}</a>
-        </h2>
-        <ul class="mt-3 grid gap-2 sm:grid-cols-2">
-          {models
-            .sort((a, b) => a.id.localeCompare(b.id))
-            .map((model) => (
-              <li>
-                <a href={modelPath(model.id)}>{model.title}</a>
-              </li>
-            ))}
-        </ul>
-      </section>
-    ))
+    syllabus && (
+      <p class="mt-2 max-w-3xl text-sm text-muted-foreground">
+        The syllabus filters use the {syllabus.title}'s topic areas as factual tags, each linked to {syllabus.issuer} on the{" "}
+        <a href="/coverage/">coverage matrix</a>.
+      </p>
+    )
   }
+  <div class="mt-8">
+    <ModelFilters client:load models={filterModels(models, syllabusData)} facets={facets(models, syllabusData)} />
+  </div>
 </Base>

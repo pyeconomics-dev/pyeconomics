@@ -696,7 +696,8 @@ jobs:
       # on an unsafe source, an unhashed inline script or style, an inline
       # style attribute, a line over 2,000 characters or a server route;
       # scripts/indexing.ts then writes robots.txt and _redirects and fails on a
-      # released page that neither builds nor redirects, or one the sitemap misses.
+      # released page that neither builds nor redirects, or one the sitemap misses;
+      # scripts/search-index.ts writes the Pagefind index into dist/pagefind/.
       - name: Build the site and check its headers
         working-directory: web
         run: npm run build

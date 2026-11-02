@@ -1,0 +1,34 @@
+---
+// web/src/pages/search/index.astro
+// /search/ (ADR-0013 decision 10): Pagefind's index of the model, domain and
+// problem pages, searched in the browser by an island through Pagefind's own
+// JavaScript API (src/components/search/SearchPage.tsx). No query leaves the
+// page. The page itself is not indexed.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import SearchPage from "@/components/search/SearchPage";
+import Base from "@/layouts/Base.astro";
+import { SEARCH } from "@/lib/pages";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: SEARCH.title, path: "/search/" },
+];
+---
+
+<Base title={SEARCH.title} description={SEARCH.description} jsonLd={webPage("/search/", SEARCH.title, SEARCH.description, trail)}>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">Search</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    Find a model by its name, its id or a word from its page. The search runs in your browser over an index this
+    site serves: what you type is never sent anywhere.
+  </p>
+  <div class="mt-8">
+    <SearchPage client:load />
+  </div>
+  <noscript>
+    <p class="mt-4 max-w-3xl">
+      Search needs JavaScript. Every model is listed on the <a href="/models/">models page</a>, by domain.
+    </p>
+  </noscript>
+</Base>

@@ -3,7 +3,7 @@
 // its social image is drawn from (src/pages/og/[...slug].ts), and the path of
 // each page's social image. The pages themselves are the routes under
 // src/pages/; tests/site/ holds this list equal to what the build wrote.
-import { describe, domainPath, domainTitle, modelPath } from "@/lib/models";
+import { DOMAINS, describe, domainPath, modelPath, type Domain } from "@/lib/models";
 import { domains, problemData, registryData } from "@/lib/site-data";
 
 /** One generated page. */
@@ -23,7 +23,21 @@ export const HOME = {
 /** The models index's title and description. */
 export const MODELS_INDEX = {
   title: "Models",
-  description: "Every pyeconomics model by domain, each with its formula, variables, evidence and citations.",
+  description:
+    "Every pyeconomics model, filtered by domain, syllabus topic, evidence, cost class, data needs and tag.",
+};
+
+/** The search page's title and description. */
+export const SEARCH = {
+  title: "Search",
+  description: "Search every pyeconomics model, domain and problem type, in your browser.",
+};
+
+/** The coverage matrix's title and description. */
+export const COVERAGE = {
+  title: "Coverage",
+  description:
+    "What the pyeconomics catalog covers: each syllabus topic area and the models that implement it, and each domain.",
 };
 
 /** The problem types index's title and description. */
@@ -33,20 +47,29 @@ export const PROBLEMS_INDEX = {
     "Every problem type a pyeconomics surface reports, with its HTTP status, exit code, meaning and what to do.",
 };
 
-/** A domain index's description. */
-export function domainDescription(domain: string, count: number): string {
-  return `${domainTitle(domain)}: ${count} pyeconomics ${count === 1 ? "model" : "models"}, each with its formula, variables, evidence and citations.`;
+/** A domain index's description; a planned section says when its models arrive. */
+export function domainDescription(domain: Domain, count: number): string {
+  if (count === 0 && domain.planned) {
+    return `${domain.title}: a planned pyeconomics section, whose models arrive in ${domain.planned}.`;
+  }
+  return `${domain.title}: ${String(count)} pyeconomics ${count === 1 ? "model" : "models"}, each with its formula, variables, evidence and citations.`;
 }
 
 /** Every page the site generates, home first. */
 export function sitePages(): SitePage[] {
   const pages: SitePage[] = [{ path: "/", ...HOME }, { path: "/models/", ...MODELS_INDEX }];
-  for (const [domain, count] of domains()) {
-    pages.push({ path: domainPath(domain), title: domainTitle(domain), description: domainDescription(domain, count) });
+  const counts = new Map(domains());
+  for (const domain of DOMAINS) {
+    pages.push({
+      path: domainPath(domain.id),
+      title: domain.title,
+      description: domainDescription(domain, counts.get(domain.id) ?? 0),
+    });
   }
   for (const model of registryData.models) {
     pages.push({ path: modelPath(model.id), title: model.title, description: describe(model) });
   }
+  pages.push({ path: "/search/", ...SEARCH }, { path: "/coverage/", ...COVERAGE });
   pages.push({ path: "/problems/", ...PROBLEMS_INDEX });
   for (const problem of problemData) {
     pages.push({ path: `/problems/${problem.slug}/`, title: problem.title, description: problem.meaning });

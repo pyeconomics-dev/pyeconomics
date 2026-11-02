@@ -7,7 +7,11 @@
 // a canonical link on the production origin, Open Graph and Twitter card tags
 // with the social image drawn for it at build time (src/pages/og/), and the
 // page's schema.org JSON-LD, if it has any, in a script no browser executes.
-// The 404 page is neither canonical nor indexable.
+// The 404 page is neither canonical nor indexable. A page whose content
+// search should find (`searchable`: model, domain and problem pages; Step 16
+// adds the source and legal pages) marks its main landmark data-pagefind-body,
+// and Pagefind indexes only such pages (scripts/search-index.ts), so the
+// header and footer, the home page, /search/ and the 404 page stay out.
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { ORIGIN } from "@/lib/models";
@@ -22,9 +26,11 @@ interface Props {
   jsonLd?: Record<string, unknown>;
   /** A page that must not be indexed and has no canonical address (the 404 page). */
   noindex?: boolean;
+  /** A page the site's search indexes. */
+  searchable?: boolean;
 }
 
-const { title, description, jsonLd, noindex = false } = Astro.props;
+const { title, description, jsonLd, noindex = false, searchable = false } = Astro.props;
 const pageTitle = title === "pyeconomics" ? title : `${title} · pyeconomics`;
 const canonical = new URL(Astro.url.pathname, ORIGIN).href;
 const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
@@ -70,7 +76,12 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
       Skip to content
     </a>
     <Header />
-    <main id="main" tabindex="-1" class="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+    <main
+      id="main"
+      tabindex="-1"
+      class="mx-auto w-full max-w-5xl flex-1 px-4 py-10"
+      data-pagefind-body={searchable ? "" : undefined}
+    >
       <slot />
     </main>
     <Footer />

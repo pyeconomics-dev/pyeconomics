@@ -39,7 +39,8 @@ scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
 scripts/parity/    the parity job's helper (the installed wheel's surfaces) and
                    check_deployed.py (a deployed API against the wheel)
 scripts/web/       the site data export the web app builds from, the
-                   calculators' validator compiler and their MCP snippet runner
+                   calculators' validator compiler, their MCP snippet runner
+                   and syllabi.py, the one loader of syllabi/
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
 tools/node/        the one Node workspace: the TypeScript client's generator and
                    the MCP Inspector
@@ -663,6 +664,46 @@ From Phase 5 Step 6, which builds the calculators:
   relative 1e-9, with the result hash following them, because NumPy and
   OpenBLAS choose kernels by CPU. Everything else stays exact, and the web
   parity suite, on one machine, stays byte for byte.
+
+From Phase 5 Step 7, which builds navigation, search and the syllabus seed:
+
+- The fifteen domain sections are `DOMAINS` in `web/src/lib/paths.ts`, in
+  ROADMAP §4 7.2's order; a registry domain it lacks fails the build, and a
+  planned section (`planned: "Phase 7"`) gets an empty-state page. A new
+  domain or a new generated page joins `DOMAINS` or `sitePages()` and the
+  dist tests.
+- `syllabi/` holds `schema.json` and one TOML file per syllabus version:
+  factual topic names, levels, links to the issuing body and model ids only.
+  `scripts/web/syllabi.py` is its one loader, for the site data export
+  (`syllabi.json`) and `docs/_ext/model_pages.py`; it refuses an unknown or
+  non-canonical model id, an unknown topic, a link off the issuer's `site`,
+  any text over 40 characters and any id holding `cfa`. Never store a
+  learning outcome, reading title or exam text, and change a mapping only
+  with the maintainer's review, recorded in the pull request.
+- No URL path or query value the site writes carries `cfa` (ROADMAP §5,
+  until CFA Institute answers: Step 16); filter values are neutral slugs and
+  `tests/site/` scans every page, the sitemap and `_redirects`. A page that
+  names the Program writes "CFA® Program" on first use, as an adjective.
+  The `/models/` filters read one syllabus; adding a second needs a syllabus
+  filter first (`catalog.ts` refuses it).
+- Filter state lives in the query string and is read only through
+  `parseFilters` (`src/lib/filters.ts`), which keeps a value only when a
+  facet offers it; the island renders it as React text. Facets, related
+  models and the coverage matrix are computed at build time in
+  `src/lib/catalog.ts`; `/coverage/` is never edited by hand.
+- Search is Pagefind, run after the build by `scripts/search-index.ts`
+  (which removes Pagefind's UI bundles and fails on a count mismatch). A page
+  is searched only when `Base.astro` gets `searchable`, which marks its main
+  landmark `data-pagefind-body`; give it `data-pagefind-meta="kind:..."`,
+  and keep islands and other non-content `data-pagefind-ignore`. The islands
+  load `/pagefind/pagefind.js` from the site's own origin through
+  `src/lib/search.ts`, and an excerpt reaches the page only as text runs
+  (`excerptParts`), never as HTML.
+- The header's search box hydrates with `client:interaction`
+  (`src/directives/interaction.ts`, registered in `astro.config.ts`), so no
+  page loads a script until a visitor reaches for it. Every page therefore
+  carries Astro's hashed island runtime. A container test that renders the
+  layout passes the directive in a partial manifest (`model-page.test.ts`).
 
 ## Units
 
