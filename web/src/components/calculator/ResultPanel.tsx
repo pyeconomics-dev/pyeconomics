@@ -100,7 +100,8 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
   );
 }
 
-function Source({ record, names }: { record: SourceRecord; names: Readonly<Record<string, string>> }) {
+/** One source record: its attribution, notice, licence class, as-of and terms page. */
+export function Source({ record, names }: { record: SourceRecord; names: Readonly<Record<string, string>> }) {
   return (
     <li className="flex flex-col gap-1 rounded-md border p-3">
       <p>

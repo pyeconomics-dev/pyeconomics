@@ -184,7 +184,10 @@ def _concept(concept: Concept, served: frozenset[str]) -> dict[str, Any]:
         "candidates": [_candidate(c) for c in by_mode[Mode.LIBRARY]],
         "hosted": bool(by_mode[Mode.HOSTED]),
         "snapshot": concept.id in served,
-        "parameters": [parameter.name for parameter in concept.parameters],
+        "parameters": [
+            {"name": parameter.name, "example": parameter.example}
+            for parameter in concept.parameters
+        ],
         "needs_window": concept.needs_window,
         "local_command": local_data_command(concept.id),
     }

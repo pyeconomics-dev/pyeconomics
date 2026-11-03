@@ -120,7 +120,8 @@ def test_concepts_carry_candidates_and_hosted_availability() -> None:
         # stored, so no concept is served that hosted mode may not use.
         assert not concept["snapshot"] or concept["hosted"]
     sep = next(c for c in concepts if c["id"] == "us.sep.unemployment")
-    assert sep["parameters"] == ["meeting", "year"]
+    assert [p["name"] for p in sep["parameters"]] == ["meeting", "year"]
+    assert all(p["example"] for p in sep["parameters"])
     french = next(c for c in concepts if c["id"] == "factors.ff3.us.monthly")
     assert (french["hosted"], french["snapshot"]) == (False, False)
 

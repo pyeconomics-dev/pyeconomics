@@ -8,7 +8,10 @@
 // fifteen domain sections and breadcrumbs on every page, the planned
 // sections' empty states, the coverage matrix's counts held to the registry
 // and the seed, the search index, no `cfa` in any of the site's URLs, and the
-// CFA® mark used as an adjective with ® on first use.
+// CFA® mark used as an adjective with ® on first use. Step 9's data explorer:
+// /data/ listing every concept, one page per concept with its sources, the
+// models that read it and its explorer island, and the library-only notice
+// on each model whose data the hosted site may not serve.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,9 +19,10 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
-import { DOMAINS, ORIGIN, domainPath, modelPath } from "@/lib/paths";
+import { DOMAINS, ORIGIN, conceptPath, domainPath, modelPath } from "@/lib/paths";
+import { dataProfiles, unservedSources } from "@/lib/models";
 import { ogImagePath } from "@/lib/pages";
-import { problemData, registryData, syllabusData } from "@/lib/site-data";
+import { conceptData, problemData, registryData, sourceData, syllabusData } from "@/lib/site-data";
 
 const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 
@@ -146,6 +150,43 @@ describe("every model page", () => {
   }
 });
 
+describe("the data explorer", () => {
+  it("writes /data/ with every concept, and one page per concept at its conceptPath", () => {
+    const index = html("/data/");
+    for (const concept of conceptData) expect(index, concept.id).toContain(`data-concept="${concept.id}"`);
+    const built = PAGES.filter((path) => path.startsWith("/data/") && path !== "/data/");
+    expect(built.sort()).toEqual(conceptData.map((concept) => conceptPath(concept.id)).sort());
+  });
+
+  for (const concept of conceptData) {
+    it(`${concept.id} lists its candidates and carries its explorer, hydrated when visible`, () => {
+      const page = html(conceptPath(concept.id));
+      for (const candidate of concept.candidates) expect(page).toContain(`data-candidate="${candidate.provider}"`);
+      expect(page).toContain(`data-snapshot="${concept.snapshot ? "served" : "local"}"`);
+      const islands = tags(page).filter(
+        (tag) => tag.startsWith("<astro-island") && /\/SeriesExplorer\./.test(attributes(tag).get("component-url") ?? ""),
+      );
+      expect(islands).toHaveLength(1);
+      const island = attributes(islands[0] ?? "");
+      expect(island.get("client")).toBe("visible");
+      expect(island.get("props")).toContain(concept.id);
+      expect(page).toContain('<div id="plotly.js-style-global" class="no-inline-styles" hidden="">');
+      expect(page).toContain("data-pagefind-body");
+    });
+  }
+
+  it("links each model's bound concepts to their pages, and says which sources the hosted site may not serve", () => {
+    for (const model of registryData.models) {
+      const page = html(modelPath(model.id));
+      const bindings = (model.bindings ?? []) as { concept: string }[];
+      for (const binding of bindings) expect(page, model.id).toContain(`href="${conceptPath(binding.concept)}"`);
+      const unserved = unservedSources(dataProfiles(bindings as never, conceptData, sourceData));
+      expect(page.includes("data-library-only"), model.id).toBe(unserved.length > 0);
+    }
+    expect(html(modelPath("equity.cape"))).toContain("data-library-only");
+  });
+});
+
 describe("every page", () => {
   it("has a canonical link, Open Graph and Twitter tags, and a social image", () => {
     for (const path of PAGES) {
@@ -207,13 +248,15 @@ describe("every page", () => {
       // Every page has the header's search island: Astro's runtime, inline and
       // hashed in the page's policy (checkPage, the post-build check, finds no
       // problem), and its one style element. The only forms are the search
-      // forms and the /models/ filters.
+      // forms, the /models/ filters and a data concept's series reader.
       expect(checkPage(page).problems, path).toEqual([]);
       for (const tag of tags(page)) {
         const name = /^<([a-zA-Z][a-zA-Z0-9-]*)/.exec(tag)?.[1]?.toLowerCase() ?? "";
         const runtime = tag === "<script>" || tag === "<style>";
         const form = attributes(tag);
-        const known = name === "form" && (form.get("role") === "search" || form.get("aria-label") === "Filter models");
+        const known =
+          name === "form" &&
+          (form.get("role") === "search" || ["Filter models", "Read the series"].includes(form.get("aria-label") ?? ""));
         if (!runtime && !known) expect(["iframe", "object", "embed", "style", "form", "base"], `${path}: ${tag}`).not.toContain(name);
         if (name === "script" && !runtime) expect(attributes(tag).get("type"), `${path}: ${tag}`).toBe("application/ld+json");
         if (name === "img") expect(attributes(tag).get("src"), `${path}: ${tag}`).toBe("/favicon.svg");

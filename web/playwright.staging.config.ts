@@ -1,5 +1,6 @@
 // web/playwright.staging.config.ts
-// The deployed calculator on staging (Phase 5 Step 6): tests/staging/ against
+// The deployed calculator, data explorer and user-data upload on staging
+// (Phase 5 Steps 6 and 9): tests/staging/ against
 // STAGING_BASE_URL (https://staging.pyeconomics.dev by default), through
 // Cloudflare Access with the service token in CF_ACCESS_CLIENT_ID and
 // CF_ACCESS_CLIENT_SECRET, which the browser sends with every request of the

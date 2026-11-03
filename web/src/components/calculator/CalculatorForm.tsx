@@ -10,9 +10,11 @@
 // beside them, "copy JSON" and the JSON download hand them over unchanged, and
 // every other download is the same POST with ?format=. A bound model offers
 // live data where hosted mode can serve every bound field, and says which
-// fields it cannot serve elsewhere. Snippets for the other surfaces follow the
-// form. No input is kept in storage, the URL or analytics; text from the
-// server is rendered as text.
+// fields it cannot serve elsewhere. "Use my own data" (UserDataPanel.tsx,
+// Phase 5 Step 9) fills the array inputs from a CSV or XLSX file read in a
+// Web Worker; only the values it writes into the form travel, in the run's
+// body. Snippets for the other surfaces follow the form. No input is kept in
+// storage, the URL or analytics; text from the server is rendered as text.
 import Form from "@rjsf/shadcn";
 import type { ErrorSchema, RJSFValidationError } from "@rjsf/utils";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -23,6 +25,7 @@ import ProblemPanel, { fieldProblems, type FieldProblem, type ProblemDocument } 
 import ResultPanel from "@/components/calculator/ResultPanel";
 import SelectWidget from "@/components/calculator/SelectWidget";
 import SnippetsPanel from "@/components/calculator/SnippetsPanel";
+import UserDataPanel from "@/components/calculator/UserDataPanel";
 import { buttonVariants } from "@/components/ui/button";
 import {
   boundFields,
@@ -273,6 +276,20 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
             </div>
           )}
         </fieldset>
+      )}
+
+      {source === "values" && (
+        <UserDataPanel
+          modelId={props.modelId}
+          schema={schema}
+          calculation={calculation}
+          example={examples.at(example)?.inputs ?? {}}
+          disabled={running}
+          onFill={(values) => {
+            setFormData((current) => ({ ...current, ...values }));
+            setExtraErrors(undefined);
+          }}
+        />
       )}
 
       <Form

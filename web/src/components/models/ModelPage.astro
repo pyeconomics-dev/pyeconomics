@@ -6,6 +6,9 @@
 // (its topic tags from syllabi/, each linking to the issuing body), data (a
 // bound model only), citations, changelog, related models (computed at build
 // time: src/lib/catalog.ts relatedModels) and where else to use the model.
+// A model whose bound data the hosted site may not serve says which sources
+// and gives the local app's command beside its calculator (Phase 5 Step 9),
+// and each bound concept links to its page under /data/.
 // Search indexes the page (data-pagefind-body on its main landmark) with the
 // model's domain and summary as its result's text; the calculator's loading
 // text and form are not page content, so search ignores that section.
@@ -37,8 +40,11 @@ import {
   modelPath,
   pretty,
   referenceLink,
+  unservedSources,
   variables,
 } from "@/lib/models";
+import { LOCAL_APP } from "@/lib/explorer";
+import { conceptPath } from "@/lib/paths";
 import type { Model } from "@/lib/registry-schema";
 import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
 import { modelPage, type Crumb } from "@/lib/structured-data";
@@ -61,6 +67,7 @@ const trail: Crumb[] = [
 const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
 const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
 const profiles = dataProfiles(model.bindings, conceptData, sourceData);
+const unserved = unservedSources(profiles);
 const calculator = calculatorProps(model, surface, problemData, sourceData, conceptData);
 const topics = topicsOf(model.id, syllabusData);
 const syllabi = syllabusData.filter((syllabus) => topics.some((entry) => entry.syllabus.id === syllabus.id));
@@ -144,6 +151,24 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         Run the model on your own inputs, starting from its example. Rates are decimals. The run goes to the
         pyeconomics API on this site: your values travel only in the request, and nothing is stored.
       </p>
+      {
+        unserved.length > 0 && (
+          <div class="max-w-3xl rounded-md border p-4" data-library-only>
+            <p>
+              The hosted site may not serve this model's data from{" "}
+              {unserved.map((source, index) => (
+                <Fragment>
+                  {index > 0 && (index === unserved.length - 1 ? " or " : ", ")}
+                  {source.name} ({source.licence}, for {source.fields.join(", ")})
+                </Fragment>
+              ))}
+              : those sources' terms keep it to your own computer. Bring the values as your own file with "Use my own
+              data" below, or run pyeconomics locally, where every source is available:{" "}
+              <code>{LOCAL_APP}</code>.
+            </p>
+          </div>
+        )
+      }
       <Calculator client:visible {...calculator} />
       <noscript>
         <p class="max-w-3xl">
@@ -311,7 +336,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
                         {row.shape && <span class="block text-muted-foreground">{row.shape}</span>}
                       </th>
                       <td class="py-2 pr-4">
-                        {row.conceptTitle}
+                        <a href={conceptPath(row.concept)}>{row.conceptTitle}</a>
                         <span class="block text-muted-foreground">
                           <code>{row.concept}</code>
                         </span>

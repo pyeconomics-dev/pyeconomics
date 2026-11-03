@@ -101,6 +101,10 @@ export const DATA_WARNINGS: ReadonlyMap<string, string> = new Map(
     "not those known on the as-of date.",
   served_offline: "Served from the local cache in offline mode.",
   bls_keyless: "Read from the BLS without its catalog, so the series' unit and seasonal adjustment are not known.",
+  served_from_snapshot:
+    "Served from the hosted service's daily snapshot of the source, taken at the retrieval time shown, not fetched for this request.",
+  stale_snapshot:
+    "The snapshot is more than two days old: the source could not be read since, so newer data may exist.",
   }),
 );
 

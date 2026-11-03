@@ -4,9 +4,11 @@
 // and console error a page raises. The listener is installed through the
 // DevTools protocol before any page script runs, which the policy cannot
 // block, and a test fails if anything was recorded. The `api` fixture sends a
-// page's /v1/ requests, which `wrangler dev`'s edge Worker cannot forward (it
-// has no origin), to the local API on API_PORT (tests/web/e2e_api.py) and
-// hands the page its answer unchanged, so the browser still sees one origin.
+// page's /v1/ requests and GET /version, which `wrangler dev`'s edge Worker
+// cannot forward (it has no origin), to the local API on API_PORT
+// (tests/web/e2e_api.py) and hands the page its answer unchanged, so the
+// browser still sees one origin. The `network` fixture records every request
+// the page makes, to any origin, with its body (the privacy test's log).
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -60,9 +62,30 @@ export interface ApiLog {
   requests: { method: string; url: string; contentType: string | null; body: string | null }[];
 }
 
-export const test = base.extend<{ watch: Watch; api: ApiLog }>({
+/** Every request a page made, to any origin, as the browser sent it. */
+export interface NetworkLog {
+  requests: { method: string; url: string; body: Buffer | null }[];
+}
+
+export const test = base.extend<{ watch: Watch; api: ApiLog; network: NetworkLog }>({
+  network: async ({ page }, use) => {
+    const log: NetworkLog = { requests: [] };
+    page.on("request", (request) => {
+      log.requests.push({ method: request.method(), url: request.url(), body: request.postDataBuffer() });
+    });
+    await use(log);
+  },
   api: async ({ page }, use) => {
     const log: ApiLog = { requests: [] };
+    // The data explorer asks the server's mode (GET /version), which wrangler
+    // dev cannot answer either; it is forwarded, and not logged as a run.
+    await page.route(
+      (url) => url.pathname === "/version",
+      async (route) => {
+        const response = await route.fetch({ url: `${API_ORIGIN}/version` });
+        await route.fulfill({ response });
+      },
+    );
     await page.route("**/v1/**", async (route) => {
       const request = route.request();
       const url = new URL(request.url());

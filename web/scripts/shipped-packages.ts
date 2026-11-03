@@ -3,8 +3,9 @@
 // (Phase 5 Step 3's licence check of the shipped bundle). The site's
 // `dependencies` are meant to be exactly what reaches browsers; this makes
 // that checkable. In the client environment's build (Astro 7 builds through
-// Vite's environment API) it reads every output chunk's modules, keeps those
-// under node_modules/, and writes their package names, sorted, to
+// Vite's environment API), and in each worker bundle it builds, it reads every
+// output chunk's modules, keeps those under node_modules/, and writes the
+// package names of all of them so far, sorted, to
 // .astro/shipped-packages.json; scripts/checks/web_licences.py --shipped then
 // fails on a shipped package that is not in the production tree.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -34,6 +35,9 @@ export function packagesOf(moduleIds: Iterable<string>): string[] {
   return [...names].sort();
 }
 
+/** Every package a build's bundles held so far: the client's and its workers'. */
+const shipped = new Set<string>();
+
 export default function shippedPackages(): Plugin {
   return {
     name: "pyeconomics:shipped-packages",
@@ -43,7 +47,8 @@ export default function shippedPackages(): Plugin {
       const ids = Object.values(bundle).flatMap((output) =>
         output.type === "chunk" ? Object.keys(output.modules) : [],
       );
-      const document = { format: 1, packages: packagesOf(ids) };
+      for (const name of packagesOf(ids)) shipped.add(name);
+      const document = { format: 1, packages: [...shipped].sort() };
       // A fixed path under web/.astro/.
       // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
       mkdirSync(dirname(SHIPPED), { recursive: true });

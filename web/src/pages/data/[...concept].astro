@@ -1,0 +1,187 @@
+---
+// web/src/pages/data/[...concept].astro
+// One catalog concept's page (Phase 5 Step 9; ADR-0013 decision 11), one per
+// entry of concepts.json at its conceptPath (`us.unemployment.rate` is
+// /data/us/unemployment/rate/). The panel is built here: the definition, unit,
+// frequency and seasonal adjustment; each candidate in fallback order with its
+// licence class, whether hosted mode may use it and its terms page; whether the
+// hosted site serves the concept from its snapshot; and the models whose
+// bindings read it, linked. The chart and the downloads are the island
+// (SeriesExplorer.tsx), hydrated when it scrolls into view; its props are the
+// concept's id and the facts it decides with, all small. Text from the catalog
+// reaches HTML only through Astro's escaping.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import SeriesExplorer from "@/components/explorer/SeriesExplorer";
+import Base from "@/layouts/Base.astro";
+import { LOCAL_APP, modelsReading } from "@/lib/explorer";
+import { domainTitle, modelPath } from "@/lib/models";
+import { conceptDescription, DATA_INDEX } from "@/lib/pages";
+import { DATA_PATH, conceptPath } from "@/lib/paths";
+import { conceptData, problemData, registryData, sourceData, type ConceptEntry } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+export function getStaticPaths() {
+  return conceptData.map((concept) => ({
+    params: { concept: conceptPath(concept.id).slice(DATA_PATH.length, -1) },
+    props: { concept },
+  }));
+}
+
+interface Props {
+  concept: ConceptEntry;
+}
+
+const { concept } = Astro.props;
+const path = conceptPath(concept.id);
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: DATA_INDEX.title, path: DATA_PATH },
+  { name: concept.title, path },
+];
+const sources = new Map(sourceData.map((source) => [source.id, source]));
+const models = modelsReading(concept.id, registryData.models);
+const names = Object.fromEntries(
+  concept.candidates.flatMap((candidate) => {
+    const source = sources.get(candidate.provider);
+    return source ? [[source.id, source.name]] : [];
+  }),
+);
+const localSlugs = problemData.filter((problem) => problem.local_command !== null).map((problem) => problem.slug);
+const words = (text: string) => text.replaceAll("_", " ");
+const sectionClass = "mt-12 flex flex-col gap-4";
+const headingClass = "text-2xl font-semibold";
+---
+
+<Base
+  title={concept.title}
+  description={conceptDescription(concept)}
+  jsonLd={webPage(path, concept.title, conceptDescription(concept), trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <article>
+    <section class="flex flex-col gap-4" aria-labelledby="concept-title" data-section="concept">
+      <h1 id="concept-title" class="text-4xl font-bold tracking-tight">{concept.title}</h1>
+      <span hidden data-pagefind-meta="kind:Data"></span>
+      <p class="max-w-3xl text-lg" data-pagefind-meta="summary">{concept.definition}</p>
+      <dl class="grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
+        <dt class="text-muted-foreground">Concept id</dt>
+        <dd><code>{concept.id}</code></dd>
+        <dt class="text-muted-foreground">Unit</dt>
+        <dd>{concept.unit ?? concept.unit_kind ?? "mixed (a table)"}</dd>
+        <dt class="text-muted-foreground">Frequency</dt>
+        <dd>{words(concept.frequency)}</dd>
+        <dt class="text-muted-foreground">Seasonal adjustment</dt>
+        <dd>{words(concept.seasonal_adjustment)}</dd>
+        <dt class="text-muted-foreground">Shape</dt>
+        <dd>{concept.shape === "table" ? "a table of columns" : "one series"}</dd>
+        <dt class="text-muted-foreground">Topic</dt>
+        <dd>{concept.section}</dd>
+        <dt class="text-muted-foreground">On this site</dt>
+        <dd data-snapshot={concept.snapshot ? "served" : "local"}>
+          {
+            concept.snapshot
+              ? "Served from the daily snapshot of its originator."
+              : "Not served here: read it on your own computer."
+          }
+        </dd>
+      </dl>
+    </section>
+
+    <section id="chart" class={sectionClass} aria-labelledby="chart-heading" data-section="chart" data-pagefind-ignore="all">
+      <h2 id="chart-heading" class={headingClass}>Chart and download</h2>
+      <SeriesExplorer
+        client:visible
+        conceptId={concept.id}
+        frequency={concept.frequency}
+        shape={concept.shape}
+        snapshot={concept.snapshot}
+        parameters={concept.parameters}
+        needsWindow={concept.needs_window}
+        localCommand={concept.local_command}
+        sourceNames={names}
+        localSlugs={localSlugs}
+      />
+      <noscript>
+        <p class="max-w-3xl">
+          The chart needs JavaScript. Read the series with <code>{concept.local_command}</code>, or from the REST API at
+          <code>GET /v1/series/{concept.id}</code>.
+        </p>
+      </noscript>
+    </section>
+
+    <section id="sources" class={sectionClass} aria-labelledby="sources-heading" data-section="sources">
+      <h2 id="sources-heading" class={headingClass}>Sources</h2>
+      <p class="max-w-3xl">
+        The sources that can answer this concept, in the order they are tried. The hosted site reads only hosted-safe
+        sources; every source is available when you run pyeconomics yourself ({LOCAL_APP}).
+      </p>
+      <div class="overflow-x-auto" role="region" aria-label="Sources of this concept" tabindex="0">
+        <table class="w-full border-collapse text-left text-sm">
+          <caption class="mb-2 text-left font-medium">Candidates of <code>{concept.id}</code></caption>
+          <thead>
+            <tr class="border-b">
+              <th scope="col" class="py-2 pr-4">Source</th>
+              <th scope="col" class="py-2 pr-4">Series</th>
+              <th scope="col" class="py-2 pr-4">Licence class</th>
+              <th scope="col" class="py-2 pr-4">Hosted</th>
+              <th scope="col" class="py-2">Terms</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              concept.candidates.map((candidate) => {
+                const source = sources.get(candidate.provider);
+                return (
+                  <tr class="border-b align-top" data-candidate={candidate.provider}>
+                    <th scope="row" class="py-2 pr-4 font-normal">
+                      {source?.name ?? candidate.provider}
+                      <span class="block text-muted-foreground">{candidate.tier}</span>
+                    </th>
+                    <td class="py-2 pr-4">
+                      <code>{candidate.series}</code>
+                      {candidate.transforms.length > 0 && (
+                        <span class="block text-muted-foreground">transforms: {candidate.transforms.join(", ")}</span>
+                      )}
+                    </td>
+                    <td class="py-2 pr-4">{candidate.licence ?? "derived"}</td>
+                    <td class="py-2 pr-4">{candidate.hosted ? "yes" : "no"}</td>
+                    <td class="py-2">
+                      {source?.terms_url.startsWith("https://") ? (
+                        <a href={source.terms_url} rel="noopener noreferrer">
+                          Terms
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="models" class={sectionClass} aria-labelledby="models-heading" data-section="models">
+      <h2 id="models-heading" class={headingClass}>Models that read it</h2>
+      {
+        models.length > 0 ? (
+          <ul class="grid max-w-3xl gap-3 sm:grid-cols-2">
+            {models.map((model) => (
+              <li class="rounded-md border px-4 py-3" data-reads={model.id}>
+                <a href={modelPath(model.id)} class="font-medium">
+                  {model.title}
+                </a>
+                <span class="block text-sm text-muted-foreground">{domainTitle(model.domain)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="max-w-3xl">No model's bindings read this concept yet; it is in the catalog for its own sake.</p>
+        )
+      }
+    </section>
+  </article>
+</Base>

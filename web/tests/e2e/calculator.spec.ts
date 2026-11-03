@@ -152,13 +152,16 @@ test("every download format answers a file under the response's name", async ({ 
 
 test("a chart loads Plotly only when it renders, with its stylesheet and no injected style", async ({ page, api, watch }) => {
   const loaded: string[] = [];
+  // Plotly is its bundle and its stylesheet; src/lib/plotly.ts, the small
+  // loader the calculator and the data explorer share, is not.
+  const isPlotly = (path: string) => /\/plotly-basic\.min\.[\w-]+\.js$|\/plotly\.[\w-]+\.css$/.test(path);
   page.on("request", (request) => loaded.push(new URL(request.url()).pathname));
   await openCalculator(page, "/models/econometrics/ols/");
-  expect(loaded.some((path) => path.includes("plotly"))).toBe(false);
+  expect(loaded.some(isPlotly)).toBe(false);
   await run(page);
   expect(api.requests).toHaveLength(1);
   await expect(page.locator("#calculator .js-plotly-plot svg.main-svg").first()).toBeVisible();
-  expect(loaded.filter((path) => path.includes("plotly")).length).toBe(2);
+  expect(loaded.filter(isPlotly).length).toBe(2);
   expect(await page.locator('link[data-plotly][rel="stylesheet"]').count()).toBe(1);
   expect(await page.locator("style[id^='plotly.js-style']").count()).toBe(0);
   expect(watch.violations).toEqual([]);
