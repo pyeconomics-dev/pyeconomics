@@ -5872,9 +5872,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 10 — Local App and the pyeconomics-app Wheel
+## Step 10 — Local App and the pyeconomics-app Wheel ✅
 
-**Status:** Not started
+**Status:** Complete — PR #254 (2026-11-03)
 
 > **Goal:** Serve the same site on the user's machine, with every source
 > the user can access, and release it in lockstep with the library. Make
@@ -5928,6 +5928,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a second
 distribution in a uv workspace, a static mount and headers middleware in
@@ -11855,7 +11857,7 @@ workflow above maps directly to the corresponding row below.
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
-| 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |
+| 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
 | 13   | Production platform            | Sonnet 5.5     | Not started        |
