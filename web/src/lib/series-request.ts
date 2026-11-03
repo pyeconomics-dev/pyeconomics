@@ -9,8 +9,12 @@ import { client as siteClient } from "@/client/client.gen";
 import { seriesPath, seriesQuery, type SeriesOptions } from "@/lib/explorer";
 import { filenameOf, type RunAnswer, type RunTransport } from "@/lib/run-request";
 
-/** Where the server says it runs: `hosted` or `library` (GET /version). */
-export type ServerMode = "hosted" | "library";
+/**
+ * Where the server says it runs (GET /version's `mode`, server/settings.py
+ * MODES): `hosted`, the public service, or `local`, `pyeconomics serve` on
+ * the user's machine with every source (ADR-0013 decision 16).
+ */
+export type ServerMode = "hosted" | "local";
 
 /**
  * Read a concept's series: the answer's bytes, status and download name. A
@@ -62,7 +66,7 @@ export function serverMode(send: typeof fetch = globalThis.fetch): Promise<Serve
     .then(async (response) => {
       if (!response.ok) return "hosted" as const;
       const found = ((await response.json()) as { mode?: unknown }).mode;
-      return found === "library" ? ("library" as const) : ("hosted" as const);
+      return found === "local" ? ("local" as const) : ("hosted" as const);
     })
     .catch(() => "hosted" as const);
   return mode;

@@ -21,6 +21,8 @@ export interface ConceptListing {
   topic: string;
   /** Whether the hosted site serves it from the snapshot. */
   snapshot: boolean;
+  /** Whether it needs parameters, which only the Python API takes. */
+  parameters: boolean;
   path: string;
 }
 
@@ -34,7 +36,7 @@ export interface ConceptQuery {
 }
 
 /** Where the explorer runs: the hosted site, or the local app (Step 10). */
-export type ExplorerMode = "hosted" | "library";
+export type ExplorerMode = "hosted" | "local";
 
 /** What a concept page offers. */
 export type Availability =
@@ -98,6 +100,7 @@ export function conceptListings(concepts: readonly ConceptEntry[]): ConceptListi
       frequency: concept.frequency,
       topic: concept.section,
       snapshot: concept.snapshot,
+      parameters: concept.parameters.length > 0,
       path: conceptPath(concept.id),
     }));
 }

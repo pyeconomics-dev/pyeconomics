@@ -5872,9 +5872,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 10 — Local App and the pyeconomics-app Wheel
+## Step 10 — Local App and the pyeconomics-app Wheel ✅
 
-**Status:** Not started
+**Status:** Complete — PR #254 (2026-11-03)
 
 > **Goal:** Serve the same site on the user's machine, with every source
 > the user can access, and release it in lockstep with the library. Make
@@ -5928,6 +5928,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a second
 distribution in a uv workspace, a static mount and headers middleware in
@@ -6197,9 +6199,12 @@ Sol at Intelligence High (50.2) and Quality Opus 5.5 at Effort XHigh
       serving dist/ needs no client change.
     - Step 9 note: a /data/ concept page fetches only what
       concepts.json's `snapshot` marks, unless GET /version
-      answers `"mode": "library"`: then every concept without
+      answers `"mode": "local"`: then every concept without
       parameters is offered (src/lib/series-request.ts
-      serverMode, src/lib/explorer.ts availability). Prove it
+      serverMode, src/lib/explorer.ts availability). (Spec rot
+      fixed in Step 10: Step 9's island waited for `"library"`,
+      the data layer's mode, which /version never answers;
+      the islands now read the server's own `MODES`.) Prove it
       against `pyeconomics serve` with a concept the snapshot
       lacks (factors.ff3.us.monthly). The explorer and the
       library-only notice on model pages give
@@ -6701,6 +6706,15 @@ per phase-boundary hygiene.
       docs/mcp.md; a how-to on reading and transforming a
       series, the /data/ explorer and "use my own data"
       belongs in this step's guides.
+    - Step 10 note: `pip install "pyeconomics[app]"` then
+      `pyeconomics serve` serves the site at
+      http://127.0.0.1:8000 (docs/cli.md "Serving the REST
+      API"). A how-to on the local app belongs in this
+      step's guides: keys through `pyeconomics keys set`,
+      live data from library-only sources in the
+      calculators, the whole catalog in /data/, and
+      --allow-remote's warning. Keep explorer.ts LOCAL_APP
+      equal to the command the guide gives.
     - Read the Docs builds main as the 1.0 preview with
       warnings as errors; stable and latest serve 0.2.6
       until Step 19. docs/ holds installation, quickstart,
@@ -8202,6 +8216,14 @@ conversation per phase-boundary hygiene.
       problems' details, and the browser SDK from capturing
       the parse worker's messages (src/workers/parse-file.ts),
       which can quote a file's cells.
+    - Step 10 note: the pyeconomics-app wheel carries a
+      build made with SITE_FLAVOUR=app (release.yml and
+      ci.yml's package job), and the local site loads no
+      error tracking (decision 16): add the browser SDK and
+      its ingest origin to production builds only
+      (web/scripts/headers.ts siteFlavour), and keep the app
+      build's policy without that origin; the app wheel's
+      _headers is what `pyeconomics serve` sends.
     - Production runs privately: deploy-production.yml
       (dispatch from main or a v* tag, approved) deploys the
       snapshot job, the API and the site behind Access; the
@@ -8746,6 +8768,13 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
       Grafana Cloud (request counts by route kind, including
       /mcp), Better Stack, production-health.yml, and the
       alarm proofs recorded.
+    - Step 10 note: the pyeconomics-app wheel carries a
+      build made with SITE_FLAVOUR=app, served by
+      `pyeconomics serve` on users' machines; the local site
+      loads no analytics (decision 16). Add the tracker,
+      the newsletter and waitlist forms' origins to
+      production builds only (web/scripts/headers.ts
+      siteFlavour), so the app build carries none of them.
     - GitHub Discussions is enabled on the repository with
       no launch categories; categories are created in the
       repository's settings, not through the API.
@@ -9268,6 +9297,12 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       web/tests/e2e/user-data.spec.ts). /sources/ can link
       each provider to the /data/ pages of the concepts it
       answers (src/lib/paths.ts conceptPath).
+    - Step 10 note: the pyeconomics-app wheel
+      redistributes the built site, whose bundles keep few
+      licence comments, so /legal/licence/ with the
+      third-party licences of what ships to browsers is
+      also the wheel's notice; scripts/checks/app_contents.py
+      admits .html, so the page ships with no change there.
     - Step 5 note: web/tests/site/site.test.ts holds a
       PLANNED table of the internal links whose pages do not
       exist yet (/legal/disclaimers/ and /sources/, naming
@@ -9780,6 +9815,20 @@ hygiene.
       publishes server.json on a published release.
       deploy-production.yml deploys a non-`.dev` `v*` tag
       after the maintainer's approval.
+    - Step 10 note: release.yml's build job builds the site
+      once (SITE_FLAVOUR=app) and uploads three files, the
+      pyeconomics wheel and sdist and the pyeconomics-app
+      wheel, which each publish job sends through one OIDC
+      exchange. The TestPyPI rehearsal is pyeconomics-app's
+      first upload, which creates the project from its
+      pending publisher; a pending publisher does not
+      reserve the name, so check that
+      https://test.pypi.org/pypi/pyeconomics-app/json and
+      https://pypi.org/pypi/pyeconomics-app/json answer 404
+      (or belong to the maintainer) before tagging. A version
+      bump moves pyproject.toml, packages/pyeconomics-app/
+      pyproject.toml, [app]'s pin, CITATION.cff, server.json
+      and uv.lock together (tests/unit/test_app_version.py).
     - Step 5 note: web/released-pages.json is
       {"format": 1, "pages": [...]}, each a page path with a
       trailing slash, sorted and unique
@@ -11808,7 +11857,7 @@ workflow above maps directly to the corresponding row below.
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
-| 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |
+| 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
 | 13   | Production platform            | Sonnet 5.5     | Not started        |

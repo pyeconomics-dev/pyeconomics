@@ -15,6 +15,20 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- The local web app (Phase 5 Step 10; ADR-0002; ADR-0013 decision 16): a second
+  distribution, `pyeconomics-app`, whose wheel holds only the built site, at the
+  same version as `pyeconomics`, and the `app` extra, which pins it and brings
+  the `server` extra's requirements (`[all]` excludes it).
+  `pip install "pyeconomics[app]"` then `pyeconomics serve` serves the site at
+  `/` behind every API route and the loopback guard, with the site's own
+  security headers from its packaged `_headers` file and `X-Robots-Tag:
+  noindex`; served locally, the calculators offer live data from library-only
+  sources with the user's keys and the data explorer the whole catalog. Without
+  the app, `serve` logs how to install it. `ServerSettings.site` and
+  `pyeconomics.server.site` carry the mount; hosted mode refuses a site.
+- The release workflow builds the site once and publishes both distributions
+  through one Trusted Publishing exchange with attestations; the release smoke
+  and CI's package job install `pyeconomics[app]` and smoke `serve`.
 - The hosted data plane (Phase 5 Step 8; ADR-0013 decision 6):
   `pyeconomics.data.snapshots`. A daily job, `python -m
   pyeconomics.data.snapshots write`, fetches the snapshot set (every

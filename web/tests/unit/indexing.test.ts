@@ -59,6 +59,7 @@ describe("robots.txt", () => {
     ["a final release's production build", indexable("production", "1.0.0"), "Allow: /"],
     ["a staging build", indexable("staging", "1.0.0"), "Disallow: /"],
     ["a pre-release's production build", indexable("production", "1.0.0rc1"), "Disallow: /"],
+    ["the app wheel's build", indexable("app", "1.0.0"), "Disallow: /"],
   ])("for %s says %s and names the sitemap", (_name, index, rule) => {
     const text = robotsTxt(index);
     expect(text).toBe(`User-agent: *\n${rule}\n\nSitemap: ${SITEMAP}\n`);

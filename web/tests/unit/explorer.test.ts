@@ -92,6 +92,14 @@ describe("the concept search", () => {
     expect(searchConcepts(LISTINGS, ANY).map((entry) => entry.id)).toEqual([...conceptData.map((c) => c.id)].sort());
   });
 
+  it("says which concepts need parameters, which local mode reads with the Python API", () => {
+    for (const listing of LISTINGS) {
+      expect(listing.parameters, listing.id).toBe(concept(listing.id).parameters.length > 0);
+    }
+    expect(LISTINGS.find((entry) => entry.id === "us.sep.unemployment")?.parameters).toBe(true);
+    expect(LISTINGS.find((entry) => entry.id === "factors.ff3.us.monthly")?.parameters).toBe(false);
+  });
+
   it("finds a concept by its title, its id, its unit, its frequency and its topic", () => {
     const first = (text: string) => searchConcepts(LISTINGS, { ...ANY, text }).at(0)?.id;
     expect(first("unemployment rate")).toBe("us.unemployment.rate");
@@ -139,13 +147,13 @@ describe("what a concept page offers", () => {
 
   it("fetches every concept in local mode, the local app", () => {
     for (const entry of conceptData.filter((c) => c.parameters.length === 0)) {
-      expect(availability(entry, "library"), entry.id).toEqual({ kind: "fetch" });
+      expect(availability(entry, "local"), entry.id).toEqual({ kind: "fetch" });
     }
   });
 
   it("gives the Python call for a concept with parameters, on any server", () => {
     const sep = concept("us.sep.unemployment");
-    for (const mode of ["hosted", "library"] as const) {
+    for (const mode of ["hosted", "local"] as const) {
       const offer = availability(sep, mode);
       expect(offer.kind).toBe("parameters");
       if (offer.kind === "parameters") {
@@ -227,10 +235,12 @@ describe("the request", () => {
     const answer = (body: unknown, status = 200) =>
       (async () => new Response(JSON.stringify(body), { status })) as unknown as typeof globalThis.fetch;
     forgetServerMode();
-    expect(await serverMode(answer({ mode: "library" }))).toBe("library");
-    expect(await serverMode(answer({ mode: "hosted" }))).toBe("library");
+    expect(await serverMode(answer({ mode: "local" }))).toBe("local");
+    expect(await serverMode(answer({ mode: "hosted" }))).toBe("local");
     forgetServerMode();
     expect(await serverMode(answer({ mode: "hosted" }))).toBe("hosted");
+    forgetServerMode();
+    expect(await serverMode(answer({ mode: "library" }))).toBe("hosted");
     forgetServerMode();
     expect(await serverMode(answer({}, 404))).toBe("hosted");
     forgetServerMode();

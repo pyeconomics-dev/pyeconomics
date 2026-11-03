@@ -39,8 +39,9 @@ scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
 scripts/parity/    the parity job's helper (the installed wheel's surfaces) and
                    check_deployed.py (a deployed API against the wheel)
 scripts/web/       the site data export the web app builds from, the
-                   calculators' validator compiler, their MCP snippet runner
-                   and syllabi.py, the one loader of syllabi/
+                   calculators' validator compiler, their MCP snippet runner,
+                   syllabi.py, the one loader of syllabi/, and
+                   package_site.py, which copies a build into the app wheel
 scripts/record_cassettes.py  records a provider's cassettes live: a local act
 tools/node/        the one Node workspace: the TypeScript client's generator and
                    the MCP Inspector
@@ -784,6 +785,44 @@ From Phase 5 Step 9, which builds the data explorer and user data:
   `models.ts unservedSources`). A Playwright test that relies on `/v1/` or
   `/version` reaching the test API must ask for the `api` fixture, and an
   island the test drives must be hydrated first (`data-hydrated`).
+
+From Phase 5 Step 10, which builds the local app and the pyeconomics-app
+wheel (decision 16):
+
+- The repository is a uv workspace. `packages/pyeconomics-app` builds a pure
+  wheel with no dependency: `pyeconomics_app/__init__.py` (`site_path()` and
+  nothing else), `py.typed`, and `site/`, which `scripts/web/package_site.py`
+  copies from `web/dist/` (git-ignored; it refuses a build whose
+  `version.json` is another version). `uv build` at the root builds
+  pyeconomics alone, checked by `dist_contents.py`; `uv build --package
+  pyeconomics-app --wheel --out-dir dist-app` builds the app, checked by
+  `scripts/checks/app_contents.py` (static site files only: a new kind of
+  site file needs an edit there). The member ships LICENSE and NOTICE as
+  byte copies of the root's.
+- One version for both: a bump moves `pyproject.toml`, the member's
+  `pyproject.toml`, `[app]`'s pin, `CITATION.cff`, `server.json` and
+  `uv.lock` (`uv lock --no-config`) together
+  (`tests/unit/test_app_version.py`). `[app]` carries the `server` extra's
+  requirements, which `serve` needs, and stays out of `[all]`.
+- `pyeconomics serve` mounts the installed site through `ServerSettings.site`
+  (`server/site.py`) after every route: only a GET or HEAD of a path no API
+  route and nothing under `/v1/` claims reaches it. Its responses carry the
+  packaged `_headers`, parsed (never a second copy of the policy), and
+  `X-Robots-Tag: noindex`; `_headers` and `_redirects` are never served, and
+  StaticFiles follows no link out of the site. A site whose `_headers` gives
+  `/` no Content-Security-Policy is refused, and so is a site in hosted mode.
+- The islands read the server's mode from `GET /version` through
+  `series-request.ts serverMode()`: `"hosted" | "local"`, held to
+  `server/settings.py MODES` by `tests/web/test_explorer_constants.py`. A
+  local-only offer shows only when the mode is `local`, so it never runs
+  against the hosted API.
+- `SITE_FLAVOUR=app` is the app wheel's build (release.yml and ci.yml's
+  package job): never indexed and, like a local build, carrying no analytics
+  and no error tracking, which Steps 14 and 15 add to production builds only.
+- The local Playwright run: `npm run build`, then `uv run --no-project python
+  scripts/web/package_site.py`, then `npm run e2e:local` in `web/`. It drives
+  `tests/local/` against `tests/web/e2e_api.py --local` (port 8798): the app
+  `serve` builds, with the packaged site, over the catalog world's stand-ins.
 
 ## Units
 

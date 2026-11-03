@@ -9698,3 +9698,16 @@ invariant it protected, never deletes it, and adds one line here.
   arrays need bash 4 and macOS's `/bin/bash` 3.2 stopped at the first check
   and exited 0; its `EXIT` trap now keeps a crash's status. No check
   changes; `tests/repo/test_verify_portability.py` holds both.
+
+- Package checks BUILD and V13.2/V14.2 (Phase 5 Step 10, ADR-0013 decision
+  16): the repository is a uv workspace whose second member,
+  `packages/pyeconomics-app`, builds the web app's wheel. `uv build` at the
+  root still builds the pyeconomics wheel and sdist alone, so the count of
+  one wheel and one sdist and `scripts/checks/dist_contents.py` are
+  unchanged. Where a directory holds both distributions (ci.yml's package
+  job and release.yml), the rule is: the pyeconomics wheel and sdist pass
+  dist_contents.py, and any other wheel is pyeconomics-app passing
+  `scripts/checks/app_contents.py`. The wheel smoke now names the
+  pyeconomics wheel (`pyeconomics-*.whl`) rather than any wheel; `attested`
+  still expects two files, because it reads the pyeconomics project and
+  pyeconomics-app is its own.

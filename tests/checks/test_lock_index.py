@@ -103,3 +103,39 @@ def test_file_outside_files_pythonhosted_fails(tmp_path: Path) -> None:
 def test_missing_lock_file_fails(tmp_path: Path) -> None:
     (tmp_path / "uv.lock").write_text(uv_lock(PYPI_SOURCE), encoding="utf-8")
     assert lock_index.main(tmp_path) == 1
+
+
+MEMBER_PROJECT = (
+    '[project]\nname = "pyeconomics"\n\n'
+    '[tool.uv.workspace]\nmembers = ["packages/demo-app"]\n'
+)
+MEMBER_SOURCE = '{ editable = "packages/demo-app" }'
+
+
+def test_a_declared_workspace_member_passes(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text(MEMBER_PROJECT, encoding="utf-8")
+    root = write(tmp_path, uv_lock(MEMBER_SOURCE), pylock("https://pypi.org/simple"))
+    assert lock_index.main(root) == 0
+
+
+def test_an_undeclared_editable_path_fails(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text(MEMBER_PROJECT, encoding="utf-8")
+    source = '{ editable = "packages/other" }'
+    root = write(tmp_path, uv_lock(source), pylock("https://pypi.org/simple"))
+    assert lock_index.main(root) == 1
+
+
+def test_a_member_without_a_workspace_fails(tmp_path: Path) -> None:
+    root = write(tmp_path, uv_lock(MEMBER_SOURCE), pylock("https://pypi.org/simple"))
+    assert lock_index.main(root) == 1
+
+
+def test_a_declared_member_passes_in_pylock(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text(MEMBER_PROJECT, encoding="utf-8")
+    member = (
+        '\n[[packages]]\nname = "demo-app"\n'
+        'directory = { path = "packages/demo-app", editable = true }\n'
+    )
+    py = pylock("https://pypi.org/simple") + member
+    root = write(tmp_path, uv_lock(PYPI_SOURCE), py)
+    assert lock_index.main(root) == 0

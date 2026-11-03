@@ -118,8 +118,16 @@ static assets serve every page, and the shared edge Worker
 env-less configuration has no origin, so locally those paths answer `503`.
 `SITE_FLAVOUR=staging npm run build` adds `X-Robots-Tag: noindex` to every
 path and writes `Disallow: /` into `robots.txt`; `SITE_FLAVOUR=production`
-does the same unless the site data's version is a final release; an unset
-`SITE_FLAVOUR` is a local build, which stays indexable.
+does the same unless the site data's version is a final release;
+`SITE_FLAVOUR=app` is the build the `pyeconomics-app` wheel carries, never
+indexed; an unset `SITE_FLAVOUR` is a local build, which stays indexable.
+
+The local app (ADR-0013 decision 16): `python ../scripts/web/package_site.py`
+copies `dist/` into `../packages/pyeconomics-app/src/pyeconomics_app/site/`,
+which `pyeconomics serve` then serves at `/` (the workspace member is
+installed with `uv sync --all-extras`); `npm run e2e:local` drives it through
+`playwright.local.config.ts`. `release.yml` builds the site once with
+`SITE_FLAVOUR=app` and publishes the app's wheel beside the library's.
 
 Every merge to `main` deploys env `staging` (`staging.pyeconomics.dev`,
 behind Cloudflare Access) from `deploy-staging.yml`'s `site` job; nothing here

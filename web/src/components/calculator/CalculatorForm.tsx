@@ -10,8 +10,10 @@
 // beside them, "copy JSON" and the JSON download hand them over unchanged, and
 // every other download is the same POST with ?format=. A bound model offers
 // live data where hosted mode can serve every bound field, and says which
-// fields it cannot serve elsewhere. "Use my own data" (UserDataPanel.tsx,
-// Phase 5 Step 9) fills the array inputs from a CSV or XLSX file read in a
+// fields it cannot serve elsewhere; served by the local app (GET /version's
+// mode is `local`, Phase 5 Step 10), it offers every profile, library-only
+// sources included, read with the user's own keys. "Use my own data"
+// (UserDataPanel.tsx, Phase 5 Step 9) fills the array inputs from a CSV or XLSX file read in a
 // Web Worker; only the values it writes into the form travel, in the run's
 // body. Snippets for the other surfaces follow the form. No input is kept in
 // storage, the URL or analytics; text from the server is rendered as text.
@@ -39,6 +41,7 @@ import {
 import { applicable } from "@/lib/figure";
 import { decode, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
+import { serverMode, type ServerMode } from "@/lib/series-request";
 import type { LoadedModel } from "@/lib/validators";
 import stylesheet from "@/styles/calculator.css?inline";
 
@@ -137,13 +140,15 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   const [sent, setSent] = useState<Sent | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [extraErrors, setExtraErrors] = useState<ErrorSchema | undefined>(undefined);
+  const [mode, setMode] = useState<ServerMode>("hosted");
   const resultHeading = useRef<HTMLHeadingElement>(null);
 
   const calculation = formData.calculation;
   const fields = propertiesFor(schema, calculation);
   const chosen = props.profiles.find((entry) => entry.profile === profile);
   const bound = source === "data" ? boundFields(schema, chosen, calculation) : [];
-  const unserved = bound.filter((field) => !field.hosted).map((field) => field.field);
+  // The local app reads every source; the hosted site only hosted-safe ones.
+  const unserved = mode === "local" ? [] : bound.filter((field) => !field.hosted).map((field) => field.field);
   const live = source === "data" && bound.length > 0 && unserved.length === 0;
   const filled = live ? bound.map((field) => field.field) : [];
   const filledKey = filled.join(",");
@@ -157,6 +162,19 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   useEffect(() => {
     if (outcome) resultHeading.current?.focus();
   }, [outcome]);
+
+  // The server's mode is asked only once live data is chosen, so a page view
+  // sends no request of its own.
+  useEffect(() => {
+    if (source !== "data") return;
+    let current = true;
+    void serverMode().then((found) => {
+      if (current && found === "local") setMode(found);
+    });
+    return () => {
+      current = false;
+    };
+  }, [source]);
 
   const choose = (index: number) => {
     setExample(index);
@@ -267,6 +285,12 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                   The hosted site may not serve the data for {fieldList(unserved)}: their sources are not hosted-safe. Enter
                   your own values with "My own values", or run pyeconomics on your own computer, where every source is
                   available: <code>{`pyeconomics models run ${props.modelId} --profile ${profile}`}</code>
+                </p>
+              ) : mode === "local" ? (
+                <p data-live="local">
+                  Filled from data on this computer: {fieldList(filled)}, read from every source your installation
+                  reaches, with your own keys where a source needs one. The result lists each source's attribution,
+                  notices and terms. The form's other inputs are sent with the run.
                 </p>
               ) : (
                 <p data-live="hosted">

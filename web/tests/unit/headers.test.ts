@@ -246,15 +246,16 @@ describe("headerPolicy and renderHeaders", () => {
 });
 
 describe("siteFlavour", () => {
-  it("reads unset or empty as a local build and accepts staging and production", () => {
+  it("reads unset or empty as a local build and accepts staging, production and app", () => {
     expect(siteFlavour(undefined)).toBe("local");
     expect(siteFlavour("")).toBe("local");
     expect(siteFlavour("staging")).toBe("staging");
     expect(siteFlavour("production")).toBe("production");
+    expect(siteFlavour("app")).toBe("app");
   });
 
   it.each(["Production", "Staging", "staging ", "preview"])("refuses %j", (value) => {
-    expect(() => siteFlavour(value)).toThrow(/SITE_FLAVOUR must be unset or one of local, staging, production/);
+    expect(() => siteFlavour(value)).toThrow(/SITE_FLAVOUR must be unset or one of local, staging, production, app/);
   });
 });
 
@@ -275,6 +276,7 @@ describe("indexable", () => {
     expect(indexable("staging", "1.0.0")).toBe(false);
     expect(indexable("production", "1.0.0rc1")).toBe(false);
     expect(indexable("production", "1.0.0")).toBe(true);
+    expect(indexable("app", "1.0.0")).toBe(false);
   });
 
   it("reads the version the site data was exported from", () => {

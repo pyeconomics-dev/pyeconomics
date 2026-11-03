@@ -1,0 +1,42 @@
+# packages/pyeconomics-app/pyproject.toml
+# The pyeconomics-app distribution (ADR-0002; ADR-0013 decision 16): the built
+# web app, which `pyeconomics serve` serves at / when it is installed. Its wheel
+# holds only the static site that scripts/web/package_site.py copies into
+# src/pyeconomics_app/site/ before the build (git-ignored), checked by
+# scripts/checks/app_contents.py. It is released in lockstep with pyeconomics
+# through release.yml: its version always equals pyeconomics's, and
+# pyeconomics[app] pins it (tests/unit/test_app_version.py).
+[build-system]
+requires = ["uv_build>=0.12.15,<0.13.0"]
+build-backend = "uv_build"
+
+[project]
+name = "pyeconomics-app"
+version = "1.0.0rc1.dev1"
+description = "The pyeconomics web app, built, for pyeconomics serve: install pyeconomics[app]."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+    { name = "Nathan Ramos, CFA", email = "nathan.ramos.github@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/pyeconomics-dev/pyeconomics"
+Repository = "https://github.com/pyeconomics-dev/pyeconomics"
+Issues = "https://github.com/pyeconomics-dev/pyeconomics/issues"
+Changelog = "https://github.com/pyeconomics-dev/pyeconomics/blob/main/CHANGELOG.md"
+
+[tool.uv.build-backend]
+module-name = "pyeconomics_app"

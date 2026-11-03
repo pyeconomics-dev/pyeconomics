@@ -657,7 +657,7 @@ artifact_build() {
 }
 wheel_file() {
   local wheel
-  wheel=$(printf '%s\n' "$TMP"/dist/*.whl)
+  wheel=$(printf '%s\n' "$TMP"/dist/pyeconomics-*.whl)
   [ -f "$wheel" ] || fail "build did not produce a wheel"
   echo "$wheel"
 }

@@ -2154,6 +2154,10 @@ name = "pyeconomics"
 directory = { path = ".", editable = true }
 
 [[packages]]
+name = "pyeconomics-app"
+directory = { path = "packages/pyeconomics-app", editable = true }
+
+[[packages]]
 name = "pygments"
 version = "2.21.0"
 index = "https://pypi.org/simple"

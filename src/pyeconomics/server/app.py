@@ -51,6 +51,11 @@ call that runs a model or reads a series goes to the same worker pool, with the
 same budgets, as ``/v1``, carrying the server's ``llm_use`` policy, and its
 answer is never put in the GET run cache.
 
+A local app given a built site (``ServerSettings.site``; ``pyeconomics serve``
+with ``pyeconomics-app`` installed) serves it at ``/`` after every other route,
+with the site's own headers and behind the same host check
+(:mod:`~pyeconomics.server.site`, ADR-0013 decision 16).
+
 Examples
 --------
 >>> app = create_app(settings=ServerSettings(workers=0))
@@ -913,10 +918,14 @@ def create_app(
         If ``PYECONOMICS_WORKERS`` is not a whole number, or, in hosted mode,
         ``PYECONOMICS_EDGE_CREDENTIAL`` is too short or
         ``PYECONOMICS_RATELIMIT_URL`` is not a TLS Redis URL, or a setting the MCP
-        server reads is invalid.
+        server reads is invalid, or the site given cannot be served with its
+        headers.
     """
     if mode not in MODES:
         msg = f"mode is one of {', '.join(MODES)}, not {mode!r}"
+        raise InputError(msg)
+    if mode == "hosted" and settings is not None and settings.site is not None:
+        msg = "hosted mode serves no site: Cloudflare serves it (ADR-0013 decision 3)"
         raise InputError(msg)
     service = _Service(mode, settings or ServerSettings())
     models = registry.models()
@@ -956,6 +965,10 @@ def create_app(
         _add_docs(app)
     if endpoint is not None:
         app.router.routes.append(_McpRoute(MCP_PATH, endpoint=endpoint, name="mcp"))
+    if service.settings.site is not None:
+        from pyeconomics.server import site  # noqa: PLC0415 - a local app's site
+
+        site.mount(app, service.settings.site)
 
     def build_openapi() -> dict[str, Any]:
         if app.openapi_schema is None:

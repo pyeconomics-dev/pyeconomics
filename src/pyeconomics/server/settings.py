@@ -38,6 +38,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final, Literal
 
@@ -128,14 +129,19 @@ class ServerSettings:
     mcp_series_limit
         The most observations the MCP ``get_series`` tool returns per fetch;
         ``None`` keeps the MCP server's default.
+    site
+        In local mode, a built web app's directory to serve at ``/`` behind
+        every API route (:mod:`~pyeconomics.server.site`; ``pyeconomics serve``
+        passes the installed ``pyeconomics-app``'s). Hosted mode refuses one:
+        Cloudflare serves the site there (ADR-0013 decision 3).
 
     Raises
     ------
     InputError
         For a negative worker count, a queue limit below 1, a budget that is
         not a positive finite number of seconds, a cache bound that is not a
-        whole number from 0, an MCP limit that is not a whole number from 1, or
-        limits that are not ``RateLimits``.
+        whole number from 0, an MCP limit that is not a whole number from 1,
+        limits that are not ``RateLimits``, or a site that is not a ``Path``.
     """
 
     workers: int | None = None
@@ -150,6 +156,7 @@ class ServerSettings:
     cache_bytes: int = DEFAULT_CACHE_BYTES
     mcp_result_limit: int | None = None
     mcp_series_limit: int | None = None
+    site: Path | None = None
 
     def __post_init__(self) -> None:
         """Check the counts, bounds, limits and budgets; hold the budgets read-only."""
@@ -172,6 +179,10 @@ class ServerSettings:
             if not isinstance(limits, RateLimits):
                 msg = f"rate_limits is a RateLimits, not {limits!r}"
                 raise InputError(msg)
+        site: object = self.site
+        if site is not None and not isinstance(site, Path):
+            msg = f"site is a Path, not {site!r}"
+            raise InputError(msg)
         if self.budgets is not None:
             checked = {}
             for cost, seconds in self.budgets.items():

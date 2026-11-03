@@ -12740,3 +12740,16 @@ as the template for `verify-phase04.sh`._
   The check now admits that one secret for `deploy-staging.yml` alone;
   `staging-health.yml` keeps the Access service token set, and every other
   workflow but `providers-live.yml` still reads `GITHUB_TOKEN` only.
+
+- Package checks BUILD and the release checks (Phase 5 Step 10, ADR-0013
+  decision 16): the repository is a uv workspace whose second member,
+  `packages/pyeconomics-app`, builds the web app's wheel. `uv build` at the
+  root still builds the pyeconomics wheel and sdist alone, so the count of
+  one wheel and one sdist and `scripts/checks/dist_contents.py` are
+  unchanged. Where a directory holds both distributions (ci.yml's package
+  job and release.yml), the rule is: the pyeconomics wheel and sdist pass
+  dist_contents.py, and any other wheel is pyeconomics-app passing
+  `scripts/checks/app_contents.py`. The wheel smoke now names the
+  pyeconomics wheel (`pyeconomics-*.whl`) rather than any wheel; `attested`
+  still expects two files, because it reads the pyeconomics project and
+  pyeconomics-app is its own.

@@ -114,8 +114,9 @@ fred = "pyeconomics.data.providers.fred"
 
 # ADR-0002: each extra exists from Phase 1 Step 7 as an empty list, so the
 # names are stable before their contents arrive. [app] and [bloomberg] are
-# added only when their packages exist (Phases 5 and 6). ADR-0011 decision 11
-# adds [keyring] (Phase 3 Step 3), [sdmx] and [yfinance]; [all] includes each.
+# added only when their packages exist ([app] in Phase 5 Step 10; [bloomberg] in
+# Phase 6), and [all] includes neither. ADR-0011 decision 11 adds [keyring]
+# (Phase 3 Step 3), [sdmx] and [yfinance]; [all] includes each.
 [project.optional-dependencies]
 # The REST API (ADR-0012 decisions 9-12): FastAPI and uvicorn without its
 # [standard] extra, so the closure stays pure Python, and limits with its Redis
@@ -143,6 +144,17 @@ plot = [
 keyring = [
     "keyring>=25.7",
 ]
+# The local web app (ADR-0013 decision 16): pyeconomics serve serves the built
+# site at / when pyeconomics-app is installed. It is the workspace member
+# packages/pyeconomics-app, pinned to this version (a version bump moves both,
+# tests/unit/test_app_version.py), with the server extra's requirements, which
+# serve needs.
+app = [
+    "pyeconomics-app==1.0.0rc1.dev1",
+    "fastapi>=0.162",
+    "limits[redis]>=5.8",
+    "uvicorn>=0.54",
+]
 all = [
     "fastapi>=0.162",
     "limits[redis]>=5.8",
@@ -165,6 +177,9 @@ yfinance = [
 # PEP 735 groups: development-only, never published (ADR-0002).
 [dependency-groups]
 test = [
+    # The app extra's own package, the workspace member (Phase 5 Step 10), so the
+    # licence check's closure finds it installed wherever the tests run.
+    "pyeconomics-app",
     "yfinance>=1.7",
     "sdmx1>=2.27",
     "fastapi>=0.162",
@@ -232,6 +247,15 @@ clients = [
 
 [tool.uv.build-backend]
 module-name = "pyeconomics"
+
+# A uv workspace (ADR-0002; ADR-0013 decision 16): the root builds pyeconomics,
+# and packages/pyeconomics-app builds the web app's wheel. `uv build` here builds
+# the root alone; `uv build --package pyeconomics-app --wheel` builds the app.
+[tool.uv.workspace]
+members = ["packages/pyeconomics-app"]
+
+[tool.uv.sources]
+pyeconomics-app = { workspace = true }
 
 # ---------------------------------------------------------------------------
 # Quality toolchain (ROADMAP Â§4 1.3). prek runs ruff and mypy on every commit
@@ -315,7 +339,7 @@ enable_error_code = [
     "truthy-bool",
     "possibly-undefined",
 ]
-files = ["src", "tests"]
+files = ["src", "tests", "packages/pyeconomics-app/src"]
 exclude = ['^\.semgrep/tests/', '^tests/fixtures/']
 
 # plotly (the plot extra), statsmodels (the econometrics extra), jsonschema

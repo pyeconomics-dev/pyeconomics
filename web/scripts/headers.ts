@@ -17,13 +17,16 @@
 // - any server-rendered route in the build output, or a _headers file that
 //   came from public/ instead of from here.
 //
-// SITE_FLAVOUR names the deployment the build is for (ADR-0013 decision 4):
-// unset for a local build, which `wrangler dev`, Playwright and Lighthouse
+// SITE_FLAVOUR names the deployment the build is for (ADR-0013 decisions 4 and
+// 16): unset for a local build, which `wrangler dev`, Playwright and Lighthouse
 // serve and which stays indexable for Lighthouse's SEO audit; `staging` for
 // staging.pyeconomics.dev, whose every response refuses indexing; `production`
 // for pyeconomics.dev, which refuses indexing unless the site data's version
-// is a final release (src/data/generated/registry.json). Any other value fails
-// the build. scripts/indexing.ts writes the matching robots.txt.
+// is a final release (src/data/generated/registry.json); `app` for the
+// pyeconomics-app wheel that `pyeconomics serve` serves on the user's machine
+// (release.yml), never indexed and, like a local build, carrying no analytics
+// or error tracking. Any other value fails the build. scripts/indexing.ts
+// writes the matching robots.txt.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
@@ -300,7 +303,7 @@ export function headerPolicy(hashes: ReadonlyMap<string, ReadonlySet<string>>): 
 }
 
 /** The deployments a build can be made for. */
-export const FLAVOURS = ["local", "staging", "production"] as const;
+export const FLAVOURS = ["local", "staging", "production", "app"] as const;
 export type Flavour = (typeof FLAVOURS)[number];
 
 /** The header every path of a build that must not be indexed carries. */
@@ -315,12 +318,13 @@ export function isFinalRelease(version: string): boolean {
 
 /**
  * Whether a build may be indexed: a local build, which Lighthouse audits for
- * SEO, and a production build of a final release. Staging never is, and
- * neither is a production build of a pre-release (decision 4).
+ * SEO, and a production build of a final release. Staging and the app wheel's
+ * build never are, and neither is a production build of a pre-release
+ * (decisions 4 and 16).
  */
 export function indexable(flavour: Flavour, version: string): boolean {
   if (flavour === "local") return true;
-  if (flavour === "staging") return false;
+  if (flavour === "staging" || flavour === "app") return false;
   return isFinalRelease(version);
 }
 

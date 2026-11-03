@@ -96,7 +96,8 @@ for (const path of SAMPLE) {
       await expect(page.locator("main#main")).toBeFocused();
     });
 
-    test("passes axe at WCAG 2.2 AA with no policy violation or console error", async ({ page, watch }) => {
+    // An island may ask the server's mode (GET /version), which only `api` answers here.
+    test("passes axe at WCAG 2.2 AA with no policy violation or console error", async ({ page, api, watch }) => {
       // The site follows the system's colour scheme, so both are checked.
       for (const colorScheme of ["light", "dark"] as const) {
         await page.emulateMedia({ colorScheme });
@@ -111,6 +112,7 @@ for (const path of SAMPLE) {
       // Chromium logs the 404 page's own status as a resource error.
       const errors = watch.errors.filter((text) => !(path === NOT_FOUND && /404/.test(text)));
       expect(errors).toEqual([]);
+      expect(api.requests).toEqual([]);
     });
   });
 }
