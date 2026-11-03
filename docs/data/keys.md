@@ -4,11 +4,7 @@ A few data sources ask for a free API key. pyeconomics reads a key only
 through its key chain, holds it in memory as a `Secret`, and never logs,
 prints, caches or exports it. This page covers where to get each key, where
 to put it, the settings file, what stays private, and what to do if a key
-leaks.
-
-The data providers that use these keys arrive during the 1.0 alpha. The key
-chain, the settings and the redaction they rely on are available now in
-`pyeconomics.data`.
+leaks. New to keys? {doc}`/tutorials/data-and-keys` walks through setting one.
 
 ## Where to register
 

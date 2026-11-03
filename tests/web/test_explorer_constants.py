@@ -1,7 +1,7 @@
 # tests/web/test_explorer_constants.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""The data explorer's lists are the library's (Phase 5 Steps 9 and 10).
+"""The data explorer's lists are the library's (Phase 5 Steps 9 to 11).
 
 ``web/src/lib/explorer.ts`` offers the transforms ``data.get`` takes
 (``core.transforms.SERIES_TRANSFORMS``) and downloads in the formats the series
@@ -56,6 +56,17 @@ def test_the_convert_methods_are_core_transforms() -> None:
 
     methods = TRANSFORMS["convert"].parameter("method").choices
     assert _array("CONVERT_METHODS") == methods
+
+
+def test_the_local_app_command_is_the_guides() -> None:
+    # The site tells a reader to run the app; docs/how-to/local-app.md is the guide
+    # that says how, so the two give one command (Phase 5 Step 11).
+    source = EXPLORER.read_text(encoding="utf-8")
+    match = re.search(r"export const LOCAL_APP = '([^']+)';", source)
+    assert match is not None, "explorer.ts has no LOCAL_APP"
+    install, serve = match[1].split(" then ")
+    guide = WEB.parent / "docs" / "how-to" / "local-app.md"
+    assert f"```text\n{install}\n{serve}\n```" in guide.read_text(encoding="utf-8")
 
 
 def test_the_modes_are_the_servers() -> None:

@@ -1,7 +1,7 @@
 # pyeconomics 1.0 preview
 
 ```{warning}
-This is the **1.0 beta preview**, built from `main`. APIs may change.
+This is the **1.0 preview**, built from `main`. APIs may change.
 For the current stable release, use the [0.2.6 documentation](https://pyeconomics.readthedocs.io/en/stable/).
 ```
 
@@ -16,23 +16,45 @@ charts use the `plot` extra.
 Each has a generated card with units, bounds, assumptions, limitations and a
 worked example. The Python API, the `pyeconomics` command line ({doc}`cli`),
 tabular exports and reproducibility bundles ({doc}`exports`), the local and
-hosted REST API ({doc}`api`), the MCP server for AI assistants ({doc}`mcp`)
-and an optional AI narrative of a result ({doc}`ai`) are available in this
-checkout; the web app arrives in Phase 5.
+hosted REST API ({doc}`api`), the web app ({doc}`how-to/local-app`), the MCP
+server for AI assistants ({doc}`mcp`) and an optional AI narrative of a result
+({doc}`ai`) are available in this checkout.
+
+**New here?** The {doc}`tutorials <tutorials/index>` take you from install to a
+model, live data, the command line, the REST API, the local app and an AI
+assistant. **Know what you want?** The {doc}`how-to guides <how-to/index>` get
+results into pandas, R and Excel. **Studying?** The
+{doc}`study paths <study-paths/index>` list our model pages by syllabus topic.
+**Coming from 0.2.x?** Read the {doc}`migration guide <migration>`.
 
 ```{toctree}
 :maxdepth: 2
+:caption: Learn
 
 installation
 quickstart
+tutorials/index
+how-to/index
+study-paths/index
+migration
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Surfaces
+
 cli
 api
 mcp
 mcp-evaluations
 ai
-tutorials/first-model
-conventions
-results
+exports
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Data
+
 data/index
 data/bindings
 data/keys
@@ -41,13 +63,20 @@ data/international
 data/research
 data/research-finance
 data/writing-a-provider
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+conventions
+results
 reference/models/index
 reference/providers/index
 reference/concepts/index
 reference/sources
 problems
 registry
-exports
 autoapi/index
 errata
 notices

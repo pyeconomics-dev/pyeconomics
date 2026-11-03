@@ -39,9 +39,8 @@ def test_cards_and_domain_indexes(generator: ModuleType, tmp_path: Path) -> None
     pages = generator.write_pages(tmp_path, catalog)
     assert len(pages) == len(catalog.ids())
     page = tmp_path / "fixed_income" / "toy_zero_coupon.md"
-    assert (
-        page.read_text(encoding="utf-8")
-        == ModelCard.from_model(zero_coupon).to_markdown()
+    assert page.read_text(encoding="utf-8") == generator.with_web_link(
+        ModelCard.from_model(zero_coupon).to_markdown(), zero_coupon.spec.id
     )
     assert "toy_zero_coupon" in (page.parent / "index.md").read_text()
     assert "foundations/index" in (tmp_path / "index.md").read_text()
@@ -61,7 +60,9 @@ def test_a_bound_models_page_lists_the_sources_of_its_concepts(
         encoding="utf-8"
     )
     assert "## Data" not in plain
-    assert plain == ModelCard.from_model(zero_coupon).to_markdown()
+    assert plain == generator.with_web_link(
+        ModelCard.from_model(zero_coupon).to_markdown(), zero_coupon.spec.id
+    )
 
 
 @pytest.mark.parametrize("defect", ["missing", "extra", "misplaced"])

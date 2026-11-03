@@ -3,11 +3,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """Generate documentation from the installed model registry.
 
-Each model's page is its card. When the syllabus crosswalks are given (the
-builder hook loads them from ``syllabi/`` through ``scripts/web/syllabi.py``,
-the loader the site data export uses too), the card's curriculum note is
-replaced by the model's topic tags, each a title and a link to the issuing
-body's page (ADR-0013 decision 12).
+Each model's page is its card, with a link to the model's page on the site
+beside the card's id line; the site's page links back
+(``web/src/lib/models.ts`` ``docsUrl``, and ``tests/docs/test_cross_links.py``
+holds the two sets equal). When the syllabus crosswalks are given (the builder
+hook loads them from ``syllabi/`` through ``scripts/web/syllabi.py``, the loader
+the site data export uses too), the card's curriculum note is replaced by the
+model's topic tags, each a title and a link to the issuing body's page (ADR-0013
+decision 12).
 """
 
 from __future__ import annotations
@@ -31,8 +34,11 @@ if TYPE_CHECKING:
 #: The one loader of ``syllabi/``, beside the site data export.
 SYLLABUS_LOADER = Path(__file__).resolve().parents[2] / "scripts" / "web" / "syllabi.py"
 
+#: The web app's origin (web/src/lib/paths.ts ORIGIN).
+SITE = "https://pyeconomics.dev"
+
 #: Where the coverage matrix is published (ADR-0013 decision 12).
-COVERAGE_URL = "https://pyeconomics.dev/coverage/"
+COVERAGE_URL = f"{SITE}/coverage/"
 
 
 class Catalog(Protocol):
@@ -71,6 +77,17 @@ def _candidates(model: Model[Any, Any]) -> dict[str, tuple[CandidateNote, ...]] 
     from pyeconomics.data.bindings import candidate_notes  # noqa: PLC0415
 
     return candidate_notes(model)
+
+
+def web_url(model_id: str) -> str:
+    """Return a model's page on the site: every underscore a hyphen (decision 2)."""
+    return f"{SITE}/models/{model_id.replace('.', '/').replace('_', '-')}/"
+
+
+def with_web_link(markdown: str, model_id: str) -> str:
+    """Add the link to a model's page on the site, before the card's first section."""
+    line = f"Try it in a calculator on [its web page]({web_url(model_id)})."
+    return markdown.replace("\n\n## ", f"\n\n{line}\n\n## ", 1)
 
 
 def syllabus_loader() -> ModuleType:
@@ -147,7 +164,9 @@ def write_pages(
             markdown = markdown.replace(
                 CURRICULUM_NOTE, curriculum_section(model_id, syllabi), 1
             )
-        pages[Path(domain, *name.split(".")).with_suffix(".md")] = markdown
+        pages[Path(domain, *name.split(".")).with_suffix(".md")] = with_web_link(
+            markdown, model_id
+        )
         domains[domain].append(name.replace(".", "/"))
     for domain, names in sorted(domains.items()):
         pages[Path(domain, "index.md")] = (

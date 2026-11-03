@@ -11,7 +11,8 @@
 // CFA® mark used as an adjective with ® on first use. Step 9's data explorer:
 // /data/ listing every concept, one page per concept with its sources, the
 // models that read it and its explorer island, and the library-only notice
-// on each model whose data the hosted site may not serve.
+// on each model whose data the hosted site may not serve. Step 11: each model
+// page's link to its documentation page.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,7 +21,7 @@ import { describe, expect, it } from "vitest";
 
 import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
 import { DOMAINS, ORIGIN, conceptPath, domainPath, modelPath } from "@/lib/paths";
-import { dataProfiles, unservedSources } from "@/lib/models";
+import { dataProfiles, docsUrl, unservedSources } from "@/lib/models";
 import { ogImagePath } from "@/lib/pages";
 import { conceptData, problemData, registryData, sourceData, syllabusData } from "@/lib/site-data";
 
@@ -146,6 +147,11 @@ describe("every model page", () => {
       expect(island.get("component-url")).toMatch(/^\/_astro\/Calculator\.[\w-]+\.js$/);
       expect(island.get("props")).toContain(model.id);
       expect(page).toContain('<div id="plotly.js-style-global" class="no-inline-styles" hidden="">');
+    });
+
+    it(`${model.id} links its documentation page, which links it back`, () => {
+      // The other half is tests/docs/test_cross_links.py.
+      expect(html(modelPath(model.id))).toContain(`<a href="${docsUrl(model.id)}">`);
     });
   }
 });
