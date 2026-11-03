@@ -4841,9 +4841,9 @@ hygiene.
 
 ---
 
-## Step 8 — Hosted Data Plane: Snapshots
+## Step 8 — Hosted Data Plane: Snapshots ✅
 
-**Status:** Not started
+**Status:** Complete — PR #242 (2026-11-02)
 
 > **Goal:** Replace hosted mode's per-request fetches with scheduled
 > snapshots of the originators (ADR-0012 decision 11; ADR-0013 decision 6),
@@ -4902,6 +4902,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-02: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a data-layer
 store with a writer and a reader under the layering, storage and licence
@@ -11768,7 +11770,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
-| 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
+| 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |
