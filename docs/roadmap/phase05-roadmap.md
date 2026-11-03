@@ -6399,9 +6399,9 @@ Sol at Intelligence High (50.2) and Quality Opus 5.5 at Effort XHigh
 
 ---
 
-## Step 11 — Documentation: Tutorials, How-To Guides and Migration
+## Step 11 — Documentation: Tutorials, How-To Guides and Migration ✅
 
-**Status:** Not started
+**Status:** Complete — PR #255 (2026-11-03)
 
 > **Goal:** Finish the 1.0 documentation people learn from. Add an ordered
 > tutorial track in `docs/tutorials/` — install, the first model (which
@@ -6446,6 +6446,8 @@ cutover.
 
 Ranked for knowledge, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -11882,7 +11884,7 @@ workflow above maps directly to the corresponding row below.
 | 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
-| 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |
+| 11   | Docs: guides + migration       | Gemini 4 Argon | Complete — PR #255 |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
 | 13   | Production platform            | Sonnet 5.5     | Not started        |
 | 14   | Observability + operations     | Sonnet 5.5     | Not started        |
