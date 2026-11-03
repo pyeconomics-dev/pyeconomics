@@ -163,8 +163,10 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
     if (outcome) resultHeading.current?.focus();
   }, [outcome]);
 
+  // The server's mode is asked only once live data is chosen, so a page view
+  // sends no request of its own.
   useEffect(() => {
-    if (props.profiles.length === 0) return;
+    if (source !== "data") return;
     let current = true;
     void serverMode().then((found) => {
       if (current && found === "local") setMode(found);
@@ -172,7 +174,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
     return () => {
       current = false;
     };
-  }, [props.profiles.length]);
+  }, [source]);
 
   const choose = (index: number) => {
     setExample(index);

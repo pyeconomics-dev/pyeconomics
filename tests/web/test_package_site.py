@@ -118,11 +118,12 @@ def test_a_link_in_the_build_is_refused(tmp_path: Path) -> None:
     try:
         link.symlink_to(outside, target_is_directory=True)
     except OSError:
-        if sys.platform != "win32":
-            pytest.skip("this platform cannot link a directory")  # pragma: no cover
-        import _winapi  # noqa: PLC0415 - Windows only
+        if sys.platform == "win32":
+            import _winapi  # noqa: PLC0415 - Windows only
 
-        _winapi.CreateJunction(str(outside), str(link))
+            _winapi.CreateJunction(str(outside), str(link))
+        else:
+            pytest.skip("this platform cannot link a directory")  # pragma: no cover
     with pytest.raises(package_site.PackageError, match="symbolic link"):
         package_site.check_build(dist, root)
 

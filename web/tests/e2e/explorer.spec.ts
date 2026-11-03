@@ -39,7 +39,8 @@ async function draw(page: Page): Promise<void> {
   await expect(page.locator("[data-series-chart] .main-svg").first()).toBeVisible();
 }
 
-test("/data/ lists every concept and searches by title, id, unit, frequency and topic", async ({ page, watch }) => {
+// The search asks the server's mode (GET /version), which only the `api` fixture answers here.
+test("/data/ lists every concept and searches by title, id, unit, frequency and topic", async ({ page, api, watch }) => {
   await page.goto("/data/");
   const list = page.locator("[data-concept-list] > li");
   await expect(list).toHaveCount(concepts.length);
@@ -53,6 +54,7 @@ test("/data/ lists every concept and searches by title, id, unit, frequency and 
   await expect(list).toHaveCount(concepts.filter((concept) => concept.snapshot).length);
   await list.first().getByRole("link").click();
   await expect(page).toHaveURL(/\/data\/[a-z0-9/-]+\/$/);
+  expect(api.requests).toEqual([]);
   expect(watch.violations).toEqual([]);
   expect(watch.errors).toEqual([]);
 });

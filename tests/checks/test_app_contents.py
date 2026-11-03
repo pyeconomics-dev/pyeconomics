@@ -88,8 +88,14 @@ def write_wheel(
     return path
 
 
-def check(tmp_path: Path, files: dict[str, bytes], **options: object) -> list[str]:
-    path = write_wheel(tmp_path / "dist", files, **options)  # type: ignore[arg-type]
+def check(
+    tmp_path: Path,
+    files: dict[str, bytes],
+    *,
+    name: str = f"pyeconomics_app-{VERSION}-py3-none-any.whl",
+    modes: dict[str, int] | None = None,
+) -> list[str]:
+    path = write_wheel(tmp_path / "dist", files, name=name, modes=modes)
     problems: list[str] = app_contents.check_wheel(path, VERSION)
     return problems
 

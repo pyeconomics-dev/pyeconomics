@@ -177,6 +177,9 @@ yfinance = [
 # PEP 735 groups: development-only, never published (ADR-0002).
 [dependency-groups]
 test = [
+    # The app extra's own package, the workspace member (Phase 5 Step 10), so the
+    # licence check's closure finds it installed wherever the tests run.
+    "pyeconomics-app",
     "yfinance>=1.7",
     "sdmx1>=2.27",
     "fastapi>=0.162",

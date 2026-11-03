@@ -82,11 +82,12 @@ def _link(target: Path, link: Path) -> bool:
     try:
         link.symlink_to(target, target_is_directory=True)
     except OSError:
-        if sys.platform != "win32":
-            return False
-        import _winapi  # noqa: PLC0415 - Windows only
+        if sys.platform == "win32":
+            import _winapi  # noqa: PLC0415 - Windows only
 
-        _winapi.CreateJunction(str(target), str(link))
+            _winapi.CreateJunction(str(target), str(link))
+        else:
+            return False
     return True
 
 
@@ -379,7 +380,7 @@ def served(monkeypatch: pytest.MonkeyPatch) -> list[Served]:
 def _fake_app_package(monkeypatch: pytest.MonkeyPatch, directory: Path) -> None:
     module = types.ModuleType(site.APP_MODULE)
     module.__spec__ = importlib.machinery.ModuleSpec(site.APP_MODULE, None)
-    module.site_path = lambda: directory  # type: ignore[attr-defined]
+    vars(module)["site_path"] = lambda: directory
     monkeypatch.setitem(sys.modules, site.APP_MODULE, module)
 
 
@@ -449,6 +450,6 @@ def test_a_site_off_the_file_system_is_not_served(
 ) -> None:
     module = types.ModuleType(site.APP_MODULE)
     module.__spec__ = importlib.machinery.ModuleSpec(site.APP_MODULE, None)
-    module.site_path = lambda: os.fspath("not-a-path")  # type: ignore[attr-defined]
+    vars(module)["site_path"] = lambda: os.fspath("not-a-path")
     monkeypatch.setitem(sys.modules, site.APP_MODULE, module)
     assert site.packaged_site() is None
