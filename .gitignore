@@ -10,6 +10,7 @@ __pycache__/
 .venv/
 venv/
 dist/
+dist-app/
 build/
 
 # Tool caches and coverage
@@ -46,6 +47,9 @@ web/src/client/
 web/playwright-report/
 web/test-results/
 web/.lighthouse/
+# The built site scripts/web/package_site.py copies into the app wheel's package
+# (Phase 5 Step 10); never committed.
+packages/pyeconomics-app/src/pyeconomics_app/site/
 
 # Secrets: environment files are never committed
 .env

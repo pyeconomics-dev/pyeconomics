@@ -19,6 +19,7 @@
     "build": "node scripts/require-data.ts && astro build && node scripts/headers.ts && node scripts/indexing.ts && node scripts/search-index.ts",
     "serve": "wrangler dev --ip 127.0.0.1 --port 8788",
     "e2e": "playwright test",
+    "e2e:local": "playwright test --config playwright.local.config.ts",
     "lighthouse": "node scripts/lighthouse.ts",
     "licences": "uv run --project .. --locked python ../scripts/checks/web_licences.py"
   },

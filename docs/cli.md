@@ -45,7 +45,7 @@ $ pyeconomics --version
 | `cache ls [--provider P]`, `cache info`, `cache clear [--provider P]`, `cache path` | Inspect and clear the data cache |
 | `registry export --out DIR [--no-figures]` | Write `DIR/registry.json` ({doc}`registry`), and `DIR/openapi.json` with the `server` extra |
 | `bundle check FILE` | Verify a reproducibility bundle without running anything from it ({doc}`exports`) |
-| `serve [--host] [--port] [--workers] [--allow-remote]` | Serve the REST API on this machine, with the `server` extra ({doc}`api`) |
+| `serve [--host] [--port] [--workers] [--allow-remote]` | Serve the REST API on this machine, with the `server` extra ({doc}`api`), and the web app at `/` with the `app` extra |
 | `completion SHELL`, `--install-completion` | Shell completion |
 
 Every command takes `--help`, and `--debug` (anywhere on the line) adds a
@@ -212,6 +212,26 @@ pyeconomics serve --port 8000 --workers 2
 It reads every source this machine can access, with its keys, so a host that is
 not a loopback address is refused (exit code 2) unless `--allow-remote` is
 passed. Without the extra it exits with code 8.
+
+With the `app` extra, which brings the `server` extra's requirements and the
+`pyeconomics-app` wheel at the same version, the same command also serves the
+web app at `/`: every model page, calculator and the data explorer, as
+pyeconomics.dev serves them, with the same security headers.
+
+```text
+pipx install --pre "pyeconomics[app]"
+pyeconomics serve
+```
+
+Open <http://127.0.0.1:8000>. Served locally, the calculators offer live data
+from every source your installation reaches, library-only ones included, with
+your own keys where a source needs one, and the data explorer offers the whole
+catalog rather than the hosted snapshot. The local site loads no analytics and
+no error tracking and is never indexed, and the API keeps its routes (`/v1`,
+`/mcp`, `/docs` and the rest). Without the app, `serve` logs one line saying how
+to install it and serves the API alone. The site's policy upgrades insecure
+requests, as production's does; browsers exempt loopback addresses, but a
+browser on another machine (`--allow-remote`) needs the site behind HTTPS.
 
 ## Exit codes
 

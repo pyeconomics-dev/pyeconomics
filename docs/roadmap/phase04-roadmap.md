@@ -9745,3 +9745,16 @@ alert with a proven alarm; and `verify-phase04.sh` as the template for
   workflow but `providers-live.yml` still reads `GITHUB_TOKEN` only. Checks
   48 and 49 pass unchanged: the API job still holds the workflow's only OIDC
   grant, and the report job its only `issues: write`.
+
+- Package checks BUILD, the wheel checks and the release checks (Phase 5
+  Step 10, ADR-0013 decision 16): the repository is a uv workspace whose
+  second member, `packages/pyeconomics-app`, builds the web app's wheel. `uv
+  build` at the root still builds the pyeconomics wheel and sdist alone, so
+  the count of one wheel and one sdist and `scripts/checks/dist_contents.py`
+  are unchanged. Where a directory holds both distributions (ci.yml's
+  package job and release.yml), the rule is: the pyeconomics wheel and sdist
+  pass dist_contents.py, and any other wheel is pyeconomics-app passing
+  `scripts/checks/app_contents.py`. `wheel_file` now names the pyeconomics
+  wheel (`pyeconomics-*.whl`) rather than any wheel; `attested` still
+  expects two files, because it reads the pyeconomics project and
+  pyeconomics-app is its own.

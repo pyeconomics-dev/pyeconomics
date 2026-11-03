@@ -176,6 +176,35 @@ jobs:
       # pyproject.toml (scripts/checks/dist_contents.py).
       - name: Check the artifact allowlist
         run: uv run --no-project python scripts/checks/dist_contents.py dist
+      # The web app's wheel (Phase 5 Step 10; ADR-0013 decisions 16 and 18), built
+      # as release.yml builds it: the site once, for the app flavour (never
+      # indexed, no analytics), copied into the pyeconomics-app package and built
+      # into its own directory, where its own allowlist checks it
+      # (scripts/checks/app_contents.py); dist/ keeps the pyeconomics wheel and
+      # sdist alone, for dist_contents.py.
+      - name: Set up Node.js from web/.nvmrc
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+      - name: Build the site for the app wheel
+        working-directory: web
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
+          GIT_SHA: ${{ github.sha }}
+          SITE_FLAVOUR: app
+          UV_PYTHON: "3.14"
+        run: |
+          npm ci --ignore-scripts --no-fund --no-audit
+          npm run data
+          npm run build
+      - name: Build and check the pyeconomics-app wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --no-project python scripts/web/package_site.py
+          uv build --package pyeconomics-app --wheel --out-dir dist-app
+          uvx twine==7.0.0 check --strict dist-app/*.whl
+          uv run --no-project python scripts/checks/app_contents.py dist-app
       # The venv and the working directory are outside the checkout, so the
       # import reads the installed wheel and never the source tree.
       - name: Install the wheel in a clean venv and import it
@@ -223,7 +252,8 @@ jobs:
       # ADR-0012 decisions 9 and 11: without the server extra, serve exits 8;
       # with it, a non-loopback host is refused (exit 2), and a real `pyeconomics
       # serve` with spawned workers answers a run over HTTP with the bytes of
-      # Result.to_json(), then shuts down cleanly on Ctrl+C.
+      # Result.to_json(), logs how to install the web app it lacks, then shuts
+      # down cleanly on Ctrl+C.
       - name: Serve the REST API from a fresh venv built from the wheel
         shell: bash
         run: |
@@ -250,7 +280,42 @@ jobs:
           kill -INT "$server"
           wait "$server"
           cat serve.log
+          grep -qF 'the web app is not installed: pip install "pyeconomics[app]"' serve.log
           "$RUNNER_TEMP/server/bin/python" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode(); assert pathlib.Path("api-run.json").read_bytes() == expected, "the API answered other bytes"'
+      # ADR-0013 decision 16: `pip install "pyeconomics[app]"` from the two
+      # wheels, then a real `pyeconomics serve`, which serves the site at / as the
+      # build wrote it, with the packaged policy and noindex, beside the API.
+      - name: Serve the web app from a fresh venv built from both wheels
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls "$PWD"/dist/*.whl)
+          app=$(ls "$PWD"/dist-app/*.whl)
+          site="$PWD/packages/pyeconomics-app/src/pyeconomics_app/site"
+          cd "$RUNNER_TEMP"
+          uv venv "$RUNNER_TEMP/app"
+          uv pip install --python "$RUNNER_TEMP/app/bin/python" "${wheel}[app]" "$app"
+          "$RUNNER_TEMP/app/bin/pyeconomics" serve --port 8766 --workers 1 2> app-serve.log &
+          server=$!
+          for _ in $(seq 1 120); do
+            curl --silent --fail http://127.0.0.1:8766/healthz > /dev/null && break
+            sleep 1
+          done
+          curl --silent --fail --dump-header home.headers http://127.0.0.1:8766/ > home.html
+          curl --silent --fail http://127.0.0.1:8766/models/foundations/time-value/ > model.html
+          curl --silent --fail --request POST \
+            --data '{"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}' \
+            http://127.0.0.1:8766/v1/models/foundations.time_value/run > app-run.json
+          kill -INT "$server"
+          wait "$server"
+          cat app-serve.log
+          grep -qF 'serving the web app at http://127.0.0.1:8766/' app-serve.log
+          cmp home.html "$site/index.html"
+          cmp model.html "$site/models/foundations/time-value/index.html"
+          policy=$(sed -n 's/^  Content-Security-Policy: //p' "$site/_headers")
+          tr -d '\r' < home.headers | grep -qxF "content-security-policy: ${policy}"
+          tr -d '\r' < home.headers | grep -qxF 'x-robots-tag: noindex'
+          "$RUNNER_TEMP/app/bin/python" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode(); assert pathlib.Path("app-run.json").read_bytes() == expected, "the API answered other bytes"'
       # scripts/smoke.py exercises the installed wheel's core and refuses to
       # run against a checkout, so it runs from a copy outside it. It runs
       # every model's examples; with no extras, econometrics.ols must raise
@@ -720,6 +785,16 @@ jobs:
       - name: Playwright with axe and the CSP-violation listener
         working-directory: web
         run: npm run e2e
+      # The local app (Phase 5 Step 10; ADR-0013 decision 16): the build is
+      # copied into the pyeconomics-app package, which the locked environment
+      # holds as an editable workspace member, and served as `pyeconomics serve`
+      # serves it (local mode, the site behind the API's routes and the loopback
+      # guard, its _headers and noindex) over the catalog world's stand-ins.
+      - name: Package the site into pyeconomics-app
+        run: uv run --no-project python scripts/web/package_site.py
+      - name: Playwright against the local server with the packaged site
+        working-directory: web
+        run: npm run e2e:local
       - name: Lighthouse on decision 19's sample
         working-directory: web
         run: npm run lighthouse

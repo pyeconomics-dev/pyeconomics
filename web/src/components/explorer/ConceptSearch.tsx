@@ -5,10 +5,14 @@
 // hosted snapshot holds, from concepts.json). The build renders the whole
 // list, so a visitor without JavaScript sees every concept; once hydrated,
 // the island filters it as the visitor types (src/lib/explorer.ts
-// searchConcepts). The search keeps nothing: no storage, no URL.
+// searchConcepts). Served by the local app (GET /version's mode is `local`,
+// Phase 5 Step 10), every concept without parameters is charted, so the
+// filter goes and each concept says so. The search keeps nothing: no
+// storage, no URL.
 import { useEffect, useState } from "react";
 
 import { facetValues, searchConcepts, type ConceptListing, type ConceptQuery } from "@/lib/explorer";
+import { serverMode, type ServerMode } from "@/lib/series-request";
 
 const CONTROL =
   "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none " +
@@ -22,10 +26,28 @@ function words(frequency: string): string {
   return frequency.replaceAll("_", " ");
 }
 
+/** Where a concept is read, as the list says it. */
+function readWhere(concept: ConceptListing, mode: ServerMode): string {
+  if (mode === "local") return concept.parameters ? "Read it with the Python API" : "Charted on this site";
+  return concept.snapshot ? "Charted on this site" : "Read it locally";
+}
+
 export default function ConceptSearch({ concepts }: ConceptSearchProps) {
   const [query, setQuery] = useState<ConceptQuery>({ text: "", frequency: "", topic: "", served: false });
   const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
+  const [mode, setMode] = useState<ServerMode>("hosted");
+  useEffect(() => {
+    setReady(true);
+    let current = true;
+    void serverMode().then((found) => {
+      if (!current || found !== "local") return;
+      setMode(found);
+      setQuery((query) => ({ ...query, served: false }));
+    });
+    return () => {
+      current = false;
+    };
+  }, []);
 
   const shown = searchConcepts(concepts, query);
   const frequencies = facetValues(concepts, "frequency");
@@ -33,7 +55,7 @@ export default function ConceptSearch({ concepts }: ConceptSearchProps) {
   const set = (change: Partial<ConceptQuery>) => setQuery((current) => ({ ...current, ...change }));
 
   return (
-    <div className="flex flex-col gap-6" data-concept-search="" data-ready={ready ? "true" : "false"}>
+    <div className="flex flex-col gap-6" data-concept-search="" data-ready={ready ? "true" : "false"} data-mode={mode}>
       <form
         role="search"
         aria-label="Search the data catalog"
@@ -79,10 +101,12 @@ export default function ConceptSearch({ concepts }: ConceptSearchProps) {
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm sm:col-span-2">
-          <input type="checkbox" checked={query.served} onChange={(event) => set({ served: event.target.checked })} />
-          Only the series this site charts
-        </label>
+        {mode === "hosted" && (
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input type="checkbox" checked={query.served} onChange={(event) => set({ served: event.target.checked })} />
+            Only the series this site charts
+          </label>
+        )}
       </form>
       <p role="status" aria-live="polite" className="text-sm">
         {shown.length === concepts.length
@@ -99,7 +123,7 @@ export default function ConceptSearch({ concepts }: ConceptSearchProps) {
             <span className="text-sm text-muted-foreground">
               {[concept.unit, words(concept.frequency), concept.topic].filter(Boolean).join(" · ")}
             </span>
-            <span className="text-xs">{concept.snapshot ? "Charted on this site" : "Read it locally"}</span>
+            <span className="text-xs">{readWhere(concept, mode)}</span>
           </li>
         ))}
       </ul>

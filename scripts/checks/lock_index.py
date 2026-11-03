@@ -9,9 +9,10 @@ that index's URL into both lock files (Phase 1 Step 7): the URL would be
 published, and CI cannot reach it. This check fails on any URL in either file
 other than PyPI's simple index (https://pypi.org/simple) or a file under
 https://files.pythonhosted.org/, and on any package source that is not that
-index, apart from the project's own editable checkout. It prints a bad URL's
-scheme and host only, because a private index's path can carry an
-organisation's name.
+index, apart from the project's own editable checkout and its workspace members
+(the paths pyproject.toml lists in [tool.uv.workspace] members, such as
+packages/pyeconomics-app). It prints a bad URL's scheme and host only, because a
+private index's path can carry an organisation's name.
 
 Usage, from the repository root (the `lock-index` prek hook runs it):
 
@@ -61,9 +62,21 @@ def check_urls(name: str, text: str) -> list[str]:
     return problems
 
 
-def is_project_checkout(source: dict[str, Any]) -> bool:
-    """Return whether a lock source is the project's own checkout."""
-    return source in ({"editable": "."}, {"virtual": "."})
+def workspace_members(root: Path) -> tuple[str, ...]:
+    """Return the workspace members' paths pyproject.toml declares, if any."""
+    path = root / "pyproject.toml"
+    if not path.is_file():
+        return ()
+    project = tomllib.loads(path.read_text(encoding="utf-8"))
+    members = project.get("tool", {}).get("uv", {}).get("workspace", {})
+    return tuple(m for m in members.get("members", []) if isinstance(m, str))
+
+
+def is_project_checkout(source: dict[str, Any], members: tuple[str, ...] = ()) -> bool:
+    """Return whether a lock source is the project's checkout or a workspace member."""
+    return any(
+        source in ({"editable": path}, {"virtual": path}) for path in (".", *members)
+    )
 
 
 def check_artifacts(name: str, package: str, entry: dict[str, Any]) -> list[str]:
@@ -76,13 +89,13 @@ def check_artifacts(name: str, package: str, entry: dict[str, Any]) -> list[str]
     ]
 
 
-def check_uv_lock(data: dict[str, Any]) -> list[str]:
+def check_uv_lock(data: dict[str, Any], members: tuple[str, ...] = ()) -> list[str]:
     """Flag uv.lock packages whose source is not the PyPI index."""
     problems = []
     for package in data.get("package", []):
         label = f"{package.get('name', '?')} {package.get('version', '')}".strip()
         source = package.get("source", {})
-        if is_project_checkout(source):
+        if is_project_checkout(source, members):
             continue
         if set(source) != {"registry"} or not is_pypi_index(source["registry"]):
             kind = ", ".join(sorted(source)) or "no"
@@ -91,12 +104,13 @@ def check_uv_lock(data: dict[str, Any]) -> list[str]:
     return problems
 
 
-def check_pylock(data: dict[str, Any]) -> list[str]:
+def check_pylock(data: dict[str, Any], members: tuple[str, ...] = ()) -> list[str]:
     """Flag pylock.toml packages that do not come from the PyPI index."""
     problems = []
     for package in data.get("packages", []):
         label = f"{package.get('name', '?')} {package.get('version', '')}".strip()
-        if package.get("directory") == {"path": ".", "editable": True}:
+        checkouts = [{"path": path, "editable": True} for path in (".", *members)]
+        if package.get("directory") in checkouts:
             continue
         if not is_pypi_index(package.get("index")):
             problems.append(f"pylock.toml: {label} does not come from the PyPI index")
@@ -112,6 +126,7 @@ def check_pylock(data: dict[str, Any]) -> list[str]:
 def main(root: Path) -> int:
     """Check both lock files under root; return the process exit status."""
     problems = []
+    members = workspace_members(root)
     for name in LOCK_FILES:
         path = root / name
         if not path.is_file():
@@ -120,7 +135,10 @@ def main(root: Path) -> int:
         text = path.read_text(encoding="utf-8")
         problems += check_urls(name, text)
         data = tomllib.loads(text)
-        problems += check_uv_lock(data) if name == "uv.lock" else check_pylock(data)
+        if name == "uv.lock":
+            problems += check_uv_lock(data, members)
+        else:
+            problems += check_pylock(data, members)
     if problems:
         print("Lock files name a package source outside PyPI:", file=sys.stderr)
         for problem in problems:

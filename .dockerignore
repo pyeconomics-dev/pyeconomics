@@ -54,6 +54,7 @@ __pycache__/
 .venv/
 venv/
 dist/
+dist-app/
 build/
 
 # Tool caches and coverage reports
@@ -94,6 +95,11 @@ web/src/client/
 web/playwright-report/
 web/test-results/
 web/.lighthouse/
+# The web app's wheel (Phase 5 Step 10): the service never serves the site
+# (Cloudflare does), so the workspace member stays out of the build context;
+# uv export --frozen and uv build at the root need only the root's files.
+packages/
+packages/pyeconomics-app/src/pyeconomics_app/site/
 Dockerfile
 .dockerignore
 pylock.toml

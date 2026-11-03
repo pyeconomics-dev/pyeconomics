@@ -764,7 +764,7 @@ v7_2() {
   py=$(venv_python "$TMP/clean")
   # The wheel has runtime dependencies since Phase 2 (post-merge addendum),
   # so they come from PyPI; --no-config keeps a user-level index out.
-  uv pip install --no-config --python "$py" "$TMP"/dist/*.whl || return 1
+  uv pip install --no-config --python "$py" "$TMP"/dist/pyeconomics-*.whl || return 1
   expected=$(uv version --short)
   found=$(cd "$TMP" && "$py" -c 'import pyeconomics; print(pyeconomics.__version__)')
   echo "installed $found; pyproject.toml says $expected"

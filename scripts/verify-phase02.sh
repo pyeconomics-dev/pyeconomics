@@ -482,7 +482,7 @@ wheel_smoke() {
   # Match the interpreter that just passed the local suite. uv's global
   # default can otherwise select a different supported minor version.
   interpreter=$(uv python find --no-config) || return 1
-  wheel=$(printf '%s\n' "$TMP"/dist/*.whl)
+  wheel=$(printf '%s\n' "$TMP"/dist/pyeconomics-*.whl)
   [ -f "$wheel" ] || fail "build did not produce a wheel"
   mkdir -p "$TMP/smoke" || return 1
   cp scripts/smoke.py "$TMP/smoke/" || return 1

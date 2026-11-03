@@ -14,6 +14,12 @@ user can access, with the user's keys, so:
   loopback name, so a web page cannot rebind its own name to 127.0.0.1 and read
   them.
 
+With the web app installed (``pip install "pyeconomics[app]"``, ADR-0013
+decision 16), the same site as production is served at ``/``, behind every API
+route and the same guard, with the site's own headers and ``noindex``
+(:mod:`pyeconomics.server.site`); without it, the server logs one line saying
+how to install it and serves the API alone.
+
 The command needs the ``server`` extra (exit code 8 without it). It never starts
 hosted mode: the container runs uvicorn itself (Phase 4 Step 12). The server
 logs pyeconomics' and uvicorn's records to standard error as single lines, never
@@ -82,7 +88,8 @@ def serve(
 ) -> None:
     """Serve the REST API on this machine, until Ctrl+C.
 
-    Its routes are under /v1; the interactive documentation is at /docs.
+    Its routes are under /v1; the interactive documentation is at /docs. With
+    pyeconomics[app] installed, the web app is at /.
 
     Parameters
     ----------
@@ -112,7 +119,12 @@ def serve(
         raise UsageError(msg)
     import_optional("fastapi", extra="server")
     import_optional("uvicorn", extra="server")
-    from pyeconomics.server import ServerSettings, create_app, logs  # noqa: PLC0415
+    from pyeconomics.server import (  # noqa: PLC0415
+        ServerSettings,
+        create_app,
+        logs,
+        site,
+    )
 
     handler = logs.configure(Utf8Text(context.streams.stderr))
     server_logger = logging.getLogger("uvicorn")
@@ -128,8 +140,18 @@ def serve(
                 "can reach it",
                 host,
             )
-        settings = ServerSettings(workers=workers, allow_remote=not local)
-        run_server(create_app(mode="local", settings=settings), host, port)
+        directory = site.packaged_site()
+        settings = ServerSettings(
+            workers=workers, allow_remote=not local, site=directory
+        )
+        app = create_app(mode="local", settings=settings)
+        server_log = logging.getLogger(logs.LOGGER)
+        if directory is None:
+            server_log.info("%s", site.missing_hint())
+        else:
+            shown = f"[{host}]" if ":" in host else host
+            server_log.info("serving the web app at http://%s:%d/", shown, port)
+        run_server(app, host, port)
     finally:
         server_logger.removeHandler(handler)
         server_logger.setLevel(level)

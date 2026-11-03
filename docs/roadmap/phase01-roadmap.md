@@ -7490,3 +7490,18 @@ invariant it protected, never deletes it, and adds one line here.
   Windows, so an open pull request's branch is no longer reported as
   unexpected. The invariant (origin holds only main, legacy, archive/ and
   open-PR heads) is unchanged.
+
+- Check V7.2 and check 21 (Phase 5 Step 10, ADR-0013 decision 16): the
+  repository is a uv workspace whose second member,
+  `packages/pyeconomics-app`, builds the web app's wheel. `uv build` at the
+  root still builds the pyeconomics wheel and sdist alone, so the count of
+  one wheel and one sdist and `scripts/checks/dist_contents.py` are
+  unchanged. Where a directory holds both distributions (ci.yml's package
+  job and release.yml), the rule is: the pyeconomics wheel and sdist pass
+  dist_contents.py, and any other wheel is pyeconomics-app passing
+  `scripts/checks/app_contents.py`. V7.2's clean-venv install now names the
+  pyeconomics wheel (`pyeconomics-*.whl`) rather than any wheel. Check 21
+  passes unchanged (`[app]` names no `cfa`), check 36 too (`id-token: write`
+  stays on the two publish jobs, whose one exchange now uploads both
+  projects), and `attested` still finds two files: it reads the pyeconomics
+  project, and pyeconomics-app is its own.

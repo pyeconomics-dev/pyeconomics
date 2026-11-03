@@ -14,6 +14,12 @@
 # installed metadata, and runs the smoke again with --extras, so the extra's
 # models run to outputs. A requirement whose marker also tests the environment
 # (arch's python_full_version < '3.15') keeps that test, and pip applies it.
+# Last, the web app (Phase 5 Step 10; ADR-0013 decision 16): pyeconomics-app at
+# the same version from the same index, the app extra's other requirements from
+# PyPI, pip proving pyeconomics[app]==<version> resolves to what is installed
+# with no index, and a `pyeconomics serve` on a free port whose /, model page and
+# run are the packaged site's and the API's own. A release whose metadata
+# provides no app extra (before 1.0.0rc1) skips that part with a notice.
 # release.yml calls it after each publish; run it by hand to re-check a past
 # release. A release from before the model smoke (1.0.0.dev1) predates the
 # script's options and cannot be re-checked this way.
@@ -179,3 +185,90 @@ jobs:
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/smoke/bin/python" \
             "$GITHUB_WORKSPACE/release-source/scripts/smoke.py" --min-domains 11 --extras
+
+      # The web app: pyeconomics-app alone from the index under test, as the
+      # package was, then the app extra's other requirements from PyPI only, read
+      # from the installed metadata; pip then resolves pyeconomics[app] at this
+      # version with no index, which passes only if the extra's pin is what was
+      # installed.
+      - name: Install the app extra
+        id: app
+        run: |
+          set -euo pipefail
+          py="$RUNNER_TEMP/smoke/bin/python"
+          if ! "$py" -c 'import importlib.metadata as m, sys; sys.exit("app" not in (m.metadata("pyeconomics").get_all("Provides-Extra") or []))'; then
+            echo "::notice::pyeconomics ${VERSION} provides no app extra: it predates pyeconomics-app, so the web app is not smoked."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "$INDEX" in
+            testpypi) index_url=https://test.pypi.org/simple/ ;;
+            pypi) index_url=https://pypi.org/simple/ ;;
+            *)
+              echo "::error::The index must be pypi or testpypi, not '${INDEX}'."
+              exit 1
+              ;;
+          esac
+          for attempt in $(seq 1 10); do
+            if "$py" -m pip install --no-cache-dir --no-deps \
+                --index-url "$index_url" "pyeconomics-app==${VERSION}"; then
+              break
+            fi
+            if [ "$attempt" -eq 10 ]; then
+              echo "::error::pyeconomics-app==${VERSION} did not install from ${index_url}."
+              exit 1
+            fi
+            sleep 30
+          done
+          "$py" - > "$RUNNER_TEMP/app.txt" <<'EOF'
+          import importlib.metadata
+          import re
+
+          extra = r"""extra\s*==\s*['"]app['"]"""
+          joined = re.compile(rf"\s*(?:and\s+)?{extra}(?:\s+and)?\s*")
+          for requirement in importlib.metadata.requires("pyeconomics") or []:
+              name, _, marker = requirement.partition(";")
+              if re.search(extra, marker) and not name.strip().startswith("pyeconomics-app"):
+                  rest = joined.sub(" ", marker).strip()
+                  print(f"{name.strip()} ; {rest}" if rest else name.strip())
+          EOF
+          cat "$RUNNER_TEMP/app.txt"
+          test -s "$RUNNER_TEMP/app.txt"
+          "$py" -m pip install --no-cache-dir \
+              --index-url https://pypi.org/simple/ -r "$RUNNER_TEMP/app.txt"
+          "$py" -m pip install --no-cache-dir --no-index "pyeconomics[app]==${VERSION}"
+          "$py" -m pip check
+          echo "present=true" >> "$GITHUB_OUTPUT"
+
+      # `pyeconomics serve` on a free port: the packaged site at / as built, with
+      # its policy and noindex, a model page, and a run's bytes beside them.
+      - name: Serve the web app from the installed release
+        if: steps.app.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          py="$RUNNER_TEMP/smoke/bin/python"
+          site=$("$py" -c 'import pyeconomics_app; print(pyeconomics_app.site_path())')
+          "$py" -c 'import json, os, sys; built = json.loads(open(os.path.join(sys.argv[1], "version.json"), "rb").read())["pyeconomics"]; sys.exit(built != os.environ["VERSION"])' "$site"
+          port=$("$py" -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
+          "$RUNNER_TEMP/smoke/bin/pyeconomics" serve --port "$port" --workers 1 2> app-serve.log &
+          server=$!
+          for _ in $(seq 1 120); do
+            curl --silent --fail "http://127.0.0.1:${port}/healthz" > /dev/null && break
+            sleep 1
+          done
+          curl --silent --fail --dump-header home.headers "http://127.0.0.1:${port}/" > home.html
+          curl --silent --fail "http://127.0.0.1:${port}/models/foundations/time-value/" > model.html
+          curl --silent --fail --request POST \
+            --data '{"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}' \
+            "http://127.0.0.1:${port}/v1/models/foundations.time_value/run" > app-run.json
+          kill -INT "$server"
+          wait "$server"
+          cat app-serve.log
+          grep -qF "serving the web app at http://127.0.0.1:${port}/" app-serve.log
+          cmp home.html "$site/index.html"
+          cmp model.html "$site/models/foundations/time-value/index.html"
+          policy=$(sed -n 's/^  Content-Security-Policy: //p' "$site/_headers")
+          tr -d '\r' < home.headers | grep -qxF "content-security-policy: ${policy}"
+          tr -d '\r' < home.headers | grep -qxF 'x-robots-tag: noindex'
+          "$py" -c 'import pathlib, pyeconomics; inputs = {"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}; expected = pyeconomics.run("foundations.time_value", inputs).to_json().encode(); assert pathlib.Path("app-run.json").read_bytes() == expected, "the API answered other bytes"'
