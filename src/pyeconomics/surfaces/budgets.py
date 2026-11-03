@@ -43,6 +43,7 @@ __all__ = [
     "BudgetExceededError",
     "budget_for",
     "local_command",
+    "local_data_command",
 ]
 
 #: The wall-clock seconds a hosted run may take, by its model's cost class.
@@ -58,6 +59,20 @@ GET_INPUTS_LIMIT: Final = 8_192
 def local_command(model_id: str) -> str:
     """Return the command that runs a model locally on inputs in a JSON file."""
     return f"pyeconomics models run {model_id} --inputs FILE"
+
+
+def local_data_command(target: str) -> str:
+    """Return the command that reads a series or a concept locally.
+
+    The data layer's :class:`~pyeconomics.data.errors.SnapshotMissingError`
+    gives the same text, which a test holds equal.
+
+    Examples
+    --------
+    >>> local_data_command("treasury:par_nominal")
+    'pyeconomics data get treasury:par_nominal'
+    """
+    return f"pyeconomics data get {target}"
 
 
 def budget_for(cost: CostClass) -> float:

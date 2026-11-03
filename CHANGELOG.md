@@ -13,8 +13,34 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+### Added
+
+- The hosted data plane (Phase 5 Step 8; ADR-0013 decision 6):
+  `pyeconomics.data.snapshots`. A daily job, `python -m
+  pyeconomics.data.snapshots write`, fetches the snapshot set (every
+  hosted-safe originator candidate of the catalog and of every bound model's
+  profiles whose terms allow storage; never FRED, an aggregator, a library-only
+  source or a storage-forbidden series) and writes one gzip canonical-JSON
+  object per provider and run, then `current.json`; a failed series or provider
+  keeps its last good data, marked with its problem slug. In hosted mode with
+  `PYECONOMICS_SNAPSHOT_DIR` set, every series fetch reads the snapshot after
+  the licence gate and before any request, records `served_from_snapshot` and
+  the snapshot's retrieval time, and marks a series not refreshed for two days
+  `stale_snapshot`.
+- `SnapshotMissingError` and the `not-in-snapshot` problem (404, exit code 7):
+  a series outside the hosted snapshot, with the command that reads it locally.
+- The `snapshot_dir` setting (`PYECONOMICS_SNAPSHOT_DIR`) and the job's
+  heartbeat URL (`PYECONOMICS_SNAPSHOT_HEARTBEAT`, a secret registered with
+  redaction).
+
 ### Changed
 
+- The staging deploy updates the snapshot job to each new image before the API,
+  mounts the snapshot bucket read-only into the service, and checks a series
+  through the edge from the newest snapshot.
+- Reading one workbook's sheets for many series inside
+  `pyeconomics.data.transport.files.reuse()` parses each sheet once, so the
+  snapshot job reads the Penn World Table's 49 series in seconds.
 - The version on `main` moves to `1.0.0rc1.dev1`, the first development build
   towards the 1.0.0 release candidate; `CITATION.cff` and the MCP Registry entry
   (`server.json`) follow it.

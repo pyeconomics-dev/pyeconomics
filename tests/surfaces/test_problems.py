@@ -86,6 +86,7 @@ ACCEPTED = {
     "RateLimitError": ("upstream-rate-limited", 503, 7),
     "OfflineError": ("offline-cache-miss", 503, 7),
     "SourceDisabledError": ("source-disabled", 503, 7),
+    "SnapshotMissingError": ("not-in-snapshot", 404, 7),
     "DataError": ("data-unavailable", 422, 7),
     "MissingOptionalDependencyError": ("missing-extra", 501, 8),
     "BudgetExceededError": ("budget-exceeded", 422, 1),

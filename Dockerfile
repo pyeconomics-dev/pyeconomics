@@ -4,6 +4,10 @@
 # [sdmx] extras plus pyarrow (for hosted Parquet/Arrow downloads), all verified
 # against uv.lock hashes. No library-only provider extra (yfinance), keyring,
 # AI client or Bloomberg library is installed.
+#
+# The same image runs two ways: the service (the CMD below) and the snapshot
+# job (Phase 5 Step 8; ADR-0013 decision 6), which Cloud Run starts with
+# `python -m pyeconomics.data.snapshots write` and no new dependency.
 
 FROM ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168 AS uv
 

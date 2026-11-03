@@ -43,6 +43,7 @@ from pyeconomics.data import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    SnapshotMissingError,
     SourceDisabledError,
     TransportError,
 )
@@ -125,6 +126,7 @@ def _errors(text: str) -> list[BaseException]:
         RateLimitError(text, provider="toy", retry_after=1.0),
         OfflineError(text, provider="toy"),
         SourceDisabledError(text, concept=text),
+        SnapshotMissingError(text, reason=text),
         DataError(text),
         MissingOptionalDependencyError("toy_library", note=text),
         BudgetExceededError(text, 2.0),

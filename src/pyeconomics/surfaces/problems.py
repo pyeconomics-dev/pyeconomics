@@ -221,6 +221,13 @@ ROWS: Final = (
         7,
     ),
     Row(
+        f"{_DATA}.SnapshotMissingError",
+        "not-in-snapshot",
+        "The hosted snapshot does not hold this data",
+        404,
+        7,
+    ),
+    Row(
         f"{_DATA}.DataError",
         "data-unavailable",
         "The data cannot answer this request",

@@ -22,6 +22,8 @@ exception a caller would expect:
   copy;
 - :class:`SourceDisabledError` (``ConnectionError``): the ``disabled_providers``
   setting turns the source off;
+- :class:`SnapshotMissingError` (``LookupError``): the hosted snapshot does not
+  hold the series, so hosted mode points to local mode (Phase 5 Step 8);
 - :class:`ResponseError` (``ValueError``): the source's response is malformed;
 - :class:`ConfigError` (``ValueError``): a setting is invalid.
 
@@ -73,8 +75,10 @@ __all__ = [
     "RateLimitError",
     "ResponseError",
     "SeriesNotFoundError",
+    "SnapshotMissingError",
     "SourceDisabledError",
     "TransportError",
+    "local_data_command",
     "scrub_urls",
 ]
 
@@ -306,6 +310,63 @@ class SourceDisabledError(DataError, ConnectionError):
             provider=providers[0] if providers else None,
         )
         self.providers = providers
+
+
+class SnapshotMissingError(DataError, LookupError):
+    """The hosted service's snapshot does not hold the data asked for.
+
+    Hosted mode with ``PYECONOMICS_SNAPSHOT_DIR`` answers every series from the
+    snapshot the daily job writes (ADR-0013 decision 6) and never asks a source
+    itself, so a series outside the snapshot set, or one the snapshot could not
+    read, is refused with a pointer to local mode, which reads every source the
+    user can access.
+
+    Parameters
+    ----------
+    target
+        What was asked for: ``provider:series``, or a concept id.
+    reason
+        Why the snapshot cannot answer, when it is more than the series being
+        outside the set.
+    command
+        The command that does the same locally; ``pyeconomics data get
+        <target>`` by default.
+
+    Examples
+    --------
+    >>> print(SnapshotMissingError("treasury:par_nominal"))
+    treasury:par_nominal is not in the hosted snapshot; run it locally, where every source you can access is read: pyeconomics data get treasury:par_nominal
+    >>> isinstance(SnapshotMissingError("ecb:X"), LookupError)
+    True
+    """  # noqa: E501 - doctest output lines cannot wrap
+
+    def __init__(
+        self, target: str, *, reason: str | None = None, command: str | None = None
+    ) -> None:
+        provider, _, _ = target.partition(":")
+        why = f" ({reason})" if reason else ""
+        super().__init__(
+            f"{target} is not in the hosted snapshot{why}; run it locally, where "
+            f"every source you can access is read: "
+            f"{command or local_data_command(target)}",
+            provider=provider if ":" in target else None,
+        )
+        self.target = target
+        self.reason = reason
+
+
+def local_data_command(target: str) -> str:
+    """Return the command that reads a series or a concept locally.
+
+    ``pyeconomics.surfaces.budgets`` uses the same text for a series fetch that
+    ran past its budget; a test holds the two equal.
+
+    Examples
+    --------
+    >>> local_data_command("us.unemployment.rate")
+    'pyeconomics data get us.unemployment.rate'
+    """
+    return f"pyeconomics data get {target}"
 
 
 class ResponseError(DataError, ValueError):

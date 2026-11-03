@@ -4,8 +4,10 @@
 """Which frame notes become a record's warning codes (Phase 3 Step 12).
 
 ``Fetched.source()`` repeats the notes that say something about the whole series a
-run read: ``revised_data`` (the source keeps only its current estimates) and
-``bls_keyless`` (read without a catalog). Dated notes stay on the frame.
+run read: ``revised_data`` (the source keeps only its current estimates),
+``bls_keyless`` (read without a catalog) and ``stale_snapshot`` (a hosted
+snapshot series not refreshed for two days, Phase 5 Step 8). Dated notes stay on
+the frame. A snapshot's origin adds ``served_from_snapshot``.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ from pyeconomics.data.cache.policy import NOTE_WARNINGS, Fetched, Origin
 REVISED = "revised_data: the source serves current estimates only"
 KEYLESS = "bls_keyless: read through API v1 without a key"
 FOOTNOTE = "footnote: P preliminary (2026-08-31, 2026-09-30)"
+STALE = "stale_snapshot: retrieved 2026-10-15, more than 2 days before it was served"
 
 
 def source_of(*notes: str, origin: Origin | None = None) -> tuple[str, ...]:
@@ -28,9 +31,16 @@ def source_of(*notes: str, origin: Origin | None = None) -> tuple[str, ...]:
 
 
 def test_the_notes_about_the_whole_series_become_warning_codes() -> None:
-    assert set(NOTE_WARNINGS) == {"revised_data", "bls_keyless"}
+    assert set(NOTE_WARNINGS) == {"revised_data", "bls_keyless", "stale_snapshot"}
     assert source_of(REVISED) == ("revised_data",)
     assert source_of(KEYLESS, REVISED) == ("bls_keyless", "revised_data")
+    assert source_of(STALE) == ("stale_snapshot",)
+
+
+def test_a_snapshots_origin_marks_the_record_first() -> None:
+    origin = Origin(snapshot=True)
+    assert source_of(origin=origin) == ("served_from_snapshot",)
+    assert source_of(STALE, origin=origin) == ("served_from_snapshot", "stale_snapshot")
 
 
 def test_a_dated_note_stays_on_the_frame() -> None:

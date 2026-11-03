@@ -108,6 +108,7 @@ __all__ = [
     "Lookup",
     "Origin",
     "bypass",
+    "bypassed",
     "clear",
     "entries",
     "expiry",
@@ -254,6 +255,15 @@ def bypass() -> Generator[None]:
         yield
     finally:
         _BYPASS.reset(token)
+
+
+def bypassed() -> bool:
+    """Say whether a :func:`bypass` block is open in this context.
+
+    The hosted snapshot reader stands aside inside one too, so the job that
+    writes the snapshot reaches the sources (Phase 5 Step 8).
+    """
+    return _BYPASS.get()
 
 
 def _now() -> dt.datetime:

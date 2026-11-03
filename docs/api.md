@@ -242,6 +242,18 @@ licence-refused` naming the class in `licence` and the source's terms page in
 another hosted-safe originator. No route accepts or reveals a key or reads the
 cache, and `/v1/sources` never says whether a key is configured.
 
+**Snapshots.** With `PYECONOMICS_SNAPSHOT_DIR` set, the hosted service asks no
+source itself: every series and every bound run reads a daily snapshot of the
+hosted-safe originators, written by a job (`python -m
+pyeconomics.data.snapshots write`) into the directory the service mounts
+read-only. Each data record then carries the snapshot's retrieval time and the
+warning `served_from_snapshot`; a series the job has not refreshed for more than
+two days also carries `stale_snapshot` and is still served. A series outside
+the snapshot set, or a vintage it does not keep, answers `404 not-in-snapshot`
+with the command that reads it locally (`pyeconomics data get <series>`), where
+every source you can access is read. Without the variable, hosted mode fetches
+each hosted-safe series per request.
+
 **The edge.** The hosted service sits behind a Cloudflare Worker that adds a
 shared secret to each request it forwards. When `PYECONOMICS_EDGE_CREDENTIAL`
 is set (from Secret Manager; at least 32 characters), every route but `/healthz`
@@ -324,6 +336,8 @@ variables injected at run time — never baked into the image:
 | `PYECONOMICS_EDGE_CREDENTIAL` | unset | Shared secret (`32`–`512` printable characters) required in `X-Pyeconomics-Edge` before any route but `/healthz` and `/version` runs. |
 | `PYECONOMICS_RATELIMIT_URL` | unset | `rediss://` URL for shared rate-limit counts (in-memory per process when unset). |
 | `PYECONOMICS_DISABLED_PROVIDERS` | unset | Comma-separated provider IDs to disable immediately (`503 source-disabled`). |
+| `PYECONOMICS_SNAPSHOT_DIR` | unset | The snapshot directory, mounted read-only: every series is read from it (`404 not-in-snapshot` outside it). Unset, series are fetched per request. |
+| `PYECONOMICS_SNAPSHOT_HEARTBEAT` | unset | The snapshot job only: its heartbeat URL (a secret), requested when a run completes. |
 
 In hosted mode the container serves every model run (within `HOSTED_BUDGETS`
 and `HOSTED_BODY_LIMIT`) and every `hosted-safe` or `user-supplied` data
