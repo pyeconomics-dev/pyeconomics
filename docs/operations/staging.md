@@ -5,9 +5,9 @@ API (`staging-api.pyeconomics.dev` in front of Cloud Run `pyeconomics-api-stagin
 in `us-central1`) and, since Phase 5 Step 4, the staging site
 (`staging.pyeconomics.dev`, the site and the same API on one host): their trust
 boundary, deployment and rollback procedures, secret rotation, provider
-disablement, cost-spike mitigation, and free-tier arithmetic (ROADMAP §4 4.7,
-5.8, §5; ADR-0006; ADR-0012 decisions 11, 12, 19, 20; ADR-0013 decisions 3, 4
-and 9).
+disablement, cost-spike mitigation, free-tier arithmetic and, since Phase 5
+Step 8, the snapshot data plane (section 7) (ROADMAP §4 4.7, 5.8, §5; ADR-0006;
+ADR-0012 decisions 11, 12, 19, 20; ADR-0013 decisions 3, 4, 6 and 9).
 
  This document is operational documentation for maintainers and is excluded from
 the public Sphinx documentation build (`exclude_patterns` in `docs/conf.py`).
@@ -42,6 +42,8 @@ Google Cloud Run (pyeconomics-api-staging, us-central1)
   │  - Keys per-IP rate limits by CF-Connecting-IP only after the edge check succeeds,
   │    backed by Upstash Redis over TLS (rediss://)
   │  - Executes model runs and hosted-safe series fetches in a 2-worker process pool
+  │  - Reads every series from the snapshot bucket, mounted read-only at /snapshots
+  │    (section 7); asks no source itself
 ```
 
 ### The staging site: one host, one Worker
@@ -141,7 +143,18 @@ gcloud run services add-iam-policy-binding pyeconomics-api-staging \
   pattern: create it once by hand, then bind the deploy identity on it.
 - **Runtime service account (`pyeconomics-staging-runtime`):** granted only
   `roles/secretmanager.secretAccessor` on the `ratelimit-url` and
-  `edge-credential` secrets in Secret Manager. It holds no project-wide role.
+  `edge-credential` secrets in Secret Manager, and `roles/storage.objectViewer`
+  on the `pyeconomics-staging-snapshots` bucket (Phase 5 Step 8). It holds no
+  project-wide role and no provider key.
+- **Snapshot job service account (`pyeconomics-staging-snapshots`):** granted
+  only `roles/storage.objectUser` on the `pyeconomics-staging-snapshots` bucket
+  and `roles/secretmanager.secretAccessor` on `bea-api-key` and `bls-api-key`.
+  The deploy identity holds `roles/run.developer` on the job
+  `pyeconomics-snapshots-staging` and `roles/iam.serviceAccountUser` on this
+  account, and nothing on the bucket.
+- **Scheduler service account (`pyeconomics-staging-scheduler`):** granted only
+  `roles/run.invoker` on the job; Cloud Scheduler calls the job's `:run`
+  endpoint as it.
 - **GitHub `staging` environment:** restricted to deployments from `main` only.
   Holds `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` and
   `CLOUDFLARE_API_TOKEN` as environment secrets (no repository secrets exist)
@@ -149,7 +162,10 @@ gcloud run services add-iam-policy-binding pyeconomics-api-staging \
   `GCP_ARTIFACT_REPOSITORY`, `GCP_WORKLOAD_IDENTITY_PROVIDER`,
   `GCP_DEPLOY_SERVICE_ACCOUNT`, `GCP_RUNTIME_SERVICE_ACCOUNT`, `STAGING_HOST`,
   `STAGING_SITE_HOST`, `ORIGIN_URL`, `RATELIMIT_SECRET_VERSION`,
-  `EDGE_SECRET_VERSION`, `CLOUDFLARE_ACCOUNT_ID`) as environment variables.
+  `EDGE_SECRET_VERSION`, `CLOUDFLARE_ACCOUNT_ID`, and since Phase 5 Step 8
+  `GCP_SNAPSHOT_JOB`, `GCP_SNAPSHOT_BUCKET`, `GCP_SNAPSHOT_SERVICE_ACCOUNT`,
+  `BEA_SECRET_VERSION`, `BLS_SECRET_VERSION`; Step 14 adds
+  `HEARTBEAT_SECRET_VERSION`) as environment variables.
 - **Cloudflare API token (`CLOUDFLARE_API_TOKEN`):** an account-owned token
   holding the legacy permission group *Workers Scripts: Edit* on the whole
   account, and nothing else: no zone, DNS, route, custom-domain or Access
@@ -181,10 +197,14 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
 3. Scans the image with Trivy (`ghcr.io/aquasecurity/trivy:0.69.3` pinned by
    digest), failing the build on any fixable `CRITICAL` or `HIGH` vulnerability.
 4. Records the currently serving Cloud Run revision (`PREVIOUS_REVISION`),
-   pushes the image to Artifact Registry by SHA tag, resolves its immutable
-   `@sha256:...` digest, and deploys that digest to `pyeconomics-api-staging`
-   with secrets pinned by version (`ratelimit-url:$RATELIMIT_SECRET_VERSION`,
-   `edge-credential:$EDGE_SECRET_VERSION`).
+   pushes the image to Artifact Registry by SHA tag and resolves its immutable
+   `@sha256:...` digest. Data before API (Phase 5 Step 8): it records the
+   snapshot job's image and updates `pyeconomics-snapshots-staging` to the new
+   digest with every setting pinned (section 7). Then it deploys the digest to
+   `pyeconomics-api-staging` in the gen2 execution environment with secrets
+   pinned by version (`ratelimit-url:$RATELIMIT_SECRET_VERSION`,
+   `edge-credential:$EDGE_SECRET_VERSION`) and the snapshot bucket mounted
+   read-only at `/snapshots` (`PYECONOMICS_SNAPSHOT_DIR`).
 5. Verifies the deployment:
    - Cloud Run's `startupProbe.httpGet.path` is `/healthz` (`:8080`) and origin
      `/version` returns `200` with `git_sha == $GITHUB_SHA` and
@@ -203,6 +223,11 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
      and Treasury attribution.
    - Authenticated `GET /v1/series/fred:UNRATE` returns `403`
      (`licence-refused`) with the source's `terms` URL.
+   - Authenticated `GET /v1/series/treasury:par_nominal` over the last two
+     weeks returns `200` with `served_from_snapshot`, no `stale_snapshot`, and
+     a retrieval time less than two days old; `GET
+     /v1/series/treasury:statement` (outside the set) returns `404`
+     `not-in-snapshot`.
    - `scripts/parity/check_deployed.py` (Phase 5 Step 6) posts the first golden
      case of each domain through the edge and requires the wheel's answer for
      each: the same bytes, or the same JSON whose numbers differ only in their
@@ -212,8 +237,9 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
      https://staging-api.pyeconomics.dev`, with `CF_ACCESS_CLIENT_ID` and
      `CF_ACCESS_CLIENT_SECRET` set.
 6. If any deployment or verification step fails, the workflow automatically
-   executes `gcloud run services update-traffic` to route `100%` of traffic back
-   to `PREVIOUS_REVISION` and fails the run. That pins traffic to the named
+   returns the snapshot job to its previous image and executes `gcloud run
+   services update-traffic` to route `100%` of traffic back to
+   `PREVIOUS_REVISION`, and fails the run. That pins traffic to the named
    revision. The next deploy returns it to the latest revision itself: right
    after `gcloud run deploy` it runs `gcloud run services update-traffic
    --to-latest`, before verifying (issue #210), so its new revision is never
@@ -656,3 +682,199 @@ Measured on the multi-stage `python:3.14-slim-bookworm` image with
 | **Cloudflare Workers** (both, one account) | 100,000 requests/day | 72 requests/day | ~9 requests/day | ~81 requests/day | 0.08% |
 | **Workers static assets** (`staging.pyeconomics.dev`) | unlimited, free | 48 requests/day | ~6 requests/day | ~54 requests/day | — |
 | **Cloudflare Access** | 50 seats + service tokens | 1 service token | 1 maintainer seat | 1 seat, 1 token, 2 applications | 2.0% |
+
+---
+
+## 7. Snapshot Data Plane
+
+Since Phase 5 Step 8 (ADR-0013 decision 6) staging's hosted series and bound
+runs read a daily snapshot; the service asks no source itself.
+
+### Topology
+
+```text
+Cloud Scheduler  pyeconomics-snapshots-staging-daily  (30 23 * * *, Etc/UTC)
+  │  POST run.googleapis.com/v2/.../jobs/pyeconomics-snapshots-staging:run
+  │  as pyeconomics-staging-scheduler (roles/run.invoker on the job, nothing else)
+  ▼
+Cloud Run job  pyeconomics-snapshots-staging  (same image, hosted mode)
+  │  python -m pyeconomics.data.snapshots write
+  │  1 task, parallelism 1, max retries 0, task timeout 30 min, 1 vCPU, 2 GiB
+  │  as pyeconomics-staging-snapshots: BEA_API_KEY, BLS_API_KEY from Secret Manager
+  │  fetches the snapshot set through data.get, within each source's rate limits
+  ▼
+gs://pyeconomics-staging-snapshots  (us-central1, uniform access, public access
+  │  prevention enforced, soft delete 7 days, no Object Versioning)
+  │  <run-id>/<provider>.json.gz   one gzip canonical-JSON object per provider
+  │  current.json                  written last: each provider's object and SHA-256
+  ▼  mounted read-only at /snapshots (PYECONOMICS_SNAPSHOT_DIR)
+Cloud Run service  pyeconomics-api-staging  (as pyeconomics-staging-runtime,
+     roles/storage.objectViewer on the bucket): every series from the snapshot
+```
+
+- **The set** is computed, never written by hand
+  (`pyeconomics.data.snapshots.set.snapshot_set()`): every hosted-safe
+  originator candidate of every catalog concept and bound-model profile whose
+  terms allow storage, 92 series from 12 providers on 2026-11-03. Never FRED
+  or ALFRED, an aggregator, a library-only source or a storage-forbidden
+  series. The SEP's meetings come from `SEP_MEETINGS`; extend it when the
+  Board publishes the next year's FOMC calendar.
+- **Series served by window.** Treasury's par curves (one XML file a month,
+  each answered in about 20 s) and NY Fed's EFFR (which answers a whole-history
+  read with HTTP 400, #135, and holds a Sunday, #196) are read incrementally:
+  each run fetches the last 45 days again and, until the history reaches its
+  `HISTORY_STARTS` date, the year before its first observation. A new bucket
+  therefore holds a year of each curve and gains a year a day; the nominal
+  curve reaches 1990 in about five weeks. A request whose window ends before
+  the history held so far answers `not-in-snapshot`.
+- **Failures degrade.** A series that fails keeps its last good frame (and its
+  old retrieval time); a provider none of whose series succeeded keeps its last
+  good object; `current.json` marks each with the failure's problem slug. The
+  job exits non-zero only when no provider succeeded. The service marks a
+  series retrieved more than two days ago `stale_snapshot` and still serves it;
+  it never falls back to a live fetch.
+- **Data before API.** `deploy-staging.yml` updates the job to each new image
+  digest, with every setting pinned in the workflow, before it deploys the
+  API. It does not run the job.
+
+### Running the job by hand
+
+```bash
+gcloud run jobs execute pyeconomics-snapshots-staging \
+  --project=pyeconomics-staging --region=us-central1 --wait
+
+# Its log: one line per provider, the failures, and the run's summary
+gcloud logging read \
+  'resource.type="cloud_run_job" AND resource.labels.job_name="pyeconomics-snapshots-staging"' \
+  --project=pyeconomics-staging --freshness=1h --limit=40 \
+  --format='value(timestamp,textPayload)'
+
+# What the service serves now
+gcloud storage cat gs://pyeconomics-staging-snapshots/current.json | python -m json.tool | head -40
+```
+
+A run never overlaps itself: the job has one task and no retries, and the
+schedule is daily. Do not execute it while a scheduled run is in progress
+(`gcloud run jobs executions list --job=pyeconomics-snapshots-staging
+--project=pyeconomics-staging --region=us-central1`). Two overlapping runs
+would still leave a consistent `current.json` (the last one written wins, and
+each names only objects of its own run or earlier ones), but would double the
+load on the sources.
+
+### A silent or failing job
+
+Symptoms: `current.json`'s `completed_at` is more than a day old, records carry
+`stale_snapshot`, or the deploy's snapshot check fails. (Step 14 adds the
+Better Stack heartbeat that alarms on a missing run.)
+
+1. Look at the last executions and the scheduler:
+   `gcloud run jobs executions list --job=pyeconomics-snapshots-staging
+   --project=pyeconomics-staging --region=us-central1 --limit=5` and
+   `gcloud scheduler jobs describe pyeconomics-snapshots-staging-daily
+   --project=pyeconomics-staging --location=us-central1` (its `state` must be
+   `ENABLED` and `lastAttemptTime` recent).
+2. Read the failed execution's log (above). A provider line names the series
+   and the problem slug; `credential-unavailable` means a key secret, and the
+   job's own `ERROR` line means its configuration.
+3. A source that is down needs nothing: its last good data stays served and
+   the next run retries. A source that keeps failing can be skipped by
+   disabling it on the job (`PYECONOMICS_DISABLED_PROVIDERS`, as in section 4,
+   but with `gcloud run jobs update`), which keeps its last good object.
+4. Run the job by hand once fixed, and check `current.json`.
+
+### Purging a source's snapshots (licensing rule 7)
+
+When a source's terms stop allowing hosted use or storage, its data must leave
+the hosted service at once:
+
+1. Disable it on the service now (section 4): it is refused before the
+   snapshot is read.
+2. Reclassify it in its provider's `Terms` in a pull request. Once it is merged
+   and deployed, the set no longer holds it; run the job by hand, and the new
+   `current.json` no longer names it, after which the service never serves it,
+   even from memory.
+3. Delete its objects from every run, which soft delete then keeps for 7 days
+   before they are gone:
+
+   ```bash
+   gcloud storage rm 'gs://pyeconomics-staging-snapshots/*/PROVIDER.json.gz'
+   ```
+
+### Rolling back to a previous run
+
+Runs are never overwritten, so rolling back is pointing `current.json` at an
+earlier run's objects (decision 6). The previous `current.json` is not kept,
+but each provider entry names its `previous` object:
+
+```bash
+gcloud storage cat gs://pyeconomics-staging-snapshots/current.json > current.json
+# Edit: for each provider to roll back, set "object" to its "previous" entry
+gcloud storage cp current.json gs://pyeconomics-staging-snapshots/current.json
+```
+
+The service reads `current.json` again within a minute (its mount caches file
+metadata for 60 s). The service verifies each object's SHA-256, so a hand edit
+must copy `name` and `sha256` together. The next scheduled run writes a new
+`current.json` from the latest run, so disable the scheduler first
+(`gcloud scheduler jobs pause pyeconomics-snapshots-staging-daily
+--project=pyeconomics-staging --location=us-central1`) if the newer data must
+stay out, and resume it afterwards.
+
+### Rotating the key secrets and the heartbeat URL
+
+The job reads `bea-api-key` and `bls-api-key` by pinned version
+(`BEA_SECRET_VERSION`, `BLS_SECRET_VERSION` in the `staging` environment). To
+rotate one, without printing it:
+
+```bash
+# A new version from a hidden prompt (or piped from the keyring)
+read -rs KEY && printf '%s' "$KEY" | gcloud secrets versions add bea-api-key \
+  --project=pyeconomics-staging --data-file=- && unset KEY
+gh variable set BEA_SECRET_VERSION --env staging --body 2 -R pyeconomics-dev/pyeconomics
+gh workflow run deploy-staging.yml --ref main    # the job picks up the new version
+# After a successful run, disable the old version
+gcloud secrets versions disable 1 --secret=bea-api-key --project=pyeconomics-staging
+```
+
+The heartbeat URL (Step 14) is a secret too: whoever holds it can fake a run.
+It lives only in `snapshot-heartbeat`, reaches the job as
+`PYECONOMICS_SNAPSHOT_HEARTBEAT` when `HEARTBEAT_SECRET_VERSION` is set, is
+registered with redaction and never logged. Rotate it by creating a new
+heartbeat URL in Better Stack, adding it as a new version the same way, moving
+`HEARTBEAT_SECRET_VERSION`, redeploying, and deleting the old heartbeat in
+Better Stack.
+
+### Measured runtime against the free tier
+
+Measured on 2026-11-03 (execution `pyeconomics-snapshots-staging-2p9js`, the
+first run into an empty bucket, 1 vCPU and 2 GiB):
+
+- **Runtime:** 10 min 24 s from start to finish; the writer itself 567.6 s.
+  Treasury took 483.3 s: its two curves' first year is 13 monthly files each,
+  at 18 to 20 s a file (measured the same day from a workstation too). The
+  other eleven providers took 84 s together (Fed Board 25.2 s, whose GSW
+  table makes its object 6.9 MB; the Penn World Table's 49 series 24.7 s, its
+  workbook parsed once).
+- **Outcome:** 12 of 12 providers, 91 of 92 series; the one failure was the
+  SEP meeting of 2026-12-09, not yet held (`series-not-found`), which the next
+  run after it fetches.
+- **Steady state:** while Treasury's curves fill (about five weeks), each run
+  fetches a further year of each, so it stays near 10 minutes; afterwards it
+  fetches only their last 45 days (2 or 3 files each), about 3 to 4 minutes.
+- **One run's objects:** 7.3 MB (Fed Board's 6.9 MB).
+
+| Resource | Free allowance (per month) | Snapshot plane | Share |
+| --- | --- | --- | --- |
+| Cloud Run jobs vCPU-seconds (`us-central1`) | 240,000 vCPU-s | backfill: 31 × 624 s = 19,344; then 31 × ~240 s = ~7,440 | 8.1%, then 3.1% |
+| Cloud Run jobs GiB-seconds | 450,000 GiB-s | backfill: 31 × 624 s × 2 GiB = 38,688; then ~14,880 | 8.6%, then 3.3% |
+| Cloud Storage Standard (`us-central1`) | 5 GB-months | 30 days of runs ≈ 31 × 7.3 MB ≈ 226 MB, plus 7 days soft-deleted ≈ 51 MB | ~5.6% |
+| Cloud Storage Class A operations | 5,000 | ~20 a run (13 objects, `current.json` and its rename, listings) ≈ 620 | ~12% |
+| Cloud Storage Class B operations | 50,000 | each worker reads `current.json` at most once a minute while serving, and each object once: at staging's hourly probes, under 2,000 | < 4% |
+| Secret Manager | 6 active versions; 10,000 accesses | 2 more versions (4 in all); 2 accesses a run ≈ 62 | 67% / 0.6% |
+| Cloud Scheduler | 3 jobs per billing account | 1 job | 33% |
+
+The jobs allowance is the billing account's, shared with every project on it.
+Continuous traffic on both instances would read `current.json` about 5,800
+times a day (about 178,000 Class B operations a month, roughly $0.05 beyond the
+free tier); staging never sees that. Each run asks the sources about 90
+requests, within each one's declared rate limits.

@@ -61,6 +61,8 @@ __all__ = [
     "DISCARDED_WARNING",
     "NOTE_WARNINGS",
     "OFFLINE_WARNING",
+    "SNAPSHOT_WARNING",
+    "STALE_SNAPSHOT_WARNING",
     "CacheKey",
     "Fetched",
     "Origin",
@@ -74,13 +76,23 @@ __all__ = [
 OFFLINE_WARNING: Final = "served_offline"
 #: The warning code for an entry that failed its checks and was deleted.
 DISCARDED_WARNING: Final = "cache_entry_discarded"
+#: The warning code on a record the hosted snapshot served (Phase 5 Step 8):
+#: the data is the daily job's copy, retrieved at the record's time.
+SNAPSHOT_WARNING: Final = "served_from_snapshot"
+#: The frame note, and so the warning code, of a snapshot series retrieved more
+#: than two days ago: the job failed or fell silent (ADR-0013 decision 6).
+STALE_SNAPSHOT_WARNING: Final = "stale_snapshot"
 #: The frame notes (``SeriesMeta.notes``) a record repeats as a warning code:
 #: the ones that say something about the whole series a run read. ``revised_data``
 #: is a source that keeps only its current estimates, so a historical evaluation
 #: on it uses information not available at the time; ``bls_keyless`` is a series
 #: read without a catalog, so its unit and seasonal adjustment are unknown. The
 #: dated notes (footnotes, annotations, missing-value markers) stay on the frame.
-NOTE_WARNINGS: Final = frozenset({"revised_data", "bls_keyless"})
+#: ``stale_snapshot`` is a hosted snapshot series the daily job has not refreshed
+#: for more than two days.
+NOTE_WARNINGS: Final = frozenset(
+    {"revised_data", "bls_keyless", STALE_SNAPSHOT_WARNING}
+)
 #: An ``as_of`` vintage is closed once its date is more than this long ago. A
 #: source dates a vintage in its own time zone, so the margin keeps "yesterday"
 #: from counting as closed while it may still change.
@@ -254,6 +266,9 @@ class Origin:
     """Whether the local cache served it."""
     served_offline: bool = False
     """Whether offline mode served it (always from the cache)."""
+    snapshot: bool = False
+    """Whether the hosted snapshot served it; the record then carries
+    ``served_from_snapshot`` and the snapshot's retrieval time."""
     warnings: tuple[str, ...] = ()
     """Warning codes about the data: ``served_offline`` and
     ``cache_entry_discarded``."""
@@ -297,17 +312,19 @@ class Fetched:
         dataset, the vintage label, the observation window, the retrieval time
         (a cached entry keeps its original one), the licence, attribution, notice,
         terms page and ``llm_use`` the data came under, and whether the cache or
-        offline mode served it. Its warning codes are the origin's, then the
-        frame's notes that say something about the whole series
-        (:data:`NOTE_WARNINGS`). A binding adds the concept, the field and the
-        transforms (Phase 3 Step 12) with :func:`dataclasses.replace`.
+        offline mode served it. Its warning codes are the origin's (with
+        ``served_from_snapshot`` for a snapshot's), then the frame's notes that
+        say something about the whole series (:data:`NOTE_WARNINGS`). A binding
+        adds the concept, the field and the transforms (Phase 3 Step 12) with
+        :func:`dataclasses.replace`.
         """
         frame, meta = self.frame, self.frame.meta
         terms = meta.terms
         codes = (note.partition(": ")[0] for note in meta.notes)
-        warnings = dict.fromkeys(
-            (*self.origin.warnings, *(c for c in codes if c in NOTE_WARNINGS))
-        )
+        origin = self.origin.warnings
+        if self.origin.snapshot:
+            origin = (*origin, SNAPSHOT_WARNING)
+        warnings = dict.fromkeys((*origin, *(c for c in codes if c in NOTE_WARNINGS)))
         identifier = meta.series_id if isinstance(meta, SeriesMeta) else meta.table_id
         window = (frame.index[0], frame.index[-1]) if frame.index else (None, None)
         return DataSource(

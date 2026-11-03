@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 
+from pyeconomics.surfaces.budgets import local_data_command
 from pyeconomics.surfaces.problem_guide import EXIT_CODES, GUIDES
 from pyeconomics.surfaces.problems import ROWS
 
@@ -29,7 +30,15 @@ def test_every_guide_says_what_it_means_and_what_to_do() -> None:
 
 def test_only_problems_that_point_to_local_mode_carry_its_command() -> None:
     local = {slug for slug, guide in GUIDES.items() if guide.local}
-    assert local == {"input-too-large", "budget-exceeded"}
+    assert local == {"input-too-large", "budget-exceeded", "not-in-snapshot"}
+
+
+def test_a_guides_own_command_is_the_local_data_command() -> None:
+    commands = {slug: g.command for slug, g in GUIDES.items() if g.command}
+    assert commands == {
+        "not-in-snapshot": local_data_command("<series-or-concept>"),
+    }
+    assert all(GUIDES[slug].local for slug in commands)
 
 
 def test_every_exit_code_the_table_uses_has_a_meaning() -> None:

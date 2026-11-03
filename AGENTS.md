@@ -188,9 +188,42 @@ From Phase 3, which builds the data layer (ADR-0011):
   any cache read, so no provider can override it; the resolver skips a
   disabled candidate as `disabled` before any request, and every candidate
   disabled is `SourceDisabledError` (503). Never re-implement it in a provider.
-- `PYECONOMICS_EDGE_CREDENTIAL` is the one `PYECONOMICS_*` variable named like
-  a credential that the settings accept, because it is the hosted server's own
-  secret (`config._SERVER_SECRETS`); provider keys never take the prefix.
+- `PYECONOMICS_EDGE_CREDENTIAL` and `PYECONOMICS_SNAPSHOT_HEARTBEAT` are the
+  `PYECONOMICS_*` secrets the settings skip, because they are the hosted
+  service's own (`config._SERVER_SECRETS`); provider keys never take the prefix.
+
+## Snapshot rules
+
+From Phase 5 Step 8, which builds the hosted data plane (ADR-0013 decision 6):
+
+- Hosted mode with `PYECONOMICS_SNAPSHOT_DIR` reads every series from the
+  snapshot (`data/snapshots/reader.py`), answered in
+  `DataProvider.fetch_with_origin` after the licence gate and before the cache
+  or any transport; the other operations are refused there, and the service
+  never falls back to a live fetch. Without the directory, or inside
+  `cache.bypass()`, hosted mode fetches per request as in Phase 4. The resolver
+  does not skip a keyed candidate for a missing key while the snapshot answers.
+- The set (`data/snapshots/set.py`, pure) is computed: every hosted-safe
+  originator candidate of every catalog concept and bound-model profile whose
+  terms allow storage. Never edit it by hand: change the catalog, or the
+  declared `SEP_MEETINGS` and `HISTORY_STARTS` (a source that serves a series
+  only by window). `tests/data/snapshots/test_snapshot_set.py` pins its size.
+- The writer (`python -m pyeconomics.data.snapshots write`) runs only in hosted
+  mode, inside `cache.bypass()`, checks the provider's and each series' own
+  terms before it keeps anything, never overwrites an object, and writes
+  `current.json` last. A failure keeps the last good data, marked with the
+  failure's problem slug (`writer.FAILURE_SLUGS`, held equal to the error
+  table, since `data/` imports no surface).
+- Objects are gzip canonical JSON of the cache's frame codec, read back through
+  `snapshots.codec` only: a size and an expansion cap, the SHA-256 in
+  `current.json`, and names only of the form `<run-id>/<provider>.json.gz`.
+- The heartbeat URL is a secret: read only by `config.snapshot_heartbeat()`,
+  registered with redaction, sent through the transport to `writer.HEARTBEAT`'s
+  one host. A series outside the snapshot is `SnapshotMissingError`
+  (`not-in-snapshot`, 404, exit 7) with `errors.local_data_command`, the same
+  text as `budgets.local_data_command`.
+- Test with `tests/data/snapshots/snapshot_support.py` (scripted providers, a
+  fixed clock, `reader.override`); `isolated_configuration` resets the reader.
 
 ## Catalog rules
 

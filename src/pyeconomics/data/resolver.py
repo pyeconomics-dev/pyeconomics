@@ -16,11 +16,13 @@ reason recorded, when
   terms forbid language models, or leave them unclear without the user's
   opt-in, is passed over (ADR-0012 decision 14),
 - the provider is not registered or does not run on this platform,
-- its key is absent (``key_missing``) or its extra is not installed
+- its key is absent (``key_missing``; not asked while the hosted snapshot
+  answers, since the service holds no key) or its extra is not installed
   (``extra_missing``),
 - it cannot honour the requested vintage (``vintage_unsupported``),
 - the request fails: a series not found, a refused key, a rate limit, an
-  unreachable source, a malformed answer, or offline mode with nothing cached,
+  unreachable source, a malformed answer, offline mode with nothing cached, or
+  a hosted snapshot that does not hold the series (``not_in_snapshot``),
 - or its answer does not match the concept's definition
   (``definition_mismatch``): the resolver fails over only between identical
   definitions.
@@ -29,9 +31,11 @@ reason recorded, when
 why: :class:`~pyeconomics.data.errors.LicenceError` naming the classes found
 (and the first candidate's terms page) when hosted mode refused every candidate,
 ``CredentialError`` when keys were all that was missing, ``OfflineError`` when
-offline mode had nothing cached, ``SourceDisabledError`` when every candidate's
-provider is disabled, and :class:`~pyeconomics.data.errors.LlmUseError` when the
-``llm_use`` policy (with hosted mode's licence refusals) left none.
+offline mode had nothing cached, ``SnapshotMissingError`` when the hosted
+snapshot held none of the candidates hosted mode may use,
+``SourceDisabledError`` when every candidate's provider is disabled, and
+:class:`~pyeconomics.data.errors.LlmUseError` when the ``llm_use`` policy (with
+hosted mode's licence refusals) left none.
 
 Every :class:`~pyeconomics.core.provenance.DataSource` the result carries names
 the concept, the transforms applied (as canonical text), the vintage, the window
@@ -89,11 +93,13 @@ from pyeconomics.data.errors import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    SnapshotMissingError,
     SourceDisabledError,
     TransportError,
 )
 from pyeconomics.data.modes import Mode, current_mode, is_disabled, require_allowed
 from pyeconomics.data.providers.base import AuthKind, Capability, current_platform
+from pyeconomics.data.snapshots import reader as snapshot_reader
 from pyeconomics.data.types import (
     DECIMAL_KINDS,
     ObservationFrequency,
@@ -129,6 +135,7 @@ REASONS: Final = {
     "rate_limited": "the source's rate limit held",
     "unavailable": "the source could not be reached",
     "offline": "offline mode had no cached answer",
+    "not_in_snapshot": "the hosted snapshot does not hold the series",
     "bad_response": "the source's answer was malformed",
     "definition_mismatch": "the answer does not match the concept's definition",
     "transform_failed": "a transform could not be applied to the answer",
@@ -499,6 +506,7 @@ def _skip_for(
     """Map an error from a candidate to the reason it is passed over."""
     reasons: tuple[tuple[type[Exception], str], ...] = (
         (SourceDisabledError, "disabled"),
+        (SnapshotMissingError, "not_in_snapshot"),
         (LlmUseError, "llm_use"),
         (LicenceError, "licence_refused"),
         (MissingOptionalDependencyError, "extra_missing"),
@@ -587,7 +595,12 @@ def _refusal(  # noqa: PLR0911 - one return per refusal, in the order checked
             f"{info.id} keeps no vintages{whose}, so {ask.selector.label} "
             "cannot be read",
         )
-    if info.auth.kind is AuthKind.KEY and info.auth.required and not has_key(info.id):
+    if (
+        info.auth.kind is AuthKind.KEY
+        and info.auth.required
+        and not has_key(info.id)
+        and not snapshot_reader.active()
+    ):
         return skip("key_missing", f"set {info.key_variable}")
     return None
 
@@ -790,7 +803,7 @@ def _try_derived(
         parts = [_operand(candidate, ask, i) for i in range(len(candidate.operands))]
     except (DataError, MissingOptionalDependencyError) as error:
         failure = _skip_for(error, _DERIVED, where)
-        if failure.reason in {"licence_refused", "llm_use"}:
+        if failure.reason in {"licence_refused", "llm_use", "not_in_snapshot"}:
             return failure
         return replace(failure, reason="operand_failed")
     try:
@@ -816,7 +829,7 @@ def _try_derived(
     return Resolved(combined, records, concept.id, tuple(skipped))
 
 
-def _exhausted(
+def _exhausted(  # noqa: PLR0911 - one return per error that explains it
     concept: Concept,
     skipped: Sequence[Skip],
     mode: Mode,
@@ -855,6 +868,11 @@ def _exhausted(
             licence=skipped[0].licence or LicenceClass.LIBRARY_ONLY,
             terms_url=skipped[0].terms_url,
         )
+    if "not_in_snapshot" in blocking and blocking <= {
+        "not_in_snapshot",
+        "licence_refused",
+    }:
+        return SnapshotMissingError(concept.id)
     if blocking == {"disabled"}:
         disabled = sorted({s.provider for s in skipped if s.reason == "disabled"})
         return SourceDisabledError(*disabled, concept=concept.id)
@@ -936,6 +954,8 @@ def resolve(  # noqa: PLR0913 - the public resolution contract has independent o
         ``llm_use`` that is not a policy.
     LicenceError
         If hosted mode refuses every candidate; it names the classes found.
+    SnapshotMissingError
+        If the hosted snapshot holds none of the candidates hosted mode may use.
     LlmUseError
         If the ``llm_use`` policy (with any hosted refusals) leaves no candidate.
     DataError

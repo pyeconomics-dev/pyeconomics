@@ -40,6 +40,9 @@ class Guide:
     local: bool = False
     """The problem points to local mode, whose command the page gives
     (:func:`~pyeconomics.surfaces.budgets.local_command`)."""
+    command: str | None = None
+    """The local command the page gives when it is not a model's run, such as
+    reading a series (:func:`~pyeconomics.surfaces.budgets.local_data_command`)."""
 
 
 #: What each command-line exit code means.
@@ -171,6 +174,16 @@ GUIDES: Final = {
         "Remove the source from disabled_providers (or "
         "PYECONOMICS_DISABLED_PROVIDERS), or choose a concept another source "
         "serves.",
+    ),
+    "not-in-snapshot": Guide(
+        "The hosted service reads every series from a daily snapshot of the "
+        "sources it may serve, and never asks a source itself. The snapshot does "
+        "not hold this series, this parameter value or this vintage.",
+        "Run it locally, where every source you can access is read: the detail "
+        "gives the command. To ask for a series the hosted service should hold, "
+        "open an issue on GitHub.",
+        local=True,
+        command="pyeconomics data get <series-or-concept>",
     ),
     "data-unavailable": Guide(
         "The data cannot answer this request: too few observations for a "

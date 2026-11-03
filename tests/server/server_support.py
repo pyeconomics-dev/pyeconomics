@@ -125,6 +125,7 @@ def _errors() -> dict[str, Callable[[str], BaseException]]:
         RateLimitError,
         ResponseError,
         SeriesNotFoundError,
+        SnapshotMissingError,
         SourceDisabledError,
         TransportError,
     )
@@ -173,6 +174,7 @@ def _errors() -> dict[str, Callable[[str], BaseException]]:
         ),
         "OfflineError": lambda text: OfflineError(text, provider="toy"),
         "SourceDisabledError": lambda _text: SourceDisabledError("toy"),
+        "SnapshotMissingError": lambda text: SnapshotMissingError("toy:X", reason=text),
         "DataError": DataError,
         "MissingOptionalDependencyError": lambda text: MissingOptionalDependencyError(
             "toy_library", note=text

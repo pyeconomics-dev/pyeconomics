@@ -132,6 +132,7 @@ def isolated_configuration(
     test (or the user) stored, and leaves nothing in the user's cache.
     """
     from pyeconomics.data import cache, config, redaction  # noqa: PLC0415 - per test
+    from pyeconomics.data.snapshots import reader  # noqa: PLC0415 - per test
 
     isolation = Isolation(root)
     if not keep_environment:
@@ -150,9 +151,11 @@ def isolated_configuration(
     factory = logging.getLogRecordFactory()
     config.reset()
     cache.reset()
+    reader.reset()
     try:
         yield isolation
     finally:
         config.reset()
         cache.reset()
+        reader.reset()
         logging.setLogRecordFactory(factory)

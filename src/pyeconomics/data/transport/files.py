@@ -5,9 +5,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import datetime as dt
+import hashlib
 import math
+from contextvars import ContextVar
 from html import escape
 from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any
@@ -17,7 +20,7 @@ from pyeconomics.data.errors import ResponseError
 from pyeconomics.data.redaction import call_scrubbed
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Generator, Mapping, Sequence
 
 MAX_EXPANDED_BYTES = 96 * 1024 * 1024
 MAX_MEMBER_BYTES = MAX_EXPANDED_BYTES
@@ -25,6 +28,29 @@ MAX_ARCHIVE_ENTRIES = 512
 MAX_SHEET_ROWS = 100_100
 MAX_SHEET_COLUMNS = 1000
 MAX_SHEET_CELLS = 2_000_000
+
+# The sheets read within a reuse() block, by the workbook's SHA-256 and the sheet.
+_REUSE: ContextVar[dict[tuple[str, str, str], tuple[tuple[Any, ...], ...]] | None] = (
+    ContextVar("pyeconomics_spreadsheet_reuse", default=None)
+)
+
+
+@contextlib.contextmanager
+def reuse() -> Generator[None]:
+    """Read each sheet of a workbook once within the ``with`` block.
+
+    The snapshot job asks one provider for many series of the same workbook (the
+    Penn World Table's 49 series are one file), so the parsed sheet is kept in
+    memory for the block and dropped when it ends; nothing is stored.
+    """
+    if _REUSE.get() is not None:
+        yield
+        return
+    token = _REUSE.set({})
+    try:
+        yield
+    finally:
+        _REUSE.reset(token)
 
 
 def csv_document(rows: Sequence[Sequence[object]]) -> bytes:
@@ -133,8 +159,13 @@ def spreadsheet(body: bytes, sheet: str, provider: str) -> tuple[tuple[Any, ...]
 
     Dimensions are checked from XML before loading values: a worksheet's declared
     dimension may understate actual cells or include a million formatting-only
-    rows. Neither affects the bounds or causes large empty allocations.
+    rows. Neither affects the bounds or causes large empty allocations. Within a
+    :func:`reuse` block, a sheet already read is returned again.
     """
+    held = _REUSE.get()
+    key = (hashlib.sha256(body).hexdigest(), sheet, provider)
+    if held is not None and key in held:
+        return held[key]
     members = archive(body, provider)
 
     def read() -> tuple[tuple[Any, ...], ...]:
@@ -168,9 +199,12 @@ def spreadsheet(body: bytes, sheet: str, provider: str) -> tuple[tuple[Any, ...]
         finally:
             book.close()
 
-    return call_scrubbed(
+    rows = call_scrubbed(
         read, lambda message: ResponseError(message, provider=provider)
     )
+    if held is not None:
+        held[key] = rows
+    return rows
 
 
 def selected_spreadsheet(

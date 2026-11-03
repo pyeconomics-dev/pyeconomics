@@ -33,6 +33,15 @@
 # - The deploy job also checks one golden case per domain through the edge
 #   against the wheel's Python API (scripts/parity/check_deployed.py; Phase 5
 #   Step 6, ADR-0013 decision 8) before it counts the API deployed.
+# - Data before API (Phase 5 Step 8; ADR-0013 decision 6): the snapshot job
+#   `GCP_SNAPSHOT_JOB` is updated to the new image digest, with its whole
+#   configuration pinned here (hosted mode, the bucket mounted read-write at
+#   /snapshots, one task, no retries, the provider keys from Secret Manager by
+#   pinned version), before the API is deployed with the same bucket mounted
+#   read-only and `PYECONOMICS_SNAPSHOT_DIR`. Cloud Scheduler runs the job
+#   daily; this workflow does not. The checks then read Treasury's par curve
+#   through the edge from the newest snapshot and a series outside the set as
+#   `not-in-snapshot`; on failure the job returns to its previous image.
 
 name: deploy-staging
 
@@ -68,6 +77,12 @@ jobs:
       STAGING_HOST: ${{ vars.STAGING_HOST }}
       RATELIMIT_SECRET_VERSION: ${{ vars.RATELIMIT_SECRET_VERSION }}
       EDGE_SECRET_VERSION: ${{ vars.EDGE_SECRET_VERSION }}
+      GCP_SNAPSHOT_JOB: ${{ vars.GCP_SNAPSHOT_JOB }}
+      GCP_SNAPSHOT_BUCKET: ${{ vars.GCP_SNAPSHOT_BUCKET }}
+      GCP_SNAPSHOT_SERVICE_ACCOUNT: ${{ vars.GCP_SNAPSHOT_SERVICE_ACCOUNT }}
+      BEA_SECRET_VERSION: ${{ vars.BEA_SECRET_VERSION }}
+      BLS_SECRET_VERSION: ${{ vars.BLS_SECRET_VERSION }}
+      HEARTBEAT_SECRET_VERSION: ${{ vars.HEARTBEAT_SECRET_VERSION }}
       TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
 
     steps:
@@ -190,6 +205,51 @@ jobs:
           fi
           echo "digest=${digest}" >> "$GITHUB_OUTPUT"
 
+      - name: Record the snapshot job's current image
+        id: previous_job
+        shell: bash
+        run: |
+          set -euo pipefail
+          prev=$(gcloud run jobs describe "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(spec.template.spec.template.spec.containers[0].image)')
+          echo "previous_image=${prev}" >> "$GITHUB_OUTPUT"
+          echo "Snapshot job image before deploy: ${prev}"
+
+      # Data before API: the job that writes the snapshot moves to the new image
+      # first, with its configuration pinned here. Cloud Scheduler runs it daily.
+      - name: Update the snapshot job to the new image digest
+        env:
+          IMAGE_DIGEST: ${{ steps.push.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          keys="BEA_API_KEY=bea-api-key:${BEA_SECRET_VERSION:-1},BLS_API_KEY=bls-api-key:${BLS_SECRET_VERSION:-1}"
+          if [ -n "${HEARTBEAT_SECRET_VERSION:-}" ]; then
+            keys="${keys},PYECONOMICS_SNAPSHOT_HEARTBEAT=snapshot-heartbeat:${HEARTBEAT_SECRET_VERSION}"
+          fi
+          gcloud run jobs update "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$IMAGE_DIGEST" \
+            --service-account="$GCP_SNAPSHOT_SERVICE_ACCOUNT" \
+            --command=python \
+            --args=-m,pyeconomics.data.snapshots,write \
+            --tasks=1 \
+            --parallelism=1 \
+            --max-retries=0 \
+            --task-timeout=30m \
+            --cpu=1 \
+            --memory=2Gi \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
+            --set-secrets="$keys" \
+            --clear-volume-mounts \
+            --clear-volumes \
+            --add-volume="name=snapshots,type=cloud-storage,bucket=${GCP_SNAPSHOT_BUCKET}" \
+            --add-volume-mount="volume=snapshots,mount-path=/snapshots" \
+            --quiet
+
       - name: Deploy the image by digest to Cloud Run with pinned secret versions
         id: deploy
         env:
@@ -213,8 +273,13 @@ jobs:
             --concurrency=8 \
             --startup-probe=httpGet.path=/healthz,httpGet.port=8080,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
             --ingress=all \
-            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
+            --execution-environment=gen2 \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_SNAPSHOT_DIR=/snapshots" \
             --set-secrets="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${ratelimit_ver},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${edge_ver}" \
+            --clear-volume-mounts \
+            --clear-volumes \
+            --add-volume="name=snapshots,type=cloud-storage,bucket=${GCP_SNAPSHOT_BUCKET},readonly=true" \
+            --add-volume-mount="volume=snapshots,mount-path=/snapshots" \
             --quiet
           # A rollback pins traffic to a named revision, which leaves a new
           # revision at 0% (#210): return it to the latest before verifying.
@@ -244,6 +309,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import datetime as dt
           import json
           import os
           import pathlib
@@ -372,6 +438,28 @@ jobs:
           refusal = json.loads(body)
           assert refusal["type"].endswith("/problems/licence-refused"), refusal
           assert refusal.get("terms"), refusal
+
+          # 8. Phase 5 Step 8: Treasury's par curve answers from the newest
+          #    snapshot (retrieved within the last two days, not stale), and a
+          #    series outside the snapshot set answers 404 not-in-snapshot.
+          now = dt.datetime.now(dt.UTC)
+          start = (now - dt.timedelta(days=14)).date().isoformat()
+          status, _, body = request(
+              f"{edge_base}/v1/series/treasury:par_nominal?start={start}&end={now.date().isoformat()}",
+              headers=access_headers,
+          )
+          assert status == 200, f"edge snapshot series returned {status}: {body[:300]!r}"
+          record = json.loads(body)["sources"][0]
+          assert "served_from_snapshot" in record["warnings"], record
+          assert "stale_snapshot" not in record["warnings"], record
+          retrieved = dt.datetime.fromisoformat(record["retrieved_at"])
+          assert now - retrieved < dt.timedelta(days=2), record["retrieved_at"]
+          status, _, body = request(
+              f"{edge_base}/v1/series/treasury:statement",
+              headers=access_headers,
+          )
+          assert status == 404, f"edge series outside the snapshot returned {status}"
+          assert json.loads(body)["type"].endswith("/problems/not-in-snapshot"), body
           print("All origin and edge staging checks passed.")
           PY
 
@@ -390,6 +478,20 @@ jobs:
           check="$PWD/scripts/parity/check_deployed.py"
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/wheel-venv/bin/python" -I "$check" "$golden" "https://${STAGING_HOST}"
+
+      - name: Return the snapshot job to its previous image on failure
+        if: failure() && steps.previous_job.outputs.previous_image != ''
+        env:
+          PREVIOUS_IMAGE: ${{ steps.previous_job.outputs.previous_image }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Staging deploy or verification failed; returning the snapshot job to ${PREVIOUS_IMAGE}."
+          gcloud run jobs update "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$PREVIOUS_IMAGE" \
+            --quiet
 
       - name: Route traffic back to the previous revision on failure
         if: failure() && steps.previous.outputs.previous_revision != ''

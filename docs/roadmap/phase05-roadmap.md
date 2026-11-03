@@ -4841,9 +4841,9 @@ hygiene.
 
 ---
 
-## Step 8 — Hosted Data Plane: Snapshots
+## Step 8 — Hosted Data Plane: Snapshots ✅
 
-**Status:** Not started
+**Status:** Complete — PR #242 (2026-11-02)
 
 > **Goal:** Replace hosted mode's per-request fetches with scheduled
 > snapshots of the originators (ADR-0012 decision 11; ADR-0013 decision 6),
@@ -4902,6 +4902,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-02: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY and agentic SECONDARY: a data-layer
 store with a writer and a reader under the layering, storage and licence
@@ -5141,9 +5143,9 @@ per phase-boundary hygiene.
       storage-forbidden series are absent from the set and
       from every written object.
     - Keys: the job reads its provider keys (BEA, and BLS
-      and Census for their limits) from Secret Manager by
-      pinned version as `<PROVIDER>_API_KEY`; the service
-      holds none. LeakCheck proves no key reaches a snapshot
+      for its limits; no Census series is in the set, so no
+      Census key) from Secret Manager by pinned version as
+      `<PROVIDER>_API_KEY`; the service holds none. LeakCheck proves no key reaches a snapshot
       object, `current.json`, a log record or a problem.
     - Parsing: the reader validates every object back into
       frames with the cache's codec (canonical JSON, never a
@@ -5230,17 +5232,19 @@ per phase-boundary hygiene.
       Kickoff, ONE batched request to the maintainer with
       every command and its effect: create the staging
       bucket (us-central1, uniform access, public access
-      prevention, object versioning, a lifecycle rule
-      deleting noncurrent versions after 30 days), the job
-      identity and its bindings (object user on the bucket,
-      accessor on its key secrets), the runtime identity's
-      object viewer binding, the scheduler identity's
-      invoker binding on the job, the key secrets
-      (`gcloud secrets versions add bea-api-key
-      --data-file=-` and the others, from prompts), the job,
-      and the daily schedule at decision 6's hour; and
-      approve the merge. Record what was done, never a
-      value, in the PR body.
+      prevention, soft delete at Google's default and no
+      Object Versioning, per ADR-0013 decision 6: runs are
+      named by id and never overwritten, and the job prunes
+      a run older than 30 days that current.json no longer
+      names), the job identity and its bindings (object
+      user on the bucket, accessor on its key secrets), the
+      runtime identity's object viewer binding, the
+      scheduler identity's invoker binding on the job, the
+      key secrets (`gcloud secrets versions add bea-api-key
+      --data-file=-` and bls-api-key, from prompts or the
+      keyring), the job, and the daily schedule at decision
+      6's hour; and approve the merge. Record what was done,
+      never a value, in the PR body.
     </requirement>
 
     <requirement>
@@ -5319,10 +5323,11 @@ per phase-boundary hygiene.
       docs/operations/staging.md: the snapshot topology, the
       schedule, running the job by hand, a silent job
       (ROADMAP §5 runbook), purging a source's snapshots
-      when its terms stop allowing them (rule 7), restoring
-      a previous run from object versioning, rotating the
-      key secrets and the heartbeat URL, and the job's
-      measured runtime against the free tier.
+      when its terms stop allowing them (rule 7), rolling
+      back to a previous run by pointing current.json at it
+      (decision 6), rotating the key secrets and the
+      heartbeat URL, and the job's measured runtime against
+      the free tier.
     </requirement>
 
     <requirement>
@@ -5705,6 +5710,18 @@ per phase-boundary hygiene.
       404 not-in-snapshot. The site data export writes
       concepts.json with each concept's candidates and
       hosted availability, computed from the snapshot set.
+    - Step 8 note: compute hosted availability with
+      pyeconomics.data.snapshots.set.snapshot_set() (pure;
+      Entry.target is provider:series, Entry.concepts the
+      concepts it answers), never by hand. A record the
+      snapshot served carries `served_from_snapshot` (and
+      `stale_snapshot` past two days): add both to
+      DATA_WARNINGS' wording. A series served by window
+      (Treasury's curves, NY Fed's EFFR) holds history from
+      a date that moves back a year per daily run until its
+      HISTORY_STARTS; a window that ends before it answers
+      not-in-snapshot, so the explorer's default range
+      should end at the latest observation.
     - GET /v1/series/{target} takes start, end, as_of,
       vintage and provider, and ?format= (json, csv, xlsx,
       parquet, arrow); the CLI's `data get` and MCP's
@@ -7587,6 +7604,21 @@ New conversation per phase-boundary hygiene.
       restores latest traffic (#210) and its identity holds
       a service-level role (#211). Staging's registry keeps
       only the newest images (cleanup policy).
+    - Step 8 note: copy staging's snapshot plane
+      (docs/operations/staging.md section 7): bucket with
+      soft delete and no Object Versioning, job identity
+      (object user, key accessors), runtime object viewer,
+      scheduler identity (invoker on the job only), deploy
+      identity run.developer on the job plus act-as on its
+      identity, `gcloud run jobs update` with every setting
+      pinned before the API deploy, and the service mount
+      with `--clear-volumes` first (both replayed twice on
+      2026-11-03 to prove them idempotent). Treasury
+      answers a month of a curve in about 20 s, so a new
+      bucket's curves hold a year at first and gain a year
+      a day: seed production's bucket from staging's newest
+      run (copy the run folder and current.json) to skip
+      that backfill.
     - The site's production flavour refuses indexing for a
       pre-release version and allows it for a final one
       (Step 5); web/wrangler.jsonc declares env `production`.
@@ -8156,6 +8188,21 @@ conversation per phase-boundary hygiene.
       tasks in spawned worker processes.
     - The snapshot writer requests its heartbeat URL on
       completion (Step 8) when one is configured.
+    - Step 8 note: the writer accepts only
+      `https://incidents.betterstack.com/api/v1/heartbeat/<token>`
+      (the host Better Stack's documentation named on
+      2026-11-02; the older uptime.betterstack.com form is
+      refused) and requests `<url>/fail` when no provider
+      succeeded. Store each URL as secret
+      `snapshot-heartbeat` (staging) with `gcloud secrets
+      versions add snapshot-heartbeat --data-file=-`, grant
+      the job identity secretAccessor on it, and set the
+      `staging` environment variable HEARTBEAT_SECRET_VERSION:
+      deploy-staging.yml then passes it to the job as
+      PYECONOMICS_SNAPSHOT_HEARTBEAT. A run takes about 2
+      minutes once Treasury's backfill is done, and up to
+      about 10 while it fills (section 7 of
+      docs/operations/staging.md).
     - Step 3 note: web/csp.config.ts is the one place a
       policy source is added. Sentry's ingest origin joins
       connect-src in both its DIRECTIVES and its ALLOWED
@@ -11723,7 +11770,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Generated model pages          | GPT-6.1 Sol    | Complete — PR #233 |
 | 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
-| 8    | Snapshot data plane            | Gemini 4 Argon | Not started        |
+| 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |

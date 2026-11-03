@@ -9,7 +9,9 @@
   unsafe deserializer. The configuration and credential modules that read
   files and the environment (Step 3), the transport (Step 4), and later the
   cache, are the only ones allowed those (IO_MODULES); every module under
-  src/pyeconomics/data is on exactly one of the two lists.
+  src/pyeconomics/data is on exactly one of the two lists. The hosted snapshot's
+  reader, writer and entry point (Phase 5 Step 8) are I/O modules; its set and
+  codec are pure.
 - Only the transport opens a socket (it alone imports urllib3, truststore,
   ssl and the like) and only the transport and the credential modules reveal a
   key (the `secret-reveal` semgrep rule, checked here too); importing the data
@@ -108,6 +110,9 @@ PURE_MODULES = (
     SRC / "data" / "transport" / "ratelimit.py",
     SRC / "data" / "types.py",
     SRC / "data" / "vintage.py",
+    SRC / "data" / "snapshots" / "__init__.py",
+    SRC / "data" / "snapshots" / "codec.py",
+    SRC / "data" / "snapshots" / "set.py",
 )
 
 #: The data layer's I/O modules: the only ones that read files, the
@@ -123,6 +128,9 @@ IO_MODULES = (
     SRC / "data" / "transport" / "http.py",
     SRC / "data" / "transport" / "sdmx.py",
     SRC / "data" / "transport" / "replay.py",
+    SRC / "data" / "snapshots" / "reader.py",
+    SRC / "data" / "snapshots" / "writer.py",
+    SRC / "data" / "snapshots" / "__main__.py",
 )
 
 #: Imports that open a socket or speak a network protocol: the transport's alone.

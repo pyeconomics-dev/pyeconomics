@@ -35,7 +35,8 @@ capabilities it declares and nothing else:
 The public methods (:meth:`DataProvider.fetch`, :meth:`~DataProvider.search`,
 :meth:`~DataProvider.describe`, :meth:`~DataProvider.vintages`) are final: they
 check the capability and the platform, refuse a source hosted mode may not serve
-before any request, map the final status of each response to the error taxonomy
+before any request, answer a fetch from the hosted snapshot where one is
+configured (Phase 5 Step 8), map the final status of each response to the error taxonomy
 (401 and 403 to ``CredentialError``, 404 to ``SeriesNotFoundError``, 429 to
 ``RateLimitError``, 5xx to ``TransportError``, other failures to
 ``ResponseError``) and check what ``parse`` returned. A subclass that defines
@@ -116,6 +117,7 @@ from pyeconomics.data.errors import (
     TransportError,
 )
 from pyeconomics.data.records import Records
+from pyeconomics.data.snapshots import reader as snapshot_reader
 from pyeconomics.data.transport import default_transport
 from pyeconomics.data.transport.base import (
     DEFAULT_MAX_RESPONSE_BYTES,
@@ -921,16 +923,21 @@ class DataProvider:
         codes about it. ``Fetched.source()`` turns the pair into the
         :class:`~pyeconomics.core.provenance.DataSource` record a manifest carries.
 
-        The cache is asked first (ADR-0011 decision 14). A source, or a series,
-        whose terms forbid storage is never read from or written to it; a fresh
-        entry of any other is returned without a request; and in offline mode only
-        a cached entry answers, whatever its age.
+        In hosted mode with ``PYECONOMICS_SNAPSHOT_DIR`` set, the snapshot answers
+        right after the licence gate, and nothing else is asked
+        (:mod:`pyeconomics.data.snapshots.reader`). Otherwise the cache is asked
+        first (ADR-0011 decision 14). A source, or a series, whose terms forbid
+        storage is never read from or written to it; a fresh entry of any other
+        is returned without a request; and in offline mode only a cached entry
+        answers, whatever its age.
 
         Raises
         ------
         OfflineError
             In offline mode, when nothing cached answers (and for a source whose
             terms forbid storage, which can never be served offline).
+        SnapshotMissingError
+            In hosted mode with a snapshot, for a series it does not hold.
         """
         checked = self._query(query)
         self._gate(Capability.FETCH)
@@ -942,6 +949,9 @@ class DataProvider:
                 "be read; ask for the latest data"
             )
             raise DataError(msg, provider=self.info.id)
+        served = snapshot_reader.lookup(self.info, checked)
+        if served is not None:
+            return served
         found = cache.lookup(self.info, checked)
         if found.fetched is not None:
             return found.fetched
@@ -1169,8 +1179,9 @@ class DataProvider:
         That is a provider the ``disabled_providers`` setting turns off, an
         operation it lacks, a platform it does not run on, a source hosted mode
         may not serve, its own configuration check and, for any operation but a
-        fetch (which the cache answers or refuses), offline mode, which sends no
-        request. A fetch's cache lookup comes after this gate.
+        fetch (which the snapshot or the cache answers or refuses), the hosted
+        snapshot, which answers fetches only, and offline mode, which sends no
+        request. A fetch's snapshot and cache lookups come after this gate.
         """
         info = self.info
         modes.require_enabled(provider=info.id)
@@ -1185,6 +1196,7 @@ class DataProvider:
         modes.require_allowed(info.terms, provider=info.id)
         self.check_configuration()
         if operation is not Capability.FETCH:
+            snapshot_reader.refuse(info.id, operation.value)
             modes.require_online(provider=info.id)
 
     def _run(

@@ -55,7 +55,7 @@ from pyeconomics.server.work import (
     encode_task,
     execute,
 )
-from pyeconomics.surfaces.budgets import BudgetExceededError
+from pyeconomics.surfaces.budgets import BudgetExceededError, local_data_command
 from pyeconomics.surfaces.problems import scrub
 from pyeconomics.surfaces.service import ServerBusyError
 
@@ -362,7 +362,7 @@ def budget_exceeded(task: Task) -> BudgetExceededError:
     A run points to ``pyeconomics models run``, a series to ``pyeconomics data
     get``.
     """
-    command = None if task.kind == "run" else f"pyeconomics data get {task.target}"
+    command = None if task.kind == "run" else local_data_command(task.target)
     return BudgetExceededError(task.target, task.budget or 0.0, command=command)
 
 

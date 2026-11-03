@@ -28,6 +28,11 @@ series whose terms forbid storage has no cache path at all. Offline mode
 :class:`OfflineError` on a miss. :meth:`DataProvider.fetch_with_origin` returns a
 :class:`Fetched`, the frame with an :class:`Origin` and a ``DataSource`` record.
 
+Snapshots (Phase 5 Step 8): the hosted service reads every series from the
+snapshot a daily job writes (:mod:`pyeconomics.data.snapshots`) when
+``PYECONOMICS_SNAPSHOT_DIR`` names it, and refuses one outside the snapshot
+set with :class:`SnapshotMissingError`, pointing to local mode.
+
 Bindings (Phase 3 Step 12): :func:`bind` resolves a model's data bindings
 (:class:`Binding`, declared in :mod:`pyeconomics.core.binding`) through the
 catalog as of a date, on real-time vintages by default, and returns a
@@ -107,6 +112,7 @@ from pyeconomics.data.errors import (
     RateLimitError,
     ResponseError,
     SeriesNotFoundError,
+    SnapshotMissingError,
     SourceDisabledError,
     TransportError,
 )
@@ -208,6 +214,7 @@ __all__ = [
     "SeriesNotFoundError",
     "Settings",
     "Skip",
+    "SnapshotMissingError",
     "SourceDisabledError",
     "SourceInfo",
     "Table",

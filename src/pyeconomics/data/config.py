@@ -11,7 +11,8 @@ one before it, key by key:
    ``platformdirs.user_config_dir("pyeconomics")``);
 2. ``pyeconomics.toml`` in the working directory;
 3. the environment: ``PYECONOMICS_MODE``, ``PYECONOMICS_OFFLINE``,
-   ``PYECONOMICS_CACHE_DIR``, ``PYECONOMICS_SEC_CONTACT``,
+   ``PYECONOMICS_CACHE_DIR``, ``PYECONOMICS_SNAPSHOT_DIR``,
+   ``PYECONOMICS_SEC_CONTACT``,
    ``PYECONOMICS_DISABLED_PROVIDERS`` (provider ids separated by commas or
    spaces), ``PYECONOMICS_ALLOW_UNCLEAR_LLM_USE``, ``PYECONOMICS_AI_ENABLED``,
    ``PYECONOMICS_AI_PROVIDER``, ``PYECONOMICS_AI_MODEL`` and
@@ -25,9 +26,15 @@ The files hold settings only. Any key named like a credential (``key``,
 :class:`~pyeconomics.data.errors.ConfigError` naming the key, never its
 value; keys belong to the key chain
 (:mod:`pyeconomics.data.credentials`). No message names a path or repeats a
-value: an error says which layer and which setting. The one exception is
-``PYECONOMICS_EDGE_CREDENTIAL``, the hosted server's own secret, which
-:mod:`pyeconomics.server.edge` reads and these settings ignore.
+value: an error says which layer and which setting. The exceptions are the
+hosted service's own secrets, which these settings ignore:
+``PYECONOMICS_EDGE_CREDENTIAL``, which :mod:`pyeconomics.server.edge` reads, and
+``PYECONOMICS_SNAPSHOT_HEARTBEAT``, the snapshot job's heartbeat URL, which
+:func:`snapshot_heartbeat` reads and registers with redaction.
+
+``snapshot_dir`` (Phase 5 Step 8) names the directory the hosted snapshot lives
+in: the job writes it, and in hosted mode every series fetch reads it
+(:mod:`pyeconomics.data.snapshots`). Unset, hosted mode fetches per request.
 
 ``disabled_providers`` turns sources off (issue #162): each named provider is
 refused before any cache read or request, and a concept fails over to its next
@@ -56,7 +63,7 @@ to :func:`settings`; :func:`reset` forgets them and every override.
 Examples
 --------
 >>> Settings(offline=True, ttl={"bls": 3600})
-Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, ttl={'bls': 3600}, disabled_providers=(), allow_unclear_llm_use=False, ai_enabled=False, ai_provider=None, ai_model=None)
+Settings(mode='library', offline=True, enable_yfinance=False, cache_dir=None, snapshot_dir=None, ttl={'bls': 3600}, disabled_providers=(), allow_unclear_llm_use=False, ai_enabled=False, ai_provider=None, ai_model=None)
 >>> Settings(disabled_providers=["fred", "bls", "fred"]).disabled_providers
 ('bls', 'fred')
 
@@ -97,6 +104,7 @@ __all__ = [
     "DOTENV_FILE",
     "ENV_PREFIX",
     "GUIDE_URL",
+    "HEARTBEAT_VARIABLE",
     "MAX_TTL_SECONDS",
     "Settings",
     "cache_dir",
@@ -104,6 +112,7 @@ __all__ = [
     "configure",
     "reset",
     "settings",
+    "snapshot_heartbeat",
 ]
 
 #: The application name the configuration and cache directories are named after.
@@ -156,6 +165,10 @@ class Settings(BaseModel):
     cache_dir
         Where the cache lives, as an absolute path; ``None`` for the user's
         cache directory (:func:`cache_dir`).
+    snapshot_dir
+        The hosted snapshot's directory, as an absolute path: the bucket the
+        job writes and the service mounts read-only. In hosted mode every
+        series fetch reads it; ``None`` (the default) keeps per-request fetches.
     sec_contact
         The name and email address SEC EDGAR requires in its User-Agent, or
         ``None``. Personal data: masked when printed, never logged.
@@ -183,6 +196,7 @@ class Settings(BaseModel):
     enable_yfinance: StrictBool = False
     """Explicit personal-use opt-in; installing the extra does not enable it."""
     cache_dir: Path | None = None
+    snapshot_dir: Path | None = None
     sec_contact: SecretStr | None = Field(default=None, repr=False)
     ttl: dict[str, Annotated[StrictInt, Field(ge=0, le=MAX_TTL_SECONDS)]] = Field(
         default_factory=dict
@@ -208,7 +222,7 @@ class Settings(BaseModel):
             return LlmUsePolicy.ALLOW_UNCLEAR
         return LlmUsePolicy.ALLOWED_ONLY
 
-    @field_validator("cache_dir", mode="before")
+    @field_validator("cache_dir", "snapshot_dir", mode="before")
     @classmethod
     def _absolute(cls, value: object) -> object:
         if isinstance(value, str | Path):
@@ -411,6 +425,7 @@ _ENVIRONMENT: Final[dict[str, tuple[str, Callable[[str, str], object]]]] = {
     "MODE": ("mode", lambda _name, value: value.lower()),
     "OFFLINE": ("offline", _flag),
     "CACHE_DIR": ("cache_dir", lambda _name, value: value),
+    "SNAPSHOT_DIR": ("snapshot_dir", lambda _name, value: value),
     "SEC_CONTACT": ("sec_contact", lambda _name, value: value),
     "DISABLED_PROVIDERS": ("disabled_providers", _names),
     "ALLOW_UNCLEAR_LLM_USE": ("allow_unclear_llm_use", _flag),
@@ -418,10 +433,28 @@ _ENVIRONMENT: Final[dict[str, tuple[str, Callable[[str, str], object]]]] = {
     "AI_PROVIDER": ("ai_provider", lambda _name, value: value.lower()),
     "AI_MODEL": ("ai_model", lambda _name, value: value),
 }
-# The hosted server's own secrets, named like credentials on purpose: the server
-# reads them (pyeconomics.server.edge), and these settings neither read nor
-# refuse them. A provider's key never takes this prefix.
-_SERVER_SECRETS: Final = frozenset({"EDGE_CREDENTIAL"})
+# The hosted service's own secrets: the server reads the edge credential
+# (pyeconomics.server.edge) and the snapshot job its heartbeat URL
+# (snapshot_heartbeat), and these settings neither read nor refuse them. A
+# provider's key never takes this prefix.
+_SERVER_SECRETS: Final = frozenset({"EDGE_CREDENTIAL", "SNAPSHOT_HEARTBEAT"})
+#: The variable that holds the snapshot job's heartbeat URL.
+HEARTBEAT_VARIABLE: Final = f"{ENV_PREFIX}SNAPSHOT_HEARTBEAT"
+
+
+def snapshot_heartbeat() -> str | None:
+    """Return the snapshot job's heartbeat URL, or ``None`` when none is set.
+
+    The URL is a secret, since whoever holds it can fake a heartbeat: it comes
+    only from ``PYECONOMICS_SNAPSHOT_HEARTBEAT`` (which Cloud Run fills from
+    Secret Manager), is registered with :mod:`~pyeconomics.data.redaction`
+    before it is returned, and is never logged.
+    """
+    value = os.environ.get(HEARTBEAT_VARIABLE, "").strip()
+    if not value:
+        return None
+    redaction.register(value)
+    return value
 
 
 def _environment_layer() -> dict[str, object]:

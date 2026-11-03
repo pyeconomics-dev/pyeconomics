@@ -105,7 +105,9 @@ def problems_document() -> dict[str, Any]:
                 "meaning": GUIDES[row.slug].meaning,
                 "action": GUIDES[row.slug].action,
                 "local_command": (
-                    local_command("<model-id>") if GUIDES[row.slug].local else None
+                    (GUIDES[row.slug].command or local_command("<model-id>"))
+                    if GUIDES[row.slug].local
+                    else None
                 ),
             }
             for row in ROWS
