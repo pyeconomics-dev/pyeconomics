@@ -636,7 +636,7 @@
       "openWorldHint": true,
       "readOnlyHint": true
     },
-    "description": "Reads a series from the data catalog (a concept id) or from one provider (provider:series), with its source records and the attributions it must be shown with: at most the server's limit of observations, the most recent ones. Data whose terms do not let it reach an AI assistant is never returned.",
+    "description": "Reads a series from the data catalog (a concept id) or from one provider (provider:series), with its source records and the attributions it must be shown with: at most the server's limit of observations, the most recent ones, optionally transformed (a change, a year-over-year change, a difference, a lag, a logarithm or a frequency conversion). Data whose terms do not let it reach an AI assistant is never returned.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -663,6 +663,12 @@
         },
         "target": {
           "description": "A catalog concept id (such as us.unemployment.rate) or provider:series (such as bls:LNS14000000).",
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        "transform": {
+          "description": "Apply one transform to the series: pct_change, yoy, diff, lag, log, convert, with its arguments, such as pct_change(periods=12) or convert(to=annual,method=mean). Each source record lists it.",
           "maxLength": 256,
           "minLength": 1,
           "type": "string"

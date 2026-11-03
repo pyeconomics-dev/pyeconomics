@@ -14,6 +14,7 @@ the server's limit of observations, with its attributions.
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 from typing import TYPE_CHECKING
 
@@ -177,3 +178,38 @@ def test_a_series_window_and_options_reach_the_data_layer(
     assert index[-1] <= "2019-06-30"
     bad = call(SERVER, "get_series", {"target": "us.unemployment.rate", "end": "x"})
     assert problem_of(bad)["status"] == 422
+
+
+def test_a_series_transform_reaches_the_data_layer_and_its_records(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    world = stub_world(monkeypatch)
+    arguments = {
+        "target": "us.unemployment.rate",
+        "start": "2019-01-01",
+        "end": "2019-06-30",
+        "transform": "pct_change(periods=1)",
+    }
+    result = call(SERVER, "get_series", arguments)
+    assert not result.is_error, text_of(result)
+    expected = data_document(
+        api.get(
+            "us.unemployment.rate",
+            start=dt.date(2019, 1, 1),
+            end=dt.date(2019, 6, 30),
+            transform="pct_change",
+            max_observations=1_000,
+            registry=world,
+            llm_use=LlmUsePolicy.ALLOWED_ONLY,
+        )
+    )
+    document = result.structured_content
+    assert document is not None
+    assert document["frame"] == json.loads(canonical_json(expected))["frame"]
+    assert [record["transforms"][-1] for record in document["sources"]] == [
+        "pct_change"
+    ]
+    refused = call(
+        SERVER, "get_series", {"target": "us.unemployment.rate", "transform": "ratio"}
+    )
+    assert problem_of(refused)["status"] == 422

@@ -35,6 +35,22 @@ licence, key and mode checks.
 >>> series = data.get("fred:UNRATE", start=dt.date(2024, 1, 1)).frame
 ```
 
+A `transform` turns the series into another before it reaches you: `pct_change`,
+`yoy`, `diff`, `lag`, `log` or `convert`, written with its arguments as a binding
+writes it (`pct_change(periods=12)`, `convert(to=annual,method=mean)`). The
+source is asked for the history the transform needs, the result is cut to your
+window, and each source record lists the transform last, so a file written from
+it carries the same attribution. The command line (`data get --transform`), the
+REST API (`?transform=`) and MCP's `get_series` (`transform`) take the same text.
+
+```pycon
+>>> change = data.get(
+...     "us.unemployment.rate", start=dt.date(2024, 1, 1), transform="diff(periods=12)"
+... )
+>>> change.source.transforms[-1]
+'diff(periods=12)'
+```
+
 You can search and look before you fetch. These run without a network, because
 concepts are plain metadata:
 

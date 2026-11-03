@@ -218,13 +218,23 @@ class _Service:
         return self.budgets.get(cost or CostClass.HEAVY)
 
     async def outcome(self, task: Task) -> Outcome:
-        """Run a task in the pool, logging the problem it became, if any."""
+        """Run a task in the pool, logging the problem it became, if any.
+
+        A run on a caller's own inputs logs its problem without the detail,
+        which can quote one of them: the server keeps no value a caller sent,
+        in a log or anywhere else (Phase 5 Step 9; ADR-0013 decision 11).
+        """
         if self.pool is None:
             msg = "the server's worker pool is not running"
             raise RuntimeError(msg)
         outcome = await self.pool.submit(task)
         if outcome.problem is not None:
-            record(outcome.problem, outcome.error_name, logger=_LOGGER)
+            record(
+                outcome.problem,
+                outcome.error_name,
+                logger=_LOGGER,
+                detail=task.payload is None,
+            )
         return outcome
 
     async def answer(self, task: Task, name: str) -> Response:

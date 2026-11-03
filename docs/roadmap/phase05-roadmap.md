@@ -12131,6 +12131,18 @@ roadmaps carry forward whatever is still open here.
     limitation stated in Steps 11 and 12;
   - Phase 3's V6.3 needs a providers-live success within eight days of a
     Phase 3 `--post` — Step 20 dispatches one before its canonical run.
+- Contract additions under the contract-change rule:
+  - Step 9: `data.get(..., transform=)` (ADR-0011's data API, Phase 3 Step
+    11), additive. It takes one of `core.transforms.SERIES_TRANSFORMS`
+    (`pct_change`, `yoy`, `diff`, `lag`, `log`, `convert`), widens the fetch
+    with the resolver's now-public `widened_start`, cuts the result to the
+    window and appends the canonical text to every source record's
+    `transforms`; a table or another transform is `InputError`. The series
+    options of every surface live in `surfaces/series.py`
+    (`SERIES_OPTIONS`, `series_arguments`), which the REST route, MCP's
+    `get_series` and its executor share; `problems.record(detail=False)`
+    keeps a run's caller values out of the server's log. Owned by Phase 5;
+    Steps 10 (local explorer) and 17 (public-API freeze) inherit it.
 
 ---
 

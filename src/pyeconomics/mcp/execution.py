@@ -84,8 +84,8 @@ class Executor(Protocol):
     ) -> bytes:
         """Return a series' canonical document, at most ``limit`` observations.
 
-        ``options`` holds ``data.get``'s ``start``, ``end``, ``as_of``,
-        ``vintage`` and ``provider``, as text.
+        ``options`` holds ``data.get``'s options as text
+        (:data:`~pyeconomics.surfaces.series.SERIES_OPTIONS`).
 
         Raises
         ------
@@ -112,23 +112,15 @@ def _run(
 def _series(
     target: str, options: Mapping[str, str], limit: int, policy: LlmUsePolicy
 ) -> bytes:
-    from pyeconomics.core import _fields as f  # noqa: PLC0415
     from pyeconomics.core.canonical import canonical_json  # noqa: PLC0415
     from pyeconomics.data import api  # noqa: PLC0415 - the data layer loads here
     from pyeconomics.surfaces.documents import data_document  # noqa: PLC0415
     from pyeconomics.surfaces.gate import check_records  # noqa: PLC0415
-
-    def day(name: str) -> Any:  # noqa: ANN401 - a date or None
-        text = options.get(name)
-        return None if text is None else f.parse_day(text, name)
+    from pyeconomics.surfaces.series import series_arguments  # noqa: PLC0415
 
     resolved = api.get(
         target,
-        start=day("start"),
-        end=day("end"),
-        as_of=day("as_of"),
-        vintage=options.get("vintage"),
-        provider=options.get("provider"),
+        **series_arguments(options),
         max_observations=limit,
         llm_use=policy,
     )

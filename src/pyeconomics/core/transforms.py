@@ -61,6 +61,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "MAX_TRANSFORM_PERIODS",
+    "SERIES_TRANSFORMS",
     "TRANSFORMS",
     "TRANSFORM_NAMES",
     "ParsedTransform",
@@ -70,6 +71,7 @@ __all__ = [
     "canonical_transform",
     "check_transform",
     "format_transform",
+    "parse_series_transform",
     "parse_transform",
 ]
 
@@ -408,6 +410,12 @@ TRANSFORMS: Final[Mapping[str, TransformSpec]] = MappingProxyType(
 #: The names of :data:`TRANSFORMS`.
 TRANSFORM_NAMES: Final = frozenset(TRANSFORMS)
 
+#: The transforms a caller may ask ``data.get`` to apply (Phase 5 Step 9;
+#: ADR-0013 decision 11): those that turn one series into another on its own
+#: dates or frequency. The others combine two series or pick what a binding
+#: reads at a date, which a binding declares and a caller does not ask for.
+SERIES_TRANSFORMS: Final = ("pct_change", "yoy", "diff", "lag", "log", "convert")
+
 
 def _argument(parameter: TransformParameter, word: str) -> int | bool | str:
     """Read one argument as its parameter's kind."""
@@ -508,6 +516,32 @@ def check_transform(text: str) -> str:
     """Check a transform and return it unchanged; see :func:`parse_transform`."""
     parse_transform(text)
     return text
+
+
+def parse_series_transform(text: str) -> ParsedTransform:
+    """Read a transform a caller asks ``data.get`` to apply to one series.
+
+    Raises
+    ------
+    InputError
+        As :func:`parse_transform` does, and for a transform that is not one of
+        :data:`SERIES_TRANSFORMS`.
+
+    Examples
+    --------
+    >>> parse_series_transform("pct_change(periods=12)").text()
+    'pct_change(periods=12)'
+    >>> parse_series_transform("convert(to=annual, method=mean)").arguments
+    {'to': 'annual', 'method': 'mean'}
+    """
+    parsed = parse_transform(text)
+    if parsed.name not in SERIES_TRANSFORMS:
+        msg = (
+            f"{parsed.name} reads two series or a binding's date; a series takes "
+            f"one of {', '.join(SERIES_TRANSFORMS)}"
+        )
+        raise f.fail(msg)
+    return parsed
 
 
 def format_transform(name: str, **arguments: int | bool | str | dt.date) -> str:

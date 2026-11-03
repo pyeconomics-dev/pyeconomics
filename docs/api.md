@@ -108,8 +108,12 @@ json` prints: the frame, the concept it answers (`null` for a provider series),
 one record per source read, the candidates passed over and the attributions and
 notices the data must be shown with ({doc}`notices`). A target is a concept id
 (`us.unemployment.rate`) or a provider series (`fred:UNRATE`; a provider's key
-may hold slashes), never a URL. It takes `start`, `end`, `as_of`, `vintage` and
-`provider`, as the command line does.
+may hold slashes), never a URL. It takes `start`, `end`, `as_of`, `vintage`,
+`provider` and `transform`, as the command line does. `transform` applies one
+single-series transform (`pct_change`, `yoy`, `diff`, `lag`, `log` or `convert`,
+with its arguments, such as `?transform=pct_change(periods=12)`) and records it
+in every source record; any other transform, or one a table is asked for, is
+`invalid-input` (422).
 
 ## Formats
 

@@ -14,8 +14,9 @@ import datetime as dt
 import secrets
 
 import pytest
-from catalog_support import LIBRARY_TERMS, monthly
+from catalog_support import LIBRARY_TERMS, as_series, monthly
 from catalog_world import world_registry
+from frame_builders import column, month_ends, table_meta
 from scripted import calls_of, registry_of, scripted
 
 from pyeconomics import data
@@ -33,11 +34,14 @@ from pyeconomics.data import (
     ProviderNotFoundError,
     SearchHit,
     SeasonalAdjustment,
+    Table,
     catalog,
 )
 from pyeconomics.data.catalog.definitions import Candidate, Concept
 
 SERIES = monthly([float(i) for i in range(40)], provider="alpha", series_id="A")
+#: Positive from its first month, so every change has a base.
+LEVELS = monthly([100.0 + i for i in range(40)], provider="alpha", series_id="L")
 
 
 def concept_info(target: str) -> ConceptInfo:
@@ -406,3 +410,118 @@ def test_a_resolved_exposes_its_first_source_and_its_providers() -> None:
     result = data.get("alpha:A", registry=registry_of(alpha))
     assert result.source is result.sources[0]
     assert result.providers == ("alpha",)
+
+
+# --- get with a transform (Phase 5 Step 9) ---------------------------------------
+
+
+def test_a_transform_reads_earlier_history_and_returns_the_window_asked_for() -> None:
+    alpha = scripted("alpha", {"L": LEVELS})
+    registry = registry_of(alpha)
+    plain = data.get(
+        "alpha:L",
+        start=dt.date(2025, 1, 1),
+        end=dt.date(2025, 12, 31),
+        registry=registry,
+    )
+    result = data.get(
+        "alpha:L",
+        start=dt.date(2025, 1, 1),
+        end=dt.date(2025, 12, 31),
+        registry=registry,
+        transform="yoy",
+    )
+    assert result.frame.index == plain.frame.index
+    values = as_series(result.frame).values
+    assert None not in values
+    assert values[0] == pytest.approx(112 / 100 - 1)
+    asked = calls_of(alpha)[-1].start
+    assert asked is not None
+    assert asked < dt.date(2025, 1, 1)
+    assert result.source.transforms == ("yoy",)
+    assert result.source.observation_start == dt.date(2025, 1, 31)
+    assert result.source.observation_end == dt.date(2025, 12, 31)
+    assert plain.source.transforms == ()
+
+
+@pytest.mark.parametrize(
+    ("transform", "canonical"),
+    [
+        ("pct_change", "pct_change"),
+        ("pct_change(periods=1)", "pct_change"),
+        ("diff( periods = 3 )", "diff(periods=3)"),
+        ("lag(periods=12)", "lag(periods=12)"),
+        ("log", "log"),
+        ("convert(to=quarterly, method=mean)", "convert(to=quarterly,method=mean)"),
+    ],
+)
+def test_each_single_series_transform_is_recorded_as_its_canonical_text(
+    transform: str, canonical: str
+) -> None:
+    alpha = scripted("alpha", {"L": LEVELS})
+    result = data.get("alpha:L", registry=registry_of(alpha), transform=transform)
+    assert result.source.transforms == (canonical,)
+    assert result.frame.meta.notes[-1] == f"transformed: {canonical}"
+
+
+@pytest.mark.parametrize(
+    "transform",
+    ["ratio", "add", "align_to", "asof(date=2025-01-31)", "changes_only", "window"],
+)
+def test_a_transform_that_is_not_a_single_series_one_is_refused_before_a_request(
+    transform: str,
+) -> None:
+    alpha = scripted("alpha", {"A": SERIES})
+    with pytest.raises(InputError, match=r"a series takes one of|needs the parameter"):
+        data.get("alpha:A", registry=registry_of(alpha), transform=transform)
+    assert calls_of(alpha) == []
+
+
+@pytest.mark.parametrize(
+    "transform", ["nonsense", "yoy(periods=2)", "pct_change(periods=0)", "x" * 300]
+)
+def test_a_malformed_transform_is_an_input_error(transform: str) -> None:
+    alpha = scripted("alpha", {"A": SERIES})
+    with pytest.raises(InputError):
+        data.get("alpha:A", registry=registry_of(alpha), transform=transform)
+    assert calls_of(alpha) == []
+
+
+def test_a_transform_the_data_cannot_take_is_a_data_error() -> None:
+    negative = monthly([-1.0, 2.0], provider="alpha", series_id="N")
+    alpha = scripted("alpha", {"N": negative})
+    with pytest.raises(DataError, match="log is undefined"):
+        data.get("alpha:N", registry=registry_of(alpha), transform="log")
+
+
+def test_a_table_takes_no_transform() -> None:
+    with pytest.raises(InputError, match="a transform applies to a single series"):
+        data.get(
+            "us.treasury.par_curve",
+            start=dt.date(2025, 1, 1),
+            end=dt.date(2025, 3, 31),
+            registry=world_registry(),
+            transform="diff",
+        )
+    table = Table(
+        month_ends(3), (column("a"),), ((1.0, 2.0, 3.0),), table_meta(provider="beta")
+    )
+    beta = scripted("beta", {"T": table})
+    with pytest.raises(InputError, match="a transform applies to a single series"):
+        data.get("beta:T", registry=registry_of(beta), transform="diff")
+
+
+def test_a_concept_records_its_own_transforms_then_the_callers(
+    isolated: object,
+) -> None:
+    for provider in ("fred", "bls", "bea"):
+        isolated.keyring.set_password(  # type: ignore[attr-defined]
+            "pyeconomics", provider, secrets.token_hex(16)
+        )
+    world = world_registry()
+    plain = data.get("us.unemployment.rate", registry=world)
+    changed = data.get("us.unemployment.rate", registry=world, transform="diff")
+    assert changed.source.transforms == (*plain.source.transforms, "diff")
+    assert changed.source.provider == plain.source.provider
+    assert changed.frame.index == plain.frame.index
+    assert as_series(changed.frame).values[0] is None

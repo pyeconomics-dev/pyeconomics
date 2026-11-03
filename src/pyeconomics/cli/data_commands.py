@@ -170,6 +170,7 @@ def get_data(  # noqa: PLR0913 - the data API's options
     as_of: Annotated[str | None, Parameter(metavar="DATE")] = None,
     vintage: str | None = None,
     provider: str | None = None,
+    transform: Annotated[str | None, Parameter(metavar="TRANSFORM")] = None,
     output_format: Annotated[RunFormat, Parameter(name="--format")] = "json",
     out: OutOption = None,
     context: ContextParameter,
@@ -191,6 +192,10 @@ def get_data(  # noqa: PLR0913 - the data API's options
         A vintage label, such as latest or a date, in place of --as-of.
     provider
         For a concept, use only this provider's candidates.
+    transform
+        Apply one transform to the series: pct_change, yoy, diff, lag, log or
+        convert, with its arguments, such as pct_change(periods=12) or
+        convert(to=annual,method=mean). Each source record lists it.
     output_format
         json for the frame, its source records and attributions; table; or an
         export: csv, xlsx, parquet or arrow.
@@ -205,6 +210,7 @@ def get_data(  # noqa: PLR0913 - the data API's options
         as_of=_day(as_of, "as_of"),
         vintage=vintage,
         provider=provider,
+        transform=transform,
     )
     if output_format == "json":
         emit_json(context.streams, data_document(resolved), out)

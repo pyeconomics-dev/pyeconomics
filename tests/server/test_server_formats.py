@@ -155,6 +155,40 @@ def test_a_series_is_the_data_get_document(world: None) -> None:
     assert response.json()["attributions"]
 
 
+@pytest.mark.parametrize("export_format", ["json", "csv"])
+def test_a_transformed_series_is_the_data_apis_in_every_format(
+    world: None, export_format: str
+) -> None:
+    del world
+    import datetime as dt  # noqa: PLC0415
+
+    from pyeconomics.data import api as data_api  # noqa: PLC0415
+    from pyeconomics.data import cache  # noqa: PLC0415
+
+    with cache.bypass():
+        resolved = data_api.get(
+            "us.unemployment.rate", start=dt.date(2024, 2, 1), transform="diff"
+        )
+    with client() as api:
+        response = api.get(
+            "/v1/series/us.unemployment.rate",
+            params={
+                "start": "2024-02-01",
+                "transform": "diff(periods=1)",
+                "format": export_format,
+            },
+        )
+    assert response.status_code == 200
+    expected = (
+        canonical_json(data_document(resolved))
+        if export_format == "json"
+        else export_bytes(resolved, export_format)
+    )
+    assert response.content == expected
+    assert resolved.source.transforms[-1] == "diff"
+    assert resolved.source.attribution.encode() in response.content
+
+
 @pytest.mark.parametrize("export_format", ["csv", "xlsx"])
 def test_each_series_format_is_the_exports_bytes(
     world: None, export_format: str
@@ -194,8 +228,25 @@ def test_a_series_key_may_hold_slashes(world: None) -> None:
         ("/v1/series/us.unemployment.rate?format=bundle", 422, "invalid-input"),
         ("/v1/series/us.unemployment.rate?start=soon", 422, "invalid-input"),
         ("/v1/series/us.unemployment.rate?api_key=x", 422, "invalid-input"),
+        ("/v1/series/us.unemployment.rate?transform=ratio", 422, "invalid-input"),
+        ("/v1/series/us.unemployment.rate?transform=eval(1)", 422, "invalid-input"),
+        (
+            "/v1/series/us.unemployment.rate?transform=log&transform=yoy",
+            422,
+            "invalid-input",
+        ),
     ],
-    ids=["url", "provider-only", "provider", "bundle", "date", "key"],
+    ids=[
+        "url",
+        "provider-only",
+        "provider",
+        "bundle",
+        "date",
+        "key",
+        "two-series-transform",
+        "code-as-transform",
+        "repeated-transform",
+    ],
 )
 def test_a_bad_series_request_is_a_problem(
     world: None, path: str, status: int, slug: str
