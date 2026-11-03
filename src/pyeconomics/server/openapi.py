@@ -40,6 +40,7 @@ from pyeconomics import __version__
 from pyeconomics.core.canonical import canonical_json
 from pyeconomics.core.schema import input_schema, output_schema
 from pyeconomics.core.spec import CostClass
+from pyeconomics.core.transforms import SERIES_TRANSFORMS
 from pyeconomics.server import formats
 from pyeconomics.server.settings import MODES
 from pyeconomics.surfaces import registry_schema
@@ -507,6 +508,13 @@ def series_operation() -> dict[str, Any]:
             _query("vintage", "A vintage label, in place of as_of.", _TEXT),
             _query(
                 "provider", "For a concept, only this provider's candidates.", _TEXT
+            ),
+            _query(
+                "transform",
+                "Apply one transform to the series and record it in each source: "
+                f"{', '.join(SERIES_TRANSFORMS)}, with its arguments, such as "
+                "pct_change(periods=12) or convert(to=annual,method=mean).",
+                {"type": "string", "minLength": 1, "maxLength": 256},
             ),
             _format_parameter(formats.SERIES_FORMATS),
         ],

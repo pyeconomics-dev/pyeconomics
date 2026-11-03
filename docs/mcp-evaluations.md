@@ -4,12 +4,12 @@ The MCP server's tool descriptions are tested by giving a real agent questions i
 
 ## Latest run
 
-- Date: 2026-10-28
+- Date: 2026-11-03
 - Agent: Claude Code 2.1.284, headless (claude -p)
 - Model: `claude-sonnet-5-5`
-- Server: pyeconomics 1.0.0b1.dev1, from the working tree at commit `3a9fde9`
-- Result: 9 of 9 tasks succeeded
-- Tool list: 21 tools, 369,901 bytes of names, descriptions and schemas; the agent's first request held 2,538 tokens without the server and 71,927 with it
+- Server: pyeconomics 1.0.0rc1.dev1, from the working tree at commit `86ccb0f`
+- Result: 10 of 10 tasks succeeded
+- Tool list: 21 tools, 370,289 bytes of names, descriptions and schemas; the agent's first request held 2,709 tokens without the server and 72,241 with it
 
 | Task | Result | Tool calls | Answer | Expected |
 |------|--------|------------|--------|----------|
@@ -20,6 +20,7 @@ The MCP server's tool descriptions are tested by giving a real agent questions i
 | `mortgage_payment` | succeeded | `foundations_time_value` | 1498.876312881881 | 1498.876312881881 |
 | `recession_probability_bound` | succeeded | `search_models`, `run_model` | 0.30517900068803827 | 0.30517900068803827 |
 | `unemployment_series` | succeeded | `get_series` | 0.041 | 0.040999999999999995 |
+| `unemployment_change` | succeeded | `get_series` | 0.0 | 0 |
 | `withheld_sources` | succeeded | `list_sources` | 16.0 | 16 |
 | `forbidden_series` | succeeded | `get_series` | unavailable | llm-use-forbidden |
 
@@ -29,21 +30,14 @@ The MCP server's tool descriptions are tested by giving a real agent questions i
 
 > Using the pyeconomics tools, find the model for bond convexity and compute the analytical convexity of a bond that settles on 2026-01-15 and matures on 2036-01-15, with a 4.5% coupon paid semiannually and a 5% yield to maturity.
 
-1. `search_models` {"query": "convexity"}
+1. `search_models` {"query": "bond convexity"}
 2. `describe_model` {"model_id": "fixed_income.convexity"}
 3. `run_model` {"inputs": {"calculation": "analytical", "coupon_rate": 0.045, "frequency": "semiannual", "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}, "model_id": "fixed_income.convexity"}
 
 The agent's answer:
 
 ```text
-The pyeconomics model `fixed_income.convexity` (analytical calculation) gives a convexity of about 75.2996 years². I ran it with these inputs:
-
-- **Dates:** settlement 2026-01-15, maturity 2036-01-15
-- **Coupon:** 4.5%, paid semiannually
-- **Yield to maturity:** 5%
-- **Other settings:** the model's defaults (act/act ICMA day count, face value 100, redemption 100)
-
-The full price at settlement was 96.1027.
+The pyeconomics model `fixed_income.convexity` (Bond convexity, analytical calculation) gives a convexity of about 75.2996 years². I ran it with these inputs: settlement 2026-01-15, maturity 2036-01-15, 4.5% coupon paid semiannually, and a 5% yield to maturity. I left the day count, face value and redemption at the model defaults (act/act ICMA, 100 and 100). The full price at settlement comes out at 96.1027.
 
 ANSWER: 75.29958076997512
 ```
@@ -57,7 +51,7 @@ ANSWER: 75.29958076997512
 The agent's answer:
 
 ```text
-The modified duration is about 7.919 years. The tool also returned a Macaulay duration of 8.117 years and a full price of 96.10 per 100 of face value.
+The bond's modified duration is about 7.92 years. The pyeconomics duration tool returned this for the 4.5% semiannual coupon bond at a 5% yield to maturity. The tool also gave a Macaulay duration of 8.117 years and a full price of 96.103 per 100 of face value.
 
 ANSWER: 7.919141259916497
 ```
@@ -66,7 +60,7 @@ ANSWER: 7.919141259916497
 
 > What is the full price, per 100 of face value, of a bond that settles on 2026-01-15 and matures on 2036-01-15, with a 4.5% coupon paid semiannually and a 5% yield to maturity?
 
-1. `fixed_income_bond_pricing` {"calculation": "price_from_yield", "coupon_rate": 0.045, "frequency": "semiannual", "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}
+1. `fixed_income_bond_pricing` {"calculation": "price_from_yield", "coupon_rate": 0.045, "maturity": "2036-01-15", "settlement": "2026-01-15", "yield_to_maturity": 0.05}
 
 The agent's answer:
 
@@ -85,14 +79,14 @@ ANSWER: 96.1027094285883
 The agent's answer:
 
 ```text
-The Black-Scholes-Merton price of the European call is about 5.78. This uses spot 100, strike 105, 0.5 years to expiry, a 4% risk-free rate, 25% volatility and no dividends.
+The Black-Scholes-Merton price of the European call is about 5.7799. The inputs were spot 100, strike 105, 0.5 years to expiry, a 4% risk-free rate, 25% volatility and no dividends.
 
 The tool also returned these Greeks:
-- **Delta:** 0.4703
-- **Gamma:** 0.02251
-- **Vega:** 28.13
-- **Theta:** -8.683
-- **Rho:** 20.63
+- Delta: 0.4703
+- Gamma: 0.02251
+- Vega: 28.13
+- Theta: −8.683
+- Rho: 20.63
 
 ANSWER: 5.779936227686569
 ```
@@ -106,7 +100,7 @@ ANSWER: 5.779936227686569
 The agent's answer:
 
 ```text
-The monthly payment is about 1,498.88. I used the amortization tool with a monthly rate of 0.5% (6% ÷ 12) over 360 payments. It returned a level payment of 1,498.8763128818810.
+The monthly payment is about 1,498.88. That comes from a level-payment amortization of 250,000 over 360 months at 0.5% a month, which is 6% a year compounded monthly. Total interest over the life of the loan is about 289,595.47.
 
 ANSWER: 1498.876312881881
 ```
@@ -115,7 +109,7 @@ ANSWER: 1498.876312881881
 
 > What probability of a US recession twelve months ahead did the New York Fed's yield-curve model give as of 2025-06-30, with its inputs bound to the data catalog as of that date?
 
-1. `search_models` {"query": "recession probability yield curve"}
+1. `search_models` {"query": "recession probability yield curve probit"}
 2. `run_model` {"as_of": "2025-06-30", "model_id": "macro.recession_probability"}
 
 The agent's answer:
@@ -123,9 +117,12 @@ The agent's answer:
 ```text
 The New York Fed yield-curve model gave a 12-month-ahead US recession probability of about 30.5% as of 2025-06-30.
 
-- **Inputs:** The model pulled the 10-year Treasury yield (4.3835%) and the 3-month yield (4.4210%, bond-equivalent basis) from the data catalog as of that date.
-- **Spread:** The 10-year minus 3-month spread was about −0.04 percentage points, so the curve was slightly inverted.
-- **Caveat:** The tool flagged both yields as revised data. They are the latest values, not necessarily those published on 2025-06-30.
+The tool bound both inputs to Treasury data for that date:
+- **10-year yield:** 4.3835%
+- **3-month yield:** 4.421% (bond-equivalent basis)
+- **Spread:** about −0.04 percentage points (−0.000375 as a decimal), so the curve was very slightly inverted.
+
+The tool flagged both yields as revised data. They are the latest values, not necessarily those published on that date.
 
 ANSWER: 0.30517900068803827
 ```
@@ -139,13 +136,29 @@ ANSWER: 0.30517900068803827
 The agent's answer:
 
 ```text
-The US unemployment rate for June 2025 in the catalog is 0.041, which is 4.1%. This is the seasonally adjusted rate (BLS series LNS14000000, from the Current Population Survey). The tool returned it as 0.040999999999999995, a floating-point artifact of 0.041.
+The catalog gives a US unemployment rate of 0.041 for June 2025 (4.1%). This is the seasonally adjusted rate, BLS series LNS14000000, from the Current Population Survey.
 
-You must credit it as "Source: U.S. Bureau of Labor Statistics."
-
-The BLS terms also require this notice: "BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. Data accessed through the BLS Public Data API on 2026-10-28."
+The figure must be credited as "Source: U.S. Bureau of Labor Statistics." The terms also require this notice: "BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. Data accessed through the BLS Public Data API on 2026-11-03."
 
 ANSWER: 0.041
+```
+
+### unemployment_change
+
+> By how much did the US unemployment rate change over the twelve months to June 2025, according to the data catalog, as a decimal (0.001 is a tenth of a percentage point)? Read the change from the data, and say which source it is credited to.
+
+1. `get_series` {"end": "2025-06-30", "start": "2025-06-01", "target": "us.unemployment.rate", "transform": "diff(periods=12)"}
+
+The agent's answer:
+
+```text
+The US unemployment rate did not change over the twelve months to June 2025. The catalog's 12-month difference for June 2025 is 0, meaning the rate was the same in June 2025 as in June 2024.
+
+The series is the seasonally adjusted unemployment rate (BLS series LNS14000000, from the Current Population Survey). It is credited to the U.S. Bureau of Labor Statistics. The attribution reads: "Source: U.S. Bureau of Labor Statistics." BLS also adds a notice that it cannot vouch for analyses derived from its data.
+
+I didn't pull the June 2024 and June 2025 levels separately. From memory, both months were about 4.1%, which is consistent with a zero change.
+
+ANSWER: 0
 ```
 
 ### withheld_sources
@@ -157,28 +170,14 @@ ANSWER: 0.041
 The agent's answer:
 
 ```text
-The server's policy keeps 16 of the 31 listed providers from reaching an AI assistant. These are the ones with `llm_permitted: false`:
+The server's policy keeps 16 of the 31 listed data providers from reaching an AI assistant. I counted the providers where `llm_permitted` is false in the `list_sources` result.
 
-- AQR
-- Atlanta Fed
-- Cboe
-- Cleveland Fed
-- Coin Metrics
-- Damodaran
-- DBnomics
-- FRED
-- Hou-Xue-Zhang
-- IMF
-- JKP
-- Ken French
-- Open Source Asset Pricing
-- Philadelphia Fed
-- Shiller
-- Yahoo Finance
+The 16 blocked providers:
+- **Terms forbid it (`llm_use` is "forbidden"):** FRED and the IMF.
+- **Terms unclear (`llm_use` is "unclear"):** AQR, Atlanta Fed, Cboe, Cleveland Fed, Coin Metrics, DBnomics, Hou-Xue-Zhang, JKP, Ken French, Open Source Asset Pricing, Philadelphia Fed, Shiller and Yahoo Finance.
+- **Damodaran:** this one is also blocked, even though its licence is hosted-safe. Its `llm_use` is "unclear".
 
-The other 15 are permitted.
-
-Damodaran is marked `hosted_allowed: true` and `licence: hosted-safe`, but it is still `llm_permitted: false`, because its `llm_use` is "unclear". I counted it as blocked.
+The other 15 providers are permitted.
 
 ANSWER: 16
 ```
@@ -192,7 +191,9 @@ ANSWER: 16
 The agent's answer:
 
 ```text
-The pyeconomics tools couldn't fetch `fred:GDP`. The server returned a 403 because FRED's terms (licence class "library-only") don't allow its data to reach a language model, and the server's allowed-only policy enforces that. I haven't tried another route to get the number.
+I couldn't get the latest value of fred:GDP. The pyeconomics tool refused the request with a 403. FRED's terms (https://fred.stlouisfed.org/legal/) don't allow its data to reach a language model, and this server's allowed-only policy enforces that. I didn't try another source for the series, because you asked for the FRED one specifically.
+
+You can read the latest value directly at https://fred.stlouisfed.org/series/GDP.
 
 ANSWER: unavailable
 ```

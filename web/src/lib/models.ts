@@ -292,6 +292,32 @@ export function dataProfiles(
   }));
 }
 
+/** A source the hosted site may not serve, and the bound fields it would fill. */
+export interface UnservedSource {
+  name: string;
+  licence: string;
+  fields: string[];
+}
+
+/**
+ * The sources of a model's bound fields that the hosted site may not serve:
+ * for each field whose concept no hosted source answers, its candidates that
+ * are not hosted-safe, by name, with the fields each would fill. Empty for a
+ * model whose data the hosted site serves, or that reads none.
+ */
+export function unservedSources(profiles: readonly DataProfile[]): UnservedSource[] {
+  const found = new Map<string, UnservedSource>();
+  for (const row of profiles.flatMap((profile) => profile.rows)) {
+    if (row.hosted) continue;
+    for (const source of row.sources.filter((candidate) => !candidate.hosted)) {
+      const entry = found.get(source.name) ?? { name: source.name, licence: source.licence, fields: [] };
+      if (!entry.fields.includes(row.field)) entry.fields.push(row.field);
+      found.set(source.name, entry);
+    }
+  }
+  return [...found.values()];
+}
+
 /** The page's description: the summary, cut at a word to fit a search snippet. */
 export function describe(model: Pick<Model, "summary">, limit = 160): string {
   const summary = model.summary.replace(/\s+/g, " ").trim();

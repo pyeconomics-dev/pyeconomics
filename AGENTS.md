@@ -247,6 +247,11 @@ decision 15):
 - A transform has its name and schema in `core/transforms.py` and its
   implementation in `data/catalog/transforms.py`; a test holds the two equal.
   A transform never fills a gap, invents a date or carries a value forward.
+- A caller's transform (`data.get(..., transform=)`, Phase 5 Step 9) is one of
+  `core.transforms.SERIES_TRANSFORMS`, read by `parse_series_transform`: the
+  fetch starts at `resolver.widened_start`, the result is cut to the window and
+  every source record lists the canonical text last. A table, or a transform
+  that combines series or picks a binding's date, is `InputError`.
 - A candidate a vintage-keeping provider serves without that series' vintages
   (FRED's daily rates, which ALFRED does not hold) is `vintages=False`: a
   vintage request skips it and a binding reads it as revised data. Probe a new
@@ -737,6 +742,48 @@ From Phase 5 Step 7, which builds navigation, search and the syllabus seed:
   page loads a script until a visitor reaches for it. Every page therefore
   carries Astro's hashed island runtime. A container test that renders the
   layout passes the directive in a partial manifest (`model-page.test.ts`).
+
+From Phase 5 Step 9, which builds the data explorer and user data:
+
+- Every surface's series options live in `surfaces/series.py`
+  (`SERIES_OPTIONS`, `series_arguments`), which the REST route, MCP's
+  `get_series` and its executor share; a new option joins there, and
+  `tests/surfaces/test_series_options.py` holds the OpenAPI parameters, the
+  tool's input schema and the command's signature to it.
+  `tests/parity/test_parity_series.py` holds one concept's bytes equal on the
+  four surfaces, with and without each kind of transform.
+- `/data/` and one page per concept (`conceptPath`: each id part a segment,
+  `_` a hyphen) are generated from `concepts.json`. Its `snapshot` field comes
+  from `snapshot_set()` (the export's `snapshot_concepts()`), never by hand.
+  The explorer island (`SeriesExplorer.tsx`) fetches in hosted mode only a
+  concept the snapshot serves, gives `local_command` for the rest, asks the
+  server's mode from `GET /version` (local mode, Step 10, offers every
+  concept), and gives the Python call for a concept with parameters, which the
+  series route does not take.
+- A chart draws its attribution and as-of date on itself
+  (`explorer.ts seriesFigure`, the text escaped for Plotly's pseudo-HTML) and
+  repeats them beneath it; every download is the same GET with `?format=`.
+  `SERIES_TRANSFORMS`, `SERIES_FORMATS` and `CONVERT_METHODS` in `explorer.ts`
+  are held equal to Python's by `tests/web/test_explorer_constants.py`.
+- A user's file is read only in `src/workers/parse-file.ts` (Papa Parse,
+  read-excel-file's `web-worker` build, fflate's declared-size check), one
+  worker per file, stopped after 30 s, at most 5 MB and the calculation's
+  largest `maxItems` in rows, as values only: no formula is evaluated and no
+  link followed. Only the values mapped into the form travel, in the run's
+  body; the file, its name and its other columns never leave the page. Never
+  add the npm `xlsx` package. The worker's packages reach
+  `.astro/shipped-packages.json` through `vite.worker.plugins`.
+- The privacy proof is two tests: `user-data.spec.ts` (Playwright's `network`
+  fixture logs every request: none to another origin, one same-origin POST,
+  nothing of the file in it) and `tests/server/test_server_user_data.py` (only
+  the run route's `_body` reads a body, no log call is handed one, POST runs
+  are `no-store`). The server logs a run's problem on a caller's values
+  without its detail (`problems.record(detail=False)`), which can quote one.
+- A model whose bound data the hosted site may not serve says which sources
+  and gives `LOCAL_APP` beside its calculator (`data-library-only`;
+  `models.ts unservedSources`). A Playwright test that relies on `/v1/` or
+  `/version` reaching the test API must ask for the `api` fixture, and an
+  island the test drives must be hydrated first (`data-hydrated`).
 
 ## Units
 

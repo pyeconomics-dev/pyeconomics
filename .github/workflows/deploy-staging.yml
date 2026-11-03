@@ -27,9 +27,10 @@
 #   holds no route, custom-domain, DNS or Access permission, so `wrangler
 #   deploy`, which rewrites the custom domain, stays the maintainer's. Only
 #   the steps that call Wrangler see the token. The job
-#   verifies the site through Access, runs the duration page's calculator in
-#   a browser against the staging API (Phase 5 Step 6) and, on failure,
-#   returns the Worker to the version it served before and fails.
+#   verifies the site through Access, runs the duration page's calculator, the
+#   data explorer and a user-data upload in a browser against the staging API
+#   (Phase 5 Steps 6 and 9) and, on failure, returns the Worker to the version
+#   it served before and fails.
 # - The deploy job also checks one golden case per domain through the edge
 #   against the wheel's Python API (scripts/parity/check_deployed.py; Phase 5
 #   Step 6, ADR-0013 decision 8) before it counts the API deployed.
@@ -722,12 +723,15 @@ jobs:
           PY
 
       # Phase 5 Step 6: a browser fills the duration page's calculator and runs
-      # it against the staging API on the same origin, through Access.
+      # it against the staging API on the same origin, through Access. Phase 5
+      # Step 9: the series route applies a transform, /data/ charts a concept
+      # with its attribution, and a run fed from an uploaded CSV sends only its
+      # POST (tests/staging/).
       - name: Install Playwright's Chromium
         working-directory: web
         run: npx --no-install playwright install --with-deps chromium
 
-      - name: Run the duration calculator on staging in a browser
+      - name: Run the calculator, the explorer and an upload on staging in a browser
         working-directory: web
         env:
           STAGING_BASE_URL: https://${{ vars.STAGING_SITE_HOST }}

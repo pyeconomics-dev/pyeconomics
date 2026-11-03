@@ -600,16 +600,27 @@ def _problem(row: Row, detail: str) -> Problem:
 
 
 def record(
-    problem: Problem, error_name: str, *, logger: logging.Logger | None = None
+    problem: Problem,
+    error_name: str,
+    *,
+    logger: logging.Logger | None = None,
+    detail: bool = True,
 ) -> None:
     """Log a problem as one record: its slug, status, error type name and detail.
 
     :func:`report` logs through this; a surface whose error was raised in another
     process (the REST API's workers) logs the problem it received the same way.
     A server error (5xx) logs at ``ERROR``, any other at ``INFO``, on
-    ``pyeconomics.surfaces`` by default.
+    ``pyeconomics.surfaces`` by default. With ``detail=False`` the record leaves
+    the detail out: a server logs a run on a caller's own values that way,
+    because the detail of an input error can quote one of them.
     """
     level = logging.ERROR if problem.status >= _SERVER_ERROR else logging.INFO
+    if not detail:
+        (logger or _LOGGER).log(
+            level, "%s (%d, %s)", problem.slug, problem.status, error_name
+        )
+        return
     (logger or _LOGGER).log(
         level,
         "%s (%d, %s): %s",

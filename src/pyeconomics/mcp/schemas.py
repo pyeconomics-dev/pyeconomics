@@ -40,6 +40,7 @@ from pyeconomics.core.binding import DEFAULT_PROFILE, VintagePolicy
 from pyeconomics.core.provenance import LicenceClass, LlmUse
 from pyeconomics.core.schema import SCHEMA_DIALECT, input_schema, output_schema
 from pyeconomics.core.spec import CostClass
+from pyeconomics.core.transforms import SERIES_TRANSFORMS
 from pyeconomics.surfaces import registry_schema
 from pyeconomics.surfaces.listing import MAX_SEARCH_RESULTS
 
@@ -321,8 +322,17 @@ def series_input() -> dict[str, Any]:
                 "type": "string",
                 "description": "For a concept, only this provider's candidates.",
             },
+            "transform": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "description": "Apply one transform to the series: "
+                f"{', '.join(SERIES_TRANSFORMS)}, with its arguments, such as "
+                "pct_change(periods=12) or convert(to=annual,method=mean). Each "
+                "source record lists it.",
+            },
         },
-        optional=("start", "end", "as_of", "vintage", "provider"),
+        optional=("start", "end", "as_of", "vintage", "provider", "transform"),
     )
     return _document("get_series: inputs", "The series to read.", body, {})
 

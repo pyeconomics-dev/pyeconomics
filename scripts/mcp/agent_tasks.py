@@ -98,6 +98,8 @@ MORTGAGE: Final = {
 #: A date inside every bound source's archive (CBO's begins 2024-02, issue #195).
 BOUND_DATE: Final = dt.date(2025, 6, 30)
 UNEMPLOYMENT: Final = "us.unemployment.rate"
+#: The change over twelve months, as get_series' transform writes it (Phase 5 Step 9).
+YEAR_CHANGE: Final = "diff(periods=12)"
 FORBIDDEN_SERIES: Final = "fred:GDP"
 
 
@@ -148,6 +150,21 @@ def _unemployment() -> float:
         UNEMPLOYMENT,
         start=dt.date(2025, 1, 1),
         end=dt.date(2025, 12, 31),
+        llm_use=_policy(),
+    )
+    return _june_2025(json.loads(canonical_json(data_document(resolved))))
+
+
+def _unemployment_change() -> float:
+    from pyeconomics.core.canonical import canonical_json  # noqa: PLC0415
+    from pyeconomics.data import api  # noqa: PLC0415
+    from pyeconomics.surfaces.documents import data_document  # noqa: PLC0415
+
+    resolved = api.get(
+        UNEMPLOYMENT,
+        start=dt.date(2025, 1, 1),
+        end=dt.date(2025, 12, 31),
+        transform=YEAR_CHANGE,
         llm_use=_policy(),
     )
     return _june_2025(json.loads(canonical_json(data_document(resolved))))
@@ -295,6 +312,30 @@ TASKS: Final[tuple[AgentTask, ...]] = (
         ),
         answer=_june_2025,
         expected=_unemployment,
+        mentions=("Bureau of Labor Statistics",),
+    ),
+    AgentTask(
+        id="unemployment_change",
+        prompt=(
+            "By how much did the US unemployment rate change over the twelve months "
+            "to June 2025, according to the data catalog, as a decimal (0.001 is a "
+            "tenth of a percentage point)? Read the change from the data, and say "
+            "which source it is credited to."
+        ),
+        tools=("get_series",),
+        calls=(
+            Call(
+                tool="get_series",
+                arguments={
+                    "target": UNEMPLOYMENT,
+                    "start": "2025-01-01",
+                    "end": "2025-12-31",
+                    "transform": YEAR_CHANGE,
+                },
+            ),
+        ),
+        answer=_june_2025,
+        expected=_unemployment_change,
         mentions=("Bureau of Labor Statistics",),
     ),
     AgentTask(

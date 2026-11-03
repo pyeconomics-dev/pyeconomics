@@ -15,7 +15,10 @@ these functions unchanged.
   provider series goes straight to its provider, which applies the same gates.
   Given an ``llm_use`` policy (the MCP server's), a concept passes over the
   sources it does not permit, and a provider series it does not permit is
-  refused with :class:`~pyeconomics.data.errors.LlmUseError`.
+  refused with :class:`~pyeconomics.data.errors.LlmUseError`. A ``transform``
+  (``yoy``, ``pct_change(periods=12)``) is applied to the series it returns
+  and recorded in each source record (Phase 5 Step 9), the same on every
+  surface.
 - :func:`search` finds concepts offline and, on the providers that can search,
   their series, recording the providers it could not ask and why.
 - :func:`describe` explains a concept (its candidates by mode), a provider
@@ -51,9 +54,17 @@ from pyeconomics.core.provenance import (
     LlmUse,
     LlmUsePolicy,
 )
+from pyeconomics.core.transforms import ParsedTransform, parse_series_transform
 from pyeconomics.data import catalog
 from pyeconomics.data import registry as provider_registry
-from pyeconomics.data.catalog.definitions import Candidate, Concept, Derived, Tier
+from pyeconomics.data.catalog import transforms as tf
+from pyeconomics.data.catalog.definitions import (
+    Candidate,
+    Concept,
+    Derived,
+    Shape,
+    Tier,
+)
 from pyeconomics.data.credentials import has_key
 from pyeconomics.data.errors import DataError, LlmUseError, ProviderNotFoundError
 from pyeconomics.data.modes import Mode, current_mode, is_disabled, require_allowed
@@ -63,7 +74,8 @@ from pyeconomics.data.providers.base import (
     Capability,
     ProviderInfo,
 )
-from pyeconomics.data.resolver import Resolved, resolve, trim
+from pyeconomics.data.resolver import Resolved, resolve, trim, widened_start
+from pyeconomics.data.types import Series
 from pyeconomics.data.vintage import Vintage
 
 if TYPE_CHECKING:
@@ -359,6 +371,40 @@ def _vintage(as_of: dt.date | None, vintage: Vintage | str | None) -> Vintage:
 # --- the five functions -----------------------------------------------------------
 
 
+def _transformed(
+    resolved: Resolved,
+    parsed: ParsedTransform,
+    start: dt.date | None,
+    end: dt.date | None,
+) -> Resolved:
+    """Apply a caller's transform to a resolved series and record it in each source.
+
+    The series was read from earlier than ``start`` (:func:`widened_start`), so
+    the transform sees the history it needs; the result is cut to the window
+    asked for.
+    """
+    frame = resolved.frame
+    if not isinstance(frame, Series):
+        msg = (
+            f"{frame.meta.provider}:{frame.meta.table_id} answers with a table; a "
+            "transform applies to a single series"
+        )
+        raise f.fail(msg)
+    text = parsed.text()
+    series = trim(tf.apply(text, frame), start, end)
+    records = []
+    for record in resolved.sources:
+        changed = replace(record, transforms=(*record.transforms, text))
+        if series.index:
+            changed = replace(
+                changed,
+                observation_start=series.index[0],
+                observation_end=series.index[-1],
+            )
+        records.append(changed)
+    return replace(resolved, frame=series, sources=tuple(records))
+
+
 def get(  # noqa: PLR0913 - the public contract's independent options
     target: str,
     *,
@@ -374,6 +420,7 @@ def get(  # noqa: PLR0913 - the public contract's independent options
     transport: Transport | None = None,
     registry: ProviderRegistry | None = None,
     llm_use: LlmUsePolicy | str | None = None,
+    transform: str | None = None,
 ) -> Resolved:
     """Get the data a concept or a provider series names.
 
@@ -406,6 +453,13 @@ def get(  # noqa: PLR0913 - the public contract's independent options
         sources it does not permit, and a provider series it does not permit is
         refused, before the request when its provider's terms say so and after it
         when the series' own terms do. ``None`` looks at no ``llm_use`` class.
+    transform
+        One of :data:`~pyeconomics.core.transforms.SERIES_TRANSFORMS`, written as
+        text (``yoy``, ``pct_change(periods=12)``,
+        ``convert(to=annual,method=mean)``), applied to the series after it is
+        resolved. The sources are asked for enough earlier history that the
+        transform has it, the result is cut to ``start`` and ``end``, and each
+        source record lists the transform's canonical text last.
 
     Returns
     -------
@@ -417,16 +471,82 @@ def get(  # noqa: PLR0913 - the public contract's independent options
     ------
     ConceptNotFoundError, ProviderNotFoundError
         For an unknown concept or provider.
+    InputError
+        For a transform that is not a single-series transform, or one asked of
+        a table.
     LlmUseError
         If the ``llm_use`` policy leaves no source.
     LicenceError, CredentialError, OfflineError, DataError
-        As the resolver or the provider raises them.
+        As the resolver or the provider raises them; a transform the data
+        cannot take (a year-over-year change of a daily series) is a
+        ``DataError``.
     """
     policy = None if llm_use is None else f.choice(LlmUsePolicy, llm_use, "llm_use")
+    parsed = None if transform is None else parse_series_transform(transform)
     kind, series = _split(target)
     if kind == "provider":
         msg = f"{target!r} is a provider; name a series as {target}:<series>"
         raise f.fail(msg)
+    if parsed is None:
+        return _get(
+            target,
+            kind,
+            series,
+            start=start,
+            end=end,
+            as_of=as_of,
+            vintage=vintage,
+            provider=provider,
+            mode=mode,
+            strict=strict,
+            parameters=parameters,
+            max_observations=max_observations,
+            transport=transport,
+            registry=registry,
+            policy=policy,
+        )
+    if series is None and catalog.get(target).shape is Shape.TABLE:
+        msg = f"{target} answers with a table; a transform applies to a single series"
+        raise f.fail(msg)
+    resolved = _get(
+        target,
+        kind,
+        series,
+        start=widened_start(start, (parsed.text(),)),
+        end=end,
+        as_of=as_of,
+        vintage=vintage,
+        provider=provider,
+        mode=mode,
+        strict=strict,
+        parameters=parameters,
+        max_observations=max_observations,
+        transport=transport,
+        registry=registry,
+        policy=policy,
+    )
+    return _transformed(resolved, parsed, start, end)
+
+
+def _get(  # noqa: PLR0913 - get's options, checked
+    target: str,
+    kind: str,
+    series: str | None,
+    *,
+    start: dt.date | None,
+    end: dt.date | None,
+    as_of: dt.date | None,
+    vintage: Vintage | str | None,
+    provider: str | None,
+    mode: Mode | None,
+    strict: bool,
+    parameters: Mapping[str, object] | None,
+    max_observations: int | None,
+    transport: Transport | None,
+    registry: ProviderRegistry | None,
+    policy: LlmUsePolicy | None,
+) -> Resolved:
+    """Resolve a concept, or fetch a provider series, as :func:`get` describes."""
     if series is None:
         return resolve(
             target,

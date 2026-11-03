@@ -62,6 +62,26 @@ sources panel, the downloads (`?format=`) and the snippets for Python, the
 command line, curl and MCP sit beside them. A bound model offers live data
 (`?profile=`) where hosted mode can serve every field it binds.
 
+## Data explorer and user data
+
+`/data/` lists every catalog concept from `concepts.json` and searches them by
+title, id, unit, frequency and topic (`src/components/explorer/`); each concept
+has a page at `/data/<id parts>/` (`src/lib/paths.ts` `conceptPath`) with its
+sources, licence classes, hosted availability and the models that read it.
+Where the hosted snapshot serves the concept, its island reads
+`GET /v1/series/<id>` with a date range and one of the catalog's transforms
+(`src/lib/explorer.ts`, `src/lib/series-request.ts`), charts it with the
+source's attribution and as-of date drawn on the chart, and downloads it
+through `?format=`; elsewhere it gives the local command, unless `GET /version`
+says the server runs in local mode.
+
+A model page's "use my own data" (`src/components/calculator/UserDataPanel.tsx`)
+reads a CSV or XLSX file in a Web Worker (`src/workers/parse-file.ts`: Papa
+Parse and read-excel-file, at most 5 MB and the calculation's largest
+`maxItems` in rows, values only), lets the user map columns to the array
+fields (`src/lib/user-data.ts`), and writes only those values into the form;
+the file never leaves the browser.
+
 ## Check
 
 ```sh
@@ -85,8 +105,9 @@ calculator tests forward the page's `/v1/` requests to
 world's stand-in providers, which Playwright starts on port 8799: live data,
 its sources and a CSV's attribution block need no network or key.
 `npx playwright test --config playwright.staging.config.ts` runs the duration
-calculator on staging through Access (`CF_ACCESS_CLIENT_ID` and
-`CF_ACCESS_CLIENT_SECRET`).
+calculator, the explorer and an upload on staging through Access
+(`CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`). The upload fixtures in
+`tests/e2e/fixtures/` come from `../tests/web/build_user_data_fixtures.py`.
 
 ## Deploy
 

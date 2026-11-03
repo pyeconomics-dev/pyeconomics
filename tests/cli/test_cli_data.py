@@ -132,6 +132,36 @@ def test_data_get_reads_a_provider_series_and_a_window() -> None:
     assert json.loads(outcome.stdout)["concept"] is None
 
 
+def test_data_get_applies_a_transform_as_the_data_api_does() -> None:
+    outcome = cli(
+        "data",
+        "get",
+        "bls:LNS14000000",
+        "--start",
+        "2024-02-01",
+        "--end",
+        "2024-05-31",
+        "--transform",
+        "diff(periods=1)",
+    )
+    assert (outcome.code, outcome.stderr) == (0, "")
+    resolved = data.get(
+        "bls:LNS14000000",
+        start=dt.date(2024, 2, 1),
+        end=dt.date(2024, 5, 31),
+        transform="diff",
+    )
+    assert outcome.stdout == canonical_json(data_document(resolved)) + b"\n"
+    (record,) = json.loads(outcome.stdout)["sources"]
+    assert record["transforms"] == ["diff"]
+
+
+def test_data_get_refuses_a_transform_that_combines_series() -> None:
+    outcome = cli("data", "get", "bls:LNS14000000", "--transform", "ratio")
+    assert outcome.code == 3
+    assert outcome.stderr.startswith("invalid-input: ratio reads two series")
+
+
 def test_data_get_as_a_table_ends_with_the_attributions() -> None:
     outcome = cli(
         "data", "get", "us.unemployment.rate", "--as-of", PAST, "--format", "table"

@@ -34,6 +34,8 @@ const SAMPLE = [
   // a planned section's empty state
   "/models/micro/",
   "/search/",
+  "/data/",
+  "/data/us/unemployment/rate/",
   "/coverage/",
   // light, with a chart
   "/models/econometrics/ols/",

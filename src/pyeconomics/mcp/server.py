@@ -23,8 +23,9 @@ What a tool call returns:
   is installed (:mod:`~pyeconomics.mcp.apps`); in hosted mode a result larger
   than the server's limit answers a notice instead: its summary, size and hash,
   and the REST API's download of it;
-- ``get_series`` returns at most the server's limit of observations, with the
-  attributions and notices the data must be shown with;
+- ``get_series`` returns at most the server's limit of observations, with a
+  transform applied when one is asked for, and the attributions and notices
+  the data must be shown with;
 - ``search_models``, ``describe_model`` and ``list_sources`` return the
   listing entries, ``registry.describe``'s document and the sources, as the
   command line and the REST API do; ``list_sources`` says, in local mode only,
@@ -77,6 +78,7 @@ from pyeconomics.surfaces.budgets import GET_INPUTS_LIMIT
 from pyeconomics.surfaces.envelope import summary_of
 from pyeconomics.surfaces.invoke import BindRequest
 from pyeconomics.surfaces.problems import Problem, report
+from pyeconomics.surfaces.series import DATE_OPTIONS, SERIES_OPTIONS
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -107,7 +109,6 @@ LOGGER: Final = "pyeconomics.mcp"
 #: How long a client may keep the tool list and the discovery answer: an hour.
 _LIST_TTL_MS: Final = 3_600_000
 _BIND_FIELDS: Final = ("as_of", "vintage", "profile", "concepts", "parameters")
-_SERIES_OPTIONS: Final = ("start", "end", "as_of", "vintage", "provider")
 _LOG: Final = logging.getLogger(LOGGER)
 
 
@@ -293,7 +294,7 @@ class _Tools:
             return await self._run(model, _mapping(given, "inputs"), _bind(given))
         if spec.kind == "series":
             return await self._series(
-                _arguments(arguments, ("target", *_SERIES_OPTIONS))
+                _arguments(arguments, ("target", *SERIES_OPTIONS))
             )
         if spec.kind == "search":
             return self._search(_arguments(arguments, ("query", "domain", "limit")))
@@ -349,10 +350,10 @@ class _Tools:
     async def _series(self, arguments: Mapping[str, Any]) -> types.CallToolResult:
         target = _text(arguments, "target", required=True) or ""
         options: dict[str, str] = {}
-        for name in _SERIES_OPTIONS:
+        for name in SERIES_OPTIONS:
             value = (
                 _day(arguments, name)
-                if name in {"start", "end", "as_of"}
+                if name in DATE_OPTIONS
                 else (_text(arguments, name))
             )
             if value is not None:

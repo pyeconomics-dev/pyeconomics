@@ -118,7 +118,7 @@ if TYPE_CHECKING:
     from pyeconomics.data.terms import Terms
     from pyeconomics.data.transport.base import Transport
 
-__all__ = ["REASONS", "Resolved", "Skip", "resolve", "trim"]
+__all__ = ["REASONS", "Resolved", "Skip", "resolve", "trim", "widened_start"]
 
 #: Every reason a candidate may be passed over, with what it means.
 REASONS: Final = {
@@ -291,7 +291,7 @@ def _lookback(transforms: Sequence[str]) -> dt.timedelta | None:
     return widest
 
 
-def _widened(start: dt.date | None, transforms: Sequence[str]) -> dt.date | None:
+def widened_start(start: dt.date | None, transforms: Sequence[str]) -> dt.date | None:
     """Return the first date to request so the transforms see enough history."""
     if start is None:
         return None
@@ -611,7 +611,7 @@ def _query(
     """Build the provider's query; widen the window for the candidate's transforms."""
     fields: dict[str, object] = {
         "series": (series,),
-        "start": _widened(ask.start, candidate.transforms),
+        "start": widened_start(ask.start, candidate.transforms),
         "end": ask.end,
         "vintage": ask.selector.label,
         **dict(candidate.options),
@@ -753,7 +753,7 @@ def _operand(candidate: Derived, ask: _Ask, position: int) -> Resolved:
     operand = candidate.operands[position]
     return resolve(
         operand.concept,
-        start=_widened(ask.start, operand.transforms),
+        start=widened_start(ask.start, operand.transforms),
         end=ask.end,
         vintage=ask.selector,
         mode=ask.mode,

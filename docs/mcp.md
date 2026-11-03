@@ -91,7 +91,7 @@ Five tools reach every model and every source:
 | `search_models` | Searches the models by words in their ids, titles, tags, domains and summaries (`query`, with `limit` and `domain`), or lists a domain's models; each entry gives the id, title, summary, domain, cost class and whether the model can bind its inputs to data |
 | `describe_model` | A model's specification, its input and output JSON Schemas (every number with its unit; rates are decimals) and its model card, by `model_id` |
 | `run_model` | Runs any model on its `inputs`; with `as_of`, `vintage`, `profile`, `concepts` or `parameters` it first binds the model's inputs to the data catalog, as `pyeconomics.bind` does (`profile: "default"` binds the latest data) |
-| `get_series` | A catalog concept's data, or a provider series' (`provider:series`), with its source records and the attributions it must be shown with: `start`, `end`, `as_of`, `vintage` and `provider`, as `pyeconomics data get` takes them |
+| `get_series` | A catalog concept's data, or a provider series' (`provider:series`), with its source records and the attributions it must be shown with: `start`, `end`, `as_of`, `vintage`, `provider` and `transform`, as `pyeconomics data get` takes them |
 | `list_sources` | Every data provider with its licence class, its `llm_use` class, whether this server's policy lets its data reach your assistant, its attribution and its terms page, and whether a key is configured (never the key) |
 
 Sixteen widely used models also have a tool of their own, named

@@ -4,7 +4,8 @@
 // each page's social image. The pages themselves are the routes under
 // src/pages/; tests/site/ holds this list equal to what the build wrote.
 import { DOMAINS, describe, domainPath, modelPath, type Domain } from "@/lib/models";
-import { domains, problemData, registryData } from "@/lib/site-data";
+import { DATA_PATH, conceptPath } from "@/lib/paths";
+import { conceptData, domains, problemData, registryData, type ConceptEntry } from "@/lib/site-data";
 
 /** One generated page. */
 export interface SitePage {
@@ -40,6 +41,20 @@ export const COVERAGE = {
     "What the pyeconomics catalog covers: each syllabus topic area and the models that implement it, and each domain.",
 };
 
+/** The data explorer's title and description (Phase 5 Step 9). */
+export const DATA_INDEX = {
+  title: "Data",
+  description:
+    "The economic series pyeconomics models read: search the catalog, see each series' sources and licence, and chart and download those this site serves.",
+};
+
+/** A concept page's description: its definition, its unit and frequency. */
+export function conceptDescription(concept: ConceptEntry): string {
+  const unit = concept.unit ?? concept.unit_kind;
+  const facts = [unit, concept.frequency.replaceAll("_", " ")].filter(Boolean).join(", ");
+  return `${concept.definition}${facts ? ` (${facts})` : ""}`;
+}
+
 /** The problem types index's title and description. */
 export const PROBLEMS_INDEX = {
   title: "Problem types",
@@ -68,6 +83,10 @@ export function sitePages(): SitePage[] {
   }
   for (const model of registryData.models) {
     pages.push({ path: modelPath(model.id), title: model.title, description: describe(model) });
+  }
+  pages.push({ path: DATA_PATH, ...DATA_INDEX });
+  for (const concept of conceptData) {
+    pages.push({ path: conceptPath(concept.id), title: concept.title, description: conceptDescription(concept) });
   }
   pages.push({ path: "/search/", ...SEARCH }, { path: "/coverage/", ...COVERAGE });
   pages.push({ path: "/problems/", ...PROBLEMS_INDEX });

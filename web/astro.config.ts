@@ -9,7 +9,8 @@
 // used, because Astro's policy supports neither. scripts/headers.ts runs after
 // the build and writes the same policy, with every page's hashes, into
 // dist/_headers. shippedPackages() records the npm packages the client bundle
-// holds, for the licence check of what ships. @astrojs/sitemap lists every page
+// holds, the file reader's worker bundle included, for the licence check of
+// what ships. @astrojs/sitemap lists every page
 // on the production origin (sitemap-index.xml), except the 404 page, which is
 // not a page anyone should land on from a search. `client:interaction`
 // (src/directives/interaction.ts) hydrates an island when a visitor first
@@ -58,6 +59,9 @@ export default defineConfig({
   integrations: [react(), interactionDirective(), sitemap({ filter: (page) => !page.endsWith("/404/") })],
   vite: {
     plugins: [tailwindcss(), shippedPackages()],
+    // The file reader for "use my own data" is a module worker (src/workers/),
+    // bundled on its own; its packages ship too, so they are recorded.
+    worker: { format: "es", plugins: () => [shippedPackages()] },
     build: { assetsInlineLimit: 0 },
   },
   security: {

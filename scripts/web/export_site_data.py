@@ -19,7 +19,13 @@ directory, ``web/src/data/generated/`` by default:
 - ``sources.json``: every provider's licence class, terms page, attribution,
   notice and whether hosted mode serves it, sorted by id;
 - ``concepts.json``: every catalog concept with its unit, frequency and
-  candidates, and whether hosted mode can serve it, sorted by id;
+  candidates, whether hosted mode may use one of them (``hosted``) and whether
+  the hosted site serves it from the snapshot (``snapshot``: the snapshot set
+  answers it, or every operand of one of its derived candidates; computed with
+  :func:`~pyeconomics.data.snapshots.set.snapshot_set`, never by hand), the
+  parameters it needs, whether it needs a window, and the command that reads
+  it locally, sorted by id. The data explorer (``/data/``) offers a fetch only
+  for a concept the snapshot serves (ADR-0013 decisions 6 and 11);
 - ``surfaces.json``: where each model is reached beside its page: its REST
   route and methods (read back from ``openapi.json``), its MCP tool when it is
   a headline model, and its command line; and, for a bound model, each data
@@ -159,9 +165,10 @@ def _candidate(candidate: CandidateInfo) -> dict[str, Any]:
     }
 
 
-def _concept(concept: Concept) -> dict[str, Any]:
+def _concept(concept: Concept, served: frozenset[str]) -> dict[str, Any]:
     from pyeconomics.data import candidates_by_mode  # noqa: PLC0415
     from pyeconomics.data.modes import Mode  # noqa: PLC0415
+    from pyeconomics.surfaces.budgets import local_data_command  # noqa: PLC0415
 
     by_mode = candidates_by_mode(concept)
     return {
@@ -176,15 +183,56 @@ def _concept(concept: Concept) -> dict[str, Any]:
         "seasonal_adjustment": concept.seasonal_adjustment.value,
         "candidates": [_candidate(c) for c in by_mode[Mode.LIBRARY]],
         "hosted": bool(by_mode[Mode.HOSTED]),
+        "snapshot": concept.id in served,
+        "parameters": [
+            {"name": parameter.name, "example": parameter.example}
+            for parameter in concept.parameters
+        ],
+        "needs_window": concept.needs_window,
+        "local_command": local_data_command(concept.id),
     }
+
+
+def snapshot_concepts() -> frozenset[str]:
+    """Return the concepts the hosted snapshot serves.
+
+    A concept is served when a series the snapshot set keeps answers it
+    (:attr:`~pyeconomics.data.snapshots.set.Entry.concepts`), or when every
+    operand of one of its derived candidates is served.
+    """
+    from pyeconomics.data import catalog  # noqa: PLC0415
+    from pyeconomics.data.catalog.definitions import Derived  # noqa: PLC0415
+    from pyeconomics.data.snapshots.set import snapshot_set  # noqa: PLC0415
+
+    served = {concept for entry in snapshot_set().entries for concept in entry.concepts}
+    derived = [
+        (concept.id, candidate)
+        for concept in catalog.concepts()
+        for candidate in concept.candidates
+        if isinstance(candidate, Derived)
+    ]
+    grew = True
+    while grew:
+        grew = False
+        for concept_id, candidate in derived:
+            if concept_id not in served and all(
+                operand.concept in served for operand in candidate.operands
+            ):
+                served.add(concept_id)
+                grew = True
+    return frozenset(served)
 
 
 def concepts_document() -> dict[str, Any]:
     """Describe every catalog concept and its candidates, sorted by id."""
     from pyeconomics.data import catalog  # noqa: PLC0415
 
+    served = snapshot_concepts()
     concepts = sorted(catalog.concepts(), key=lambda concept: concept.id)
-    return {"format": SITE_DATA_FORMAT, "concepts": [_concept(c) for c in concepts]}
+    return {
+        "format": SITE_DATA_FORMAT,
+        "concepts": [_concept(c, served) for c in concepts],
+    }
 
 
 def hosted_profiles(model: Model[Any, Any]) -> list[dict[str, Any]]:

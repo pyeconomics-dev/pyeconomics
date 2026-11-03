@@ -1,6 +1,7 @@
 // web/src/lib/paths.ts
 // The site's addresses (ADR-0013 decision 2): the production origin, and each
-// domain's and model's page, derived from the permanent model ids. It imports
+// domain's, model's and data concept's page, derived from the permanent model
+// and concept ids. It imports
 // nothing, so the post-build scripts (scripts/indexing.ts) run it in Node as
 // the pages use it in Astro.
 
@@ -83,4 +84,33 @@ export function idOfPath(path: string): string | null {
   const match = PATH.exec(path);
   if (!match) return null;
   return `${(match[1] ?? "").replaceAll("-", "_")}.${(match[2] ?? "").replaceAll("-", "_")}`;
+}
+
+/** The data explorer's index page (Phase 5 Step 9; ADR-0013 decision 11). */
+export const DATA_PATH = "/data/";
+
+const PART = /^[a-z0-9_]+$/;
+
+/**
+ * Whether text is a concept id: three or four dotted parts of snake_case, the
+ * first starting with a letter (core/provenance.py CONCEPT_ID_PATTERN).
+ */
+export function isConceptId(id: string): boolean {
+  const parts = id.split(".");
+  return (
+    (parts.length === 3 || parts.length === 4) &&
+    /^[a-z]/.test(id) &&
+    parts.every((part) => PART.test(part) && !part.startsWith("_") && !part.endsWith("_") && !part.includes("__"))
+  );
+}
+
+/**
+ * A catalog concept's page under /data/: each part of its permanent id a path
+ * segment, every underscore a hyphen (`us.inflation.pce_core.yoy` is
+ * `/data/us/inflation/pce-core/yoy/`). Ids hold no hyphen, so the mapping is a
+ * bijection, as modelPath's is.
+ */
+export function conceptPath(id: string): string {
+  if (!isConceptId(id)) throw new Error(`${id} is not a concept id (dotted snake_case, 3 or 4 parts)`);
+  return `${DATA_PATH}${id.split(".").map((part) => part.replaceAll("_", "-")).join("/")}/`;
 }

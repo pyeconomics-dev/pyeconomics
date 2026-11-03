@@ -5369,9 +5369,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 9 — Data Explorer and User Data
+## Step 9 — Data Explorer and User Data ✅
 
-**Status:** Not started
+**Status:** Complete — PR #252 (2026-11-03)
 
 > **Goal:** Let visitors find, transform, chart and download the series the
 > models read, and run library-only models on their own data, without any
@@ -5424,6 +5424,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels.
 
 **Conversation:** New
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Model rationale:** Coding is PRIMARY: an explorer island, a contract
 addition to the data layer surfaced on four generated surfaces, and an
@@ -6193,6 +6195,16 @@ Sol at Intelligence High (50.2) and Quality Opus 5.5 at Effort XHigh
       offer them all and replace that message. The island
       posts to its own origin, so `pyeconomics serve`
       serving dist/ needs no client change.
+    - Step 9 note: a /data/ concept page fetches only what
+      concepts.json's `snapshot` marks, unless GET /version
+      answers `"mode": "library"`: then every concept without
+      parameters is offered (src/lib/series-request.ts
+      serverMode, src/lib/explorer.ts availability). Prove it
+      against `pyeconomics serve` with a concept the snapshot
+      lacks (factors.ff3.us.monthly). The explorer and the
+      library-only notice on model pages give
+      `pip install "pyeconomics[app]" then pyeconomics serve`
+      (explorer.ts LOCAL_APP): keep it equal to what ships.
     - The site in web/ is complete for the launch: model
       pages, calculators, navigation, search, the coverage
       matrix and the data explorer, deployed to staging on
@@ -6682,6 +6694,13 @@ per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 10):
 
+    - Step 9 note: `data.get(..., transform=)`, `data get
+      --transform`, the series route's `?transform=` and MCP
+      get_series's `transform` are documented in
+      docs/data/index.md, docs/cli.md, docs/api.md and
+      docs/mcp.md; a how-to on reading and transforming a
+      series, the /data/ explorer and "use my own data"
+      belongs in this step's guides.
     - Read the Docs builds main as the 1.0 preview with
       warnings as errors; stable and latest serve 0.2.6
       until Step 19. docs/ holds installation, quickstart,
@@ -8175,6 +8194,14 @@ conversation per phase-boundary hygiene.
       request bodies, queries and form values out (every
       dataCollection category off), and its ingest origin
       joins csp.config.ts DIRECTIVES and ALLOWED connect-src.
+    - Step 9 note: "use my own data" posts values from a
+      user's file in a run body, and the server logs a run's
+      problem on a caller's values without its detail
+      (problems.record(detail=False), Service.outcome). Keep
+      the server SDK from attaching request bodies or those
+      problems' details, and the browser SDK from capturing
+      the parse worker's messages (src/workers/parse-file.ts),
+      which can quote a file's cells.
     - Production runs privately: deploy-production.yml
       (dispatch from main or a v* tag, approved) deploys the
       snapshot job, the API and the site behind Access; the
@@ -9232,6 +9259,15 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       first use; if CFA Institute's answer (asked here)
       allows the mark in URLs, change those tests and the
       syllabi/ id rule (scripts/web/syllabi.py) together.
+    - Step 9 note: the privacy page states the user-data
+      promise as built and tested: a file is parsed in a Web
+      Worker and never uploaded; only the values mapped into
+      the form travel, in the run's body, which the server
+      neither logs nor stores (POST runs are no-store;
+      tests/server/test_server_user_data.py,
+      web/tests/e2e/user-data.spec.ts). /sources/ can link
+      each provider to the /data/ pages of the concepts it
+      answers (src/lib/paths.ts conceptPath).
     - Step 5 note: web/tests/site/site.test.ts holds a
       PLANNED table of the internal links whose pages do not
       exist yet (/legal/disclaimers/ and /sources/, naming
@@ -11771,7 +11807,7 @@ workflow above maps directly to the corresponding row below.
 | 6    | Calculators + web parity       | Gemini 4 Argon | Complete — PR #235 |
 | 7    | Navigation, search, coverage   | GPT-6.1 Sol    | Complete — PR #240 |
 | 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
-| 9    | Data explorer + user data      | Gemini 4 Argon | Not started        |
+| 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Not started        |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
@@ -12131,6 +12167,18 @@ roadmaps carry forward whatever is still open here.
     limitation stated in Steps 11 and 12;
   - Phase 3's V6.3 needs a providers-live success within eight days of a
     Phase 3 `--post` — Step 20 dispatches one before its canonical run.
+- Contract additions under the contract-change rule:
+  - Step 9: `data.get(..., transform=)` (ADR-0011's data API, Phase 3 Step
+    11), additive. It takes one of `core.transforms.SERIES_TRANSFORMS`
+    (`pct_change`, `yoy`, `diff`, `lag`, `log`, `convert`), widens the fetch
+    with the resolver's now-public `widened_start`, cuts the result to the
+    window and appends the canonical text to every source record's
+    `transforms`; a table or another transform is `InputError`. The series
+    options of every surface live in `surfaces/series.py`
+    (`SERIES_OPTIONS`, `series_arguments`), which the REST route, MCP's
+    `get_series` and its executor share; `problems.record(detail=False)`
+    keeps a run's caller values out of the server's log. Owned by Phase 5;
+    Steps 10 (local explorer) and 17 (public-API freeze) inherit it.
 
 ---
 

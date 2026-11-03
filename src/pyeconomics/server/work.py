@@ -40,13 +40,14 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Final, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pyeconomics.core.binding import DEFAULT_PROFILE
 from pyeconomics.core.canonical import canonical_json
 from pyeconomics.server import formats
 from pyeconomics.server.run_cache import BOUND_CONTROL, DATA_FREE_CONTROL, NO_STORE
 from pyeconomics.surfaces.problems import FieldError, Problem, problem_for
+from pyeconomics.surfaces.series import SERIES_OPTIONS
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -67,8 +68,6 @@ __all__ = [
 
 #: What a task does.
 TaskKind = Literal["run", "series"]
-#: The options of a series task: ``data.get``'s, as text.
-SERIES_OPTIONS: Final = ("start", "end", "as_of", "vintage", "provider")
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -89,7 +88,8 @@ class Task:
         :meth:`~pyeconomics.surfaces.invoke.BindRequest.to_dict` gives it, or
         ``None`` for a run on its inputs alone.
     query
-        A series' options (:data:`SERIES_OPTIONS`), as the text the caller sent.
+        A series' options (:data:`~pyeconomics.surfaces.series.SERIES_OPTIONS`),
+        as the text the caller sent.
     payload
         A run's inputs: the JSON bytes the caller sent, or ``None``.
     budget
@@ -181,21 +181,13 @@ def _run(task: Task) -> tuple[bytes, str, str]:
 
 
 def _series(task: Task) -> bytes:
-    from pyeconomics.core import _fields as f  # noqa: PLC0415
     from pyeconomics.core.provenance import LlmUsePolicy  # noqa: PLC0415
     from pyeconomics.data import api  # noqa: PLC0415 - the data layer loads here
-
-    def day(name: str) -> Any:  # noqa: ANN401 - a date or None
-        text = task.query.get(name)
-        return None if text is None else f.parse_day(text, name)
+    from pyeconomics.surfaces.series import series_arguments  # noqa: PLC0415
 
     resolved = api.get(
         task.target,
-        start=day("start"),
-        end=day("end"),
-        as_of=day("as_of"),
-        vintage=task.query.get("vintage"),
-        provider=task.query.get("provider"),
+        **series_arguments(task.query),
         max_observations=task.max_observations,
         llm_use=None if task.llm_use is None else LlmUsePolicy(task.llm_use),
     )

@@ -35,7 +35,7 @@ $ pyeconomics --version
 | `models run ID --batch FILE` | Run a model once per row of a CSV or JSON Lines file |
 | `models run ID [OPTIONS] --narrate` | Also explain the result with the optional AI narrative ({doc}`ai`) |
 | `data search TEXT [--limit N]` | Search catalog concepts, then providers' series |
-| `data get TARGET [--start] [--end] [--as-of] [--vintage] [--provider]` | Get a concept's or a series' data |
+| `data get TARGET [--start] [--end] [--as-of] [--vintage] [--provider] [--transform]` | Get a concept's or a series' data, transformed if asked |
 | `data describe TARGET` | Describe a concept, a series or a provider |
 | `data vintages TARGET` | List the dates a series changed |
 | `data sources [--check-keys]` | List the providers with their licences and keys |
@@ -123,6 +123,7 @@ $ pyeconomics data sources
 
 ```shell
 $ pyeconomics data get us.treasury.nominal_10y --start 2024-01-01 --end 2024-01-31 --format table
+$ pyeconomics data get us.unemployment.rate --start 2024-01-01 --transform "diff(periods=12)"
 $ pyeconomics data vintages fred:UNRATE
 ```
 

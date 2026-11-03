@@ -1,0 +1,49 @@
+---
+// web/src/pages/data/index.astro
+// /data/, the data explorer's index (Phase 5 Step 9; ADR-0013 decision 11):
+// every catalog concept from concepts.json, searched by title, id, unit,
+// frequency and topic in the island (ConceptSearch.tsx), which renders the
+// whole list on the server, so the page lists every concept without
+// JavaScript. Each concept links to its page under /data/ (src/lib/paths.ts
+// conceptPath), which charts it where the hosted site serves it. The explorer
+// feeds the models and never replicates a provider's own product (ROADMAP §5
+// "Data licensing policy" rule 5): it reads only what the snapshot keeps.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import ConceptSearch from "@/components/explorer/ConceptSearch";
+import Base from "@/layouts/Base.astro";
+import { conceptListings } from "@/lib/explorer";
+import { DATA_INDEX } from "@/lib/pages";
+import { DATA_PATH } from "@/lib/paths";
+import { conceptData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const concepts = conceptListings(conceptData);
+const served = concepts.filter((concept) => concept.snapshot).length;
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: DATA_INDEX.title, path: DATA_PATH },
+];
+---
+
+<Base
+  title={DATA_INDEX.title}
+  description={DATA_INDEX.description}
+  jsonLd={webPage(DATA_PATH, DATA_INDEX.title, DATA_INDEX.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Data"></span>
+  <h1 class="text-4xl font-bold tracking-tight">Data</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    The catalog of economic series the models read: {concepts.length} concepts, each with its unit, frequency and
+    sources. This site charts and downloads the {served} it serves from its daily snapshot of the sources that allow it;
+    the rest are read with pyeconomics on your own computer.
+  </p>
+  <p class="mt-2 max-w-3xl text-sm text-muted-foreground">
+    Every chart and file carries its source's attribution. The data comes from the bodies that publish it, on their
+    terms; the explorer exists to feed the models, not to replace those publishers' own sites.
+  </p>
+  <div class="mt-8" data-pagefind-ignore="all">
+    <ConceptSearch client:load concepts={concepts} />
+  </div>
+</Base>

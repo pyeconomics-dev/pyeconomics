@@ -111,8 +111,37 @@ def test_concepts_carry_candidates_and_hosted_availability() -> None:
     treasury = next(c for c in concepts if c["id"] == "us.treasury.nominal_10y")
     assert [c["provider"] for c in treasury["candidates"]] == ["treasury", "fred"]
     assert treasury["hosted"] is True
+    assert treasury["snapshot"] is True
+    assert treasury["needs_window"] is True
+    assert treasury["local_command"] == "pyeconomics data get us.treasury.nominal_10y"
     for concept in concepts:
         assert concept["hosted"] is any(c["hosted"] for c in concept["candidates"])
+        # The snapshot keeps every hosted-safe originator series that may be
+        # stored, so no concept is served that hosted mode may not use.
+        assert not concept["snapshot"] or concept["hosted"]
+    sep = next(c for c in concepts if c["id"] == "us.sep.unemployment")
+    assert [p["name"] for p in sep["parameters"]] == ["meeting", "year"]
+    assert all(p["example"] for p in sep["parameters"])
+    french = next(c for c in concepts if c["id"] == "factors.ff3.us.monthly")
+    assert (french["hosted"], french["snapshot"]) == (False, False)
+
+
+def test_the_snapshot_concepts_are_the_sets_and_their_derived_concepts() -> None:
+    from pyeconomics.data.catalog.definitions import Derived  # noqa: PLC0415
+    from pyeconomics.data.snapshots.set import snapshot_set  # noqa: PLC0415
+
+    served = export.snapshot_concepts()
+    answered = {c for entry in snapshot_set().entries for c in entry.concepts}
+    assert answered <= served
+    for concept_id in served - answered:
+        derived = [
+            c for c in catalog.get(concept_id).candidates if isinstance(c, Derived)
+        ]
+        assert any(
+            all(operand.concept in served for operand in candidate.operands)
+            for candidate in derived
+        )
+    assert "us.fiscal.debt_to_gdp" in served - answered
 
 
 def test_surfaces_name_each_models_route_tool_and_command() -> None:

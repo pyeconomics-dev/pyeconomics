@@ -148,7 +148,9 @@ def _discovery(hosted: bool) -> list[ToolSpec]:  # noqa: FBT001 - one mode switc
                 "Reads a series from the data catalog (a concept id) or from one "
                 "provider (provider:series), with its source records and the "
                 "attributions it must be shown with: at most the server's limit "
-                "of observations, the most recent ones. Data whose terms do not "
+                "of observations, the most recent ones, optionally transformed "
+                "(a change, a year-over-year change, a difference, a lag, a "
+                "logarithm or a frequency conversion). Data whose terms do not "
                 "let it reach an AI assistant is never returned."
             ),
             kind="series",

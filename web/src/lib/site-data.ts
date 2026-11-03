@@ -101,7 +101,16 @@ export interface ConceptEntry {
   frequency: string;
   seasonal_adjustment: string;
   candidates: CandidateEntry[];
+  /** Whether hosted mode may use one of its candidates. */
   hosted: boolean;
+  /** Whether the hosted site serves it from the snapshot (data/snapshots/set.py). */
+  snapshot: boolean;
+  /** The parameters a read needs, such as an SEP meeting, each with an example. */
+  parameters: { name: string; example: string }[];
+  /** Whether a read needs both a start and an end date. */
+  needs_window: boolean;
+  /** The command that reads it locally (surfaces/budgets.py local_data_command). */
+  local_command: string;
 }
 
 /** One level of a syllabus. */
