@@ -18,7 +18,7 @@ test("the series route applies a transform and records it", async ({ request }) 
   expect(response.status()).toBe(200);
   const body = (await response.json()) as { frame: { index: string[] }; sources: { transforms: string[] }[]; attributions: string[] };
   expect(body.frame.index.length).toBeGreaterThan(12);
-  expect(body.frame.index[0] >= "2020-01-01").toBe(true);
+  expect((body.frame.index.at(0) ?? "") >= "2020-01-01").toBe(true);
   for (const record of body.sources) expect(record.transforms.at(-1)).toBe("yoy");
   expect(body.attributions).toContain(BLS);
 });
