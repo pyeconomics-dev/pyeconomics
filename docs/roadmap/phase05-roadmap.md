@@ -7641,6 +7641,16 @@ New conversation per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 12):
 
+    - Step 12 note: on 2026-11-04 the maintainer chose to keep
+      the documentation on Read the Docs, ads included, at
+      the project's own domain (issue #259). The free plan
+      serves a custom domain. Read the Docs keeps answering
+      on pyeconomics.readthedocs.io as well, so the links in
+      released wheels keep working, and docs/conf.py already
+      passes `READTHEDOCS_CANONICAL_URL` to `html_baseurl`,
+      so each page will name the new address once the domain
+      is canonical. Hosting the documentation ourselves
+      stays possible later: keep the `/en/<version>/` paths.
     - Step 6 note: Cloudflare Web Analytics' Real User
       Measurements were enabled for the pyeconomics.dev zone,
       injecting static.cloudflareinsights.com's beacon into
@@ -7859,6 +7869,27 @@ New conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
+      Documentation domain (issue #259). The maintainer adds,
+      batched with this step's other approvals, a CNAME
+      record `docs` to `readthedocs.io` in the
+      pyeconomics.dev zone with Cloudflare's proxy off, which
+      Read the Docs requires, and `docs.pyeconomics.dev` in
+      its Admin > Domains with Canonical set. The proxy being
+      off, Access cannot cover this host; it serves only what
+      pyeconomics.readthedocs.io already serves publicly.
+      Confirm HTTPS answers there before anything links to
+      it, because this step's HSTS covers subdomains. Then
+      move the address: web/src/lib/links.ts DOCUMENTATION,
+      data/config.py GUIDE_URL, mcp/server.py website_url,
+      server.json, docs/wasm/'s notebooks, README.md and
+      .github/ISSUE_TEMPLATE/config.yml. surfaces/problems.py
+      adds the new host to its allowed list and keeps the old
+      one, which released wheels print. The earlier phases'
+      verifiers read the old host, which still answers: leave
+      them unless one fails, then add an addendum line.
+    </requirement>
+
+    <requirement>
       Filepath comment: YAML starts with `# <path>`; JSONC
       with `// <path>`; a new Python file gets the three-line
       header.
@@ -7868,6 +7899,11 @@ New conversation per phase-boundary hygiene.
 ```
 
 ### Step 13 acceptance criteria
+
+- `https://docs.pyeconomics.dev/en/main/` answers 200 over HTTPS, a page
+  there carries `<link rel="canonical">` on that host, the same page still
+  answers on `pyeconomics.readthedocs.io`, and the web site's documentation
+  links point at the new host.
 
 - Production exists as recorded: the project, registry, identities with
   only Google-managed keys and service-level roles, the federation
@@ -11022,7 +11058,8 @@ phase-boundary hygiene.
   robots.txt allows indexing and the sitemap lists every model page; the
   MDN HTTP Observatory grades `pyeconomics.dev` A or better with the CSP,
   HSTS and frame-ancestors present; the ZAP baseline against the public
-  site finds no High issue; Read the Docs `stable` serves 1.0.0; a clean
+  site finds no High issue; `https://docs.pyeconomics.dev/en/stable/` serves
+  1.0.0; a clean
   `pip install pyeconomics` on Python 3.12 and 3.15 installs 1.0.0 and
   passes `scripts/smoke.py`; `pip install "pyeconomics[app]"` then
   `pyeconomics serve` serves the pages locally with a library-only source
@@ -12235,6 +12272,9 @@ Additionally not in scope for this phase:
 - A shared Redis-backed result cache, per-PR preview deployments, a second
   alarm channel beyond decision 15's, server-side rendering and Next.js
   (ADR-0006), and a CDN for the documentation beyond Read the Docs.
+- Hosting the documentation ourselves in place of Read the Docs, weighed and
+  deferred in issue #259. Its `/en/<version>/` paths stay, so a later move keeps
+  every address.
 - Issues #52, #62, #68 (GitHub Sponsors), #109, #110 and #184, the
   randomized property failures (#112, #137, #139, #143, #149, #152), the
   data-layer gaps (#131, #135, #136, #141, #142), #148, #150 and #194,

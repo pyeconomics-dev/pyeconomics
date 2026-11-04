@@ -1138,7 +1138,8 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
 
 #### 5.6 Documentation site (ADR-0007)
 
-- Sphinx with MyST-NB, sphinx-autoapi and sphinx-gallery on Read the Docs:
+- Sphinx with MyST-NB, sphinx-autoapi and sphinx-gallery on Read the Docs,
+  at `docs.pyeconomics.dev`:
   tutorials (install, first model, data and keys, CLI, API, MCP), how-to
   guides (outputs into pandas, R and Excel; pyeconomics inside xlwings
   Lite), the generated model reference, syllabus study paths, and a 0.2.x
@@ -2078,7 +2079,7 @@ live".
 | Surface                         | Environments                     | Deploy trigger                                                        | "Released" means                                   | Verify with                                                     |
 |---------------------------------|----------------------------------|-----------------------------------------------------------------------|----------------------------------------------------|-----------------------------------------------------------------|
 | PyPI packages (`pyeconomics`, `pyeconomics-app`) | TestPyPI, PyPI    | `v*` tag on `main` → release workflow, behind the protected `pypi` environment | The version installs from PyPI with attestations | Fresh-venv install, `pyeconomics --version`, smoke run          |
-| Documentation                   | Read the Docs `latest`, `stable` | Merge to `main` builds `latest`; a release tag builds `stable`        | `stable` serves the tagged version                 | Version banner; the docs doctest job                            |
+| Documentation                   | Read the Docs `latest`, `stable`, at `docs.pyeconomics.dev` | Merge to `main` builds `latest`; a release tag builds `stable`        | `stable` serves the tagged version                 | Version banner; the docs doctest job                            |
 | Hosted web app (static)         | staging (the preview), production | A pull request builds and tests the site without deploying; merge to `main` deploys staging on `staging.pyeconomics.dev` behind Cloudflare Access; a release tag deploys production (Phase 5+; ADR-0013 decision 4) | Production serves the release's build        | `/version.json` reports the SHA; synthetic page check           |
 | Hosted API (Cloud Run)          | staging, production              | Merge to `main` deploys staging; a release tag deploys production behind the protected `production` environment | `/version` reports the release | Synthetic model run — with a Cloudflare Access service token on staging |
 | Snapshot job (Cloud Run job)    | staging, production              | Ships with the API image; Cloud Scheduler runs it daily (ADR-0013 decision 6) | The next scheduled run succeeds                    | Heartbeat check and per-dataset as-of dates                     |
