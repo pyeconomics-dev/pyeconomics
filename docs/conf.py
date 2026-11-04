@@ -8,6 +8,8 @@ from importlib.metadata import version as distribution_version
 from ipaddress import ip_address
 from pathlib import Path
 
+import plotly
+
 sys.path.insert(0, str(Path(__file__).parent / "_ext"))
 
 
@@ -33,6 +35,9 @@ extensions = [
     "myst_nb",
     "autoapi.extension",
     "sphinx.ext.napoleon",
+    "sphinx_gallery.gen_gallery",
+    "gallery_figures",
+    "in_browser",
     "model_pages",
     "study_paths",
     "provider_pages",
@@ -43,9 +48,29 @@ myst_enable_extensions = ["dollarmath", "amsmath"]
 nb_execution_mode = "force"
 nb_execution_raise_on_error = True
 nb_execution_timeout = 120
+# The scripts run in this process, so the audit hook above holds them offline.
+sphinx_gallery_conf = {
+    "examples_dirs": "examples",
+    "gallery_dirs": "gallery",
+    "filename_pattern": r"\.py$",
+    "within_subsection_order": "FileNameSortKey",
+    "abort_on_example_error": True,
+    "download_all_examples": False,
+    # A generated .ipynb would be a source to MyST-NB.
+    "notebook_extensions": set(),
+    # A figure is Plotly's, through gallery_figures, so nothing here scrapes one.
+    "image_scrapers": (),
+    "reset_modules": (),
+    "default_thumb_file": str(
+        Path(__file__).parent / "_static" / "brand" / "pyeconomics-avatar.png"
+    ),
+    "write_computation_times": False,
+    "show_signature": False,
+}
 exclude_patterns = [
     "_build/**",
     "_ext/**",
+    "examples/**",
     "roadmap/**",
     "adr/**",
     "releases/**",
@@ -70,7 +95,11 @@ napoleon_use_ivar = True
 html_theme = "pydata_sphinx_theme"
 html_title = "pyeconomics 1.0 preview"
 templates_path = ["_templates"]
-html_static_path = ["_static"]
+# gallery_figures points a gallery page at this copy of Plotly.js.
+html_static_path = [
+    "_static",
+    str(Path(plotly.__file__).parent / "package_data" / "plotly.min.js"),
+]
 html_logo = "_static/brand/pyeconomics-mark.svg"
 html_favicon = "_static/brand/pyeconomics-mark.svg"
 html_theme_options = {

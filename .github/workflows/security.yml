@@ -244,6 +244,10 @@ jobs:
           #   numba and llvmlite, whose LLVM part is Apache-2.0 WITH
           #   LLVM-exception beside BSD-2-Clause. None is in the runtime closure,
           #   which the licences hook checks; the all-groups audit covers them.
+          # - pillow (MIT-CMU, the historical permission notice of PIL) comes in
+          #   only through sphinx-gallery, in the docs group (Phase 5 Step 12),
+          #   and resizes gallery thumbnails during the build. The licences hook
+          #   confirms it is outside the runtime closure.
           # Step 10: maintainer-reviewed xlrd legacy BSD, peewee/protobuf
           # missing metadata, and multitasking Apache-2.0 exceptions. Exact
           # metadata and notices remain pinned by the local licences gate.
@@ -357,6 +361,7 @@ jobs:
             pkg:pypi/parso,
             pkg:pypi/pathspec,
             pkg:pypi/patsy,
+            pkg:pypi/pillow,
             pkg:pypi/quantecon,
             pkg:pypi/roman-numerals,
             pkg:pypi/simplejson,

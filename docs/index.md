@@ -22,10 +22,16 @@ server for AI assistants ({doc}`mcp`) and an optional AI narrative of a result
 
 **New here?** The {doc}`tutorials <tutorials/index>` take you from install to a
 model, live data, the command line, the REST API, the local app and an AI
-assistant. **Know what you want?** The {doc}`how-to guides <how-to/index>` get
-results into pandas, R and Excel. **Studying?** The
-{doc}`study paths <study-paths/index>` list our model pages by syllabus topic.
-**Coming from 0.2.x?** Read the {doc}`migration guide <migration>`.
+assistant. **Want to try it first?** The
+{doc}`in-browser examples <wasm/index>` run in your browser, with nothing to
+install. **Learning by example?** The {doc}`gallery <gallery/index>` has a short
+script for every domain, and the
+{doc}`Python-for-finance tutorials <tutorials/finance/index>` teach pandas, return
+statistics, Monte Carlo simulation and portfolio mathematics. **Know what you
+want?** The {doc}`how-to guides <how-to/index>` get results into pandas, R and
+Excel. **Studying?** The {doc}`study paths <study-paths/index>` list our model
+pages by syllabus topic. **Coming from 0.2.x?** Read the
+{doc}`migration guide <migration>`.
 
 ```{toctree}
 :maxdepth: 2
@@ -34,6 +40,9 @@ results into pandas, R and Excel. **Studying?** The
 installation
 quickstart
 tutorials/index
+tutorials/finance/index
+gallery/index
+wasm/index
 how-to/index
 study-paths/index
 migration

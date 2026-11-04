@@ -51,7 +51,8 @@ if TYPE_CHECKING:
 
     from sybil import Example
 
-collect_ignore = ["conf.py", "_ext"]
+# The documentation build runs docs/examples/, and marimo docs/wasm/ in a browser.
+collect_ignore = ["conf.py", "_ext", "examples", "wasm"]
 
 _EXAMPLE_NUMBERS = itertools.count()
 
