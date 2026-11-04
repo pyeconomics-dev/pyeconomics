@@ -9,9 +9,10 @@ kernelspec:
 
 Some questions have no neat formula. Monte Carlo methods answer them by brute
 force: draw many possible futures at random, and read the answer off the crowd.
-Nicholas Metropolis and Stanislaw Ulam named the method in 1949, and Phelim Boyle
-brought it to option pricing in 1977. This notebook shows the habits that make a
-simulation trustworthy: fixing the seed, measuring the error, and shrinking it.
+Nicholas Metropolis and Stanislaw Ulam published the method under that name in
+1949, and Phelim Boyle brought it to option pricing in 1977. This notebook shows
+the habits that make a simulation trustworthy: fixing the seed, measuring the
+error, and shrinking it.
 
 ```{code-cell} ipython3
 :tags: [remove-cell]

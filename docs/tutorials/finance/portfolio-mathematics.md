@@ -81,7 +81,7 @@ frontier = pyeconomics.run(
 curve = pd.DataFrame(
     {"expected return": frontier.target_returns, "volatility": frontier.volatilities}
 )
-assert curve["volatility"].is_monotonic_increasing
+assert curve["volatility"].diff().dropna().is_monotonic_increasing
 curve.round(4)
 ```
 
@@ -104,11 +104,13 @@ The least risky mix is less volatile than the least volatile asset on its own.
 
 ## Adding a safe asset
 
-James Tobin added one more thing in 1958: a safe asset you can lend at or borrow
-at. Mixing it with any risky portfolio gives a straight line from the safe rate,
-and the steepest such line touches the frontier at the tangency portfolio. Every
-investor then holds that same risky mix, in more or less, with the rest in the safe
-asset. William Sharpe built the capital asset pricing model on that result in 1964.
+James Tobin added one more thing in 1958: a safe asset. With one, the choice
+splits in two, which risky mix to hold and how much of it. Mixing the safe asset
+with any risky portfolio gives a straight line from the safe rate, and the steepest
+such line touches the frontier at the tangency portfolio. Investors who share these
+assumptions all hold that same risky mix, in more or less, with the rest in the
+safe asset. William Sharpe's capital asset pricing model of 1964 asks what prices
+would have to be if they all did.
 
 ```{code-cell} ipython3
 safe_rate = 0.03
@@ -161,7 +163,8 @@ def share(risk_aversion: float) -> float:
 
 shares = pd.DataFrame({"risk aversion": [2.0, 4.0, 8.0]})
 shares["risky share"] = shares["risk aversion"].map(share)
-assert shares["risky share"].is_monotonic_decreasing
+assert round(share(2.0) / share(4.0), 10) == 2
+assert share(2.0) > 1
 shares.round(3)
 ```
 

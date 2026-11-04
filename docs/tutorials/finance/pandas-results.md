@@ -72,12 +72,13 @@ prices[["inputs.yield_to_maturity", "outputs.flat_price"]]
 ```
 
 The price falls as the yield rises, and the bond sells at exactly par, 100, where
-the yield equals its coupon. The fall is also uneven: each step up in the yield
-costs a little less than the step before.
+the yield equals its coupon. The fall is also uneven: a rise from 3% to 4% costs
+more than a rise from 5% to 6%.
 
 ```{code-cell} ipython3
-at_the_coupon = prices.set_index("inputs.yield_to_maturity").loc[0.045]
-assert round(at_the_coupon["outputs.flat_price"], 8) == 100
+by_yield = prices.set_index("inputs.yield_to_maturity")["outputs.flat_price"]
+assert round(by_yield[0.045], 8) == 100
+assert by_yield[0.03] - by_yield[0.04] > by_yield[0.05] - by_yield[0.06]
 ```
 
 ## Joining two models
