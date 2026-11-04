@@ -124,9 +124,10 @@ source, its attribution and notices still belong beside them.
 
 - **Never put a key in a workbook or in `main.py`.** A workbook travels. No
   data-free model needs one.
-- **The last bit of a float can differ from a local run.** WebAssembly has its own
-  math library: a present value of `61.39132535407593` here is
-  `61.391325354075946` on a local install, so the two `result_sha256` values
-  differ. Compare numbers with a tolerance, not exactly.
+- **The last bit of a float can differ between platforms.** Each has its own math
+  library, and Pyodide's is one more: the present value above is
+  `61.39132535407593` here and on Linux, and `61.391325354075946` on Windows, so
+  the two `result_sha256` values differ. Compare numbers with a tolerance, not
+  exactly.
 - **Each model runs on its own.** The add-in supports no threads or extra
   processes, and no model needs them.

@@ -18,8 +18,10 @@ then the result's hash, so the numbers and what produced them stay together.
 ...     future_value=100,
 ... )
 >>> table = result.to_pandas()
->>> float(table.loc[0, "inputs.rate"]), float(table.loc[0, "outputs.present_value"])
-(0.05, 61.391325354075946)
+>>> float(table.loc[0, "inputs.rate"])
+0.05
+>>> round(float(table.loc[0, "outputs.present_value"]), 2)
+61.39
 ```
 
 ## Many runs
@@ -89,8 +91,9 @@ $ pyeconomics models run foundations.time_value --calculation present_value --ra
 ```
 
 ```python
->>> float(pd.read_parquet("present-value.parquet").loc[0, "outputs.present_value"])
-61.391325354075946
+>>> table = pd.read_parquet("present-value.parquet")
+>>> round(float(table.loc[0, "outputs.present_value"]), 2)
+61.39
 ```
 
 Or pipe it, which writes no file. `--format parquet` goes to standard output

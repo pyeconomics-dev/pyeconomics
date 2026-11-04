@@ -161,6 +161,14 @@ def test_the_hosted_endpoint_is_never_run() -> None:
 
 
 @pytest.mark.parametrize("page", GUIDES, ids=lambda page: page.stem)
+def test_no_example_shows_a_float_to_its_last_digit(page: Path) -> None:
+    # The last bit differs by platform (Windows from Linux and Pyodide), so such an
+    # example passes on one operating system and fails on another.
+    runnable = "".join(_fences(page, "python", "console", "shell"))
+    assert re.search(r"\d\.\d{13,}", runnable) is None
+
+
+@pytest.mark.parametrize("page", GUIDES, ids=lambda page: page.stem)
 def test_no_example_shows_or_stores_a_key(page: Path) -> None:
     text = _text(page)
     assert re.search(r"[A-Z]+_API_KEY\s*=", text) is None

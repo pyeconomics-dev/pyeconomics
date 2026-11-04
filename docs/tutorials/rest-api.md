@@ -31,7 +31,7 @@ takes them:
 ```console
 $ curl -X POST http://127.0.0.1:8000/v1/models/foundations.time_value/run \
   -d '{"calculation": "present_value", "rate": 0.05, "periods": 10, "future_value": 100}'
-..."outputs":{"calculation":"present_value","present_value":61.391325354075946}...
+..."outputs":{"calculation":"present_value","present_value":61.3913253540...
 ```
 
 The answer is the same bytes `Result.to_json()` gives in Python, so a result is
@@ -74,7 +74,7 @@ Both forms answer the same bytes:
 
 ```console
 $ curl "http://127.0.0.1:8000/v1/models/foundations.time_value/run?inputs=eyJjYWxjdWxhdGlvbiI6InByZXNlbnRfdmFsdWUiLCJmdXR1cmVfdmFsdWUiOjEwMCwicGVyaW9kcyI6MTAsInJhdGUiOjAuMDV9"
-..."present_value":61.391325354075946...
+..."present_value":61.3913253540...
 ```
 
 ## Download a file

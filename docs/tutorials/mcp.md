@@ -74,8 +74,8 @@ Now call one, as your assistant would:
 ...             },
 ...         )
 >>> answer = anyio.run(present_value)
->>> json.loads(answer.content[0].text)["outputs"]["present_value"]
-61.391325354075946
+>>> round(json.loads(answer.content[0].text)["outputs"]["present_value"], 2)
+61.39
 ```
 
 The first block of the answer is the same canonical JSON as every other surface,

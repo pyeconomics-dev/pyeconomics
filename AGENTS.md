@@ -843,6 +843,10 @@ migration guide (ADR-0007):
   a session fails, so an install line goes in `text`, as do R and Power Query. A
   block of Python never hides in `text`: 0.2.x's calls in `migration.md` are the
   one exception.
+- No page shows a float to its last digit: `foundations.time_value`'s present
+  value is `61.391325354075946` on Windows and `61.39132535407593` on Linux and
+  in Pyodide, so an example that passes on one fails on another. Round it in a
+  `python` block; in a `console` block, end the digits with `...`.
 - Every `>>>` line is a Sybil example of its own. Elsewhere in `docs/` each
   example is isolated, so state does not carry between them; in `GUIDES` it does,
   and a series a page already fetched serves offline, so a `shell` block there

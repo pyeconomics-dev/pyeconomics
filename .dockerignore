@@ -72,6 +72,7 @@ coverage.json
 # Documentation, tests, scripts, Node tooling and the web app
 docs/
 docs/_build/
+docs/study-paths/
 docs/reference/models/
 docs/reference/providers/
 docs/reference/concepts/

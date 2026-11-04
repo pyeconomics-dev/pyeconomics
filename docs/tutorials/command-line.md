@@ -28,7 +28,7 @@ one. By default you get the canonical JSON the Python API gives, byte for byte:
 
 ```console
 $ pyeconomics models run foundations.time_value --calculation present_value --rate 0.05 --periods 10 --future-value 100
-..."outputs":{"calculation":"present_value","present_value":61.391325354075946}...
+..."outputs":{"calculation":"present_value","present_value":61.3913253540...
 ```
 
 Rates are decimals here too: `--rate 0.05` is five percent. `--help` lists a
@@ -45,7 +45,7 @@ JSON suits a program. `--format table` suits you:
 ```console
 $ pyeconomics models run foundations.time_value --calculation present_value --rate 0.05 --periods 10 --future-value 100 --format table
 Time value of money (foundations.time_value, version 2)
-present_value  61.391325354075946  money
+present_value  61.3913253540...  money
 ```
 
 `--format csv` gives a row a spreadsheet can read, below a block of `#` lines
