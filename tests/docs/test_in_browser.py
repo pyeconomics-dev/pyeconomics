@@ -212,6 +212,13 @@ def test_each_page_is_listed_and_driven_by_the_browser_check(
     assert f'page: "{page}"' in _text(SPEC)
 
 
+def test_a_page_is_one_file_so_a_reader_does_not_trip_the_hosts_rate_limit() -> None:
+    # About 310 requests a page otherwise: Read the Docs answers 429, and a reader
+    # sees an error page in place of the example.
+    assert '"--single-file"' in _text(ROOT / "scripts" / "docs" / "export_wasm.py")
+    assert "MOST_FROM_OWN_HOST" in _text(SPEC)
+
+
 def test_the_docs_job_drives_the_examples_in_a_browser() -> None:
     workflow = _text(ROOT / ".github" / "workflows" / "ci.yml")
     assert "npm run e2e:wasm" in workflow

@@ -7200,7 +7200,14 @@ phase-boundary hygiene.
       wasm.marimo.app for its package list. Each page names a
       committed lockfile instead (AGENTS.md "Documentation
       rules"), which gives the pinned runtime and wheel this
-      step's security block requires.
+      step's security block requires. Corrected again by the
+      Deployed & verified check, 2026-11-04: a page exported
+      with shared assets makes about 310 requests, which
+      Read the Docs answers 429, so each page is one file
+      and marimo's frontend loads from jsDelivr at the locked
+      version; and Read the Docs adds its own ad script to
+      every page it serves, which the examples' pinning
+      cannot reach (issue #259).
 
     Files to read (every file before drafting):
     - docs/conf.py, docs/conftest.py, docs/index.md and the

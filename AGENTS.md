@@ -897,10 +897,14 @@ finance tutorials:
   figure drawn during page load is wider than the column, so the theme crops it
   unless it is resized on `load`. Look at a chart after changing this: every test
   and the strict build pass on a chart with no x-axis.
-- An in-browser example is a marimo notebook in `docs/wasm/`, exported with
-  `--mode run --no-show-code` (showing the code puts it, and the Markdown's source,
-  before any result) by `scripts/docs/export_wasm.py` into the build's `wasm/`
-  directory at the end of the build. Each pins `pyeconomics==<version>` in its PEP
+- An in-browser example is a marimo notebook in `docs/wasm/`, exported by
+  `scripts/docs/export_wasm.py` into the build's `wasm/` directory at the end of the
+  build, with `--mode run --no-show-code` (showing the code puts it, and the
+  Markdown's source, before any result) and `--single-file`. That last one is not
+  optional: without it a page is about 310 files, Read the Docs answers that burst
+  429, and a reader sees an error. With it the files load from jsDelivr at marimo's
+  exact version, and `MOST_FROM_OWN_HOST` in the browser check holds the page to a
+  handful of requests to its host. Each pins `pyeconomics==<version>` in its PEP
   723 block, which must be a version on PyPI, says on its page that it runs
   entirely in the browser and needs no install, imports only `datetime`, `json`,
   `marimo` and `pyeconomics`, and runs only models that need no data: live data
@@ -918,9 +922,13 @@ finance tutorials:
   `web/tests/wasm/in-browser.spec.ts` follows marimo's own Pyodide. The lockfile is
   never edited by hand or fetched during a build.
 - `npm run e2e:wasm` in `web/` drives each exported page in Chromium until a
-  model's result shows, in ci.yml's docs job, and fails on any request that is
-  neither the page's origin, marimo's runtime nor a URL in the lockfile. Build the
-  documentation first; `WASM_BASE_URL` points it at a deployed copy.
+  model's result shows, in ci.yml's docs job, and fails on any off-origin request
+  that is not marimo's runtime or frontend or a URL in the lockfile, and on a typed
+  value leaving the page. Build the documentation first. `WASM_BASE_URL` points it
+  at a deployed copy, where it also allows the ad hosts of the script Read the Docs
+  adds to every page it serves, which a local or CI run never sees: run it there,
+  because that host's limits and additions show nowhere else. Read the Docs asks
+  automated access to keep under 4 requests per second, so do not loop it.
 - A finance tutorial is a MyST-NB notebook in `docs/tutorials/finance/`, a track of
   its own beside the six-part `TRACK`. It disables sockets first, uses numbers it
   says are invented, asserts what its prose claims, so a false claim fails the
