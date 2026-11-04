@@ -105,3 +105,24 @@ def test_the_link_sits_before_the_first_section(
     generator.write_pages(tmp_path, registry)
     page = (tmp_path / "foundations" / "time_value.md").read_text("utf-8")
     assert page.index("its web page") < page.index("\n## ")
+
+
+@pytest.mark.parametrize(
+    ("name", "page", "source"),
+    [
+        ("EXAMPLE_GALLERY", "gallery/index.html", "examples/GALLERY_HEADER.rst"),
+        ("IN_BROWSER_EXAMPLES", "wasm/index.html", "wasm/index.md"),
+        (
+            "FINANCE_TUTORIALS",
+            "tutorials/finance/index.html",
+            "tutorials/finance/index.md",
+        ),
+    ],
+)
+def test_the_sites_links_to_the_learning_pages_reach_them(
+    name: str, page: str, source: str
+) -> None:
+    links = (LIB / "links.ts").read_text("utf-8")
+    assert f"export const {name} = `${{DOCUMENTATION}}{page}`;" in links
+    assert f"href: {name} }}" in links
+    assert (ROOT / "docs" / source).exists()

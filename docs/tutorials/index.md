@@ -21,5 +21,7 @@ mcp
 
 Once you know your way around, the {doc}`how-to guides </how-to/index>` give
 recipes for particular jobs, such as getting a result into R or Excel, and the
-reference pages describe every model, source and option. Moving from 0.2.x?
-Start with the {doc}`migration guide </migration>`.
+reference pages describe every model, source and option. The
+{doc}`Python-for-finance tutorials </tutorials/finance/index>` are a separate
+track on the ideas behind the numbers. Moving from 0.2.x? Start with the
+{doc}`migration guide </migration>`.

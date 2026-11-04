@@ -1,0 +1,543 @@
+{
+ "info": {
+  "abi_version": "2026_0",
+  "arch": "wasm32",
+  "platform": "emscripten_5_0_3",
+  "python": "3.14.2"
+ },
+ "packages": {
+  "annotated-types": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/annotated_types-0.7.0-py3-none-any.whl",
+   "imports": [
+    "annotated_types"
+   ],
+   "install_dir": "site",
+   "name": "annotated-types",
+   "package_type": "package",
+   "sha256": "6541523b4b16c1953d2fc9b82fb86c540eea9f78fca329ab371ed13a8b0faa51",
+   "tool": {},
+   "unvendored_tests": true,
+   "version": "0.7.0"
+  },
+  "attrs": {
+   "depends": [
+    "six"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/attrs-26.1.0-py3-none-any.whl",
+   "imports": [
+    "attr",
+    "attrs"
+   ],
+   "install_dir": "site",
+   "name": "attrs",
+   "package_type": "package",
+   "sha256": "0506ebb8e46c83017941a7239eecb2f74420d332cf1f341bddc43a217ab0bb66",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "26.1.0"
+  },
+  "cyclopts": {
+   "depends": [
+    "attrs",
+    "docstring-parser",
+    "rich-rst",
+    "rich"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/e7/99/00ce1a4e8b131b0e0a59a882311bcb9f771e7e39004bd19d988f1dddf303/cyclopts-5.3.0-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "cyclopts",
+   "package_type": "package",
+   "sha256": "479f92942ea286b6c132f64262d82f12b4c71d003f3d3691f572cd6ad4528bb2",
+   "version": "5.3.0"
+  },
+  "defusedxml": {
+   "depends": [],
+   "file_name": "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "defusedxml",
+   "package_type": "package",
+   "sha256": "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61",
+   "version": "0.7.1"
+  },
+  "docstring-parser": {
+   "depends": [],
+   "file_name": "https://files.pythonhosted.org/packages/a7/5f/ed01f9a3cdffbd5a008556fc7b2a08ddb1cc6ace7effa7340604b1d16699/docstring_parser-0.18.0-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "docstring-parser",
+   "package_type": "package",
+   "sha256": "b3fcbed555c47d8479be0796ef7e19c2670d428d72e96da63f3a40122860374b",
+   "version": "0.18.0"
+  },
+  "docutils": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/docutils-0.22.4-py3-none-any.whl",
+   "imports": [
+    "docutils"
+   ],
+   "install_dir": "site",
+   "name": "docutils",
+   "package_type": "package",
+   "sha256": "18b2576ba615e9309c5d980d6d20ae24e9c0b775075f540e995bba7a0616fd37",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "0.22.4"
+  },
+  "et-xmlfile": {
+   "depends": [],
+   "file_name": "https://files.pythonhosted.org/packages/c1/8b/5fe2cc11fee489817272089c4203e679c63b570a5aaeb18d852ae3cbba6a/et_xmlfile-2.0.0-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "et-xmlfile",
+   "package_type": "package",
+   "sha256": "7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa",
+   "version": "2.0.0"
+  },
+  "holidays": {
+   "depends": [
+    "python-dateutil"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/a0/f6/59f817df052a81e39bbc23cb10795cf721d14b36a4cf0d897bfe11648a22/holidays-0.106-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "holidays",
+   "package_type": "package",
+   "sha256": "4be3fb5be6a88a232e92f96825e4fab9b80710caabde90b7c476e57ba0ed9f5d",
+   "version": "0.106"
+  },
+  "jedi": {
+   "depends": [
+    "parso"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/jedi-0.19.2-py2.py3-none-any.whl",
+   "imports": [
+    "jedi"
+   ],
+   "install_dir": "site",
+   "name": "jedi",
+   "package_type": "package",
+   "sha256": "14346bd3f7aabb699b9e1223afdfae706f9a391212659d2cbf74c66c715095b4",
+   "tool": {},
+   "unvendored_tests": true,
+   "version": "0.19.2"
+  },
+  "marimo-base": {
+   "depends": [
+    "docutils",
+    "jedi",
+    "markdown",
+    "micropip",
+    "msgspec",
+    "narwhals",
+    "packaging",
+    "pygments",
+    "pymdown-extensions",
+    "pyodide-http"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/76/f7/c8c4bea1b350d200378c53d3acee11e06d29634ebde9dffe7aac7dda8120/marimo_base-0.25.2-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "marimo",
+   "package_type": "package",
+   "sha256": "9daea77b550c5954193b9c3f69405b4cddb5114e305d06b4a251a0c4fbaf5639",
+   "version": "0.25.2"
+  },
+  "markdown": {
+   "depends": [],
+   "file_name": "https://files.pythonhosted.org/packages/fe/66/bcab3b677b71ad286b4e607e3427499537c76e13ad2e22584ba7a7d9882c/markdown-3.11.2-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "markdown",
+   "package_type": "package",
+   "sha256": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5",
+   "version": "3.11.2"
+  },
+  "micropip": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/micropip-0.11.1-py3-none-any.whl",
+   "imports": [
+    "micropip"
+   ],
+   "install_dir": "site",
+   "name": "micropip",
+   "package_type": "package",
+   "sha256": "e2d52886594fd4cd0d0847110a1c34ae0134d3a970eb4496d3b5eb31ee2d8af6",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "0.11.1"
+  },
+  "msgspec": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/msgspec-0.20.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+   "imports": [
+    "msgspec"
+   ],
+   "install_dir": "site",
+   "name": "msgspec",
+   "package_type": "package",
+   "sha256": "2a4075cee8afc2c0424c63ae1a9b0655e727478df7fa2eb78f86f846fc5fb4bd",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "0.20.0"
+  },
+  "narwhals": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/narwhals-2.18.1-py3-none-any.whl",
+   "imports": [
+    "narwhals"
+   ],
+   "install_dir": "site",
+   "name": "narwhals",
+   "package_type": "package",
+   "sha256": "1cc4f6985e9d93cd427ea20ff8248d0b6ef9ba385971162462bfb2666aea737f",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.18.1"
+  },
+  "numpy": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/numpy-2.4.6-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+   "imports": [
+    "numpy"
+   ],
+   "install_dir": "site",
+   "name": "numpy",
+   "package_type": "package",
+   "sha256": "a292c1f5d7d8a2208cd5e94fc467604c131cabcd2fc14fed6eefde121e7fabdf",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.4.6"
+  },
+  "openpyxl": {
+   "depends": [
+    "et-xmlfile"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "openpyxl",
+   "package_type": "package",
+   "sha256": "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2",
+   "version": "3.1.5"
+  },
+  "packaging": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/packaging-26.1-py3-none-any.whl",
+   "imports": [
+    "packaging"
+   ],
+   "install_dir": "site",
+   "name": "packaging",
+   "package_type": "package",
+   "sha256": "565acbbea54da30348b6d68b6a54373e6f777987db9f1db6966b4b3a5060d303",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "26.1"
+  },
+  "pandas": {
+   "depends": [
+    "numpy",
+    "python-dateutil",
+    "pytz"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pandas-3.0.2-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+   "imports": [
+    "pandas"
+   ],
+   "install_dir": "site",
+   "name": "pandas",
+   "package_type": "package",
+   "sha256": "45ff57772cc2f366a8582c7d3097cc4e6676342ecd5a3c08184a43462d5a02ae",
+   "tool": {},
+   "unvendored_tests": true,
+   "version": "3.0.2"
+  },
+  "parso": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/parso-0.8.6-py2.py3-none-any.whl",
+   "imports": [
+    "parso"
+   ],
+   "install_dir": "site",
+   "name": "parso",
+   "package_type": "package",
+   "sha256": "6a4e296bc54f0e3489ce61ff9f30e9538dc382bdae10fa6413b34000883385d8",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "0.8.6"
+  },
+  "platformdirs": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/platformdirs-4.9.4-py3-none-any.whl",
+   "imports": [
+    "platformdirs"
+   ],
+   "install_dir": "site",
+   "name": "platformdirs",
+   "package_type": "package",
+   "sha256": "1de70d009fc1521dada980ea569604573b6dbf3bc2cd24bbf4a99a2e0da5ce1d",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "4.9.4"
+  },
+  "pydantic": {
+   "depends": [
+    "typing-extensions",
+    "pydantic_core",
+    "annotated-types",
+    "typing-inspection"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pydantic-2.12.5-py3-none-any.whl",
+   "imports": [
+    "pydantic"
+   ],
+   "install_dir": "site",
+   "name": "pydantic",
+   "package_type": "package",
+   "sha256": "04854875001e07a8a74d87b7c80296cba168773d8c9804e232d695f82484d7d7",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.12.5"
+  },
+  "pydantic-core": {
+   "depends": [
+    "typing-extensions"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pydantic_core-2.41.5-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+   "imports": [
+    "pydantic_core"
+   ],
+   "install_dir": "site",
+   "name": "pydantic_core",
+   "package_type": "package",
+   "sha256": "54703fa42a0d4d574283cfb8f08050ba7820c9a42b0a21bc1286407d9a9e54da",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.41.5"
+  },
+  "pyeconomics": {
+   "depends": [
+    "cyclopts",
+    "defusedxml",
+    "holidays",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "platformdirs",
+    "pydantic",
+    "scipy",
+    "urllib3",
+    "xlrd"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/1a/ec/81ba39212aacf1dd5c5c5245f6d285efc859c1148a497007659d7a69babe/pyeconomics-1.0.0b1-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "pyeconomics",
+   "package_type": "package",
+   "sha256": "7ff0b9349353e41baee130169426215db4202b1a1536c5cb83192b491f55b7e1",
+   "version": "1.0.0b1"
+  },
+  "pygments": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pygments-2.20.0-py3-none-any.whl",
+   "imports": [
+    "pygments"
+   ],
+   "install_dir": "site",
+   "name": "Pygments",
+   "package_type": "package",
+   "sha256": "6e0fd0e83d3e725a668aa73110112ffe67e59feb4516eeff3a0b8c12a236462f",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.20.0"
+  },
+  "pymdown-extensions": {
+   "depends": [
+    "markdown",
+    "pyyaml"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/a6/43/9f45ec4d14e596efc32c925a78104934790438b0c0628b70d741016734ad/pymdown_extensions-11.0.2-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "pymdown-extensions",
+   "package_type": "package",
+   "sha256": "259910762019732caa1dfd76f3faa62c59f191d46573e80bcb1d13c0f675bbe5",
+   "version": "11.0.2"
+  },
+  "pyodide-http": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide_http-0.2.2-py3-none-any.whl",
+   "imports": [
+    "pyodide_http"
+   ],
+   "install_dir": "site",
+   "name": "pyodide-http",
+   "package_type": "package",
+   "sha256": "f987d500bccd6ef49b6a9b8dcdb9b2fc41fd6f5b0e7305cef06acfcd74bbc55f",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "0.2.2"
+  },
+  "python-dateutil": {
+   "depends": [
+    "six"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+   "imports": [
+    "dateutil"
+   ],
+   "install_dir": "site",
+   "name": "python-dateutil",
+   "package_type": "package",
+   "sha256": "9b13365edf9c188f570baf9c540bbb3029ada2a2dacb9694b3659941693ee9e5",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.9.0.post0"
+  },
+  "pytz": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pytz-2026.1.post1-py2.py3-none-any.whl",
+   "imports": [
+    "pytz"
+   ],
+   "install_dir": "site",
+   "name": "pytz",
+   "package_type": "package",
+   "sha256": "b8249d6450146e0b61e6d710dc02ebb35a904796c4c2f97fe87d4ac5872db36a",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2026.1.post1"
+  },
+  "pyyaml": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyyaml-6.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+   "imports": [
+    "_yaml",
+    "yaml"
+   ],
+   "install_dir": "site",
+   "name": "pyyaml",
+   "package_type": "package",
+   "sha256": "a05d2a48c13ed72a8c60c73b30b753a25c3a591bb66c15428b7e95e69a9e806f",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "6.0.3"
+  },
+  "rich": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/rich-14.3.3-py3-none-any.whl",
+   "imports": [
+    "rich"
+   ],
+   "install_dir": "site",
+   "name": "rich",
+   "package_type": "package",
+   "sha256": "9fa51aa452866411887e3b3b6ffdfec4a8f84ef14662343505a61e8bc5d64ef5",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "14.3.3"
+  },
+  "rich-rst": {
+   "depends": [
+    "rich",
+    "pygments"
+   ],
+   "file_name": "https://files.pythonhosted.org/packages/d1/4e/716b42bf066e180c1235783b46f095a5d871d05dca7006d2295aac29c491/rich_rst-2.2.0-py3-none-any.whl",
+   "imports": [],
+   "install_dir": "site",
+   "name": "rich-rst",
+   "package_type": "package",
+   "sha256": "1ea1c43813dc4a8d86475fce27ffb74e0ada3d4656c9f8130ba2a59868055fe9",
+   "version": "2.2.0"
+  },
+  "scipy": {
+   "depends": [
+    "numpy"
+   ],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/scipy-1.18.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+   "imports": [
+    "scipy"
+   ],
+   "install_dir": "site",
+   "name": "scipy",
+   "package_type": "package",
+   "sha256": "17ee329a957863516d1bb6a6aaa0c60576fac027e9cd3d43de27f58b5b599b50",
+   "tool": {},
+   "unvendored_tests": true,
+   "version": "1.18.0"
+  },
+  "six": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/six-1.17.0-py2.py3-none-any.whl",
+   "imports": [
+    "six"
+   ],
+   "install_dir": "site",
+   "name": "six",
+   "package_type": "package",
+   "sha256": "228c50f73aa7addf2c2ccf2979c256802a59ab69cad8152b31b9443cc8140f42",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "1.17.0"
+  },
+  "typing-extensions": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/typing_extensions-4.15.0-py3-none-any.whl",
+   "imports": [
+    "typing_extensions"
+   ],
+   "install_dir": "site",
+   "name": "typing-extensions",
+   "package_type": "package",
+   "sha256": "4fec68770a05408e668a4fa53d6bf4f0f684b9dacf820c7c5d6e97d3ad225e29",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "4.15.0"
+  },
+  "typing-inspection": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/typing_inspection-0.4.2-py3-none-any.whl",
+   "imports": [
+    "typing_inspection"
+   ],
+   "install_dir": "site",
+   "name": "typing-inspection",
+   "package_type": "package",
+   "sha256": "deb989630985f7a7296b90357a947a804a7612cecbb6439d6e71128e01f61051",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "0.4.2"
+  },
+  "urllib3": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/urllib3-2.6.3-py3-none-any.whl",
+   "imports": [
+    "urllib3"
+   ],
+   "install_dir": "site",
+   "name": "urllib3",
+   "package_type": "package",
+   "sha256": "86b7c1af060597b115bcde5e36798039ca50b221afe14aa03d3437ac09b02a75",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.6.3"
+  },
+  "xlrd": {
+   "depends": [],
+   "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/xlrd-2.0.2-py2.py3-none-any.whl",
+   "imports": [
+    "xlrd"
+   ],
+   "install_dir": "site",
+   "name": "xlrd",
+   "package_type": "package",
+   "sha256": "3829769da32d8eeb6299d1e9193b8425a5852cd5714b20848b0e9d305efc1334",
+   "tool": {},
+   "unvendored_tests": false,
+   "version": "2.0.2"
+  }
+ }
+}

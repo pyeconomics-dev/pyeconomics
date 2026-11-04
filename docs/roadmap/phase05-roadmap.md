@@ -6864,9 +6864,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 12 — Documentation: Gallery, In-Browser Examples and Finance Tutorials
+## Step 12 — Documentation: Gallery, In-Browser Examples and Finance Tutorials ✅
 
-**Status:** Not started
+**Status:** Complete — PR #257 (2026-11-03)
 
 > **Goal:** Add the documentation that teaches through running code.
 > Install sphinx-gallery (ADR-0007) and add `docs/examples/`, a gallery of
@@ -6909,6 +6909,8 @@ Step 19.
 
 Ranked for knowledge, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -7188,11 +7190,17 @@ phase-boundary hygiene.
     - Facts read on 2026-10-29 (re-check at kickoff):
       sphinx-gallery 0.22.1 (BSD-3-Clause); marimo 0.25.2
       (Apache-2.0), whose `export html-wasm` output runs on
-      Pyodide 314 (Python 3.14), installs pure-Python wheels
-      from PyPI through micropip, must be served over HTTP,
-      and needs cross-origin isolation only for interrupts;
-      WebAssembly needs 'wasm-unsafe-eval' where a CSP
-      applies.
+      Pyodide 314.0.0 (Python 3.14), installs pure-Python
+      wheels from PyPI through micropip, must be served over
+      HTTP, and needs cross-origin isolation only for
+      interrupts; WebAssembly needs 'wasm-unsafe-eval' where a
+      CSP applies. Corrected at kickoff, 2026-11-03: that
+      Pyodide bundles SciPy 1.17.1, so the wheel's
+      `scipy>=1.18` cannot install on it, and the export asks
+      wasm.marimo.app for its package list. Each page names a
+      committed lockfile instead (AGENTS.md "Documentation
+      rules"), which gives the pinned runtime and wheel this
+      step's security block requires.
 
     Files to read (every file before drafting):
     - docs/conf.py, docs/conftest.py, docs/index.md and the
@@ -9826,6 +9834,15 @@ hygiene.
       publishes server.json on a published release.
       deploy-production.yml deploys a non-`.dev` `v*` tag
       after the maintainer's approval.
+    - Step 12 note: docs/wasm/'s notebooks pin the published
+      wheel, 1.0.0b1, in the lockfile that fixes everything
+      the in-browser examples load. Once 1.0.0rc1 is on PyPI,
+      move the three notebooks' `pyeconomics==` pin, run
+      `uv run --no-config --group docs python
+      scripts/docs/pin_wasm.py`, and commit the lockfile; a
+      pin to a version PyPI does not hold fails in a browser,
+      and neither the version bump nor the tests can move it
+      for you.
     - Step 10 note: release.yml's build job builds the site
       once (SITE_FLAVOUR=app) and uploads three files, the
       pyeconomics wheel and sdist and the pyeconomics-app
@@ -10809,6 +10826,13 @@ phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 18):
 
+    - Step 12 note: once 1.0.0 is on PyPI, move docs/wasm/'s
+      three notebooks' `pyeconomics==` pin to it, run
+      `uv run --no-config --group docs python
+      scripts/docs/pin_wasm.py`, and commit the lockfile, so
+      `stable`'s in-browser examples run the release they
+      document. `npm run e2e:wasm` with WASM_BASE_URL checks
+      the deployed pages.
     - Step 11 note: the guides speak of the pre-release.
       Once plain `pip install pyeconomics` gives 1.0.0, drop
       `--pre` and `--prerelease allow` from docs/tutorials/,
@@ -11885,7 +11909,7 @@ workflow above maps directly to the corresponding row below.
 | 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Complete — PR #255 |
-| 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
+| 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Complete — PR #257 |
 | 13   | Production platform            | Sonnet 5.5     | Not started        |
 | 14   | Observability + operations     | Sonnet 5.5     | Not started        |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Not started        |

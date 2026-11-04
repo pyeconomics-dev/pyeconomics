@@ -38,6 +38,8 @@ scripts/clients/   the clients job's helpers (retitle, smoke, compare)
 scripts/mcp/       the mcp-inspector job's helper (the Inspector's checks)
 scripts/parity/    the parity job's helper (the installed wheel's surfaces) and
                    check_deployed.py (a deployed API against the wheel)
+scripts/docs/      export_wasm.py, which the documentation build runs, and
+                   pin_wasm.py, which writes the in-browser lockfile by hand
 scripts/web/       the site data export the web app builds from, the
                    calculators' validator compiler, their MCP snippet runner,
                    syllabi.py, the one loader of syllabi/, and
@@ -50,7 +52,10 @@ scripts/legacy/    the 0.2.x fixture recorder, byte-exact: never edit
 docs/adr/          architecture decision records
 docs/roadmap/      the project and phase roadmaps: the ledger of what is done
 docs/tutorials/    the ordered tutorial track; docs/how-to/ the recipes; both,
-                   and docs/migration.md, run as sessions under Sybil
+                   and docs/migration.md, run as sessions under Sybil;
+                   docs/tutorials/finance/ the Python-for-finance notebooks
+docs/examples/     the gallery's scripts, which the documentation build runs
+docs/wasm/         the in-browser marimo notebooks and their pinned lockfile
 web/               the Astro site (Phase 5, ADR-0013 decision 2): its own Node
                    project and lockfile beside tools/node/, its build data only
                    from scripts/web/export_site_data.py; csp.config.ts holds
@@ -875,6 +880,54 @@ migration guide (ADR-0007):
   against that product's documentation, or try it: micropip under Node with the
   `pyodide` npm package is what told `xlwings-lite.md` that a bare `pyeconomics`
   line fails, because it resolves to 0.2.6.
+
+From Phase 5 Step 12, which builds the gallery, the in-browser examples and the
+finance tutorials:
+
+- A gallery script is `docs/examples/<domain>_<topic>.py`: the file header, a
+  reStructuredText title and explanation in its docstring (sphinx-gallery's page),
+  a link to a model's page, and `# %%` text blocks. Every registry domain needs one
+  (`tests/docs/test_examples_gallery.py`, which also runs them under pytest's
+  rules). A script reads no data, and one that runs a model with a chart draws it
+  with `.plot()`. The build runs them in-process, under `conf.py`'s audit hook.
+  sphinx-gallery skips a script whose text has not changed, so after changing
+  `docs/_ext/gallery_figures.py` delete `docs/gallery/` to see the result.
+- `gallery_figures.py` is what keeps a figure off every CDN and whole: Plotly's
+  stock HTML renderer adds MathJax from one even when it embeds Plotly.js, and a
+  figure drawn during page load is wider than the column, so the theme crops it
+  unless it is resized on `load`. Look at a chart after changing this: every test
+  and the strict build pass on a chart with no x-axis.
+- An in-browser example is a marimo notebook in `docs/wasm/`, exported with
+  `--mode run --no-show-code` (showing the code puts it, and the Markdown's source,
+  before any result) by `scripts/docs/export_wasm.py` into the build's `wasm/`
+  directory at the end of the build. Each pins `pyeconomics==<version>` in its PEP
+  723 block, which must be a version on PyPI, says on its page that it runs
+  entirely in the browser and needs no install, imports only `datetime`, `json`,
+  `marimo` and `pyeconomics`, and runs only models that need no data: live data
+  stays out until #114 and #116 close. A chart uses Vega-Lite through `_mime_`,
+  which marimo's page already holds, so no chart library joins the download.
+- marimo's export runs Pyodide 314.0.0, which bundles SciPy 1.17, below the wheel's
+  floor, and asks `wasm.marimo.app` for its package list. So each page names
+  `docs/wasm/pyodide-lock.json` through `<marimo-wasm data-pyodide-lockfile-url>`:
+  the packages of the Pyodide `ci.yml`'s pyodide job proves (same
+  `pyemscripten_2026_0` ABI), and what it lacks from PyPI, each with its SHA-256,
+  which Pyodide checks, so `micropip` asks no index and a changed file is refused.
+  After moving the notebooks' pin, marimo or that Pyodide, run `uv run --no-config
+  --group docs python scripts/docs/pin_wasm.py` and commit the lockfile. A marimo
+  bump also moves `__generated_with` in each notebook, and `RUNTIME` in
+  `web/tests/wasm/in-browser.spec.ts` follows marimo's own Pyodide. The lockfile is
+  never edited by hand or fetched during a build.
+- `npm run e2e:wasm` in `web/` drives each exported page in Chromium until a
+  model's result shows, in ci.yml's docs job, and fails on any request that is
+  neither the page's origin, marimo's runtime nor a URL in the lockfile. Build the
+  documentation first; `WASM_BASE_URL` points it at a deployed copy.
+- A finance tutorial is a MyST-NB notebook in `docs/tutorials/finance/`, a track of
+  its own beside the six-part `TRACK`. It disables sockets first, uses numbers it
+  says are invented, asserts what its prose claims, so a false claim fails the
+  build, and ends with `## References` naming each method's originators, checked
+  against the publisher or Crossref, not memory. It names no curriculum, reading
+  or exam (`tests/docs/test_finance_tutorials.py`): teach the skill in our own
+  words.
 
 ## Units
 
