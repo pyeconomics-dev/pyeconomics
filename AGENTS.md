@@ -917,10 +917,13 @@ finance tutorials:
   `pyemscripten_2026_0` ABI), and what it lacks from PyPI, each with its SHA-256,
   which Pyodide checks, so `micropip` asks no index and a changed file is refused.
   After moving the notebooks' pin, marimo or that Pyodide, run `uv run --no-config
-  --group docs python scripts/docs/pin_wasm.py` and commit the lockfile. A marimo
-  bump also moves `__generated_with` in each notebook, and `RUNTIME` in
+  --group docs python scripts/docs/pin_wasm.py` and commit the lockfile; it refuses
+  a Pyodide below the pinned wheel's floors, which Pyodide would load unchecked. A
+  marimo bump is made by hand (Dependabot ignores it): it also moves
+  `__generated_with` in each notebook, and `RUNTIME` in
   `web/tests/wasm/in-browser.spec.ts` follows marimo's own Pyodide. The lockfile is
-  never edited by hand or fetched during a build.
+  never edited by hand or fetched during a build. `pyproject.toml`'s floors do not
+  reach it: the pages run the published wheel, not this checkout.
 - `npm run e2e:wasm` in `web/` drives each exported page in Chromium until a
   model's result shows, in ci.yml's docs job, and fails on any off-origin request
   that is not marimo's runtime or frontend or a URL in the lockfile, and on a typed
