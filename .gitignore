@@ -27,6 +27,7 @@ coverage.json
 
 # Generated documentation builds
 docs/_build/
+docs/study-paths/
 docs/reference/models/
 docs/reference/providers/
 docs/reference/concepts/

@@ -34,6 +34,7 @@ extensions = [
     "autoapi.extension",
     "sphinx.ext.napoleon",
     "model_pages",
+    "study_paths",
     "provider_pages",
     "concept_pages",
     "problem_pages",
@@ -75,7 +76,7 @@ html_favicon = "_static/brand/pyeconomics-mark.svg"
 html_theme_options = {
     "logo": {"text": html_title},
     "announcement": (
-        "1.0 alpha preview: APIs may change. Stable documentation is for 0.2.6."
+        "1.0 preview: APIs may change. Stable documentation is for 0.2.6."
     ),
     "footer_start": ["copyright", "notices-link"],
     "footer_end": ["sphinx-version"],

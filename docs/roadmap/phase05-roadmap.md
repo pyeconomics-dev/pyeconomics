@@ -6399,9 +6399,9 @@ Sol at Intelligence High (50.2) and Quality Opus 5.5 at Effort XHigh
 
 ---
 
-## Step 11 — Documentation: Tutorials, How-To Guides and Migration
+## Step 11 — Documentation: Tutorials, How-To Guides and Migration ✅
 
-**Status:** Not started
+**Status:** Complete — PR #255 (2026-11-03)
 
 > **Goal:** Finish the 1.0 documentation people learn from. Add an ordered
 > tutorial track in `docs/tutorials/` — install, the first model (which
@@ -6446,6 +6446,8 @@ cutover.
 
 Ranked for knowledge, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -7161,6 +7163,15 @@ phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 11):
 
+    - Step 11 note: docs/conftest.py's GUIDES runs every
+      page under docs/tutorials/ and docs/how-to/ as one
+      session (`console`, `shell` and `python` blocks;
+      AGENTS.md "Documentation rules"). tests/docs/
+      test_guides.py holds docs/tutorials/ to the six-part
+      TRACK, so a finance tutorial placed there extends it
+      (or lives in a directory of its own, with its own
+      index entry). A notebook runs under MyST-NB in the
+      build instead, as tutorials/first-model.md does.
     - The 1.0 documentation has the tutorial track, the
       how-to guides, the study paths and the migration
       guide; the build runs with warnings as errors, MyST-NB
@@ -10798,6 +10809,21 @@ phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 18):
 
+    - Step 11 note: the guides speak of the pre-release.
+      Once plain `pip install pyeconomics` gives 1.0.0, drop
+      `--pre` and `--prerelease allow` from docs/tutorials/,
+      docs/how-to/ and docs/installation.md (keep
+      explorer.ts LOCAL_APP equal to local-app.md's
+      command); tutorials/install.md's note; migration.md's
+      "Before you start"; tutorials/mcp.md's "It is not open
+      yet" and its client configuration (with docs/mcp.md's,
+      which tests/docs/test_guides.py holds equal); and
+      xlwings-lite.md's range, which can become
+      `pyeconomics>=1.0,<2` (that test pins the line). Every
+      docs model page and study path links pyeconomics.dev,
+      which answers only from this cutover: click through a
+      sample of them as part of the Deployed & verified
+      check.
     - docs/releases/1.0.0-readiness.md ends in the
       maintainer's decision. Production runs 1.0.0rc1 behind
       Access; its redirect rules exist, disabled; staging
@@ -11858,7 +11884,7 @@ workflow above maps directly to the corresponding row below.
 | 8    | Snapshot data plane            | Gemini 4 Argon | Complete — PR #242 |
 | 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
-| 11   | Docs: guides + migration       | Gemini 4 Argon | Not started        |
+| 11   | Docs: guides + migration       | Gemini 4 Argon | Complete — PR #255 |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
 | 13   | Production platform            | Sonnet 5.5     | Not started        |
 | 14   | Observability + operations     | Sonnet 5.5     | Not started        |

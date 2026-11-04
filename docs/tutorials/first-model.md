@@ -7,8 +7,9 @@ kernelspec:
 
 # Your first model
 
-This notebook runs during every documentation build. It uses only local inputs.
-We will calculate a holding-period return, inspect its evidence and make a table.
+This lesson follows {doc}`install`. It is a notebook that runs during every
+documentation build, and it uses only local inputs. We will calculate a
+holding-period return, inspect its evidence and make a table.
 
 ```{code-cell} ipython3
 :tags: [remove-cell]
@@ -55,3 +56,10 @@ table
 
 This example is educational, not investment advice. It describes a hypothetical
 investment and makes no claim about future performance.
+
+## Next
+
+Every model has a page like that card in the
+{doc}`model reference </reference/models/index>`, and a page on
+[pyeconomics.dev](https://pyeconomics.dev/models/) with a calculator.
+{doc}`data-and-keys` replaces the typed numbers with data from a real source.

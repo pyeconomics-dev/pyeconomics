@@ -49,6 +49,8 @@ scripts/legacy/    the 0.2.x fixture recorder, byte-exact: never edit
 .semgrep/          project semgrep rules and their tests
 docs/adr/          architecture decision records
 docs/roadmap/      the project and phase roadmaps: the ledger of what is done
+docs/tutorials/    the ordered tutorial track; docs/how-to/ the recipes; both,
+                   and docs/migration.md, run as sessions under Sybil
 web/               the Astro site (Phase 5, ADR-0013 decision 2): its own Node
                    project and lockfile beside tools/node/, its build data only
                    from scripts/web/export_site_data.py; csp.config.ts holds
@@ -823,6 +825,56 @@ wheel (decision 16):
   scripts/web/package_site.py`, then `npm run e2e:local` in `web/`. It drives
   `tests/local/` against `tests/web/e2e_api.py --local` (port 8798): the app
   `serve` builds, with the packaged site, over the catalog world's stand-ins.
+
+## Documentation rules
+
+From Phase 5 Step 11, which builds the tutorials, how-to guides, study paths and
+migration guide (ADR-0007):
+
+- A page under `docs/tutorials/` or `docs/how-to/` joins its index's toctree and
+  the lists in `tests/docs/test_guides.py`. It and `docs/migration.md` run under
+  `docs/conftest.py`'s `GUIDES` as one session (`guide_page`: settings, keys,
+  cache, working directory and Treasury's recordings shared by the page), which
+  is what a reader has. In such a page a `python` block runs; a `console` block
+  runs each `$ pyeconomics` line in-process and each `$ curl` line against the
+  real app, every line under a command must appear in what it printed (`...` for
+  text left out) and `$ echo $?` gives its exit code; a `shell` block must stop at
+  the data with exit 7 offline; a `text` block does not run. Any other program in
+  a session fails, so an install line goes in `text`, as do R and Power Query. A
+  block of Python never hides in `text`: 0.2.x's calls in `migration.md` are the
+  one exception.
+- No page shows a float to its last digit: `foundations.time_value`'s present
+  value is `61.391325354075946` on Windows and `61.39132535407593` on Linux and
+  in Pyodide, so an example that passes on one fails on another. Round it in a
+  `python` block; in a `console` block, end the digits with `...`.
+- Every `>>>` line is a Sybil example of its own. Elsewhere in `docs/` each
+  example is isolated, so state does not carry between them; in `GUIDES` it does,
+  and a series a page already fetched serves offline, so a `shell` block there
+  must read something the page has not.
+- An example that reads data says its output is recorded, and names the source's
+  licence class and attribution (`tests/docs/test_guides.py`). No key appears in
+  any example; one is set only with `keys set` and its hidden prompt, and a
+  missing key is shown on a concept, whose resolver refuses before any request:
+  a provider series reaches the check only in the real transport, which a replay
+  skips. A recording answers only its own window, so of the series transforms
+  only `log`, which needs no wider fetch, runs against one.
+- Study paths are generated: `docs/_ext/study_paths.py` writes the git-ignored
+  `docs/study-paths/` from `scripts/web/syllabi.py`, one page per level, each
+  path carrying the syllabus's neutral id. Its pages hold only the crosswalk's
+  names and links and our own pages; a new issuer's marks join `NOTICES`.
+- Each model's documentation page links its web page (`model_pages.web_url`).
+  `tests/docs/test_cross_links.py` reads the site's rules from the TypeScript and
+  holds the two sets equal, and `web/tests/site/site.test.ts` proves each built
+  page links back. `explorer.ts LOCAL_APP` is the command `docs/how-to/local-app.md`
+  gives (`tests/web/test_explorer_constants.py`).
+- `docs/migration.md`'s worked examples are held to `tests/fixtures/legacy/` by
+  `tests/docs/test_migration_page.py`, which reads them and never edits them; use
+  cases that match exactly, not a half-way value or a rate at the lower bound.
+  Its table lists everything 0.2.x exported, and what it names in 1.0 must exist.
+- Check a claim about another product (xlwings Lite, Power Query, R's arrow)
+  against that product's documentation, or try it: micropip under Node with the
+  `pyodide` npm package is what told `xlwings-lite.md` that a bare `pyeconomics`
+  line fails, because it resolves to 0.2.6.
 
 ## Units
 
