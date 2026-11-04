@@ -27,8 +27,9 @@ The examples load what is pinned and nothing else:
   page's lockfile and checked as it arrives, so a changed file is refused.
 
 Read the Docs, which hosts this documentation, adds a script of its own to every
-page here, these included, and that script can show an ad. It is part of the
-hosting, not of the examples, and what you type is not sent to it.
+page here, these included, and that script can show an ad, which it chooses from
+the page's text. It is part of the hosting, not of the examples, and what you type
+is not sent to it.
 
 They use models that need no data: every input is a number you type, so these pages
 call no data source and hold no key. They run the published `pyeconomics` release

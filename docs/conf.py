@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Sphinx configuration for the 1.0 documentation preview."""
 
+import os
 import sys
 from importlib.metadata import version as distribution_version
 from ipaddress import ip_address
@@ -31,6 +32,9 @@ project = "pyeconomics"
 copyright = "2026, Nathan Ramos, CFA"  # noqa: A001
 author = "Nathan Ramos, CFA"
 release = distribution_version("pyeconomics")
+# Read the Docs passes each version's address on its canonical domain, and serves
+# every page at two addresses, so each page must say which one counts.
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 extensions = [
     "myst_nb",
     "autoapi.extension",

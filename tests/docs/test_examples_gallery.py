@@ -89,6 +89,12 @@ def test_a_failing_script_fails_the_build() -> None:
     assert '"abort_on_example_error": True' in _text(DOCS / "conf.py")
 
 
+def test_a_page_names_its_canonical_address() -> None:
+    # Read the Docs serves a page at its custom domain and at readthedocs.io, and
+    # leaves saying which one counts to the build.
+    assert 'os.environ.get("READTHEDOCS_CANONICAL_URL", "")' in _text(DOCS / "conf.py")
+
+
 def test_a_figure_loads_nothing_from_another_origin() -> None:
     renderer = _text(DOCS / "_ext" / "gallery_figures.py")
     assert "include_plotlyjs=_PLOTLY_JS" in renderer
