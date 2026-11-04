@@ -166,14 +166,25 @@ def test_every_dependency_of_a_locked_package_is_locked_too(
         assert depends <= set(packages), name
 
 
-def test_the_lockfile_meets_the_wheels_floors(lock: dict[str, Any]) -> None:
-    # marimo's Pyodide 314.0.0 bundles SciPy 1.17, which this floor refuses.
-    project = tomllib.loads(_text(ROOT / "pyproject.toml"))["project"]
-    for line in project["dependencies"]:
-        requirement = Requirement(line)
-        if requirement.marker is None:
-            locked = lock["packages"][requirement.name]["version"]
-            assert requirement.specifier.contains(locked, prereleases=True), line
+def test_the_pin_script_refuses_a_lockfile_below_the_wheels_floors() -> None:
+    # marimo's Pyodide 314.0.0 bundles SciPy 1.17, which the wheel's floor refuses,
+    # and Pyodide would load it unchecked.
+    floor = [Requirement("scipy>=1.18")]
+    unmet = _script("pin_wasm").unmet
+    assert unmet(floor, {"scipy": {"version": "1.17.1"}}) == ["scipy>=1.18"]
+    assert unmet(floor, {"scipy": {"version": "1.18.0"}}) == []
+
+
+def test_the_lockfile_holds_the_scipy_the_wheel_needs(lock: dict[str, Any]) -> None:
+    assert (
+        _script("pin_wasm").unmet([Requirement("scipy>=1.18")], lock["packages"]) == []
+    )
+
+
+def test_dependabot_leaves_marimo_alone() -> None:
+    # A bump moves the notebooks and the lockfile with it, so it is done by hand.
+    config = _text(ROOT / ".github" / "dependabot.yml")
+    assert "dependency-name: marimo" in config
 
 
 def test_the_runtime_is_the_one_the_pyodide_job_proves(

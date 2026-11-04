@@ -15,6 +15,10 @@ from their own origin:
 - every entry names one URL and its SHA-256, which Pyodide checks, so `micropip`
   resolves the notebooks' pin of pyeconomics here and asks no package index.
 
+Pyodide loads what a lockfile names without reading its requirements, so this
+script refuses to write one below the pinned wheel's floors. It is that wheel's
+floors that count, not pyproject.toml's, which belong to a release yet to come.
+
 The closure is pyeconomics, at the version the notebooks pin, and what marimo
 itself loads in the browser. Run this by hand, with the network, after moving that
 pin, marimo or Pyodide, and commit the result; the documentation build reads it
@@ -30,10 +34,13 @@ import re
 import tomllib
 import urllib.request
 from pathlib import Path
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 ROOT: Final = Path(__file__).resolve().parents[2]
 NOTEBOOKS: Final = ROOT / "docs" / "wasm"
@@ -92,7 +99,20 @@ def _uv_locked() -> dict[str, str]:
     return {package["name"]: package.get("version", "") for package in lock["package"]}
 
 
-def _from_pypi(name: str, version: str) -> tuple[dict[str, Any], list[str]]:
+def unmet(
+    requirements: Iterable[Requirement], packages: Mapping[str, Mapping[str, Any]]
+) -> list[str]:
+    """Return the requirements the versions in ``packages`` do not meet."""
+    return [
+        str(requirement)
+        for requirement in requirements
+        if not requirement.specifier.contains(
+            packages[canonicalize_name(requirement.name)]["version"], prereleases=True
+        )
+    ]
+
+
+def _from_pypi(name: str, version: str) -> tuple[dict[str, Any], list[Requirement]]:
     """Return a pure wheel's entry and the requirements that apply in the browser."""
     release = _read(f"{_PYPI}/{name}/{version}/json")
     wheel = next(
@@ -112,7 +132,7 @@ def _from_pypi(name: str, version: str) -> tuple[dict[str, Any], list[str]]:
     }
     required = [Requirement(text) for text in release["info"]["requires_dist"] or ()]
     return entry, [
-        canonicalize_name(requirement.name)
+        requirement
         for requirement in required
         if requirement.marker is None or requirement.marker.evaluate(_BROWSER)
     ]
@@ -124,6 +144,7 @@ def build() -> dict[str, Any]:
     locked = _uv_locked()
     core = _pinned_core()
     packages: dict[str, dict[str, Any]] = {}
+    floors: list[Requirement] = []
 
     marimo, _ = _from_pypi("marimo-base", locked["marimo"])
     # The worker asks for this key, and marimo's own lockfile names it so.
@@ -139,12 +160,18 @@ def build() -> dict[str, Any]:
             entry["file_name"] = _PACKAGES + entry["file_name"]
             depends = list(entry["depends"])
         else:
-            entry, depends = _from_pypi(
-                name, core if name == "pyeconomics" else locked[name]
-            )
+            version = core if name == "pyeconomics" else locked[name]
+            entry, required = _from_pypi(name, version)
+            depends = [canonicalize_name(item.name) for item in required]
             entry["depends"] = depends
+            if name == "pyeconomics":
+                floors = required
         packages[name] = entry
         pending.extend(depends)
+    below = unmet(floors, packages)
+    if below:
+        message = f"pyeconomics=={core} needs {below}: move the Pyodide this pins"
+        raise SystemExit(message)
     return {"info": pyodide["info"], "packages": packages}
 
 
