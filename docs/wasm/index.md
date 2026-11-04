@@ -18,13 +18,17 @@ Allow a little while, and use a desktop browser if you can.
 
 ## What these pages load
 
-They load what is pinned and nothing else:
+The examples load what is pinned and nothing else:
 
-- the Pyodide runtime, which is Python compiled to WebAssembly, at a fixed version,
-  from jsDelivr;
+- the Pyodide runtime, which is Python compiled to WebAssembly, and marimo's
+  frontend, each at a fixed version, from jsDelivr;
 - Pyodide's packages, also from jsDelivr, and the `pyeconomics` wheel and the other
   pure-Python wheels it needs, from PyPI. Each one's SHA-256 is listed in the
   page's lockfile and checked as it arrives, so a changed file is refused.
+
+Read the Docs, which hosts this documentation, adds a script of its own to every
+page here, these included, and that script can show an ad. It is part of the
+hosting, not of the examples, and what you type is not sent to it.
 
 They use models that need no data: every input is a number you type, so these pages
 call no data source and hold no key. They run the published `pyeconomics` release
@@ -34,7 +38,6 @@ To run a model on live data, {doc}`install the library </tutorials/install>`.
 The pages are [marimo](https://marimo.io) notebooks, and the source of each is in
 the repository's
 [`docs/wasm/`](https://github.com/pyeconomics-dev/pyeconomics/tree/main/docs/wasm)
-directory. marimo's frontend ships with these pages under its
-<a href="marimo-LICENSE.txt">Apache-2.0 licence</a>.
+directory.
 
 These examples are educational, not investment advice.

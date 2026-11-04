@@ -3,7 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 """Export the in-browser examples with `marimo export html-wasm`.
 
-Each notebook in docs/wasm/ becomes one page, and the pages share marimo's assets.
+Each notebook in docs/wasm/ becomes one self-contained page. `--single-file` is
+what makes a page safe to host on Read the Docs: without it a page is about 310
+files of marimo's frontend, and that burst of requests from one reader is answered
+429, which shows the reader an error. With it those files load from jsDelivr, at
+the exact version the page was exported with.
+
 Every page names docs/wasm/pyodide-lock.json, copied beside it, so a reader's
 browser loads only what that lockfile pins, by SHA-256 (`pin_wasm.py` explains
 why). The export reads that lockfile too, so it needs no network.
@@ -20,7 +25,6 @@ import os
 import shutil
 import subprocess  # nosec B404 # runs marimo with a fixed argument list
 import sys
-from importlib.metadata import distribution
 from pathlib import Path
 from typing import Final
 
@@ -33,8 +37,6 @@ _MOUNT: Final = '<marimo-wasm hidden=""></marimo-wasm>'
 _PINNED: Final = (
     f'<marimo-wasm hidden="" data-pyodide-lockfile-url="./{LOCKFILE}"></marimo-wasm>'
 )
-#: A note marimo leaves for coding assistants, not for a reader.
-_NOT_PUBLISHED: Final = "CLAUDE.md"
 
 
 def page_name(notebook: Path) -> str:
@@ -69,6 +71,7 @@ def export(output: Path) -> list[Path]:
                 str(notebook),
                 "--output",
                 str(page),
+                "--single-file",
                 "--mode",
                 "run",
                 "--no-show-code",
@@ -80,16 +83,7 @@ def export(output: Path) -> list[Path]:
         )
         page.write_bytes(pin(page.read_text(encoding="utf-8")).encode("utf-8"))
         pages.append(page)
-    (output / _NOT_PUBLISHED).unlink(missing_ok=True)
     shutil.copyfile(NOTEBOOKS / LOCKFILE, output / LOCKFILE)
-    # marimo's frontend is redistributed in these assets, under its Apache-2.0.
-    licence = distribution("marimo").read_text("licenses/LICENSE")
-    if licence is None:
-        message = (
-            "marimo's wheel carries no licenses/LICENSE to publish with its assets"
-        )
-        raise SystemExit(message)
-    (output / "marimo-LICENSE.txt").write_bytes(licence.encode("utf-8"))
     return pages
 
 
