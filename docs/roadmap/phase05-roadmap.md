@@ -6864,9 +6864,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 12 — Documentation: Gallery, In-Browser Examples and Finance Tutorials
+## Step 12 — Documentation: Gallery, In-Browser Examples and Finance Tutorials ✅
 
-**Status:** Not started
+**Status:** Complete — PR #257 (2026-11-03)
 
 > **Goal:** Add the documentation that teaches through running code.
 > Install sphinx-gallery (ADR-0007) and add `docs/examples/`, a gallery of
@@ -6909,6 +6909,8 @@ Step 19.
 
 Ranked for knowledge, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-03: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -11907,7 +11909,7 @@ workflow above maps directly to the corresponding row below.
 | 9    | Data explorer + user data      | Gemini 4 Argon | Complete — PR #252 |
 | 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Complete — PR #255 |
-| 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Not started        |
+| 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Complete — PR #257 |
 | 13   | Production platform            | Sonnet 5.5     | Not started        |
 | 14   | Observability + operations     | Sonnet 5.5     | Not started        |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Not started        |
