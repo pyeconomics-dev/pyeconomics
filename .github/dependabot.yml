@@ -26,13 +26,19 @@ updates:
     commit-message:
       prefix: chore(deps)
 
-  # Above the default of five: five older pull requests held every slot from
-  # 2026-10-14, and Harden Runner's v2.22.3 never got one.
+  # The minor and patch updates share one pull request: one each ran the whole
+  # of CI, and on 2026-11-05 that held the live heartbeat and staging-health in
+  # the queue for hours. The limit stays above the default of five because five
+  # older pull requests held every slot from 2026-10-14, and Harden Runner's
+  # v2.22.3 never got one.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 15
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
     commit-message:
       prefix: chore(ci)
 
