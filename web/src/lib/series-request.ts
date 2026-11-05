@@ -64,9 +64,10 @@ let mode: Promise<ServerMode> | null = null;
 export function serverMode(send: typeof fetch = globalThis.fetch): Promise<ServerMode> {
   mode ??= send("/version", { headers: { Accept: "application/json" } })
     .then(async (response) => {
-      if (!response.ok) return "hosted" as const;
+      // Read whatever the status: a body left unread keeps the request open,
+      // and a page that holds one never goes quiet on the network.
       const found = ((await response.json()) as { mode?: unknown }).mode;
-      return found === "local" ? ("local" as const) : ("hosted" as const);
+      return response.ok && found === "local" ? ("local" as const) : ("hosted" as const);
     })
     .catch(() => "hosted" as const);
   return mode;

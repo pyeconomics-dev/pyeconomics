@@ -47,6 +47,25 @@ export const CATEGORIES = ["performance", "accessibility", "best-practices", "se
 /** The traces kept of runs with a long task no script accounts for. */
 export const MAX_TRACES = 3;
 
+/** The attempts at one run before the page is reported as not measured. */
+export const ATTEMPTS = 3;
+
+/**
+ * Why a run measured nothing, or null if it measured every category. Such a
+ * run has no score, which is not a score of 0: `NO_NAVSTART`, a trace with no
+ * navigation in it, took about one run in twenty-five in CI on pages that
+ * score 100.
+ */
+export function unmeasured(lhr: {
+  runtimeError?: { code?: string } | undefined;
+  categories: Record<string, { score: number | null } | undefined>;
+}): string | null {
+  if (lhr.runtimeError) return lhr.runtimeError.code ?? "a runtime error";
+  const found = new Map(Object.entries(lhr.categories));
+  const missing = CATEGORIES.filter((category) => typeof found.get(category)?.score !== "number");
+  return missing.length > 0 ? `no score for ${missing.join(", ")}` : null;
+}
+
 /**
  * Whether a run's long tasks include one Lighthouse attributes to no script
  * and longer than 300 ms. In Phase 5 Step 6 a shared Chrome showed one in most
@@ -136,6 +155,19 @@ async function measure(url: string): Promise<RunnerResult> {
   }
 }
 
+/** One run that measured every category, however many attempts that took. */
+async function measured(url: string): Promise<RunnerResult> {
+  let reason = "";
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+    const result = await measure(url);
+    const problem = unmeasured(result.lhr);
+    if (problem === null) return result;
+    reason = problem;
+    process.stdout.write(`lighthouse ${url}: attempt ${attempt} measured nothing (${problem})\n`);
+  }
+  throw new Error(`Lighthouse measured nothing for ${url} in ${ATTEMPTS} attempts: ${reason}`);
+}
+
 async function main(): Promise<number> {
   const pages = built(join(WEB, "dist"));
   if (pages.length === 0) {
@@ -156,7 +188,7 @@ async function main(): Promise<number> {
     for (const path of pages) {
       const scores = new Map<string, number[]>(CATEGORIES.map((category) => [category, []]));
       for (let run = 1; run <= RUNS; run += 1) {
-        const result = await measure(`${ORIGIN}${path}`);
+        const result = await measured(`${ORIGIN}${path}`);
         const name = `${path.replaceAll("/", "_") || "_"}run${run}.json`;
         // A name built from a fixed sample path, under .lighthouse/.
         // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
