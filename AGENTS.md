@@ -972,7 +972,10 @@ Rates, returns, yields and percentages are decimals in every API (`0.05`, not
   library must fail the suite.
 - Never cite the CFA Program curriculum in a golden source or a reference.
 - Coverage must stay at or above 95% (branch coverage), and `core/` at 95% and
-  `models/` at 90% on their own (`scripts/checks/coverage_floors.py`).
+  `models/` at 90% on their own (`scripts/checks/coverage_floors.py`). ci.yml's
+  `tests` job measures it on Python 3.14 and later, where coverage's
+  `sys.monitoring` core handles branches; 3.12 and 3.13 run every test without
+  measuring. A branch that only those versions take needs its own check.
 
 ## File headers
 
