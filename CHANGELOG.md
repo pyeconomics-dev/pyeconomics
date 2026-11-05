@@ -58,6 +58,8 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - The version on `main` moves to `1.0.0rc1.dev1`, the first development build
   towards the 1.0.0 release candidate; `CITATION.cff` and the MCP Registry entry
   (`server.json`) follow it.
+- GitHub Sponsors joins thanks.dev in `.github/FUNDING.yml` and `funding.json`,
+  now that the `pyeconomics-dev` listing is live.
 
 ### Fixed
 

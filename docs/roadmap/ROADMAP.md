@@ -1700,14 +1700,11 @@ ChatGPT Pro 5x as backup.
 
 #### 8.1 Gate review & decision memo
 
-- Gate G1 carry-over (issue #68): the `pyeconomics-dev` GitHub Sponsors
-  listing goes live, and `.github/FUNDING.yml` and `funding.json` regain
-  their Sponsors entries. Do it as soon as the listing is approved. If
-  approval is still pending at 8.1, retain issue #68 as a maintainer-owned
-  external follow-up and continue the roadmap; do not invent a live listing
-  or block development, releases or a phase's completion on the response.
-  `verify-phase01.sh` then requires the
-  listing (V11.4), because FUNDING.yml names it.
+- Gate G1 carry-over (issue #68): closed ahead of 8.1. The
+  `pyeconomics-dev` GitHub Sponsors listing went live on 2026-11-04, and
+  `.github/FUNDING.yml` and `funding.json` regained their Sponsors
+  entries. `verify-phase01.sh` requires the listing (V11.4), because
+  FUNDING.yml names it.
 
 - A memo in `docs/decisions/` records the Gate G3 metrics against their
   thresholds, the pricing tests run, and the decision. On no-go, the phase
@@ -2636,7 +2633,7 @@ and an add-in built on PyXLL, which charges every end user $349 a year.
 
 | Gate | When                       | Question                                         | Evidence required                                                                                     | Outcome |
 |------|----------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------|---------|
-| G1   | Phase 1                    | Do licence and brand keep every option open?     | ADR-0004 and ADR-0009 accepted; domains registered; thanks.dev and `funding.json` live; GitHub Sponsors deferred to 8.1 (issue #68; maintainer, 2026-10-08) | Proceed |
+| G1   | Phase 1                    | Do licence and brand keep every option open?     | ADR-0004 and ADR-0009 accepted; domains registered; thanks.dev and `funding.json` live; GitHub Sponsors live 2026-11-04 (issue #68) | Proceed |
 | G2   | Phase 5 launch             | Can demand be measured from day one?             | Cookie-less analytics, newsletter, waitlist with tier interest, a priced "Pro" preview (fake door), API and MCP usage, downloads and stars — all recording | Instrumentation verified live |
 | G3   | The 90 days after the 1.0.0 announcement (ADR-0013 decision 19) | Will people pay, and for what? | At least 1,000 waitlist or newsletter sign-ups, or 1,000 activated users in 90 days; and at least 30 upgrade-intent clicks or pre-orders; and at least 10 interviews in which users confirm they would pay | Go: Phase 8 builds billing and the Pro tier. No-go: sponsorship, education content and consulting continue; the core is unaffected |
 | G4   | Inside Phase 8             | Is there pull beyond the Pro tier?               | At least 50 paying accounts, three consecutive months of recurring-revenue growth, and repeated requests for Excel or offline use | Excel add-in, `pyeconomics-pro`, study companion |

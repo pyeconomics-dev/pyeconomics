@@ -28,6 +28,12 @@
   "funding": {
     "channels": [
       {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/pyeconomics-dev",
+        "description": "GitHub Sponsors, monthly or one-time, for the pyeconomics-dev organization."
+      },
+      {
         "guid": "thanks-dev",
         "type": "payment-provider",
         "address": "https://thanks.dev/u/gh/pyeconomics-dev",
@@ -43,7 +49,7 @@
         "amount": 0,
         "currency": "USD",
         "frequency": "monthly",
-        "channels": ["thanks-dev"]
+        "channels": ["github-sponsors", "thanks-dev"]
       }
     ]
   }
