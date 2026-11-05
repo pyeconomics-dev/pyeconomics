@@ -61,6 +61,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- `open_source_asset_pricing` raises `RateLimitError` when Google Drive answers
+  with its quota page, and `ResponseError` for any other page, instead of
+  reporting that the series does not exist.
 - Every phase verifier (`scripts/verify-phaseNN.sh`) refuses to run under a
   bash older than 4 (exit 2 with a message) instead of stopping at its first
   check and exiting 0, and keeps a crash's exit status through its `EXIT`

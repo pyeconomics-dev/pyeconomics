@@ -24,6 +24,7 @@ from pyeconomics.data import (
     DataWarning,
     LicenceError,
     Query,
+    RateLimitError,
     ResponseError,
     cache,
     configure,
@@ -261,6 +262,23 @@ def test_file_selection_refuses_unknown_or_unsafe_requests(
 ) -> None:
     with pytest.raises(DataError):
         provider().build_requests(query(identifier))
+
+
+def test_google_drives_quota_page_is_a_rate_limit_not_a_missing_series() -> None:
+    page = b"<!DOCTYPE html><html><title>Google Drive - Quota exceeded</title></html>"
+    with pytest.raises(RateLimitError, match="quota") as caught:
+        OpenSourceAssetPricing().parse([ok(page)], query("predictor_long_short"))
+    assert caught.value.provider == OpenSourceAssetPricing.info.id
+
+
+@pytest.mark.parametrize(
+    "page", [b"<!DOCTYPE html><title>Sign in</title>", b"\n <HTML><body>Hi</body>"]
+)
+def test_any_other_drive_page_is_a_bad_response_not_a_missing_series(
+    page: bytes,
+) -> None:
+    with pytest.raises(ResponseError, match="HTML page"):
+        OpenSourceAssetPricing().parse([ok(page)], query("predictor_long_short"))
 
 
 def test_coin_metrics_and_damodaran_usage_conditions_are_machine_readable() -> None:

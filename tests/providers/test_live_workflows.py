@@ -25,6 +25,7 @@ from pyeconomics.data import registry
 WORKFLOWS: Final = Path(__file__).resolve().parents[2] / ".github" / "workflows"
 LIVE: Final = WORKFLOWS / "providers-live.yml"
 HEARTBEAT: Final = WORKFLOWS / "providers-heartbeat.yml"
+STAGING: Final = WORKFLOWS / "staging-health.yml"
 KEYS: Final = (
     "FRED_API_KEY",
     "BLS_API_KEY",
@@ -124,6 +125,20 @@ def test_only_the_report_job_may_write_issues_in_the_live_workflow() -> None:
     assert "environment: providers-live" in live
     assert "issues: write" in report
     assert "secrets." not in report
+
+
+@pytest.mark.parametrize("path", [LIVE, STAGING], ids=lambda path: path.name)
+def test_the_report_job_also_runs_after_a_timeout(path: Path) -> None:
+    # A timed-out job ends cancelled, and failure() alone is false then: the
+    # live run of 2026-11-02 hung until its timeout and nobody was told.
+    jobs = "\n".join(top_level(path.read_text(encoding="utf-8"), "jobs"))
+    report = jobs[jobs.index("  report:") :]
+    condition = next(
+        line.strip() for line in report.splitlines() if line.startswith("    if:")
+    )
+    assert condition.startswith("if: always() && ")
+    assert "contains(needs.*.result, 'failure')" in condition
+    assert "contains(needs.*.result, 'cancelled')" in condition
 
 
 def test_the_heartbeat_holds_no_secret_and_reads_only_actions() -> None:

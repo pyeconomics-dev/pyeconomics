@@ -12,7 +12,7 @@ no real API.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 from provider_contract import (
@@ -32,7 +32,14 @@ from provider_contract import (
 )
 from toys import ToyJson, ToyVintage
 
-from pyeconomics.data import AuthKind, DataProvider, TransportError, config, registry
+from pyeconomics.data import (
+    AuthKind,
+    DataProvider,
+    RateLimitError,
+    TransportError,
+    config,
+    registry,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -45,6 +52,10 @@ REAL: tuple[type[DataProvider], ...] = tuple(
     type(registry.get(provider_id)) for provider_id in registry.ids()
 )
 ALL = (*TOYS, *REAL)
+#: Sources whose download quota everyone who fetches the file shares (#150): a
+#: limit there says nothing of this run or the provider, and it lifts by itself.
+#: Any other source's rate limit still raises the alarm.
+SHARED_QUOTA: Final = frozenset({"open_source_asset_pricing"})
 
 
 def _id(provider: type[DataProvider]) -> str:
@@ -157,6 +168,16 @@ def _once_more_after_a_passing_failure(check: Callable[[], None]) -> None:
         check()
 
 
+def _run_live(provider: type[DataProvider], check: Callable[[], None]) -> None:
+    """Run a live check, and skip it if a shared quota stood in the way."""
+    try:
+        _once_more_after_a_passing_failure(check)
+    except RateLimitError:
+        if provider.info.id not in SHARED_QUOTA:
+            raise
+        pytest.skip("the source's shared download quota is used up for now")
+
+
 def _skip_if_barred(provider: type[DataProvider]) -> None:
     """The scheduled run skips a source whose terms bar automated collection."""
     if not provider.info.automated_collection and (
@@ -174,10 +195,11 @@ def test_live_a_real_response_parses_into_a_valid_result(
     _skip_if_barred(provider)
     from pyeconomics.data.transport import default_transport  # noqa: PLC0415
 
-    _once_more_after_a_passing_failure(
+    _run_live(
+        provider,
         lambda: check_success_case(
             provider, case, default_transport(), key=live_key(case)
-        )
+        ),
     )
 
 
@@ -191,10 +213,11 @@ def test_live_a_real_failure_maps_to_the_taxonomy(
         pytest.skip("a live source is not made to rate-limit or fail on request")
     from pyeconomics.data.transport import default_transport  # noqa: PLC0415
 
-    _once_more_after_a_passing_failure(
+    _run_live(
+        provider,
         lambda: check_error_case(
             provider, case, default_transport(), key=live_key(case)
-        )
+        ),
     )
 
 
@@ -216,3 +239,17 @@ def test_a_live_check_runs_once_more_after_a_passing_failure_only() -> None:
 
     with pytest.raises(TransportError):
         _once_more_after_a_passing_failure(broken)
+
+
+def test_only_a_shared_quota_skips_a_live_check() -> None:
+    shared = type(registry.get("open_source_asset_pricing"))
+    private = type(registry.get("treasury"))
+
+    def limited() -> None:
+        msg = "used up"
+        raise RateLimitError(msg, provider="any")
+
+    with pytest.raises(pytest.skip.Exception, match="quota"):
+        _run_live(shared, limited)
+    with pytest.raises(RateLimitError):
+        _run_live(private, limited)

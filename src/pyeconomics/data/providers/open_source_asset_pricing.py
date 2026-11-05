@@ -12,7 +12,11 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from pyeconomics.data.errors import SeriesNotFoundError
+from pyeconomics.data.errors import (
+    RateLimitError,
+    ResponseError,
+    SeriesNotFoundError,
+)
 from pyeconomics.data.providers import _finance as f
 from pyeconomics.data.providers.base import DataProvider
 from pyeconomics.data.transport.base import Request
@@ -62,6 +66,7 @@ class OpenSourceAssetPricing(DataProvider):
 
     def parse(self, responses: Sequence[Response], query: Query) -> Table:
         """One return column per anomaly; percentages become decimal returns."""
+        self._require_the_file(responses[0])
         cells = f.csv_rows(responses[0].body)
         names = cells[0][1:]
         rows = {
@@ -81,6 +86,20 @@ class OpenSourceAssetPricing(DataProvider):
             F.MONTHLY,
             notes=("source_release: 2025.10", "source_version: 2.0.0"),
         )
+
+    def _require_the_file(self, response: Response) -> None:
+        """Refuse the HTML page Google Drive answers with, at HTTP 200, for the file."""
+        start = response.body[:64].lstrip().lower()
+        if not start.startswith((b"<!doctype html", b"<html")):
+            return
+        if b"Quota exceeded" in response.body:
+            msg = (
+                "Google Drive's download quota for this file is used up; "
+                "try again later"
+            )
+            raise RateLimitError(msg, provider=self.info.id)
+        msg = "Google Drive answered with an HTML page, not the published file"
+        raise ResponseError(msg, provider=self.info.id)
 
     def synthesize(
         self, request: Request, response: Response, *, seed: str

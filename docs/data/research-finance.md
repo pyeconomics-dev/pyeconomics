@@ -36,6 +36,10 @@ markers become `None`. Its monthly and annual sections remain separate; append
 value-weighted returns. Counts, firm sizes and valuation-ratio sections are not
 read as portfolio returns. The library's move to CRSP CIZ is recorded in notes.
 
+Open Source Asset Pricing publishes its file only on Google Drive, whose download
+quota everyone fetching the file shares. When it is used up, the fetch raises
+`RateLimitError`, and a later try works.
+
 Shiller's `1871.01` is a January 1871 label, not an Excel serial date. CAPE is a
 ratio, not a percentage. AQR and JKP decimal returns pass through unchanged.
 Open Source Asset Pricing uses a small in-house client for the authors' published
