@@ -590,7 +590,10 @@ From Phase 5 Step 3, which builds the web foundation:
   on any CSP violation or console error) and `scripts/lighthouse.ts`
   (Lighthouse 13 directly: `@lhci/cli` fails `npm audit`) run against
   `wrangler dev` on 127.0.0.1:8788, so `_headers` applies as on Cloudflare.
-  Stop any other server on that port first.
+  Stop any other server on that port first. Lighthouse's CPU slowdown follows
+  each run's benchmark index (`cpuSlowdown`), because it is relative to the host
+  and a runner's speed swings threefold, and a run that measured nothing is
+  repeated, never counted as 0.
 - TypeScript stays on 6.0 in both Node projects while `astro check` refuses
   7 (Dependabot ignores its major). ESLint uses `eslint-plugin-jsx-a11y-x`,
   the fork `eslint-plugin-astro` supports on ESLint 10, with no warning

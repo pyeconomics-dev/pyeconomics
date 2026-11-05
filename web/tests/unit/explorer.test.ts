@@ -247,6 +247,16 @@ describe("the request", () => {
     expect(await serverMode((async () => Promise.reject(new Error("offline"))) as unknown as typeof globalThis.fetch)).toBe("hosted");
     forgetServerMode();
   });
+
+  it("reads a refused answer's body, which would otherwise keep the request open", async () => {
+    for (const body of ['{"mode":"local"}', "no origin"]) {
+      const refused = new Response(body, { status: 503 });
+      forgetServerMode();
+      expect(await serverMode((async () => refused) as unknown as typeof globalThis.fetch)).toBe("hosted");
+      expect(refused.bodyUsed).toBe(true);
+    }
+    forgetServerMode();
+  });
 });
 
 describe("the chart", () => {

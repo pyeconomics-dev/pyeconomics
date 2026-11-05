@@ -1,8 +1,9 @@
 // web/scripts/lighthouse.ts
 // Lighthouse on decision 19's page sample (ADR-0013): for each sample page the
 // build wrote, three mobile runs against `wrangler dev`, each in a Chrome of
-// its own after one uncounted warm-up run, and the median score of each
-// category must be at least 90. It drives Lighthouse 13 directly in
+// its own after one uncounted warm-up run, at a CPU slowdown that follows the
+// host's speed, and the median score of each category must be at least 90. A
+// run that measured nothing is repeated. It drives Lighthouse 13 directly in
 // Playwright's Chromium: @lhci/cli 0.15.1, last published in June 2025,
 // bundles Lighthouse 12.6.1 and a dependency tree that fails `npm audit` at
 // high. Reports go to .lighthouse/ (git-ignored), one JSON file per run, and
@@ -46,6 +47,41 @@ export const CATEGORIES = ["performance", "accessibility", "best-practices", "se
 
 /** The traces kept of runs with a long task no script accounts for. */
 export const MAX_TRACES = 3;
+
+/** The attempts at one run before the page is reported as not measured. */
+export const ATTEMPTS = 3;
+
+/** Lighthouse's mobile CPU slowdown, and the benchmark index of a CI runner at full speed. */
+const CPU_SLOWDOWN = 4;
+const FULL_SPEED_BENCHMARK = 2000;
+
+/**
+ * The CPU slowdown that keeps the simulated phone the same on any host.
+ * Lighthouse throttles relative to the host, and its throttling guide asks for
+ * this calibration. One CI runner type read from 844 to 2,691, and at half
+ * speed the machine itself was 90% idle, so the cause is outside it. At a
+ * constant 4x, a page that scores 100 at full speed read 78 at half speed
+ * (#274). A runner at full speed keeps about 4x.
+ */
+export function cpuSlowdown(benchmarkIndex: number): number {
+  return Math.max(1, (CPU_SLOWDOWN * benchmarkIndex) / FULL_SPEED_BENCHMARK);
+}
+
+/**
+ * Why a run measured nothing, or null if it measured every category. Such a
+ * run has no score, which is not a score of 0: `NO_NAVSTART`, a trace with no
+ * navigation in it, took about one run in twenty-five in CI on pages that
+ * score 100.
+ */
+export function unmeasured(lhr: {
+  runtimeError?: { code?: string } | undefined;
+  categories: Record<string, { score: number | null } | undefined>;
+}): string | null {
+  if (lhr.runtimeError) return lhr.runtimeError.code ?? "a runtime error";
+  const found = new Map(Object.entries(lhr.categories));
+  const missing = CATEGORIES.filter((category) => typeof found.get(category)?.score !== "number");
+  return missing.length > 0 ? `no score for ${missing.join(", ")}` : null;
+}
 
 /**
  * Whether a run's long tasks include one Lighthouse attributes to no script
@@ -117,7 +153,7 @@ function stop(server: ChildProcess): void {
  * runs: a shared Chrome puts every run of the origin in one renderer process,
  * whose heap the next run pays for.
  */
-async function measure(url: string): Promise<RunnerResult> {
+async function measure(url: string, slowdown: number): Promise<RunnerResult> {
   const chrome = await chromeLauncher.launch({
     chromePath: chromium.executablePath(),
     chromeFlags: ["--headless=new", "--no-sandbox"],
@@ -128,12 +164,26 @@ async function measure(url: string): Promise<RunnerResult> {
       output: "json",
       logLevel: "error",
       onlyCategories: [...CATEGORIES],
+      throttling: { cpuSlowdownMultiplier: slowdown },
     });
     if (!result) throw new Error(`Lighthouse returned nothing for ${url}`);
     return result;
   } finally {
     chrome.kill();
   }
+}
+
+/** One run that measured every category, however many attempts that took. */
+async function measured(url: string, slowdown: number): Promise<RunnerResult> {
+  let reason = "";
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+    const result = await measure(url, slowdown);
+    const problem = unmeasured(result.lhr);
+    if (problem === null) return result;
+    reason = problem;
+    process.stdout.write(`lighthouse ${url}: attempt ${attempt} measured nothing (${problem})\n`);
+  }
+  throw new Error(`Lighthouse measured nothing for ${url} in ${ATTEMPTS} attempts: ${reason}`);
 }
 
 async function main(): Promise<number> {
@@ -152,11 +202,12 @@ async function main(): Promise<number> {
   try {
     // One uncounted run first: a fresh runner's first Chrome loads its binary
     // and builds its font caches, which slowed the first page's runs in CI.
-    await measure(`${ORIGIN}${pages[0] ?? "/"}`);
+    let benchmark = (await measure(`${ORIGIN}${pages[0] ?? "/"}`, CPU_SLOWDOWN)).lhr.environment.benchmarkIndex;
     for (const path of pages) {
       const scores = new Map<string, number[]>(CATEGORIES.map((category) => [category, []]));
       for (let run = 1; run <= RUNS; run += 1) {
-        const result = await measure(`${ORIGIN}${path}`);
+        const result = await measured(`${ORIGIN}${path}`, cpuSlowdown(benchmark));
+        benchmark = result.lhr.environment.benchmarkIndex;
         const name = `${path.replaceAll("/", "_") || "_"}run${run}.json`;
         // A name built from a fixed sample path, under .lighthouse/.
         // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
@@ -177,7 +228,7 @@ async function main(): Promise<number> {
         if (score < MINIMUM) failures.push(`${path} ${category} ${Math.round(score * 100)}`);
         return `${category} ${Math.round(score * 100)}`;
       }).join(", ");
-      process.stdout.write(`lighthouse ${path}: ${line} (median of ${RUNS} mobile runs)\n`);
+      process.stdout.write(`lighthouse ${path}: ${line} (median of ${RUNS} mobile runs; benchmark ${Math.round(benchmark)})\n`);
     }
   } finally {
     stop(server);
