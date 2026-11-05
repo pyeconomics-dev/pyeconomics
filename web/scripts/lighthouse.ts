@@ -51,19 +51,20 @@ export const MAX_TRACES = 3;
 /** The attempts at one run before the page is reported as not measured. */
 export const ATTEMPTS = 3;
 
-/** Lighthouse's mobile CPU slowdown, and the benchmark index of a quiet CI runner. */
+/** Lighthouse's mobile CPU slowdown, and the benchmark index of a CI runner at full speed. */
 const CPU_SLOWDOWN = 4;
-const QUIET_BENCHMARK = 2000;
+const FULL_SPEED_BENCHMARK = 2000;
 
 /**
  * The CPU slowdown that keeps the simulated phone the same on any host.
  * Lighthouse throttles relative to the host, and its throttling guide asks for
- * this calibration. One CI runner type read from 844 to 2,691, because other
- * processes take the CPU, and at a constant 4x a page that scores 100 on a
- * quiet runner read 78 on a busy one (#274). A quiet runner keeps about 4x.
+ * this calibration. One CI runner type read from 844 to 2,691, and at half
+ * speed the machine itself was 90% idle, so the cause is outside it. At a
+ * constant 4x, a page that scores 100 at full speed read 78 at half speed
+ * (#274). A runner at full speed keeps about 4x.
  */
 export function cpuSlowdown(benchmarkIndex: number): number {
-  return Math.max(1, (CPU_SLOWDOWN * benchmarkIndex) / QUIET_BENCHMARK);
+  return Math.max(1, (CPU_SLOWDOWN * benchmarkIndex) / FULL_SPEED_BENCHMARK);
 }
 
 /**

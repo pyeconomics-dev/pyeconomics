@@ -755,21 +755,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: TEMP sample the machine (issue 274)
-        shell: bash
-        run: |
-          cat > "$RUNNER_TEMP/sample.sh" <<'SAMPLE'
-          log="$RUNNER_TEMP/top.log"
-          { nproc; grep -m1 'model name' /proc/cpuinfo; } >> "$log"
-          while true; do
-            {
-              echo "=== $(date -u +%T) $(cut -d' ' -f1-3 /proc/loadavg)"
-              top -b -n 2 -d 2 -c -w 170 -o %CPU | awk '/^top - /{n++} n==2' | sed -n '3p;8,15p'
-            } >> "$log"
-            sleep 6
-          done
-          SAMPLE
-          nohup bash "$RUNNER_TEMP/sample.sh" > /dev/null 2>&1 &
       - name: Set up uv and Python 3.14
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
@@ -844,10 +829,6 @@ jobs:
       - name: Lighthouse on decision 19's sample
         working-directory: web
         run: npm run lighthouse
-      - name: TEMP keep the machine samples (issue 274)
-        if: ${{ !cancelled() }}
-        shell: bash
-        run: mkdir -p web/.lighthouse && cp "$RUNNER_TEMP/top.log" web/.lighthouse/top.log
       - name: Upload the Playwright and Lighthouse reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
