@@ -9,7 +9,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { CATEGORIES, SAMPLE, built, median, unattributed, unmeasured } from "../../scripts/lighthouse.ts";
+import { CATEGORIES, SAMPLE, built, cpuSlowdown, median, unattributed, unmeasured } from "../../scripts/lighthouse.ts";
 import { packageOf, packagesOf } from "../../scripts/shipped-packages.ts";
 
 describe("packageOf", () => {
@@ -50,6 +50,13 @@ describe("the Lighthouse runner", () => {
     expect(unattributed({ items: [{ url: "Unattributable", duration: 120 }] })).toBe(false);
     expect(unattributed({ items: [{ url: "http://127.0.0.1:8788/", duration: 600 }] })).toBe(false);
     expect(unattributed(undefined)).toBe(false);
+  });
+
+  it("slows the CPU in step with the host, so the simulated phone stays the same", () => {
+    expect(cpuSlowdown(2000)).toBe(4);
+    expect(cpuSlowdown(1000)).toBe(2);
+    expect(cpuSlowdown(2500)).toBe(5);
+    expect(cpuSlowdown(100)).toBe(1);
   });
 
   it("tells a run that measured nothing from a low score", () => {
