@@ -105,4 +105,4 @@ schema = schemathesis.pytest.from_fixture("api_schema")
     suppress_health_check=list(HealthCheck),
 )
 def test_every_operation_honours_the_document(case: Case[Any]) -> None:
-    case.call_and_validate(base_url=LOCAL, checks=CHECKS)
+    case.call_and_validate(base_url=LOCAL, checks=CHECKS)  # ty: ignore[invalid-argument-type]

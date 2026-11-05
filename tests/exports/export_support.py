@@ -51,11 +51,7 @@ NUMBERS: Final = (-1.5, -3, 1e-07, -2.5e20, 0.1, 7, -0.0, 6.02e23, 1e16, -42, 3.
 
 
 def read_csv(data: bytes, **options: Any) -> pd.DataFrame:  # noqa: ANN401
-    """Read a CSV export as a user would: skipping its ``#`` block.
-
-    pandas' default float parser can miss a value's last bit; pass
-    ``float_precision="round_trip"`` to read every number back exactly.
-    """
+    """Read a CSV export as a user would: skipping its ``#`` block."""
     frame: pd.DataFrame = pd.read_csv(io.BytesIO(data), comment="#", **options)
     return frame
 

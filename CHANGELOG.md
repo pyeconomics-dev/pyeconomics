@@ -49,6 +49,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- The exports guide, the pandas how-to and the finance tutorial read a CSV export
+  with pandas' default parser: from pandas 3.1 it reads every number back exactly,
+  and `float_precision="round_trip"` is deprecated. On pandas 3.0, which the wheel
+  still allows, that argument is still what keeps every digit.
 - The staging deploy updates the snapshot job to each new image before the API,
   mounts the snapshot bucket read-only into the service, and checks a series
   through the edge from the newest snapshot.

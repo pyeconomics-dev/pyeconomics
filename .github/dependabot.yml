@@ -15,6 +15,10 @@ updates:
     groups:
       uv-minor-and-patch:
         update-types: [minor, patch]
+    # uv.lock moves; a floor in pyproject.toml moves only when the new version
+    # needs it. The wheel's floors follow what Pyodide ships (ci.yml's pyodide
+    # job), and uv.lock is what CI runs.
+    versioning-strategy: increase-if-necessary
     # A marimo bump moves docs/wasm/'s notebooks and lockfile with it, so it is
     # made by hand (AGENTS.md "Documentation rules").
     ignore:

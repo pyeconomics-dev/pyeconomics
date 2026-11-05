@@ -155,8 +155,8 @@ row.loc[0, "result_sha256"][:16]
 
 `pyeconomics.exports.export` writes a result or a batch to CSV, Excel, Parquet,
 Arrow or JSON. A CSV file carries the record in its leading `#` lines, which
-`comment="#"` skips on the way back in. `float_precision="round_trip"` keeps
-every digit.
+`comment="#"` skips on the way back in. From pandas 3.1, `read_csv` keeps every
+digit; on 3.0, add `float_precision="round_trip"`.
 
 ```{code-cell} ipython3
 import tempfile
@@ -168,7 +168,7 @@ with tempfile.TemporaryDirectory() as folder:
     path = Path(folder) / "prices.csv"
     export(result, "csv", path)
     header = path.read_text(encoding="utf-8").splitlines()[:4]
-    back = pd.read_csv(path, comment="#", float_precision="round_trip")
+    back = pd.read_csv(path, comment="#")
 
 assert back.loc[0, "outputs.flat_price"] == result.outputs.flat_price
 header

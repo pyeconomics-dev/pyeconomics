@@ -1002,6 +1002,11 @@ hooks as required checks.
 - Before each commit, also review the diff for sensitive data: no key in a log,
   manifest, cache, exception or export; no licensed data in fixtures; least
   privilege for every token and workflow permission.
+- The wheel's floors follow what Pyodide ships (`numpy`, `pandas`, `pydantic`
+  and `platformdirs` above all; ci.yml's pyodide job installs the wheel there),
+  so a floor moves only when the code needs it. `uv.lock` is what CI runs:
+  Dependabot's uv updates use `versioning-strategy: increase-if-necessary`. They
+  do not touch `pylock.toml`: regenerate it on the pull request.
 - A new runtime dependency must pass the licence allowlist (ADR-0004). Run
   `uv add`, `uv lock` and `uv export` with `--no-config`, so a user-level
   private index never reaches `uv.lock`.
