@@ -65,7 +65,7 @@ def test_hostile_csv_text_round_trips_through_pandas_exactly() -> None:
 
 def test_negative_and_exponent_numbers_stay_numbers_in_csv() -> None:
     data = to_csv(hostile())
-    frame = read_csv(data, float_precision="round_trip")
+    frame = read_csv(data)
     assert frame["number"].dtype.kind == "f"
     assert list(frame["number"]) == [float(number) for number in NUMBERS]
     assert math.copysign(1.0, frame["number"][6]) == -1.0  # -0.0 kept its sign

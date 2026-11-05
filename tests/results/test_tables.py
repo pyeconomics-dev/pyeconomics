@@ -92,8 +92,7 @@ def test_pandas_dates_are_microsecond_datetimes() -> None:
     assert str(frame["outputs.end"].dtype) == "datetime64[us]"
     assert frame.loc[0, "outputs.end"] == pd.Timestamp("2026-03-02")
     # A null output is NaN in pandas, and the other row keeps its value.
-    missing = pd.isna(frame.loc[1, "outputs.per_day"])
-    assert missing
+    assert frame["outputs.per_day"].isna().loc[1]
     assert frame.loc[0, "outputs.per_day"] == pytest.approx(1 / 30)
     assert frame["outputs.per_day"].dtype == "float64"
     assert frame.loc[0, "outputs.dates"] == [dt.date(2026, 1, 31), dt.date(2026, 3, 2)]
@@ -109,7 +108,7 @@ def test_pandas_strings_and_missing_values() -> None:
     )
     frame = batch.to_pandas()
     assert frame["outputs.calculation"].tolist() == ["present_value", "future_value"]
-    assert pd.isna(frame.loc[1, "inputs.future_value"])
+    assert frame["inputs.future_value"].isna().loc[1]
 
 
 def test_a_batch_frame_has_a_row_per_result() -> None:

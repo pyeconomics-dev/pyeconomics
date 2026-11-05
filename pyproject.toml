@@ -239,7 +239,7 @@ docs = [
 # (approved in Phase 4 Step 7; issue #182; tests/server/test_fuzz_gap.py
 # asserts the gap).
 fuzz = [
-    "schemathesis>=4.32 ; python_full_version < '3.15'",
+    "schemathesis>=4.32.7 ; python_full_version < '3.15'",
 ]
 # The Python client generator (ci.yml's clients job); it brings httpx, which the
 # generated client uses.

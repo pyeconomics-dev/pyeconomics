@@ -72,13 +72,14 @@ machine the call reads it live. To keep the record with the data, export it:
 ```python
 >>> from pyeconomics.exports import export
 >>> export(found, "csv", "yields.csv")
->>> table = pd.read_csv("yields.csv", comment="#", float_precision="round_trip")
+>>> table = pd.read_csv("yields.csv", comment="#")
 >>> list(table.columns), len(table)
 (['date', 'value'], 21)
 ```
 
 The file's `#` lines hold the attribution and any notice ({doc}`/exports`), and
-`comment="#"` skips them. Keep them with the data.
+`comment="#"` skips them. Keep them with the data. That page also says what to
+pass on pandas 3.0 to read every digit back.
 
 ## From the command line
 

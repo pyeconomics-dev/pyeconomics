@@ -139,11 +139,11 @@ def test_two_members_may_not_share_a_calculation() -> None:
 
 
 class TwoCalculations(tm.PresentValueInputs):
-    calculation: Literal["one", "two"] = Field("one", description="Two at once")  # type: ignore[assignment]
+    calculation: Literal["one", "two"] = Field("one", description="Two at once")  # type: ignore[assignment] # ty: ignore[invalid-attribute-override]
 
 
 class ShoutedCalculation(tm.FutureValueInputs):
-    calculation: Literal["Future Value"] = Field("Future Value", description="Caps")  # type: ignore[assignment]
+    calculation: Literal["Future Value"] = Field("Future Value", description="Caps")  # type: ignore[assignment] # ty: ignore[invalid-attribute-override]
 
 
 BAD_UNIONS = [

@@ -115,7 +115,7 @@ def resolved() -> Resolved:
 def test_a_result_reads_back_from_csv_with_its_values_and_header() -> None:
     result = irr()
     data = export_bytes(result, "csv")
-    frame = read_csv(data, float_precision="round_trip")
+    frame = read_csv(data)
     expected = result.to_pandas()
     assert list(frame.columns) == list(expected.columns)
     assert frame.loc[0, "outputs.irr"] == result.outputs.irr

@@ -183,9 +183,7 @@ def _values(result: Result[Any, Any]) -> dict[str, object]:
 
 
 def _check_csv(data: bytes, result: Result[Any, Any]) -> None:
-    frame = read_csv(
-        data, float_precision="round_trip", keep_default_na=False, na_values=[""]
-    )
+    frame = read_csv(data, keep_default_na=False, na_values=[""])
     values = _values(result)
     assert list(frame.columns) == list(values)
     row = frame.iloc[0].to_dict()

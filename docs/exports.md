@@ -24,7 +24,7 @@ assert FORMATS == ("csv", "xlsx", "parquet", "arrow", "json")
 with tempfile.TemporaryDirectory() as directory:
     path = Path(directory) / "irr.csv"
     export(result, "csv", path)
-    frame = pd.read_csv(path, comment="#", float_precision="round_trip")
+    frame = pd.read_csv(path, comment="#")
 
 assert frame.loc[0, "outputs.irr"] == result.outputs.irr
 assert frame.loc[0, "inputs.cash_flows"] == "[-100,30,40,50]"
@@ -51,9 +51,9 @@ A result's columns are those of `Result.to_pandas()`: `inputs.<field>`, then
 then `realtime_start` and `realtime_end` when it carries vintages, then `value`
 or the table's columns. A missing value is an empty cell, a date is its ISO 8601
 text and an array its canonical JSON (in Parquet and Arrow it stays a list). A
-number is written as its shortest round-trip text, so it reads back equal; pass
-`float_precision="round_trip"` to `pandas.read_csv`, whose default parser can
-miss a value's last bit.
+number is written as its shortest round-trip text, so `pandas.read_csv` reads it
+back equal from pandas 3.1. On pandas 3.0, whose default parser can miss a value's
+last bit, pass `float_precision="round_trip"`; pandas 3.1 deprecates that argument.
 
 ## The CSV metadata block
 
