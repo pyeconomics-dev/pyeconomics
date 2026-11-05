@@ -14,6 +14,7 @@ key is there.
 
 from __future__ import annotations
 
+import os
 import sys
 
 import pytest
@@ -22,7 +23,13 @@ import pyeconomics
 from pyeconomics.ai import PROVIDER_MODELS, PROVIDERS, narrate
 from pyeconomics.data import configure
 
-pytestmark = pytest.mark.live
+pytestmark = [
+    pytest.mark.live,
+    pytest.mark.skipif(
+        bool(os.environ.get("GITHUB_ACTIONS")),
+        reason="it needs the maintainer's own keys: run it on a local machine",
+    ),
+]
 
 INPUTS = {
     "calculation": "price",

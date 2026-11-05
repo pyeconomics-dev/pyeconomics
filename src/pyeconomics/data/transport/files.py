@@ -181,8 +181,15 @@ def spreadsheet(body: bytes, sheet: str, provider: str) -> tuple[tuple[Any, ...]
         for name, content in members.items():
             if name.endswith((".xml", ".rels")):
                 fromstring(content, forbid_dtd=True)
+        # Only values are read, and openpyxl refuses a whole workbook over a
+        # document property it cannot parse: SAS writes an hour before 10 with
+        # a space (``T 9:58:09``), which Philadelphia Fed's matrices carry.
+        kept = {n: c for n, c in members.items() if not n.startswith("docProps/")}
         book = load_workbook(
-            BytesIO(body), read_only=True, data_only=True, keep_links=False
+            BytesIO(zip_document(kept)),
+            read_only=True,
+            data_only=True,
+            keep_links=False,
         )
         try:
             source: Any = book[sheet]  # openpyxl stubs omit the streaming path.

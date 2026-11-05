@@ -61,6 +61,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- XLSX sources read a workbook whose document properties openpyxl cannot parse.
+  `philadelphia_fed`'s `rtd:ROUTPUT`, `rtd:P` and `rtd:PCONX` had failed with
+  `ResponseError` since the source's export of 2026-10-30, which writes a
+  timestamp before 10:00 with a space in place of the hour's leading zero.
 - `open_source_asset_pricing` raises `RateLimitError` when Google Drive answers
   with its quota page, and `ResponseError` for any other page, instead of
   reporting that the series does not exist.
