@@ -116,6 +116,11 @@ jobs:
     env:
       # tests/conftest.py: derandomized, no deadline, prints the blob.
       HYPOTHESIS_PROFILE: ci
+      # Coverage measures branches through sys.monitoring only from Python 3.14.
+      # 3.12 and 3.13 need its settrace tracer, which took those cells two to
+      # three times as long, so they run every test without measuring, and each
+      # OS enforces the floors on 3.14 and 3.15.
+      MEASURE_COVERAGE: ${{ !contains(fromJSON('["3.12", "3.13"]'), matrix.python-version) }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
@@ -136,13 +141,19 @@ jobs:
       # `uv run pytest`, never `python -m pytest`, which puts the working
       # directory on sys.path. The coverage report prints in the log and the
       # 95% branch floor in pyproject.toml fails the job.
+      - name: Run the tests
+        if: env.MEASURE_COVERAGE != 'true'
+        run: uv run --locked pytest
       - name: Run the tests with coverage
+        if: env.MEASURE_COVERAGE == 'true'
         run: uv run --locked pytest --cov
       # The overall floor above can hide a thin tree: core/ must keep 95% and
       # models/ 90% of their own statements and branches (ROADMAP §4 2.4).
       - name: Write the coverage report
+        if: env.MEASURE_COVERAGE == 'true'
         run: uv run --locked coverage json -o coverage.json
       - name: Coverage floors for core/ and models/
+        if: env.MEASURE_COVERAGE == 'true'
         run: uv run --locked python scripts/checks/coverage_floors.py coverage.json
       # The licence check skips runtime packages whose markers exclude the
       # running platform, so each OS checks its own.

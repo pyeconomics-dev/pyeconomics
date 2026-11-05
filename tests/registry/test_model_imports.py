@@ -12,6 +12,7 @@ so it holds whatever subset of the suite runs.
 from __future__ import annotations
 
 import ast
+import functools
 import re
 import tomllib
 from importlib import metadata
@@ -219,6 +220,16 @@ def import_problems(
     return checker.problems
 
 
+@functools.cache
+def installed_modules() -> Mapping[str, list[str]]:
+    """Map each installed top-level module to its distributions, read once.
+
+    The call reads every installed distribution's metadata, half a second on
+    Windows, and each model file asks for it once per requirement of each extra.
+    """
+    return metadata.packages_distributions()
+
+
 def import_names(distribution: str) -> frozenset[str]:
     """Return the top-level modules a distribution installs.
 
@@ -228,7 +239,7 @@ def import_names(distribution: str) -> frozenset[str]:
     wanted = re.sub(r"[-_.]+", "-", distribution).lower()
     installed = {
         module
-        for module, dists in metadata.packages_distributions().items()
+        for module, dists in installed_modules().items()
         for dist in dists
         if re.sub(r"[-_.]+", "-", dist).lower() == wanted
     }
