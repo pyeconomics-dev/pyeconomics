@@ -22,10 +22,13 @@ updates:
     commit-message:
       prefix: chore(deps)
 
+  # Above the default of five: five older pull requests held every slot from
+  # 2026-10-14, and Harden Runner's v2.22.3 never got one.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 15
     commit-message:
       prefix: chore(ci)
 

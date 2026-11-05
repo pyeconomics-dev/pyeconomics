@@ -15,10 +15,10 @@
 #   `/version.json` reports the deployed commit and `/` carries the policy and
 #   refuses indexing. It fails when `simulate_failure` is true (the synthetic
 #   alarm proof of Step 16).
-# - The `report` job is the only job with `issues: write`: on failure it opens
-#   one issue labelled `staging-health` and closes older open `staging-health`
-#   issues as superseded, while the workflow run itself fails so GitHub
-#   notifies the maintainer.
+# - The `report` job is the only job with `issues: write`: on a failure or a
+#   timeout it opens one issue labelled `staging-health` and closes older open
+#   `staging-health` issues as superseded, while the workflow run itself fails
+#   so GitHub notifies the maintainer.
 
 name: staging-health
 
@@ -53,7 +53,7 @@ jobs:
       running: ${{ steps.runs.outputs.running }}
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -88,7 +88,7 @@ jobs:
     permissions: {}
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -182,14 +182,15 @@ jobs:
   report:
     name: report the probe failure
     needs: [deployed, probe]
-    if: failure()
+    # A job that reaches its timeout ends cancelled, which failure() misses.
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       issues: write
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           allowed-endpoints: >

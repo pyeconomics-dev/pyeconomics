@@ -195,6 +195,21 @@ def test_pwt_keeps_decimal_shares_and_release_metadata() -> None:
     assert frame.meta.unit.scale == 1
 
 
+def test_a_malformed_document_timestamp_does_not_refuse_the_values() -> None:
+    # SAS writes an hour before 10 with a space. Philadelphia Fed's matrices of
+    # 2026-10-30 carry this, and openpyxl refuses the whole workbook over it.
+    core = (
+        b'<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/'
+        b'2006/metadata/core-properties" xmlns:dcterms="http://purl.org/dc/terms/" '
+        b'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+        b'<dcterms:created xsi:type="dcterms:W3CDTF">2026-10-30T 9:58:09-04:00'
+        b"</dcterms:created></cp:coreProperties>"
+    )
+    members = files.archive(workbook({"data": ((1, 2),)}), "test")
+    body = files.zip_document({**members, "docProps/core.xml": core})
+    assert spreadsheet(body, "data", "test") == ((1, 2),)
+
+
 def test_no_spreadsheet_formula_is_evaluated() -> None:
     body = workbook({"data": (("=1+1", '=HYPERLINK("https://example.org")'),)})
     assert spreadsheet(body, "data", "test") == ((None, None),)

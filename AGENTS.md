@@ -191,6 +191,12 @@ From Phase 3, which builds the data layer (ADR-0011):
   `Case(simulate=429)`, and a contact source's 403 is `Case(simulate=403)`. A provider module's `__all__` lists its provider
   classes only (the registry refuses anything else), and it joins
   `PURE_MODULES`.
+- `providers-live.yml`'s report job runs on a failed or a timed-out job (a
+  timeout ends `cancelled`, which `failure()` misses). A live check skips on a
+  `RateLimitError` only for a source in `SHARED_QUOTA`
+  (`tests/providers/test_provider_contract.py`), whose quota everyone fetching
+  the file shares; a source joins it only with that evidence, because every
+  other rate limit is an alarm.
 - The `disabled_providers` setting (issue #162; `PYECONOMICS_DISABLED_PROVIDERS`)
   is enforced by `DataProvider._gate`, first, before `check_configuration` and
   any cache read, so no provider can override it; the resolver skips a

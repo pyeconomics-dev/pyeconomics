@@ -15,9 +15,10 @@
 #   except the providers' declared hosts and what checkout, uv, PyPI and the
 #   artifact upload need; tests/providers/test_live_workflows.py checks that
 #   every registered provider's hosts are listed.
-# - A failing run's report job (the only job with issues: write) opens one
-#   issue labelled provider-live with the run's URL and the failing test ids,
-#   never log text, and closes older open provider-live issues as superseded.
+# - The report job of a run that failed or timed out (the only job with
+#   issues: write) opens one issue labelled provider-live with the run's URL
+#   and the failing test ids, never log text, and closes older open
+#   provider-live issues as superseded.
 # - Dispatch with simulate_failure to make the alarm test fail on purpose
 #   (tests/providers/test_live_alarm.py), the alarm proof of Step 20.
 # providers-heartbeat.yml checks daily that this run keeps succeeding.
@@ -52,7 +53,7 @@ jobs:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -140,14 +141,15 @@ jobs:
   report:
     name: report the failure
     needs: live
-    if: failure()
+    # A job that reaches its timeout ends cancelled, which failure() misses.
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       issues: write
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           allowed-endpoints: >
