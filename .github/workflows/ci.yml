@@ -183,7 +183,7 @@ jobs:
       # (scripts/checks/app_contents.py); dist/ keeps the pyeconomics wheel and
       # sdist alone, for dist_contents.py.
       - name: Set up Node.js from web/.nvmrc
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: web/.nvmrc
       - name: Build the site for the app wheel
@@ -377,7 +377,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.21.0"
       - name: Build the wheel
@@ -471,7 +471,7 @@ jobs:
       # and the pinned wheel in a real browser until a model's first result shows,
       # fetching only what docs/wasm/pyodide-lock.json pins.
       - name: Set up Node.js from web/.nvmrc
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: web/.nvmrc
       # npm ci installs exactly the lockfile; no package may run an install script.
@@ -544,7 +544,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
       - name: Set up Node.js 22
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22.23.3"
       - name: Install the locked environment with the clients group
@@ -621,7 +621,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
       - name: Set up Node.js 22
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22.23.3"
       - name: Install the locked environment
@@ -751,7 +751,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
       - name: Set up Node.js from web/.nvmrc
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: web/.nvmrc
       - name: Install the locked environment with every extra
