@@ -612,9 +612,10 @@ From Phase 5 Step 4, which puts the site on staging:
 - The env-less `web/wrangler.jsonc` is what `wrangler dev` serves: no origin,
   no secret. Env `staging` deploys only from `deploy-staging.yml`'s `site`
   job, with `wrangler versions upload` and `versions deploy` under
-  `CLOUDFLARE_API_TOKEN`, which holds Workers Scripts: Edit on the account and
-  no zone, DNS, route or Access permission (per-Worker roles grant nothing
-  through the API yet: issue #231); `wrangler deploy` (which rewrites the
+  `CLOUDFLARE_API_TOKEN`, which holds the *Individual Workers* role *Editor* on
+  `pyeconomics-web-staging` alone (production's, on `pyeconomics-web` alone) and
+  no zone, DNS, route or Access permission (per-Worker roles work through the API
+  since 2026-11-10: issue #231); `wrangler deploy` (which rewrites the
   custom domain) is the maintainer's. Only the steps that call Wrangler get the
   token.
 - `SITE_FLAVOUR` names the deployment a build is for, read by
@@ -839,6 +840,29 @@ wheel (decision 16):
   scripts/web/package_site.py`, then `npm run e2e:local` in `web/`. It drives
   `tests/local/` against `tests/web/e2e_api.py --local` (port 8798): the app
   `serve` builds, with the packaged site, over the catalog world's stand-ins.
+
+From Phase 5 Step 13, which builds production (ADR-0013 decisions 3 to 7):
+
+- `deploy-production.yml` runs on a `v*` tag that is not `.devN` and on a dispatch
+  from `main`, and every job runs in the protected `production` environment, so a
+  deploy asks the maintainer four times. It never builds the API: `data` copies the
+  digest staging tagged with the commit (`docker buildx imagetools create
+  --prefer-index=false`: without the flag it wraps a single manifest in a new list,
+  with a new digest) and fails if the copy's differs. A setting of the service or
+  the job is pinned in full in both deploy workflows, so change both.
+- Production shares no secret with staging. Its names stay short of Google's limit
+  of 30 characters for a service account (`pyeconomics-prod-snapshots`).
+- The edge keeps only what `mayKeep` in `tools/node/edge/worker.mjs` admits, a `200`
+  the origin calls public with a lifetime, on a `GET` of the run route. The key holds
+  the deployed Worker's version (`CF_VERSION_METADATA`), because a result holds the
+  package's version and its URL does not; each Wrangler env declares
+  `version_metadata` itself, because none inherits it. A failure of the cache is
+  only ever a miss, and no check fails on a miss: Cloudflare's documentation says
+  the Cache API is unavailable behind Access, though production behind Access
+  answered `cf-cache-status: HIT` on 2026-11-10.
+- Until the cutover, the deploy checks that Access refuses a request without the
+  token. The `production` environment's `PRODUCTION_PUBLIC` variable, set at the
+  cutover, ends that check and no other.
 
 ## Documentation rules
 

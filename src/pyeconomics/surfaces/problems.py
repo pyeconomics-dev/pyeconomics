@@ -327,9 +327,15 @@ _UPSTREAM: Final = {
     ),
 }
 
-#: pyeconomics' own documentation, the one kind of URL a detail keeps.
+#: pyeconomics' own documentation, the one kind of URL a detail keeps. The
+#: ``readthedocs.io`` host stays: released wheels print it, and it redirects.
 _OWN_HOSTS: Final = frozenset(
-    {"pyeconomics.readthedocs.io", "pyeconomics.dev", "www.pyeconomics.dev"}
+    {
+        "docs.pyeconomics.dev",
+        "pyeconomics.readthedocs.io",
+        "pyeconomics.dev",
+        "www.pyeconomics.dev",
+    }
 )
 _URL: Final = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s'\"<>]+")
 _TRAILING: Final = ").,;:!?]}"

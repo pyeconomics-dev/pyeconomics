@@ -623,6 +623,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import base64
           import json
           import os
           import pathlib
@@ -719,6 +720,19 @@ jobs:
           assert json.loads(body), "/v1/models answered an empty document"
           status, _, body = request("/healthz", access)
           assert status == 200 and json.loads(body) == {"status": "ok"}, f"/healthz returned {status}"
+
+          # 5. A GET run goes through the Worker's cache path (Phase 5 Step 13):
+          # twice the same bytes and the origin's Cache-Control, whether or not
+          # the Cache API works behind Access. ?inputs= is the inputs' JSON in
+          # base64url without padding.
+          inputs = b'{"calculation":"future_value","present_value":1000.0,"rate":0.05,"periods":10}'
+          encoded = base64.urlsafe_b64encode(inputs).rstrip(b"=").decode("ascii")
+          run = f"/v1/models/foundations.time_value/run?inputs={encoded}"
+          status, headers, first = request(run, access)
+          assert status == 200, f"GET run returned {status}"
+          assert headers.get("Cache-Control") == "public, max-age=86400", headers.get("Cache-Control")
+          status, _, second = request(run, access)
+          assert status == 200 and second == first, f"second GET run returned {status}"
           print("All staging site checks passed.")
           PY
 

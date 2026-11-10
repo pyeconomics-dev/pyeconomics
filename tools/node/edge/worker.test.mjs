@@ -4,7 +4,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-import worker, { API_PATHS, forwardRequest, handleRequest, isApiPath } from "./worker.mjs";
+import worker, {
+  API_PATHS,
+  forwardRequest,
+  handleRequest,
+  isApiPath,
+  isCachedRun,
+  mayKeep,
+} from "./worker.mjs";
 
 const TEST_ORIGIN = "https://pyeconomics-api-staging-uc.a.run.app";
 const TEST_CREDENTIAL = `edge-test-${"x".repeat(26)}`;
@@ -52,6 +59,27 @@ function makeStubFetch(responseInit = {}) {
     });
   };
   return { calls, fetchStub };
+}
+
+// The Workers Cache API, keyed by URL as cache.put's string form is.
+function makeStubCache() {
+  const stored = new Map();
+  const tasks = [];
+  const lookups = [];
+  const cache = {
+    async match(request) {
+      lookups.push({ url: request.url, tag: request.headers.get("if-none-match") });
+      const body = stored.get(request.url);
+      return body === undefined
+        ? undefined
+        : new Response(body, { status: 200, headers: { "CF-Cache-Status": "HIT" } });
+    },
+    async put(url, response) {
+      stored.set(url, await response.text());
+    },
+  };
+  const edge = { cache, waitUntil: (task) => tasks.push(task) };
+  return { stored, tasks, lookups, cache, edge };
 }
 
 describe("edge worker", () => {
@@ -426,6 +454,17 @@ describe("site worker (ASSETS bound)", () => {
     }
   });
 
+  it("declares production as staging is declared, with its own host and origin", () => {
+    const { staging, production } = siteConfig().env;
+    assert.equal(production.name, "pyeconomics-web");
+    assert.deepEqual(production.routes, [{ pattern: "pyeconomics.dev", custom_domain: true }]);
+    assert.match(production.vars.ORIGIN_URL, /^https:\/\/pyeconomics-api-\d+\.us-central1\.run\.app$/);
+    assert.notEqual(production.vars.ORIGIN_URL, staging.vars.ORIGIN_URL);
+    for (const env of [staging, production]) {
+      assert.deepEqual(env.version_metadata, { binding: "CF_VERSION_METADATA" });
+    }
+  });
+
   it("forwards every path on the API-only Worker, which has no ASSETS binding", async () => {
     const { calls, fetchStub } = makeStubFetch();
 
@@ -437,5 +476,175 @@ describe("site worker (ASSETS bound)", () => {
 
     assert.equal(response.status, 200);
     assert.equal(calls[0].url, `${TEST_ORIGIN}/`);
+  });
+});
+
+describe("the edge's cache of GET runs", () => {
+  const RUN = `${SITE}/v1/models/foundations.time_value/run?inputs=%7B%7D`;
+  const PUBLIC_DAY = { "Content-Type": "application/json", "Cache-Control": "public, max-age=86400", ETag: 'W/"ab"' };
+  const env = { ORIGIN_URL: TEST_ORIGIN, EDGE_CREDENTIAL: TEST_CREDENTIAL, CF_VERSION_METADATA: { id: "version-1" } };
+
+  it("keeps a miss under the Worker's version, with the origin's bytes", async () => {
+    const { stored, tasks, edge } = makeStubCache();
+    const { calls, fetchStub } = makeStubFetch({ body: '{"outputs":{}}', headers: PUBLIC_DAY });
+
+    const response = await handleRequest(new Request(RUN), env, fetchStub, edge);
+    await Promise.all(tasks);
+
+    assert.equal(await response.text(), '{"outputs":{}}');
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(calls.length, 1);
+    assert.deepEqual(
+      [...stored],
+      [[`${SITE}/edge-cache/version-1/v1/models/foundations.time_value/run?inputs=%7B%7D`, '{"outputs":{}}']],
+    );
+  });
+
+  it("answers a hit without calling the origin", async () => {
+    const { tasks, edge } = makeStubCache();
+    const { calls, fetchStub } = makeStubFetch({ body: '{"outputs":{}}', headers: PUBLIC_DAY });
+
+    await handleRequest(new Request(RUN), env, fetchStub, edge);
+    await Promise.all(tasks);
+    const again = await handleRequest(new Request(RUN), env, fetchStub, edge);
+
+    assert.equal(await again.text(), '{"outputs":{}}');
+    assert.equal(again.headers.get("cf-cache-status"), "HIT");
+    assert.equal(calls.length, 1);
+  });
+
+  it("keeps a bound run, which the origin allows for five minutes", async () => {
+    const { stored, tasks, edge } = makeStubCache();
+    const { fetchStub } = makeStubFetch({ headers: { "Cache-Control": "public, max-age=300" } });
+
+    await handleRequest(new Request(RUN), env, fetchStub, edge);
+    await Promise.all(tasks);
+
+    assert.equal(stored.size, 1);
+  });
+
+  it("keeps nothing the origin answers no-store: a run on data that may not be stored, and a problem", async () => {
+    for (const status of [200, 403, 422, 503]) {
+      const { stored, tasks, edge } = makeStubCache();
+      const { calls, fetchStub } = makeStubFetch({
+        status,
+        headers: { "Content-Type": "application/problem+json", "Cache-Control": "no-store" },
+      });
+
+      const response = await handleRequest(new Request(RUN), env, fetchStub, edge);
+      await Promise.all(tasks);
+
+      assert.equal(response.status, status);
+      assert.equal(calls.length, 1);
+      assert.equal(stored.size, 0, status);
+    }
+  });
+
+  it("gives a problem no way into the cache even if it claims to be public", () => {
+    const answer = (status, headers) => mayKeep(new Response(null, { status, headers }));
+    assert.equal(answer(404, { "Cache-Control": "public, max-age=86400" }), false);
+    assert.equal(answer(200, { "Cache-Control": "public, max-age=0" }), false);
+    assert.equal(answer(200, { "Cache-Control": "private, max-age=60" }), false);
+    assert.equal(answer(200, { "Cache-Control": "public" }), false);
+    assert.equal(answer(200, {}), false);
+    assert.equal(answer(200, { "Cache-Control": "public, max-age=60", "Set-Cookie": "a=b" }), false);
+    assert.equal(answer(200, { "Cache-Control": "Public, Max-Age=60" }), true);
+  });
+
+  it("never looks up or keeps a POST run, whose body may hold a user's values", async () => {
+    const { stored, lookups, tasks, edge } = makeStubCache();
+    const { calls, fetchStub } = makeStubFetch({ headers: PUBLIC_DAY });
+
+    await handleRequest(new Request(RUN, { method: "POST", body: "{}" }), env, fetchStub, edge);
+    await Promise.all(tasks);
+
+    assert.equal(calls.length, 1);
+    assert.deepEqual(lookups, []);
+    assert.equal(stored.size, 0);
+  });
+
+  it("names only the run route", () => {
+    const cached = (path, method = "GET") => isCachedRun(new Request(`${SITE}${path}`, { method }));
+    assert.equal(cached("/v1/models/fixed_income.duration/run"), true);
+    assert.equal(cached("/v1/models/fixed_income.duration/run?format=csv"), true);
+    assert.equal(cached("/v1/models"), false);
+    assert.equal(cached("/v1/models/fixed_income.duration"), false);
+    assert.equal(cached("/v1/models/fixed_income.duration/run/x"), false);
+    assert.equal(cached("/v1/series/treasury:debt"), false);
+    assert.equal(cached("/mcp"), false);
+    assert.equal(cached("/v1/models/fixed_income.duration/run", "HEAD"), false);
+  });
+
+  it("retires what an earlier deploy kept, because an answer holds the package's version", async () => {
+    const { tasks, edge } = makeStubCache();
+    const { calls, fetchStub } = makeStubFetch({ headers: PUBLIC_DAY });
+
+    await handleRequest(new Request(RUN), env, fetchStub, edge);
+    await Promise.all(tasks);
+    await handleRequest(new Request(RUN), { ...env, CF_VERSION_METADATA: { id: "version-2" } }, fetchStub, edge);
+
+    assert.equal(calls.length, 2);
+  });
+
+  it("asks the cache with the caller's entity tag, so it can answer 304", async () => {
+    const { lookups, edge } = makeStubCache();
+    const { fetchStub } = makeStubFetch({ headers: PUBLIC_DAY });
+
+    await handleRequest(new Request(RUN, { headers: { "If-None-Match": 'W/"ab"' } }), env, fetchStub, edge);
+
+    assert.equal(lookups[0].tag, 'W/"ab"');
+  });
+
+  it("treats a cache that cannot answer as a miss, as behind Access", async () => {
+    const tasks = [];
+    const failing = {
+      cache: {
+        async match() {
+          throw new Error("the Cache API is not available");
+        },
+        async put() {
+          throw new Error("the Cache API is not available");
+        },
+      },
+      waitUntil: (task) => tasks.push(task),
+    };
+    const { calls, fetchStub } = makeStubFetch({ body: '{"outputs":{}}', headers: PUBLIC_DAY });
+
+    const response = await handleRequest(new Request(RUN), env, fetchStub, failing);
+    await Promise.all(tasks);
+
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), '{"outputs":{}}');
+    assert.equal(calls.length, 1);
+  });
+
+  it("still answers when a store throws before it starts", async () => {
+    const tasks = [];
+    const failing = {
+      cache: {
+        async match() {
+          return undefined;
+        },
+        put() {
+          throw new Error("no store");
+        },
+      },
+      waitUntil: (task) => tasks.push(task),
+    };
+    const { fetchStub } = makeStubFetch({ headers: PUBLIC_DAY });
+
+    const response = await handleRequest(new Request(RUN), env, fetchStub, failing);
+    await Promise.all(tasks);
+
+    assert.equal(response.status, 200);
+  });
+
+  it("runs without a cache where the runtime has none", async () => {
+    const { calls, fetchStub } = makeStubFetch({ headers: PUBLIC_DAY });
+
+    const response = await handleRequest(new Request(RUN), env, fetchStub);
+
+    assert.equal(response.status, 200);
+    assert.equal(calls.length, 1);
   });
 });

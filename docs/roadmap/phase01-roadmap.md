@@ -7505,3 +7505,10 @@ invariant it protected, never deletes it, and adds one line here.
   stays on the two publish jobs, whose one exchange now uploads both
   projects), and `attested` still finds two files: it reads the pyeconomics
   project, and pyeconomics-app is its own.
+
+- Check V4.4 (Phase 5 Step 13): the documentation's canonical domain is now
+  `docs.pyeconomics.dev`, and Read the Docs answers
+  `pyeconomics.readthedocs.io` with a `302` there, which `curl` without `-L`
+  reads as an empty page. The check fetches the same old address with `-L`, so
+  it still proves that stable serves 0.2.6, through the address the released
+  wheels print.

@@ -8,7 +8,7 @@ pip install --pre pyeconomics
 
 A plain `pip install pyeconomics` continues to install 0.2.6 until 1.0.0 is
 released; that release has a different API. See the
-[stable documentation](https://pyeconomics.readthedocs.io/en/stable/), and the
+[stable documentation](https://docs.pyeconomics.dev/en/stable/), and the
 {doc}`migration guide <migration>` to move from it.
 
 The {doc}`install tutorial <tutorials/install>` covers pip, uv and pipx, and

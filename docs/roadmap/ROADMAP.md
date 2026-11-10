@@ -1811,7 +1811,7 @@ unknowns are TBD rather than guessed.
 | Cloudflare (DNS, CDN, WAF, static site)   | $0                                   | $0–5                           | $5 + usage TBD                  |
 | Cloud Run (API + snapshot job)            | $0 inside the free tier; production budget $10 with alerts and a $20 spend cap (ADR-0013 decision 5) | TBD                            | TBD                             |
 | Cloud Storage (snapshots; ADR-0013 decision 6) | $0 (5 GB-months Always Free; read 2026-10-29) | ~$0                    | TBD (Standard storage per GB-month + operations) |
-| Upstash Redis (rate limits, cache)        | $0 (500K commands/month; read 2026-10-23) | TBD ($0.20 per 100K commands; read 2026-10-23) | from $10                        |
+| Upstash Redis (rate limits, cache)        | ≈ $0 (a free account holds one database, staging's; production pays as it goes, $0.20 per 100K commands; read 2026-11-05) | TBD ($0.20 per 100K commands; read 2026-10-23) | from $10                        |
 | Neon Postgres (Phase 8)                   | —                                    | TBD (usage-based, no minimum)  | ≈ $81 if always on; else TBD    |
 | WorkOS AuthKit (Phase 8)                  | —                                    | $0                             | $0 (+$125 per enterprise SSO connection) |
 | Merchant of record (Phase 8)              | —                                    | Stripe Managed Payments: Stripe fees + 3.5%; or Paddle: 5% + $0.50 per transaction | Same                |

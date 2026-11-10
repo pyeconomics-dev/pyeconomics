@@ -2,7 +2,7 @@
 
 ```{warning}
 This is the **1.0 preview**, built from `main`. APIs may change.
-For the current stable release, use the [0.2.6 documentation](https://pyeconomics.readthedocs.io/en/stable/).
+For the current stable release, use the [0.2.6 documentation](https://docs.pyeconomics.dev/en/stable/).
 ```
 
 pyeconomics is an open library of economics and finance models with typed

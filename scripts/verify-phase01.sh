@@ -905,7 +905,7 @@ v4_3() {
     | grep -qx true
 }
 v4_4() {
-  [[ "$(fetch https://pyeconomics.readthedocs.io/en/stable/)" == *"0.2.6 documentation"* ]] || fail "stable does not serve 0.2.6"
+  [[ "$(fetch -L https://pyeconomics.readthedocs.io/en/stable/)" == *"0.2.6 documentation"* ]] || fail "stable does not serve 0.2.6"
   curl -s --max-time 30 https://readthedocs.org/api/v3/projects/pyeconomics/versions/latest/ \
     | "$PY" -c 'import json, sys; d = json.load(sys.stdin); sys.exit(not (d["identifier"] == "legacy/0.2.x" and d["active"] and d["built"]))' \
     || fail "latest does not build from legacy/0.2.x"

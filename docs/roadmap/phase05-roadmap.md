@@ -7305,9 +7305,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 13 — Production Platform
+## Step 13 — Production Platform ✅
 
-**Status:** Not started
+**Status:** Complete — PR #289 (2026-11-10)
 
 > **Goal:** Stand production up where the launch will run, private until
 > the cutover (ADR-0013 decisions 3–7). With the maintainer's approvals
@@ -7369,6 +7369,8 @@ application.
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-05: Quality Pick — Opus 5.5 · XHigh.
 
 **Conversation:** New
 
@@ -7644,9 +7646,10 @@ New conversation per phase-boundary hygiene.
     - Step 12 note: on 2026-11-04 the maintainer chose to keep
       the documentation on Read the Docs, ads included, at
       the project's own domain (issue #259). The free plan
-      serves a custom domain. Read the Docs keeps answering
-      on pyeconomics.readthedocs.io as well, so the links in
-      released wheels keep working, and docs/conf.py already
+      serves a custom domain. Read the Docs redirects
+      pyeconomics.readthedocs.io to the canonical domain, so
+      the links in released wheels keep working, and
+      docs/conf.py already
       passes `READTHEDOCS_CANONICAL_URL` to `html_baseurl`,
       so each page will name the new address once the domain
       is canonical. Hosting the documentation ourselves
@@ -7716,7 +7719,12 @@ New conversation per phase-boundary hygiene.
       every host. The API-only staging Worker
       (tools/node/edge/wrangler.toml) is redeployed by hand
       after the shared module changes; the decision-7 cache
-      change below is such a change.
+      change below is such a change. Settled 2026-11-10: a
+      per-Worker Editor token (Individual Workers) read,
+      uploaded, deployed and rolled back pyeconomics-web through
+      the API and was refused by both staging Workers, so
+      production's token and staging's both hold Editor on
+      their own Worker alone (issue #231).
     - pyeconomics-app publishes with pyeconomics from
       release.yml (Step 10); no `v1.0.0rc1*` tag exists.
     - Facts read on 2026-10-29 (re-check at kickoff): the
@@ -7885,7 +7893,7 @@ New conversation per phase-boundary hygiene.
       .github/ISSUE_TEMPLATE/config.yml. surfaces/problems.py
       adds the new host to its allowed list and keeps the old
       one, which released wheels print. The earlier phases'
-      verifiers read the old host, which still answers: leave
+      verifiers read the old host, which now redirects: leave
       them unless one fails, then add an addendum line.
     </requirement>
 
@@ -7901,9 +7909,9 @@ New conversation per phase-boundary hygiene.
 ### Step 13 acceptance criteria
 
 - `https://docs.pyeconomics.dev/en/main/` answers 200 over HTTPS, a page
-  there carries `<link rel="canonical">` on that host, the same page still
-  answers on `pyeconomics.readthedocs.io`, and the web site's documentation
-  links point at the new host.
+  there carries `<link rel="canonical">` on that host, the same page on
+  `pyeconomics.readthedocs.io` redirects to it, and the web site's
+  documentation links point at the new host.
 
 - Production exists as recorded: the project, registry, identities with
   only Google-managed keys and service-level roles, the federation
@@ -7914,6 +7922,10 @@ New conversation per phase-boundary hygiene.
 - Cloudflare serves `pyeconomics.dev` from `pyeconomics-web` behind Access,
   with HSTS, the managed ruleset, the Worker's GET-run cache and the rate
   rule covering production's API paths; the redirect rules exist, disabled.
+  The cache's cases pass in `worker.test.mjs`, and behind Access a repeated
+  data-free `GET` run shows `cf-cache-status: HIT` while a `POST` run and a
+  problem do not, though Cloudflare's documentation says the Cache API is
+  unavailable there, so a miss fails no check.
 - `deploy-production.yml` refuses a commit staging did not verify,
   promotes the digest, and deploys data, API and site in order with
   verification and rollback; Phase 3 check 78 and Phase 4 check 64 are
@@ -8264,6 +8276,15 @@ conversation per phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 13):
 
+    - Step 13 note: deploy-production.yml already passes
+      PYECONOMICS_SNAPSHOT_HEARTBEAT to the job when the
+      `production` environment's HEARTBEAT_SECRET_VERSION is
+      set, as deploy-staging.yml does. Every job there waits
+      for the maintainer, so a dispatch asks for four
+      approvals. Staging and production together hold eight
+      active secret versions, two past the billing account's
+      six free ones, at $0.06 a month each: a new secret
+      adds to that.
     - Step 6 note: the calculators post users' inputs in
       run bodies, and a field's value can appear in a
       validation message; browser error reporting keeps
@@ -9864,6 +9885,13 @@ hygiene.
 
     Current state (post-Phase-5 Step 16):
 
+    - Step 13 note: deploy-production.yml copies the image
+      tagged with the commit from staging's registry, which
+      keeps its two newest images and deletes the others
+      after a day, so tag main's newest commit once its
+      deploy-staging run has passed. A `.devN` tag deploys
+      nothing. Each of its four jobs waits for the maintainer,
+      beside `pypi`'s own approval.
     - main reads 1.0.0rc1.dev1; staging and production
       (behind Access) run the complete site, API, snapshot
       jobs, observability and growth signals; the legal
@@ -10869,6 +10897,16 @@ phase-boundary hygiene.
 
     Current state (post-Phase-5 Step 18):
 
+    - Step 13 note: until the `production` environment's
+      PRODUCTION_PUBLIC variable is `true`, deploy-production.yml
+      checks that Access refuses a request without the token:
+      set it as Access goes, or the next deploy fails that
+      check and rolls back. The redirect hosts' proxied
+      `AAAA 100::` records already exist, so enabling the rules
+      is all they need. The edge's cache of GET runs answered
+      HIT behind Access on 2026-11-10, which Cloudflare does not
+      document, so check it again once Access is gone
+      (docs/operations/production.md section 5).
     - Step 12 note: once 1.0.0 is on PyPI, move docs/wasm/'s
       three notebooks' `pyeconomics==` pin to it, run
       `uv run --no-config --group docs python
@@ -11046,10 +11084,14 @@ phase-boundary hygiene.
   `--fast` passes.
 - Both distributions' 1.0.0 archives differ from 1.0.0rc1's only in
   version metadata, or the PR explains each difference.
-- The Access application on `pyeconomics.dev` is gone, the redirects are
+- The Access application on `pyeconomics.dev` is gone, the `production`
+  environment's `PRODUCTION_PUBLIC` is `true`, the redirects are
   on, Read the Docs' defaults are `main` and `stable`, the homepage is set,
   `legacy/0.2.x` is locked, the Dependabot hold is lifted, and the
   announcement date is in the ledger.
+- The edge caches GET runs: the second of two identical data-free `GET` runs
+  shows `cf-cache-status: HIT` or an `age`, and a `POST` run and a problem
+  show neither, as it did behind Access in Step 13.
 - **Deployed & verified:** without any token, `https://pyeconomics.dev/
   version` and `/version.json` report the `v1.0.0` SHA; a synthetic check
   runs one model per domain and downloads a CSV carrying its attribution;
@@ -11954,7 +11996,7 @@ workflow above maps directly to the corresponding row below.
 | 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Complete — PR #255 |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Complete — PR #257 |
-| 13   | Production platform            | Sonnet 5.5     | Not started        |
+| 13   | Production platform            | Sonnet 5.5     | Complete — PR #289 |
 | 14   | Observability + operations     | Sonnet 5.5     | Not started        |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Not started        |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Not started        |

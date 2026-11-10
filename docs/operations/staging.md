@@ -167,14 +167,14 @@ gcloud run services add-iam-policy-binding pyeconomics-api-staging \
   `BEA_SECRET_VERSION`, `BLS_SECRET_VERSION`; Step 14 adds
   `HEARTBEAT_SECRET_VERSION`) as environment variables.
 - **Cloudflare API token (`CLOUDFLARE_API_TOKEN`):** an account-owned token
-  holding the legacy permission group *Workers Scripts: Edit* on the whole
-  account, and nothing else: no zone, DNS, route, custom-domain or Access
-  permission. It was meant to hold *Editor* on `pyeconomics-web-staging`
-  alone, but on 2026-11-01 Cloudflare's per-Worker roles granted nothing
-  through the API (every Worker endpoint answered `401 [10000]`), and the new
-  account-wide *Workers* role could not be saved (issue #231). So it can
-  deploy any Worker in the account, the API-only Worker included; issue #231
-  narrows it again, and Step 13 must settle it before production exists.
+  holding the *Individual Workers* role *Editor* on `pyeconomics-web-staging`
+  alone, and nothing else: no zone, DNS, route, custom-domain or Access
+  permission, and no other Worker. On 2026-11-01 Cloudflare's per-Worker roles
+  granted nothing through the API (every Worker endpoint answered
+  `401 [10000]`), so it held *Workers Scripts: Edit* on the whole account
+  until 2026-11-10, when a per-Worker Editor token read, uploaded, deployed and
+  rolled back production's Worker and was refused by staging's (issue #231);
+  its policy was narrowed then, which kept its value.
   `wrangler deploy` rewrites the Worker's custom domain on every run, so CI
   deploys with `wrangler versions upload` and `wrangler versions deploy`; a
   change to routes, `workers_dev` or `preview_urls` is the maintainer's own
@@ -197,7 +197,9 @@ also be triggered manually with `gh workflow run deploy-staging.yml --ref main`)
 3. Scans the image with Trivy (`ghcr.io/aquasecurity/trivy:0.69.3` pinned by
    digest), failing the build on any fixable `CRITICAL` or `HIGH` vulnerability.
 4. Records the currently serving Cloud Run revision (`PREVIOUS_REVISION`),
-   pushes the image to Artifact Registry by SHA tag and resolves its immutable
+   pushes the image to Artifact Registry by SHA tag (the repository's cleanup
+   keeps the two newest and any tagged `v*`, and deletes the rest after a day,
+   which is as long as production can promote one) and resolves its immutable
    `@sha256:...` digest. Data before API (Phase 5 Step 8): it records the
    snapshot job's image and updates `pyeconomics-snapshots-staging` to the new
    digest with every setting pinned (section 7). Then it deploys the digest to
@@ -302,6 +304,16 @@ npx wrangler versions deploy <VERSION_ID>@100% --env staging --message "reason" 
 
 The next merge deploys its own new version over a rollback; nothing stays
 pinned, unlike Cloud Run.
+
+### The edge's cache of GET runs
+
+Since Phase 5 Step 13 the shared Worker module keeps `GET` runs with the Cache API
+(ADR-0013 decision 7; `docs/operations/production.md` section 1.2). Cloudflare's
+documentation says the Cache API is unavailable for a Worker behind Access, which
+both staging hosts are, yet production behind Access answered
+`cf-cache-status: HIT` on 2026-11-10. The site job's two identical `GET` runs
+check the bytes and the `Cache-Control`, not a hit, so an undocumented change on
+Cloudflare's side fails no deploy.
 
 ### Deploying routes, the custom domain, or the API-only Worker
 
@@ -521,11 +533,11 @@ To rotate the service token:
 ### 3.4 Rotating the Cloudflare API token (`CLOUDFLARE_API_TOKEN`)
 
 - **Token name:** `pyeconomics-web-staging-deploy` (account-owned)
-- **Scope:** *Entire account* · *Workers Scripts* (Legacy) · *Edit*; no other
-  permission, no IP filter (GitHub-hosted runners have no fixed addresses).
-  Narrow it to *Specified Workers* = `pyeconomics-web-staging` · *Editor* once
-  per-Worker roles work through the API (issue #231): editing the policy keeps
-  the token's value, so the secret needs no change
+- **Scope:** *Specified Workers* = `pyeconomics-web-staging` · *Individual
+  Workers* · *Editor*; no other permission, no IP filter (GitHub-hosted runners
+  have no fixed addresses). It cannot deploy the API-only Worker
+  `pyeconomics-api-staging` or production's `pyeconomics-web`. Narrowed from
+  account-wide *Workers Scripts: Edit* on 2026-11-10 (issue #231)
 - **Created:** `2026-11-01`
 - **Expires:** `2027-10-27` (rotated with the Access service token; at least 14
   days before expiry)
@@ -676,7 +688,7 @@ Measured on the multi-stage `python:3.14-slim-bookworm` image with
 | **Cloud Run requests** (`us-central1`) | 2,000,000 requests | 744 × 3 = 2,232 | 30 × 7 = 210 | 2,442 requests | 0.12% |
 | **Cloud Run vCPU-seconds** (`1 vCPU`, request-based) | 180,000 vCPU-s | 744 × 3.0 s = 2,232 vCPU-s | 30 × 5.0 s = 150 vCPU-s | 2,382 vCPU-s | 1.32% |
 | **Cloud Run GiB-seconds** (`1 GiB`, request-based) | 360,000 GiB-s | 744 × 3.0 s = 2,232 GiB-s | 30 × 5.0 s = 150 GiB-s | 2,382 GiB-s | 0.66% |
-| **Artifact Registry storage** (`us-central1`) | 500 MiB (0.5 GiB) | — | ~185 MiB/image × 2 kept | ~370 MiB | 74.0% |
+| **Artifact Registry storage** (`us-central1`) | 500 MiB (0.5 GiB), shared with production | — | ~251 MiB/image × 2 kept, shared layers stored once | ≤ 502 MiB | ≤ 100% |
 | **Secret Manager** | 6 active versions; 10,000 accesses | ~1,488 cold-start accesses | ~60 accesses | 2 versions; ~1,548 accesses | 33.3% / 15.5% |
 | **Upstash Redis** (`rediss://`) | 500,000 commands | 744 × 3 = 2,232 cmds | 30 × 9 = 270 cmds | ~2,502 commands | 0.50% |
 | **Cloudflare Workers** (both, one account) | 100,000 requests/day | 72 requests/day | ~9 requests/day | ~81 requests/day | 0.08% |

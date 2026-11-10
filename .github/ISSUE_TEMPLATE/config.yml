@@ -5,5 +5,5 @@ contact_links:
     url: https://github.com/pyeconomics-dev/pyeconomics/security/advisories/new
     about: Report vulnerabilities privately through GitHub private vulnerability reporting, never in a public issue (SECURITY.md).
   - name: pyeconomics 0.2.x documentation
-    url: https://pyeconomics.readthedocs.io/
+    url: https://docs.pyeconomics.dev/
     about: 0.2.x receives security fixes only until 1.0.0 is released.

@@ -131,10 +131,10 @@ def _(mo):
     mo.md(r"""
     The correlations stay fixed here: 0.3 between A and B, 0.2 between A and C and
     0.5 between B and C. The model behind this page is
-    [`portfolio.mean_variance`](https://pyeconomics.readthedocs.io/en/main/reference/models/portfolio/mean_variance.html),
+    [`portfolio.mean_variance`](https://docs.pyeconomics.dev/en/main/reference/models/portfolio/mean_variance.html),
     whose page gives the formulas and their sources. To use it on your own machine,
     see the
-    [install tutorial](https://pyeconomics.readthedocs.io/en/main/tutorials/install.html).
+    [install tutorial](https://docs.pyeconomics.dev/en/main/tutorials/install.html).
 
     This example is educational, not investment advice, and no portfolio here is a
     suggestion to hold it.

@@ -1,0 +1,831 @@
+# .github/workflows/deploy-production.yml
+#
+# Promotes a commit staging has verified to production (`pyeconomics.dev`), on a
+# release tag or a maintainer-approved dispatch from `main` (Phase 5 Step 13;
+# ROADMAP §5 "Release & deployment strategy"; ADR-0013 decisions 3 to 7).
+# Nothing is built for the API: the image is the one staging verified, copied by
+# digest. Data, API and site deploy in that order, each verified through the
+# edge with production's Access service token and each rolled back by itself.
+#
+# - Triggers: a `v*` tag that is not a `.devN` rehearsal, and workflow_dispatch
+#   from `main`. The `production` environment admits only those refs and waits
+#   for the maintainer at every job.
+# - `check` refuses a commit that is not on main, or that has no successful
+#   deploy-staging.yml run, read with this run's GITHUB_TOKEN (`actions: read`).
+# - `data` copies the digest of the image tagged with this commit from staging's
+#   registry into production's, pins the snapshot job to it with its whole
+#   configuration, runs the job, and checks `current.json` came from that run.
+# - `api` deploys the digest, restores latest traffic (#210), then verifies the
+#   origin and the edge; on failure it routes to the previous revision, returns
+#   the job to its previous image and fails. The next deploy restores latest.
+# - `site` builds the production flavour from this commit and deploys it with
+#   `wrangler versions upload` and `versions deploy`, never `wrangler deploy`,
+#   which rewrites the custom domain; on failure it returns the Worker to the
+#   version it served before and fails.
+# - Authenticates to Google Cloud through Workload Identity Federation, whose
+#   condition names this repository's id, the `production` environment and
+#   `main` or a `v*` tag, so no service account key exists. Only `data` and `api`
+#   hold `id-token: write`.
+# - Reads only the `production` environment's secrets, and only the steps that
+#   use one receive it. Until the cutover it also proves Access refuses a request
+#   without the service token; the cutover sets the environment's
+#   `PRODUCTION_PUBLIC` variable to `true`, which ends that check and no other.
+#   `docs/operations/production.md` is the runbook.
+
+name: deploy-production
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: check staging verified this commit
+    # A .devN tag is a TestPyPI rehearsal: it deploys nothing.
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '.dev'))
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ vars.PRODUCTION_HOST }}
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Refuse a commit off main, or one staging did not verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # main is ahead of the commit, or identical to it, when the commit is on main.
+          status=$(gh api "repos/${GH_REPO}/compare/${GITHUB_SHA}...main" --jq .status)
+          if [[ "$status" != ahead && "$status" != identical ]]; then
+            echo "::error::${GITHUB_SHA} is not on main (main is ${status} of it)."
+            exit 1
+          fi
+          verified=$(gh run list --workflow deploy-staging.yml --commit "$GITHUB_SHA" --branch main \
+            --status success --limit 1 --json databaseId --jq 'length')
+          if [[ "$verified" != 1 ]]; then
+            echo "::error::deploy-staging.yml has not succeeded on ${GITHUB_SHA}: staging must verify a commit first."
+            exit 1
+          fi
+          echo "Staging verified ${GITHUB_SHA}."
+
+  data:
+    name: promote the image and refresh the snapshot
+    needs: check
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ vars.PRODUCTION_HOST }}
+    timeout-minutes: 75
+    permissions:
+      id-token: write
+    outputs:
+      digest: ${{ steps.promote.outputs.digest }}
+      previous_image: ${{ steps.previous.outputs.previous_image }}
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_SERVICE: ${{ vars.GCP_SERVICE }}
+      GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
+      GCP_SNAPSHOT_JOB: ${{ vars.GCP_SNAPSHOT_JOB }}
+      GCP_SNAPSHOT_BUCKET: ${{ vars.GCP_SNAPSHOT_BUCKET }}
+      GCP_SNAPSHOT_SERVICE_ACCOUNT: ${{ vars.GCP_SNAPSHOT_SERVICE_ACCOUNT }}
+      BEA_SECRET_VERSION: ${{ vars.BEA_SECRET_VERSION }}
+      BLS_SECRET_VERSION: ${{ vars.BLS_SECRET_VERSION }}
+      HEARTBEAT_SECRET_VERSION: ${{ vars.HEARTBEAT_SECRET_VERSION }}
+      STAGING_IMAGE_REPOSITORY: ${{ vars.STAGING_IMAGE_REPOSITORY }}
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Authenticate to Google Cloud via Workload Identity Federation
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker for Artifact Registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      # imagetools copies the manifest and its blobs as they are, so the digest
+      # is staging's: nothing is pulled, rebuilt or recompressed. Staging pushes
+      # a single manifest, which imagetools would wrap in a new list with a new
+      # digest unless --prefer-index=false asks for the exact copy. A release tag
+      # also names the image, which production's cleanup policy keeps for ever.
+      - name: Copy the digest staging verified into production's registry
+        id: promote
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/${GCP_SERVICE}"
+          digest=$(gcloud artifacts docker images describe "${STAGING_IMAGE_REPOSITORY}:${GITHUB_SHA}" \
+            --format='value(image_summary.digest)')
+          if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::Staging's registry holds no image for ${GITHUB_SHA}: its cleanup keeps the two newest."
+            exit 1
+          fi
+          tags=(--tag "${target}:${GITHUB_SHA}")
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            tags+=(--tag "${target}:${GITHUB_REF_NAME}")
+          fi
+          docker buildx imagetools create --prefer-index=false "${tags[@]}" \
+            "${STAGING_IMAGE_REPOSITORY}@${digest}"
+          copied=$(gcloud artifacts docker images describe "${target}:${GITHUB_SHA}" \
+            --format='value(image_summary.digest)')
+          if [[ "$copied" != "$digest" ]]; then
+            echo "::error::The copy's digest ${copied} is not staging's ${digest}."
+            exit 1
+          fi
+          echo "digest=${target}@${digest}" >> "$GITHUB_OUTPUT"
+          echo "Promoted ${digest}."
+
+      - name: Record the snapshot job's current image
+        id: previous
+        shell: bash
+        run: |
+          set -euo pipefail
+          prev=$(gcloud run jobs describe "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(spec.template.spec.template.spec.containers[0].image)')
+          echo "previous_image=${prev}" >> "$GITHUB_OUTPUT"
+          echo "Snapshot job image before deploy: ${prev}"
+
+      - name: Update the snapshot job to the promoted digest
+        env:
+          IMAGE_DIGEST: ${{ steps.promote.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          keys="BEA_API_KEY=bea-api-key:${BEA_SECRET_VERSION:-1},BLS_API_KEY=bls-api-key:${BLS_SECRET_VERSION:-1}"
+          if [ -n "${HEARTBEAT_SECRET_VERSION:-}" ]; then
+            keys="${keys},PYECONOMICS_SNAPSHOT_HEARTBEAT=snapshot-heartbeat:${HEARTBEAT_SECRET_VERSION}"
+          fi
+          gcloud run jobs update "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$IMAGE_DIGEST" \
+            --service-account="$GCP_SNAPSHOT_SERVICE_ACCOUNT" \
+            --command=python \
+            --args=-m,pyeconomics.data.snapshots,write \
+            --tasks=1 \
+            --parallelism=1 \
+            --max-retries=0 \
+            --task-timeout=30m \
+            --cpu=1 \
+            --memory=2Gi \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
+            --set-secrets="$keys" \
+            --clear-volume-mounts \
+            --clear-volumes \
+            --add-volume="name=snapshots,type=cloud-storage,bucket=${GCP_SNAPSHOT_BUCKET}" \
+            --add-volume-mount="volume=snapshots,mount-path=/snapshots" \
+            --quiet
+
+      # The bucket has one writer: Cloud Storage FUSE has no locking, so a run
+      # waits for a scheduled one to finish rather than overlap it.
+      - name: Wait for any run in progress, then run the job
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 40); do
+            newest=$(gcloud run jobs executions list --job="$GCP_SNAPSHOT_JOB" \
+              --project="$GCP_PROJECT_ID" \
+              --region="$GCP_REGION" \
+              --sort-by=~metadata.creationTimestamp --limit=1 \
+              --format='value(metadata.name,status.completionTime)')
+            if [[ -z "$newest" || "$(wc -w <<< "$newest")" == 2 ]]; then
+              break
+            fi
+            if [[ "$attempt" == 40 ]]; then
+              echo "::error::Execution ${newest} has not finished after 20 minutes."
+              exit 1
+            fi
+            echo "Execution ${newest} is still running."
+            sleep 30
+          done
+          started=$(date -u --iso-8601=seconds)
+          gcloud run jobs execute "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --wait
+          echo "started=${started}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify current.json came from this run
+        env:
+          STARTED: ${{ steps.run.outputs.started }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud storage cat "gs://${GCP_SNAPSHOT_BUCKET}/current.json" > "$RUNNER_TEMP/current.json"
+          python3 - "$RUNNER_TEMP/current.json" <<'PY'
+          import datetime as dt
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              current = json.load(handle)
+          started = dt.datetime.fromisoformat(os.environ["STARTED"])
+          completed = dt.datetime.fromisoformat(current["completed_at"])
+          assert completed >= started, f"current.json is from {completed}, before this run began at {started}"
+          failed = sorted(name for name, entry in current["providers"].items() if entry["failure"])
+          assert len(failed) < len(current["providers"]), "no provider succeeded"
+          print(f"current.json is run {current['run']}; {len(failed)} providers kept older data: {failed}")
+          PY
+
+      - name: Return the snapshot job to its previous image on failure
+        if: failure() && steps.previous.outputs.previous_image != ''
+        env:
+          PREVIOUS_IMAGE: ${{ steps.previous.outputs.previous_image }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::The snapshot step failed; returning the job to ${PREVIOUS_IMAGE}."
+          gcloud run jobs update "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$PREVIOUS_IMAGE" \
+            --quiet
+
+  api:
+    name: deploy and verify the API
+    needs: data
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ vars.PRODUCTION_HOST }}
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_SERVICE: ${{ vars.GCP_SERVICE }}
+      GCP_RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+      GCP_SNAPSHOT_JOB: ${{ vars.GCP_SNAPSHOT_JOB }}
+      GCP_SNAPSHOT_BUCKET: ${{ vars.GCP_SNAPSHOT_BUCKET }}
+      PRODUCTION_HOST: ${{ vars.PRODUCTION_HOST }}
+      PRODUCTION_PUBLIC: ${{ vars.PRODUCTION_PUBLIC }}
+      RATELIMIT_SECRET_VERSION: ${{ vars.RATELIMIT_SECRET_VERSION }}
+      EDGE_SECRET_VERSION: ${{ vars.EDGE_SECRET_VERSION }}
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A tag-triggered workflow restores no cache, which could poison it.
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: false
+
+      # The venv holds the container's extras at uv.lock's versions (a result's
+      # manifest records its dependencies' versions), so its runs are the
+      # deployed API's: the run below and check_deployed.py's golden cases.
+      - name: Build the wheel and compute expected run bytes in a clean venv
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv build --no-config --wheel
+          uv export --no-config --frozen --no-dev --no-emit-project \
+            --extra server --extra mcp --extra econometrics --extra plot --extra sdmx \
+            --output-file "$RUNNER_TEMP/requirements.txt"
+          uv venv "$RUNNER_TEMP/wheel-venv"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --require-hashes --requirement "$RUNNER_TEMP/requirements.txt"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --no-deps dist/pyeconomics-*.whl
+          "$RUNNER_TEMP/wheel-venv/bin/python" - <<'PY' > "$RUNNER_TEMP/expected-run.json"
+          import sys
+          import pyeconomics
+
+          res = pyeconomics.run(
+              "foundations.time_value",
+              {
+                  "calculation": "future_value",
+                  "present_value": 1000.0,
+                  "rate": 0.05,
+                  "periods": 10,
+              },
+          )
+          sys.stdout.buffer.write(res.to_json().encode("utf-8"))
+          PY
+          "$RUNNER_TEMP/wheel-venv/bin/python" -c 'import pyeconomics; print(pyeconomics.__version__)' > "$RUNNER_TEMP/expected-version.txt"
+
+      - name: Authenticate to Google Cloud via Workload Identity Federation
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Record the currently serving Cloud Run revision
+        id: previous
+        shell: bash
+        run: |
+          set -euo pipefail
+          prev=$(gcloud run services describe "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(status.traffic[0].revisionName)')
+          echo "previous_revision=${prev}" >> "$GITHUB_OUTPUT"
+          echo "Current serving revision before deploy: ${prev}"
+
+      # --allow-unauthenticated stays out: the service keeps its allUsers binding
+      # between deploys, the edge credential is the origin's gate, and the deploy
+      # identity's run.developer cannot set IAM policy (#211).
+      - name: Deploy the digest to Cloud Run with pinned secret versions
+        id: deploy
+        env:
+          IMAGE_DIGEST: ${{ needs.data.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$IMAGE_DIGEST" \
+            --service-account="$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --min-instances=0 \
+            --max-instances=3 \
+            --cpu=1 \
+            --memory=1Gi \
+            --cpu-throttling \
+            --timeout=60s \
+            --concurrency=8 \
+            --startup-probe=httpGet.path=/healthz,httpGet.port=8080,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
+            --ingress=all \
+            --execution-environment=gen2 \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_SNAPSHOT_DIR=/snapshots" \
+            --set-secrets="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${RATELIMIT_SECRET_VERSION:-1},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${EDGE_SECRET_VERSION:-1}" \
+            --clear-volume-mounts \
+            --clear-volumes \
+            --add-volume="name=snapshots,type=cloud-storage,bucket=${GCP_SNAPSHOT_BUCKET},readonly=true" \
+            --add-volume-mount="volume=snapshots,mount-path=/snapshots" \
+            --quiet
+          # A rollback pins traffic to a named revision, which leaves a new
+          # revision at 0% (#210): return it to the latest before verifying.
+          gcloud run services update-traffic "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --to-latest \
+            --quiet
+          origin_url=$(gcloud run services describe "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(status.url)')
+          probe_path=$(gcloud run services describe "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --format='value(spec.template.spec.containers[0].startupProbe.httpGet.path)')
+          echo "origin_url=${origin_url}" >> "$GITHUB_OUTPUT"
+          echo "probe_path=${probe_path}" >> "$GITHUB_OUTPUT"
+          gcloud storage cat "gs://${GCP_SNAPSHOT_BUCKET}/current.json" > "$RUNNER_TEMP/current.json"
+
+      - name: Verify the origin and the edge
+        env:
+          ORIGIN_URL: ${{ steps.deploy.outputs.origin_url }}
+          STARTUP_PROBE_PATH: ${{ steps.deploy.outputs.probe_path }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import datetime as dt
+          import json
+          import os
+          import pathlib
+          import urllib.error
+          import urllib.request
+
+          origin_url = os.environ["ORIGIN_URL"].rstrip("/")
+          edge_base = f"https://{os.environ['PRODUCTION_HOST'].strip()}"
+          git_sha = os.environ["GITHUB_SHA"].strip()
+          temp = pathlib.Path(os.environ["RUNNER_TEMP"])
+          expected_run = (temp / "expected-run.json").read_bytes()
+          expected_version = (temp / "expected-version.txt").read_text(encoding="utf-8").strip()
+          current = json.loads((temp / "current.json").read_text(encoding="utf-8"))
+          agent = {"User-Agent": "pyeconomics-deploy-check/1.0"}
+          access = {
+              "CF-Access-Client-Id": os.environ["CF_ACCESS_CLIENT_ID"].strip(),
+              "CF-Access-Client-Secret": os.environ["CF_ACCESS_CLIENT_SECRET"].strip(),
+              **agent,
+          }
+
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect)
+
+          def request(url: str, *, method: str = "GET", headers: dict[str, str] | None = None, body: bytes | None = None):
+              req = urllib.request.Request(url, data=body, headers=headers or agent, method=method)
+              try:
+                  with opener.open(req, timeout=45) as resp:
+                      return resp.status, resp.headers, resp.read()
+              except urllib.error.HTTPError as exc:
+                  return exc.code, exc.headers, exc.read()
+
+          # 1. Cloud Run's HTTP startup probe is on /healthz:8080, and the
+          #    origin's open /version answers (Google Frontend reserves /healthz
+          #    on *.run.app external URLs).
+          probe = os.environ["STARTUP_PROBE_PATH"].strip()
+          assert probe == "/healthz", f"unexpected Cloud Run startupProbe path: {probe!r}"
+          version = {"pyeconomics": expected_version, "git_sha": git_sha, "mode": "hosted"}
+          status, _, body = request(f"{origin_url}/version")
+          assert status == 200, f"origin /version returned {status}"
+          assert json.loads(body) == version, f"unexpected origin /version payload: {body!r}"
+
+          # 2. The origin refuses /v1 and /mcp without the edge credential.
+          status, _, body = request(f"{origin_url}/v1/models")
+          assert status == 403, f"direct origin /v1/models returned {status}, expected 403"
+          assert json.loads(body)["type"].endswith("/problems/edge-required"), body
+          status, _, _ = request(
+              f"{origin_url}/mcp",
+              method="POST",
+              headers={**agent, "Content-Type": "application/json"},
+              body=b'{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+          )
+          assert status == 403, f"direct origin /mcp returned {status}, expected 403"
+
+          # 3. Until the cutover, Access refuses every API path without the token.
+          if os.environ.get("PRODUCTION_PUBLIC") != "true":
+              for path in ("/version", "/healthz", "/v1/models", "/openapi.json", "/mcp"):
+                  status, _, _ = request(f"{edge_base}{path}")
+                  assert status in {302, 303, 401, 403}, f"unauthenticated {path} returned {status}"
+
+          # 4. Through the edge, /healthz answers and /version names this commit.
+          status, _, body = request(f"{edge_base}/healthz", headers=access)
+          assert status == 200 and json.loads(body) == {"status": "ok"}, f"edge /healthz returned {status}"
+          status, _, body = request(f"{edge_base}/version", headers=access)
+          assert status == 200, f"edge /version returned {status}"
+          assert json.loads(body) == version, f"unexpected edge /version payload: {body!r}"
+
+          # 5. A data-free run equals the wheel's bytes.
+          inputs = b'{"calculation":"future_value","present_value":1000.0,"rate":0.05,"periods":10}'
+          run = f"{edge_base}/v1/models/foundations.time_value/run"
+          status, _, body = request(
+              run, method="POST", headers={**access, "Content-Type": "application/json"}, body=inputs
+          )
+          assert status == 200, f"edge run returned {status}"
+          assert body == expected_run, "edge run bytes differed from wheel Result.to_json() bytes"
+
+          # 6. The same run by GET goes through the Worker's cache path twice: both
+          #    answers carry the same bytes and the origin's Cache-Control, whether
+          #    or not the Cache API works behind Access. ?inputs= is the inputs'
+          #    JSON in base64url without padding.
+          encoded = base64.urlsafe_b64encode(inputs).rstrip(b"=").decode("ascii")
+          url = f"{run}?inputs={encoded}"
+          status, first_headers, first = request(url, headers=access)
+          assert status == 200, f"edge GET run returned {status}"
+          assert first_headers.get("Cache-Control") == "public, max-age=86400", first_headers.get("Cache-Control")
+          status, second_headers, second = request(url, headers=access)
+          assert status == 200 and second == first, f"second edge GET run returned {status}"
+          print(f"Second GET run: cf-cache-status {second_headers.get('cf-cache-status')}.")
+
+          # 7. A hosted-safe series answers from the snapshot this run wrote.
+          now = dt.datetime.now(dt.UTC)
+          start = (now - dt.timedelta(days=14)).date().isoformat()
+          status, _, body = request(
+              f"{edge_base}/v1/series/treasury:par_nominal?start={start}&end={now.date().isoformat()}",
+              headers=access,
+          )
+          assert status == 200, f"edge snapshot series returned {status}: {body[:300]!r}"
+          document = json.loads(body)
+          record = document["sources"][0]
+          assert "served_from_snapshot" in record["warnings"], record
+          held = current["providers"]["treasury"]["series"]["par_nominal"]["retrieved_at"]
+          assert dt.datetime.fromisoformat(record["retrieved_at"]) == dt.datetime.fromisoformat(held), (
+              f"the API serves data retrieved at {record['retrieved_at']}; current.json holds {held}"
+          )
+          assert record["licence"] == "hosted-safe", record
+          assert any("Treasury" in a for a in document["attributions"]), document["attributions"]
+
+          # 8. A library-only source answers 403 with its terms, and a series
+          #    outside the set 404 not-in-snapshot.
+          status, _, body = request(f"{edge_base}/v1/series/fred:UNRATE", headers=access)
+          assert status == 403, f"edge library-only series returned {status}, expected 403"
+          refusal = json.loads(body)
+          assert refusal["type"].endswith("/problems/licence-refused"), refusal
+          assert refusal.get("terms"), refusal
+          status, _, body = request(f"{edge_base}/v1/series/treasury:statement", headers=access)
+          assert status == 404, f"edge series outside the snapshot returned {status}"
+          assert json.loads(body)["type"].endswith("/problems/not-in-snapshot"), body
+          print("All origin and edge production checks passed.")
+          PY
+
+      # The first golden case of each domain through the edge, compared with the
+      # wheel's Python API in the venv above. The working directory is outside
+      # the checkout, so the installed wheel answers, never the source tree.
+      - name: Check one golden case per domain through the deployed API
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          golden="$PWD/tests/golden"
+          check="$PWD/scripts/parity/check_deployed.py"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -I "$check" "$golden" "https://${PRODUCTION_HOST}"
+
+      - name: Return the snapshot job to its previous image on failure
+        if: failure() && needs.data.outputs.previous_image != ''
+        env:
+          PREVIOUS_IMAGE: ${{ needs.data.outputs.previous_image }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Production's API failed verification; returning the snapshot job to ${PREVIOUS_IMAGE}."
+          gcloud run jobs update "$GCP_SNAPSHOT_JOB" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --image="$PREVIOUS_IMAGE" \
+            --quiet
+
+      - name: Route traffic back to the previous revision on failure
+        if: failure() && steps.previous.outputs.previous_revision != ''
+        env:
+          PREVIOUS_REVISION: ${{ steps.previous.outputs.previous_revision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Production's API failed verification; routing 100% of traffic back to ${PREVIOUS_REVISION}."
+          gcloud run services update-traffic "$GCP_SERVICE" \
+            --project="$GCP_PROJECT_ID" \
+            --region="$GCP_REGION" \
+            --to-revisions="${PREVIOUS_REVISION}=100" \
+            --quiet
+
+  site:
+    name: deploy and verify the site
+    needs: api
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ vars.PRODUCTION_HOST }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      PRODUCTION_HOST: ${{ vars.PRODUCTION_HOST }}
+      PRODUCTION_PUBLIC: ${{ vars.PRODUCTION_PUBLIC }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      ASTRO_TELEMETRY_DISABLED: "1"
+      WRANGLER_SEND_METRICS: "false"
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: false
+
+      - name: Set up Node.js from web/.nvmrc
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.nvmrc
+          package-manager-cache: false
+
+      # npm ci installs exactly the lockfile; no package may run an install script.
+      - name: Install the site's tools from their lockfile
+        working-directory: web
+        run: npm ci --ignore-scripts --no-fund --no-audit
+
+      - name: Export the site data from this commit
+        working-directory: web
+        run: npm run data
+
+      # scripts/headers.ts refuses indexing for a pre-release and allows it for a
+      # final release (ADR-0013 decision 4).
+      - name: Build the production flavour of the site
+        working-directory: web
+        env:
+          SITE_FLAVOUR: production
+          GIT_SHA: ${{ github.sha }}
+        run: npm run build
+
+      - name: Record the Worker version serving now
+        id: previous
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install wrangler deployments status --env production --json > "$RUNNER_TEMP/deployment.json"
+          previous=$(python3 - "$RUNNER_TEMP/deployment.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              deployment = json.load(handle)
+          whole = [v["version_id"] for v in deployment.get("versions", []) if v.get("percentage") == 100]
+          print(whole[0] if len(whole) == 1 else "")
+          PY
+          )
+          echo "previous_version=${previous}" >> "$GITHUB_OUTPUT"
+          echo "Worker version serving before this deploy: ${previous:-none}"
+
+      - name: Upload the site as a new Worker version and deploy it
+        id: release
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install wrangler versions upload --env production --message "deploy-production ${GITHUB_SHA}"
+          version=$(python3 - "$WRANGLER_OUTPUT_FILE_PATH" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              entries = [json.loads(line) for line in handle if line.strip()]
+          uploads = [e["version_id"] for e in entries if e.get("type") == "version-upload"]
+          print(uploads[-1] if uploads else "")
+          PY
+          )
+          if [[ ! "$version" =~ ^[0-9a-f-]{36}$ ]]; then
+            echo "::error::wrangler versions upload reported no version id."
+            exit 1
+          fi
+          npx --no-install wrangler versions deploy "${version}@100%" --env production \
+            --message "deploy-production ${GITHUB_SHA}" --yes
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the site and the API through the host
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = f"https://{os.environ['PRODUCTION_HOST'].strip()}"
+          git_sha = os.environ["GITHUB_SHA"].strip()
+          agent = {"User-Agent": "pyeconomics-deploy-check/1.0"}
+          access = {
+              "CF-Access-Client-Id": os.environ["CF_ACCESS_CLIENT_ID"].strip(),
+              "CF-Access-Client-Secret": os.environ["CF_ACCESS_CLIENT_SECRET"].strip(),
+              **agent,
+          }
+          generated = pathlib.Path("web/src/data/generated/registry.json")
+          expected_version = json.loads(generated.read_text(encoding="utf-8"))["pyeconomics"]
+          headers_file = pathlib.Path("web/dist/_headers").read_text(encoding="utf-8")
+          policy_lines = [
+              line.strip() for line in headers_file.splitlines() if line.strip().startswith("Content-Security-Policy:")
+          ]
+          assert len(policy_lines) == 1, "dist/_headers must hold one Content-Security-Policy"
+          expected_policy = policy_lines[0].split(":", 1)[1].strip()
+          # A pre-release is never indexed; a final release is (ADR-0013 decision 4).
+          noindex = "X-Robots-Tag: noindex" in headers_file
+
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect)
+
+          def request(path: str, headers: dict[str, str]):
+              req = urllib.request.Request(f"{base}{path}", headers=headers)
+              try:
+                  with opener.open(req, timeout=30) as resp:
+                      return resp.status, resp.headers, resp.read()
+              except urllib.error.HTTPError as exc:
+                  return exc.code, exc.headers, exc.read()
+
+          # 1. Until the cutover, Access refuses the host without the token.
+          if os.environ.get("PRODUCTION_PUBLIC") != "true":
+              for path in ("/", "/version.json", "/models/fixed-income/duration/", "/v1/models"):
+                  status, _, _ = request(path, agent)
+                  assert status in {302, 303, 401, 403}, f"unauthenticated {path} returned {status}"
+
+          # 2. /version.json reports this commit once the new version has propagated.
+          deadline = time.monotonic() + 120
+          while True:
+              status, _, body = request("/version.json", access)
+              found = json.loads(body) if status == 200 else None
+              if found == {"pyeconomics": expected_version, "git_sha": git_sha}:
+                  break
+              assert time.monotonic() < deadline, f"/version.json returned {status}: {found}"
+              time.sleep(5)
+
+          # 3. Pages carry the build's exact policy, and indexing follows the version.
+          for path in ("/", "/models/fixed-income/duration/", "/problems/invalid-input/"):
+              status, headers, _ = request(path, access)
+              assert status == 200, f"{path} returned {status}"
+              assert headers.get("Content-Security-Policy") == expected_policy, f"{path} policy differs"
+              assert (headers.get("X-Robots-Tag") == "noindex") == noindex, f"{path}: {headers.get('X-Robots-Tag')}"
+              assert headers.get("X-Content-Type-Options") == "nosniff", path
+          status, _, body = request("/robots.txt", access)
+          assert status == 200 and (b"Disallow: /\n" in body) == noindex, f"/robots.txt: {body[:80]!r}"
+
+          # 4. The sitemap lists every model's page.
+          status, _, body = request("/sitemap-index.xml", access)
+          assert status == 200, f"/sitemap-index.xml returned {status}"
+          listed = []
+          for location in re.findall(r"<loc>([^<]+)</loc>", body.decode("utf-8")):
+              assert location.startswith(f"{base}/"), f"the sitemap index lists {location}"
+              status, _, sitemap = request(location[len(base):], access)
+              assert status == 200, f"{location} returned {status}"
+              listed += re.findall(r"<loc>([^<]+)</loc>", sitemap.decode("utf-8"))
+          models = json.loads(generated.read_text(encoding="utf-8"))["models"]
+          expected_pages = {f"{base}/models/{m['id'].replace('_', '-').replace('.', '/')}/" for m in models}
+          assert expected_pages <= set(listed), f"the sitemap lacks {sorted(expected_pages - set(listed))[:3]}"
+          print(f"The sitemap lists all {len(expected_pages)} model pages.")
+
+          # 5. The API answers on the same host, through the shared edge Worker.
+          status, headers, body = request("/v1/models", access)
+          assert status == 200, f"/v1/models returned {status}"
+          assert headers.get("X-Content-Type-Options") == "nosniff", "the API response lacks nosniff"
+          assert json.loads(body), "/v1/models answered an empty document"
+          status, _, body = request("/healthz", access)
+          assert status == 200 and json.loads(body) == {"status": "ok"}, f"/healthz returned {status}"
+          print("All production site checks passed.")
+          PY
+
+      # The same browser checks as staging's (tests/staging/): the duration
+      # page's calculator, the data explorer and an upload, on the site's own
+      # origin, failing on any Content Security Policy violation.
+      - name: Install Playwright's Chromium
+        working-directory: web
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Run the calculator, the explorer and an upload on production in a browser
+        working-directory: web
+        env:
+          STAGING_BASE_URL: https://${{ vars.PRODUCTION_HOST }}
+          GIT_SHA: ${{ github.sha }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: npx --no-install playwright test --config playwright.staging.config.ts
+
+      - name: Return the Worker to the previous version on failure
+        if: failure() && steps.previous.outputs.previous_version != '' && steps.release.outcome != 'skipped'
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PREVIOUS_VERSION: ${{ steps.previous.outputs.previous_version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Production's site failed verification; rolling the Worker back to ${PREVIOUS_VERSION}."
+          npx --no-install wrangler rollback "$PREVIOUS_VERSION" --env production \
+            --message "deploy-production ${GITHUB_SHA} failed verification" --yes
