@@ -7305,9 +7305,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 13 — Production Platform
+## Step 13 — Production Platform ✅
 
-**Status:** Not started
+**Status:** Complete — PR #289 (2026-11-10)
 
 > **Goal:** Stand production up where the launch will run, private until
 > the cutover (ADR-0013 decisions 3–7). With the maintainer's approvals
@@ -7369,6 +7369,8 @@ application.
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-05: Quality Pick — Opus 5.5 · XHigh.
 
 **Conversation:** New
 
@@ -11994,7 +11996,7 @@ workflow above maps directly to the corresponding row below.
 | 10   | Local app + app wheel          | Gemini 4 Argon | Complete — PR #254 |
 | 11   | Docs: guides + migration       | Gemini 4 Argon | Complete — PR #255 |
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Complete — PR #257 |
-| 13   | Production platform            | Sonnet 5.5     | Not started        |
+| 13   | Production platform            | Sonnet 5.5     | Complete — PR #289 |
 | 14   | Observability + operations     | Sonnet 5.5     | Not started        |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Not started        |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Not started        |
