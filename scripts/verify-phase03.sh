@@ -416,6 +416,9 @@ staging_sets = {
     "deploy-staging.yml": staging_secrets | {"CLOUDFLARE_API_TOKEN"},
     "staging-health.yml": staging_secrets,
 }
+# Phase 5 Step 13: deploy-production.yml reads the same names, from the
+# production environment alone, and every job of it runs there.
+production_sets = {"deploy-production.yml": staging_secrets | {"CLOUDFLARE_API_TOKEN"}}
 for path in Path(".github/workflows").glob("*.yml"):
     if path.name == "providers-live.yml":
         continue
@@ -426,6 +429,11 @@ for path in Path(".github/workflows").glob("*.yml"):
     if path.name in staging_sets:
         assert set(names) <= staging_sets[path.name], path.name
         assert re.search(r"^\s+environment:\s*(?:staging\s*$|\n\s+name:\s*staging\s*$)", body, re.M), path.name
+    elif path.name in production_sets:
+        assert set(names) <= production_sets[path.name], path.name
+        jobs = re.findall(r"^  [a-z_-]+:\n(?:(?!^  [a-z_-]+:\n).*\n)*", body.split("\njobs:\n", 1)[1] + "\n", re.M)
+        assert jobs and all(re.search(r"^    environment:\n      name: production$", job, re.M) for job in jobs), path.name
+        assert "staging" not in re.findall(r"^\s+name:\s*(\S+)\s*$", body, re.M), path.name
     else:
         assert set(names) <= {"GITHUB_TOKEN"}, path.name
 PY

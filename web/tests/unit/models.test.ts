@@ -90,7 +90,7 @@ describe("model URLs", () => {
   it("name domains for a reader and link the documentation", () => {
     expect(domainTitle("fixed_income")).toBe("Fixed income");
     expect(docsUrl("fixed_income.duration")).toBe(
-      "https://pyeconomics.readthedocs.io/en/main/reference/models/fixed_income/duration.html",
+      "https://docs.pyeconomics.dev/en/main/reference/models/fixed_income/duration.html",
     );
   });
 });

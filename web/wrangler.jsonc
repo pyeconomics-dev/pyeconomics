@@ -11,11 +11,12 @@
 // The env-less configuration is what `wrangler dev` serves for Playwright and
 // Lighthouse: no origin and no secret, so the API's paths answer 503 there.
 // Its name is not a deployed Worker's. Env `staging` is deployed by
-// deploy-staging.yml; env `production` is declared for Phase 5 Step 13, which
-// adds its custom domain and origin once its Access application exists.
-// Version and preview URLs on workers.dev are public, so both stay off; a
-// change to routes or to them is the maintainer's `wrangler deploy`, because
-// CI's token may only upload and deploy versions of the staging Worker.
+// deploy-staging.yml, env `production` by deploy-production.yml (Phase 5 Step
+// 13), behind Access until the cutover. Version and preview URLs on workers.dev
+// are public, so both stay off; a change to routes or to them is the
+// maintainer's `wrangler deploy`, because CI's tokens may only upload and
+// deploy versions of a Worker. `version_metadata` keys the edge's cache of GET
+// runs by deployed version (worker.mjs), and no env inherits it.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "pyeconomics-web-local",
@@ -38,10 +39,16 @@
       "routes": [{ "pattern": "staging.pyeconomics.dev", "custom_domain": true }],
       "vars": {
         "ORIGIN_URL": "https://pyeconomics-api-staging-129496897969.us-central1.run.app"
-      }
+      },
+      "version_metadata": { "binding": "CF_VERSION_METADATA" }
     },
     "production": {
-      "name": "pyeconomics-web"
+      "name": "pyeconomics-web",
+      "routes": [{ "pattern": "pyeconomics.dev", "custom_domain": true }],
+      "vars": {
+        "ORIGIN_URL": "https://pyeconomics-api-180273591942.us-central1.run.app"
+      },
+      "version_metadata": { "binding": "CF_VERSION_METADATA" }
     }
   }
 }

@@ -4,7 +4,7 @@
   "title": "pyeconomics",
   "description": "Tested, cited economics and finance models and data, with a provenance manifest per result.",
   "version": "1.0.0rc1.dev1",
-  "websiteUrl": "https://pyeconomics.readthedocs.io/en/main/mcp.html",
+  "websiteUrl": "https://docs.pyeconomics.dev/en/main/mcp.html",
   "repository": {
     "url": "https://github.com/pyeconomics-dev/pyeconomics",
     "source": "github"

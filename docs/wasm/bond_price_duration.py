@@ -91,12 +91,12 @@ def _(mo):
     mo.md(r"""
     The coupons here are paid twice a year, and the bond settles on a coupon date,
     so it carries no accrued interest. The models behind this page are
-    [`fixed_income.bond_pricing`](https://pyeconomics.readthedocs.io/en/main/reference/models/fixed_income/bond_pricing.html)
+    [`fixed_income.bond_pricing`](https://docs.pyeconomics.dev/en/main/reference/models/fixed_income/bond_pricing.html)
     and
-    [`fixed_income.duration`](https://pyeconomics.readthedocs.io/en/main/reference/models/fixed_income/duration.html),
+    [`fixed_income.duration`](https://docs.pyeconomics.dev/en/main/reference/models/fixed_income/duration.html),
     whose pages give the formulas and their sources. To use them on your own
     machine, see the
-    [install tutorial](https://pyeconomics.readthedocs.io/en/main/tutorials/install.html).
+    [install tutorial](https://docs.pyeconomics.dev/en/main/tutorials/install.html).
 
     This example is educational, not investment advice.
     """)

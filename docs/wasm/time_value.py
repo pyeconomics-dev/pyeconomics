@@ -73,9 +73,9 @@ def _(future_value, mo, payment, periods, pyeconomics, rate):
 def _(mo):
     mo.md(r"""
     The model behind this page is `foundations.time_value`, and its
-    [page in the reference](https://pyeconomics.readthedocs.io/en/main/reference/models/foundations/time_value.html)
+    [page in the reference](https://docs.pyeconomics.dev/en/main/reference/models/foundations/time_value.html)
     gives the formula and its sources. To use it on your own machine, see the
-    [install tutorial](https://pyeconomics.readthedocs.io/en/main/tutorials/install.html).
+    [install tutorial](https://docs.pyeconomics.dev/en/main/tutorials/install.html).
 
     This example is educational, not investment advice.
     """)

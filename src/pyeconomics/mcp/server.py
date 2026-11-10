@@ -536,7 +536,7 @@ def build_server(  # noqa: PLR0913 - the server's settings are independent
             "same path as the pyeconomics Python API and returns its canonical "
             "result, with the manifest of every source it read."
         ),
-        website_url="https://pyeconomics.readthedocs.io",
+        website_url="https://docs.pyeconomics.dev",
         cache_hints={
             "tools/list": hint,
             "server/discover": hint,

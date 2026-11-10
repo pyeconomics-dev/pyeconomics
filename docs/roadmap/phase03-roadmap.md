@@ -12753,3 +12753,11 @@ as the template for `verify-phase04.sh`._
   pyeconomics wheel (`pyeconomics-*.whl`) rather than any wheel; `attested`
   still expects two files, because it reads the pyeconomics project and
   pyeconomics-app is its own.
+
+- Static check 78 (Phase 5 Step 13): `deploy-production.yml` deploys
+  production with the Access service token and a Cloudflare API token, under
+  the same three names as `deploy-staging.yml`, read from the protected
+  `production` environment alone. The check now admits those three for that
+  one workflow and requires every one of its jobs to run in `production`;
+  every other workflow but `providers-live.yml`, `deploy-staging.yml` and
+  `staging-health.yml` still reads `GITHUB_TOKEN` only.

@@ -15,6 +15,13 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Production (Phase 5 Step 13; ADR-0013 decisions 3 to 7): `pyeconomics.dev` on
+  Cloudflare and Cloud Run, private behind Cloudflare Access until the launch. A
+  release tag or a dispatch runs `deploy-production.yml`, which refuses a commit
+  staging did not verify, promotes staging's image by digest, deploys data, API and
+  site in that order, verifies each through the edge and rolls each back by itself.
+  The edge Worker now keeps `GET` runs for as long as the origin allows, and the
+  runbook is `docs/operations/production.md`.
 - The local web app (Phase 5 Step 10; ADR-0002; ADR-0013 decision 16): a second
   distribution, `pyeconomics-app`, whose wheel holds only the built site, at the
   same version as `pyeconomics`, and the `app` extra, which pins it and brings
@@ -49,6 +56,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- The documentation moved to `https://docs.pyeconomics.dev`, still on Read the
+  Docs (issue #259). Links in earlier releases keep working: `readthedocs.io`
+  redirects there, and a problem's detail may name either host.
 - The exports guide, the pandas how-to and the finance tutorial read a CSV export
   with pandas' default parser: from pandas 3.1 it reads every number back exactly,
   and `float_precision="round_trip"` is deprecated. On pandas 3.0, which the wheel

@@ -28,17 +28,17 @@ Typed inputs declare units and bounds; every result carries
 a reproducible provenance manifest. Rates and percentages are decimals:
 `0.05` means 5%.
 
-Use the [1.0 documentation preview](https://pyeconomics.readthedocs.io/en/main/)
+Use the [1.0 documentation preview](https://docs.pyeconomics.dev/en/main/)
 for formulas, assumptions and examples, and the
 [beta release notes](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/releases/1.0.0b1.md)
 for the shipped surfaces and known limitations. See the
-[CLI guide](https://pyeconomics.readthedocs.io/en/main/cli.html),
-[REST API guide](https://pyeconomics.readthedocs.io/en/main/api.html),
-[MCP server guide](https://pyeconomics.readthedocs.io/en/main/mcp.html),
-[exports guide](https://pyeconomics.readthedocs.io/en/main/exports.html),
-[AI narrative guide](https://pyeconomics.readthedocs.io/en/main/ai.html),
-[data guide](https://pyeconomics.readthedocs.io/en/main/data/index.html) and
-[keys guide](https://pyeconomics.readthedocs.io/en/main/data/keys.html) to get
+[CLI guide](https://docs.pyeconomics.dev/en/main/cli.html),
+[REST API guide](https://docs.pyeconomics.dev/en/main/api.html),
+[MCP server guide](https://docs.pyeconomics.dev/en/main/mcp.html),
+[exports guide](https://docs.pyeconomics.dev/en/main/exports.html),
+[AI narrative guide](https://docs.pyeconomics.dev/en/main/ai.html),
+[data guide](https://docs.pyeconomics.dev/en/main/data/index.html) and
+[keys guide](https://docs.pyeconomics.dev/en/main/data/keys.html) to get
 started. Install optional econometrics, plotting, REST API and MCP support
 with `pip install --pre "pyeconomics[econometrics,plot,server,mcp]==1.0.0b1"`,
 or run the MCP server directly with
@@ -58,7 +58,7 @@ rules over FRED data.
 
 - It is MIT-licensed. Its source lives on the
   [`legacy/0.2.x`](https://github.com/pyeconomics-dev/pyeconomics/tree/legacy/0.2.x)
-  branch, and its documentation at <https://pyeconomics.readthedocs.io/>.
+  branch, and its documentation at <https://docs.pyeconomics.dev/>.
 - It receives security fixes only, and reaches end of life when 1.0.0 is
   released. Pins such as `pyeconomics<1` keep working.
 - 0.2.0 to 0.2.5 log the FRED API key at DEBUG level. Upgrade to 0.2.6 and

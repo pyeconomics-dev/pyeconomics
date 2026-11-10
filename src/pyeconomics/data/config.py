@@ -124,7 +124,7 @@ DOTENV_FILE: Final = ".env"
 #: The prefix of every environment variable that holds a setting.
 ENV_PREFIX: Final = "PYECONOMICS_"
 #: The "Keys and configuration" guide.
-GUIDE_URL: Final = "https://pyeconomics.readthedocs.io/en/main/data/keys.html"
+GUIDE_URL: Final = "https://docs.pyeconomics.dev/en/main/data/keys.html"
 #: The longest time-to-live a setting may give, in seconds: ten years.
 MAX_TTL_SECONDS: Final = 3_650 * 86_400
 #: The largest settings file read, in bytes.

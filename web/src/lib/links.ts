@@ -12,7 +12,7 @@ export interface Link {
 export const REPOSITORY = "https://github.com/pyeconomics-dev/pyeconomics";
 // The 1.0 documentation lives under /en/main/ until the cutover moves Read the
 // Docs' default version to stable (ADR-0013 decision 18).
-export const DOCUMENTATION = "https://pyeconomics.readthedocs.io/en/main/";
+export const DOCUMENTATION = "https://docs.pyeconomics.dev/en/main/";
 export const EXAMPLE_GALLERY = `${DOCUMENTATION}gallery/index.html`;
 export const IN_BROWSER_EXAMPLES = `${DOCUMENTATION}wasm/index.html`;
 export const FINANCE_TUTORIALS = `${DOCUMENTATION}tutorials/finance/index.html`;

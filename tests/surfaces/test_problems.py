@@ -355,6 +355,10 @@ def test_the_problem_body_is_rfc_9457_with_extensions_only_when_set() -> None:
             "set it (https://pyeconomics.readthedocs.io/en/main/data/keys.html)",
         ),
         (
+            "set it (https://docs.pyeconomics.dev/en/main/data/keys.html)",
+            "set it (https://docs.pyeconomics.dev/en/main/data/keys.html)",
+        ),
+        (
             "https://pyeconomics.dev/problems/x#top?a=1",
             "https://pyeconomics.dev/problems/x",
         ),
