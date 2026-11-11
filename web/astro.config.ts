@@ -15,6 +15,10 @@
 // not a page anyone should land on from a search. `client:interaction`
 // (src/directives/interaction.ts) hydrates an island when a visitor first
 // reaches for it: the header's search box, so no page loads a script for it.
+// A production build given the browser DSN (csp.config.ts sentryBuild) hands
+// it and the release to the islands' error reporting (src/lib/error-reporting.ts)
+// through Vite's define; every other build defines both as empty, so its
+// islands report nothing (Phase 5 Step 14).
 import { fileURLToPath } from "node:url";
 
 import react from "@astrojs/react";
@@ -23,8 +27,10 @@ import tailwindcss from "@tailwindcss/vite";
 import type { AstroIntegration, AstroUserConfig } from "astro";
 import { defineConfig } from "astro/config";
 
-import { DIRECTIVES, metaDirectives } from "./csp.config.ts";
+import { DIRECTIVES, SENTRY, metaDirectives } from "./csp.config.ts";
+import { buildVersion } from "./scripts/headers.ts";
 import shippedPackages from "./scripts/shipped-packages.ts";
+import { gitSha } from "./src/lib/build-info.ts";
 
 // Astro types each directive as its name followed by any text; every name in
 // csp.config.ts is one of Astro's, and scripts/headers.ts checks the result.
@@ -46,6 +52,9 @@ function interactionDirective(): AstroIntegration {
   };
 }
 
+/** The release a production build's error events name: version and commit. */
+const SENTRY_RELEASE = SENTRY ? `pyeconomics@${buildVersion()}+${gitSha()}` : "";
+
 export default defineConfig({
   site: "https://pyeconomics.dev",
   output: "static",
@@ -63,6 +72,10 @@ export default defineConfig({
     // bundled on its own; its packages ship too, so they are recorded.
     worker: { format: "es", plugins: () => [shippedPackages()] },
     build: { assetsInlineLimit: 0 },
+    define: {
+      "import.meta.env.PUBLIC_SENTRY_DSN": JSON.stringify(SENTRY?.dsn ?? ""),
+      "import.meta.env.PUBLIC_SENTRY_RELEASE": JSON.stringify(SENTRY_RELEASE),
+    },
   },
   security: {
     csp: {

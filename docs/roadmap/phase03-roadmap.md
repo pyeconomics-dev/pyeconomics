@@ -12761,3 +12761,12 @@ as the template for `verify-phase04.sh`._
   one workflow and requires every one of its jobs to run in `production`;
   every other workflow but `providers-live.yml`, `deploy-staging.yml` and
   `staging-health.yml` still reads `GITHUB_TOKEN` only.
+
+- Static check 78 (Phase 5 Step 14): `production-health.yml`, the hourly
+  synthetic check of production, reads the Access service token
+  `pyeconomics-production-health` under the names `CF_ACCESS_CLIENT_ID` and
+  `CF_ACCESS_CLIENT_SECRET` from the `production-health` environment (`main`
+  only), because every job in `production` waits for the maintainer's
+  approval. The check now admits those two names for that one workflow,
+  requires it to run in `production-health` and never in `production` or
+  `staging`; every other workflow's rule is unchanged.

@@ -102,6 +102,15 @@ describe("checkPolicy", () => {
     },
   );
 
+  it("accepts Sentry's US ingest in connect-src and nothing like it (Step 14)", () => {
+    const sentry = full().replace("connect-src 'self'", "connect-src 'self' https://o42.ingest.us.sentry.io");
+    expect(checkPolicy(parsePolicy(sentry)).problems).toEqual([]);
+    const other = full().replace("connect-src 'self'", "connect-src 'self' https://o42.ingest.de.sentry.io");
+    expect(checkPolicy(parsePolicy(other)).problems.join()).toMatch(/does not allow/);
+    const script = full().replace("script-src 'self'", "script-src 'self' https://o42.ingest.us.sentry.io");
+    expect(checkPolicy(parsePolicy(script)).problems.join()).toMatch(/does not allow/);
+  });
+
   it("refuses a third-party script origin", () => {
     const text = full().replace("script-src 'self'", "script-src 'self' https://cdn.example.com");
     expect(checkPolicy(parsePolicy(text)).problems.join()).toMatch(/does not allow/);

@@ -8263,11 +8263,17 @@ conversation per phase-boundary hygiene.
       pip-audit, and are never imported by a local server;
       the beta FastAPI instrumentation package is not used.
     - production-health.yml sets permissions {} at the top,
-      grants issues: write only to its report job, reads the
-      production service token from the `production`
-      environment only, and passes actionlint and zizmor;
-      Phase 3 check 78 and Phase 4 check 64 are narrowed
-      for it.
+      grants issues: write only to its report job, reads its
+      Access service token from the `production-health`
+      environment only (main only, no reviewer), and passes
+      actionlint and zizmor; Phase 3 check 78 and Phase 4
+      check 64 are narrowed for it. (Spec rot fixed at Step
+      14's kickoff: every job in `production` waits for the
+      maintainer's approval, so an hourly check cannot read
+      its secrets there. The check and the monitors each get a
+      token of their own, `pyeconomics-production-health` and
+      `pyeconomics-production-uptime`, so no vendor holds
+      CI's.)
   </security>
 
   <context>
@@ -8435,7 +8441,8 @@ conversation per phase-boundary hygiene.
       for the production and staging snapshot jobs at 26
       hours; the status page with the production monitors,
       linked from the site's footer. Until the cutover the
-      monitors send the production service token's headers;
+      monitors send the headers of a service token of their
+      own (`pyeconomics-production-uptime`, not CI's);
       if the free plan cannot send headers, a separate
       Access application covering only the monitored paths
       bypasses Access for the vendor's published probe
@@ -8445,8 +8452,9 @@ conversation per phase-boundary hygiene.
     <requirement>
       production-health.yml: hourly and on dispatch (with a
       simulate_failure input); through the edge with the
-      production service token until the cutover, without it
-      after; /version equals /version.json's SHA, one model
+      service token `pyeconomics-production-health` (from the
+      `production-health` environment) until the cutover,
+      without it after; /version equals /version.json's SHA, one model
       per populated domain runs and equals the expected
       bytes, and one CSV download carries its attribution; a
       report job opens a `production-health` issue on failure
@@ -10907,6 +10915,17 @@ phase-boundary hygiene.
       HIT behind Access on 2026-11-10, which Cloudflare does not
       document, so check it again once Access is gone
       (docs/operations/production.md section 5).
+    - Step 14 note: Better Stack's five production monitors send
+      the Access headers of the service token
+      `pyeconomics-production-uptime`, and production-health.yml
+      reads `pyeconomics-production-health` from the
+      `production-health` environment's two secrets. Once Access
+      is gone, delete those headers from the monitors, the two
+      secrets and both tokens (and the keyring's
+      UPTIME_CF_ACCESS_CLIENT_*), then dispatch
+      production-health.yml and check the monitors stay up
+      (docs/operations/production.md section 5, step 5). The
+      status page at status.pyeconomics.dev is public already.
     - Step 12 note: once 1.0.0 is on PyPI, move docs/wasm/'s
       three notebooks' `pyeconomics==` pin to it, run
       `uv run --no-config --group docs python

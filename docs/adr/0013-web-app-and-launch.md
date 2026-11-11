@@ -627,7 +627,7 @@ shared for advertising or used to profile a visitor.
 | Newsletter and waitlist | Email address, IP address, referrer, subscription and confirmation times, list, source and tier interest [S33] | Buttondown, under its DPA [S33] | The United States (AWS `us-west-2`) [S33] | Until the subscriber leaves or asks for deletion | 14 |
 | Errors | Error type, stack trace, release and route; no IP address, user detail, cookie, header, body or input | Functional Software (Sentry), under its DPA [S35] | Sentry's US region; some account data always in the US [S35] | 30 days [S35] | 15 |
 | Telemetry | Metrics and sampled traces of route templates, outcomes and durations; no personal data | Grafana Labs (Grafana Cloud) | A US region [S36] | 14 days [S36] | 15 |
-| Uptime | The vendor's own synthetic requests and the jobs' heartbeats; no visitor data | Better Stack | The EU by default; its DPA allows transfer to the US [S37] | Recorded at Step 14 | 15 |
+| Uptime | The vendor's own synthetic requests and the jobs' heartbeats; no visitor data | Better Stack | The EU by default; its DPA allows transfer to the US [S37] | No period stated; its DPA (section 8) returns or destroys the data at the end of the service or on request (read at Step 14, 2026-11-10) | 15 |
 | Gate G3 ledger | Weekly counts only | GitHub (a pinned issue) | GitHub | Kept as a public record | 19 |
 
 User files never leave the browser except as run values (decision 11).

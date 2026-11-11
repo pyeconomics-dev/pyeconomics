@@ -21,6 +21,12 @@ worker processes (default: the CPU count; ``0`` runs every task inline, in the
 app's own process, for tests), and ``PYECONOMICS_GIT_SHA``, the commit the
 container was built from, which ``/version`` reports.
 
+A hosted process starts its errors and telemetry
+(:mod:`~pyeconomics.server.observability`) when :func:`telemetry_wanted` says
+so: in hosted mode, with ``PYECONOMICS_SENTRY_DSN`` or
+``PYECONOMICS_OTLP_ENDPOINT`` set. The answer comes without importing that
+module, so a local server never loads it.
+
 Examples
 --------
 >>> settings = ServerSettings(workers=0)
@@ -55,8 +61,12 @@ __all__ = [
     "DEFAULT_CACHE_BYTES",
     "DEFAULT_CACHE_ENTRIES",
     "DEFAULT_QUEUE_LIMIT",
+    "DEPLOYMENT_VARIABLE",
     "GIT_SHA_VARIABLE",
     "MODES",
+    "OTLP_ENDPOINT_VARIABLE",
+    "OTLP_HEADERS_VARIABLE",
+    "SENTRY_DSN_VARIABLE",
     "WORKERS_VARIABLE",
     "ServerMode",
     "ServerSettings",
@@ -64,6 +74,7 @@ __all__ = [
     "data_mode",
     "git_sha",
     "limits_for",
+    "telemetry_wanted",
     "worker_count",
 ]
 
@@ -76,6 +87,14 @@ MODES: Final[tuple[ServerMode, ...]] = ("local", "hosted")
 WORKERS_VARIABLE: Final = "PYECONOMICS_WORKERS"
 #: The environment variable that names the commit ``/version`` reports.
 GIT_SHA_VARIABLE: Final = "PYECONOMICS_GIT_SHA"
+#: Sentry's DSN: a hosted process sends errors only when it is set (Step 14).
+SENTRY_DSN_VARIABLE: Final = "PYECONOMICS_SENTRY_DSN"
+#: Grafana Cloud's OTLP endpoint: metrics and traces only when it is set.
+OTLP_ENDPOINT_VARIABLE: Final = "PYECONOMICS_OTLP_ENDPOINT"
+#: The OTLP headers, as OpenTelemetry writes them: ``Authorization=Basic%20<token>``.
+OTLP_HEADERS_VARIABLE: Final = "PYECONOMICS_OTLP_HEADERS"
+#: The deployment errors and metrics name: ``production`` or ``staging``.
+DEPLOYMENT_VARIABLE: Final = "PYECONOMICS_DEPLOYMENT"
 #: How many tasks may wait for a worker before the server answers 503.
 DEFAULT_QUEUE_LIMIT: Final = 32
 #: How many GET runs the run cache keeps by default.
@@ -252,6 +271,30 @@ def limits_for(mode: ServerMode, settings: ServerSettings) -> RateLimits:
     if settings.rate_limits is not None:
         return settings.rate_limits
     return HOSTED_LIMITS if mode == "hosted" else RateLimits.off()
+
+
+def telemetry_wanted(
+    mode: ServerMode, environ: Mapping[str, str] | None = None
+) -> bool:
+    """Return whether a process starts its errors and telemetry.
+
+    Only in hosted mode, and only with Sentry's DSN or the OTLP endpoint set.
+    Nothing is imported to answer, so a local server never loads the module.
+
+    >>> telemetry_wanted("local", {"PYECONOMICS_SENTRY_DSN": "set"})
+    False
+    >>> telemetry_wanted("hosted", {})
+    False
+    >>> telemetry_wanted("hosted", {"PYECONOMICS_OTLP_ENDPOINT": "x"})
+    True
+    """
+    if mode != "hosted":
+        return False
+    env = os.environ if environ is None else environ
+    return any(
+        env.get(name, "").strip()
+        for name in (SENTRY_DSN_VARIABLE, OTLP_ENDPOINT_VARIABLE)
+    )
 
 
 def data_mode(mode: ServerMode) -> Literal["library", "hosted"]:

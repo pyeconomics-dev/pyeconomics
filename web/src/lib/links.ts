@@ -1,8 +1,9 @@
 // web/src/lib/links.ts
 // The site's fixed links: the header's main navigation (the domain sections
 // beside it come from src/lib/paths.ts DOMAINS), the data explorer among them,
-// and the footer's links to the notices, the licence, the repository, and the
-// documentation with its gallery, in-browser examples and finance tutorials.
+// and the footer's links to the notices, the licence, the repository, the
+// documentation with its gallery, in-browser examples and finance tutorials,
+// and the service's public status page (Phase 5 Step 14).
 
 export interface Link {
   label: string;
@@ -17,6 +18,8 @@ export const EXAMPLE_GALLERY = `${DOCUMENTATION}gallery/index.html`;
 export const IN_BROWSER_EXAMPLES = `${DOCUMENTATION}wasm/index.html`;
 export const FINANCE_TUTORIALS = `${DOCUMENTATION}tutorials/finance/index.html`;
 export const LICENCE = `${REPOSITORY}/blob/main/LICENSE`;
+// Better Stack's status page for production's monitors (ADR-0013 decision 15).
+export const STATUS_PAGE = "https://status.pyeconomics.dev/";
 
 /** The header's main navigation. */
 export const NAVIGATION: readonly Link[] = [
@@ -38,6 +41,7 @@ export const FOOTER_LINKS: readonly Link[] = [
   { label: "Example gallery", href: EXAMPLE_GALLERY },
   { label: "In-browser examples", href: IN_BROWSER_EXAMPLES },
   { label: "Python for finance", href: FINANCE_TUTORIALS },
+  { label: "Service status", href: STATUS_PAGE },
 ];
 
 /**

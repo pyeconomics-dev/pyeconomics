@@ -6,6 +6,7 @@
 // accessible names, and the outputs table beside the chart holds every value.
 import { useEffect, useRef, useState } from "react";
 
+import { report } from "@/lib/error-reporting";
 import { figureOf, type ChartSpec, type ResultDocument } from "@/lib/figure";
 import { loadPlotly } from "@/lib/plotly";
 
@@ -29,6 +30,7 @@ function Chart({ chart, document }: { chart: ChartSpec; document: ResultDocument
         });
       })
       .catch((error: unknown) => {
+        void report(error, "calculator");
         if (!cancelled) setFailed(error instanceof Error ? error.message : String(error));
       });
     return () => {

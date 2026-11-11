@@ -236,14 +236,14 @@ jobs:
             --image="$IMAGE_DIGEST" \
             --service-account="$GCP_SNAPSHOT_SERVICE_ACCOUNT" \
             --command=python \
-            --args=-m,pyeconomics.data.snapshots,write \
+            --args=-m,pyeconomics.server.snapshot_job,write \
             --tasks=1 \
             --parallelism=1 \
             --max-retries=0 \
             --task-timeout=30m \
             --cpu=1 \
             --memory=2Gi \
-            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_DEPLOYMENT=staging" \
             --set-secrets="$keys" \
             --clear-volume-mounts \
             --clear-volumes \
@@ -275,7 +275,7 @@ jobs:
             --startup-probe=httpGet.path=/healthz,httpGet.port=8080,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
             --ingress=all \
             --execution-environment=gen2 \
-            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_SNAPSHOT_DIR=/snapshots" \
+            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_DEPLOYMENT=staging" \
             --set-secrets="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${ratelimit_ver},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${edge_ver}" \
             --clear-volume-mounts \
             --clear-volumes \

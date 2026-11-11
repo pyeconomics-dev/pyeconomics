@@ -9,6 +9,10 @@ standard error through the redacting log-record factory and prints one line of
 canonical JSON to standard output: the run's counts and its time in seconds,
 never a URL, a path or a key. It exits 0 when any provider succeeded, 1 when
 none did, and 2 for a usage or configuration error.
+
+The image runs it through ``python -m pyeconomics.server.snapshot_job write``,
+which passes ``observe`` to report the run to the hosted service's telemetry
+(Phase 5 Step 14): the data layer imports no server module.
 """
 
 from __future__ import annotations
@@ -22,7 +26,9 @@ from pyeconomics.data import redaction
 from pyeconomics.data.errors import ConfigError
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
+
+    from pyeconomics.data.snapshots.writer import Report
 
 __all__ = ["main"]
 
@@ -30,8 +36,16 @@ _USAGE: Final = "usage: python -m pyeconomics.data.snapshots write\n"
 _LOG: Final = logging.getLogger("pyeconomics.data.snapshots")
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run the command line and return its exit code."""
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    observe: Callable[[Report], object] | None = None,
+) -> int:
+    """Run the command line and return its exit code.
+
+    ``observe``, when given, receives the run's report before the summary is
+    printed.
+    """
     arguments = list(sys.argv[1:] if argv is None else argv)
     if arguments != ["write"]:
         sys.stderr.write(_USAGE)
@@ -49,6 +63,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     except ConfigError as error:
         _LOG.error("%s", error)
         return 2
+    if observe is not None:
+        observe(report)
     sys.stdout.write(canonical_json(report.summary()).decode("utf-8") + "\n")
     return 0 if report.ok else 1
 

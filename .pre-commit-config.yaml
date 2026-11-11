@@ -157,7 +157,7 @@ repos:
       - id: licences
         name: runtime licence allowlist (ADR-0004)
         language: system
-        entry: uv run --locked --all-extras python scripts/checks/licences.py
+        entry: uv run --locked --all-extras --group hosted python scripts/checks/licences.py
         pass_filenames: false
         always_run: true
       # What the web app ships to browsers: its production tree in

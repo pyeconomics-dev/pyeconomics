@@ -249,8 +249,9 @@ cache, and `/v1/sources` never says whether a key is configured.
 **Snapshots.** With `PYECONOMICS_SNAPSHOT_DIR` set, the hosted service asks no
 source itself: every series and every bound run reads a daily snapshot of the
 hosted-safe originators, written by a job (`python -m
-pyeconomics.data.snapshots write`) into the directory the service mounts
-read-only. Each data record then carries the snapshot's retrieval time and the
+pyeconomics.data.snapshots write`, which the image runs as `python -m
+pyeconomics.server.snapshot_job write` to report each run to the service's
+telemetry) into the directory the service mounts read-only. Each data record then carries the snapshot's retrieval time and the
 warning `served_from_snapshot`; a series the job has not refreshed for more than
 two days also carries `stale_snapshot` and is still served. A series outside
 the snapshot set, or a vintage it does not keep, answers `404 not-in-snapshot`

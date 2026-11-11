@@ -38,6 +38,8 @@ import {
   type TransformChoice,
   type TransformName,
 } from "@/lib/explorer";
+import IslandBoundary from "@/components/IslandBoundary";
+import { report } from "@/lib/error-reporting";
 import { STYLE_MARKER, loadPlotly } from "@/lib/plotly";
 import { decode } from "@/lib/results";
 import type { RunAnswer } from "@/lib/run-request";
@@ -130,6 +132,7 @@ function SeriesChart({ document: series, column }: { document: SeriesDocument; c
         });
       })
       .catch((error: unknown) => {
+        void report(error, "explorer");
         if (!cancelled) setFailed(error instanceof Error ? error.message : String(error));
       });
     return () => {
@@ -229,6 +232,14 @@ function TransformPicker({
 }
 
 export default function SeriesExplorer(props: SeriesExplorerProps) {
+  return (
+    <IslandBoundary island="explorer">
+      <Explorer {...props} />
+    </IslandBoundary>
+  );
+}
+
+function Explorer(props: SeriesExplorerProps) {
   const concept = {
     id: props.conceptId,
     snapshot: props.snapshot,
@@ -285,7 +296,17 @@ export default function SeriesExplorer(props: SeriesExplorerProps) {
       const answer = await getSeries(props.conceptId, request);
       setSent(request);
       if (answer.ok) {
-        const document = parseSeries(decode(answer.bytes));
+        let document: ReturnType<typeof parseSeries>;
+        try {
+          document = parseSeries(decode(answer.bytes));
+        } catch (error) {
+          // The server answered 200 with bytes that are not a series: a fault
+          // to report, never the visitor's.
+          void report(error, "explorer");
+          setOutcome({ kind: "error", message: "The server's answer could not be read." });
+          setAnnouncement("The server's answer could not be read.");
+          return;
+        }
         setColumn(0);
         setOutcome({ kind: "series", answer, document });
         setAnnouncement(`Done: ${String(document.frame.index.length)} observations.`);

@@ -9767,3 +9767,12 @@ alert with a proven alarm; and `verify-phase04.sh` as the template for
   every other workflow but `providers-live.yml`, `deploy-staging.yml` and
   `staging-health.yml` still reads `GITHUB_TOKEN` only. Phase 1 check 36 is
   unchanged: it reads `id-token` within `release.yml`.
+
+- Static check 64 (Phase 5 Step 14): `production-health.yml`, the hourly
+  synthetic check of production, reads the Access service token
+  `pyeconomics-production-health` under the names `CF_ACCESS_CLIENT_ID` and
+  `CF_ACCESS_CLIENT_SECRET` from the `production-health` environment (`main`
+  only), because every job in `production` waits for the maintainer's
+  approval. The check now admits those two names for that one workflow,
+  requires it to run in `production-health` and never in `production` or
+  `staging`; every other workflow's rule is unchanged.

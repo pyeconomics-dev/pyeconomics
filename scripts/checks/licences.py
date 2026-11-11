@@ -4,11 +4,13 @@
 """Fail on any runtime dependency whose licence ADR-0004 does not allow.
 
 ADR-0004 admits seven licences for runtime dependencies, meaning everything a
-user installs with the package or any of its extras: MIT, BSD-2-Clause,
-BSD-3-Clause, Apache-2.0, ISC, NCSA and PSF-2.0. This check:
+user installs with the package or any of its extras, and what the hosted service
+runs: MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, NCSA and PSF-2.0. This
+check:
 
-1. reads the runtime closure from uv.lock: the project's dependencies and
-   every extra's, followed transitively, never its dependency groups;
+1. reads the runtime closure from uv.lock: the project's dependencies, every
+   extra's and the groups in RUNTIME_GROUPS (the hosted service's ``hosted``
+   group, Phase 5 Step 14), followed transitively, never another group;
 2. fails on any package ADR-0004 excludes by name, whatever its metadata says,
    on every platform the lock covers;
 3. reads each closure package's licence from the synced environment's
@@ -23,12 +25,12 @@ this one) is listed and skipped; a run on that platform checks it.
 The only escape hatch is a reviewed entry in licence_exceptions.toml beside
 this script, naming the package, its licence exactly as this check reports
 it, and why it is acceptable. An exception never overrides an exclusion by
-name. Development and test tools (dependency groups) are outside the
+name. Development and test tools (the other dependency groups) are outside the
 allowlist, as ADR-0004 decides.
 
 Usage, from the repository root (the `licences` prek hook runs it):
 
-    uv run --locked --all-extras python scripts/checks/licences.py
+    uv run --locked --all-extras --group hosted python scripts/checks/licences.py
 """
 
 from __future__ import annotations
@@ -105,6 +107,9 @@ UNKNOWN_LICENCE = {"", "unknown", "none", "n/a"}
 MAX_LICENCE_NAME = 100
 SPDX_ID = re.compile(r"[A-Za-z0-9.+:-]+")
 PROJECT_CHECKOUT = ({"editable": "."}, {"virtual": "."})
+# Dependency groups a deployed service runs, held to the allowlist like an extra:
+# the image installs the hosted group (Phase 5 Step 14; ADR-0013 decision 15).
+RUNTIME_GROUPS = ("hosted",)
 
 ROOT = Path(__file__).resolve().parents[2]
 EXCEPTIONS_FILE = Path(__file__).with_name("licence_exceptions.toml")
@@ -266,6 +271,17 @@ def resolve(
     return candidates[0]
 
 
+def root_edges(root: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return the project's edges: its dependencies, its extras' and RUNTIME_GROUPS'."""
+    edges = list(root.get("dependencies", []))
+    for extra in root.get("optional-dependencies", {}).values():
+        edges.extend(extra)
+    groups = root.get("dev-dependencies", {})
+    for group in RUNTIME_GROUPS:
+        edges.extend(groups.get(group, []))
+    return edges
+
+
 def runtime_closure(
     lock: dict[str, Any],
     project: str,
@@ -273,9 +289,10 @@ def runtime_closure(
     follow_markers: bool,
     environment: dict[str, str] | None = None,
 ) -> dict[Key, dict[str, Any]]:
-    """Return the locked packages a user can install with the project and its extras.
+    """Return the locked packages the project, its extras and runtime groups install.
 
-    With follow_markers, only edges whose markers hold in `environment` (by
+    The runtime groups are RUNTIME_GROUPS: what the hosted service runs. With
+    follow_markers, only edges whose markers hold in `environment` (by
     default this interpreter's) are followed; without it, every platform's.
     """
     by_name: dict[str, list[dict[str, Any]]] = {}
@@ -290,9 +307,7 @@ def runtime_closure(
     root_key: Key = (project, root.get("version"))
     extras = root.get("optional-dependencies", {})
 
-    queue: deque[dict[str, Any]] = deque(root.get("dependencies", []))
-    for edges in extras.values():
-        queue.extend(edges)
+    queue: deque[dict[str, Any]] = deque(root_edges(root))
     expanded = {(root_key, None)} | {(root_key, extra) for extra in extras}
     closure: dict[Key, dict[str, Any]] = {}
 

@@ -112,6 +112,9 @@ jobs:
       BEA_SECRET_VERSION: ${{ vars.BEA_SECRET_VERSION }}
       BLS_SECRET_VERSION: ${{ vars.BLS_SECRET_VERSION }}
       HEARTBEAT_SECRET_VERSION: ${{ vars.HEARTBEAT_SECRET_VERSION }}
+      SENTRY_SECRET_VERSION: ${{ vars.SENTRY_SECRET_VERSION }}
+      OTLP_SECRET_VERSION: ${{ vars.OTLP_SECRET_VERSION }}
+      OTLP_ENDPOINT: ${{ vars.OTLP_ENDPOINT }}
       STAGING_IMAGE_REPOSITORY: ${{ vars.STAGING_IMAGE_REPOSITORY }}
 
     steps:
@@ -186,20 +189,34 @@ jobs:
           if [ -n "${HEARTBEAT_SECRET_VERSION:-}" ]; then
             keys="${keys},PYECONOMICS_SNAPSHOT_HEARTBEAT=snapshot-heartbeat:${HEARTBEAT_SECRET_VERSION}"
           fi
+          # Errors and telemetry (Phase 5 Step 14): Sentry's DSN and the OTLP
+          # header pinned by version, the endpoint from the environment.
+          envs="PYECONOMICS_MODE=hosted,PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_DEPLOYMENT=production"
+          if [ -n "${SENTRY_SECRET_VERSION:-}" ]; then
+            keys="${keys},PYECONOMICS_SENTRY_DSN=sentry-dsn:${SENTRY_SECRET_VERSION}"
+          fi
+          if [ -n "${OTLP_SECRET_VERSION:-}" ]; then
+            if [ -z "${OTLP_ENDPOINT:-}" ]; then
+              echo "::error::OTLP_SECRET_VERSION is set without OTLP_ENDPOINT."
+              exit 1
+            fi
+            keys="${keys},PYECONOMICS_OTLP_HEADERS=otlp-headers:${OTLP_SECRET_VERSION}"
+            envs="${envs},PYECONOMICS_OTLP_ENDPOINT=${OTLP_ENDPOINT}"
+          fi
           gcloud run jobs update "$GCP_SNAPSHOT_JOB" \
             --project="$GCP_PROJECT_ID" \
             --region="$GCP_REGION" \
             --image="$IMAGE_DIGEST" \
             --service-account="$GCP_SNAPSHOT_SERVICE_ACCOUNT" \
             --command=python \
-            --args=-m,pyeconomics.data.snapshots,write \
+            --args=-m,pyeconomics.server.snapshot_job,write \
             --tasks=1 \
             --parallelism=1 \
             --max-retries=0 \
             --task-timeout=30m \
             --cpu=1 \
             --memory=2Gi \
-            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_GIT_SHA=${GITHUB_SHA}" \
+            --set-env-vars="$envs" \
             --set-secrets="$keys" \
             --clear-volume-mounts \
             --clear-volumes \
@@ -296,6 +313,9 @@ jobs:
       PRODUCTION_PUBLIC: ${{ vars.PRODUCTION_PUBLIC }}
       RATELIMIT_SECRET_VERSION: ${{ vars.RATELIMIT_SECRET_VERSION }}
       EDGE_SECRET_VERSION: ${{ vars.EDGE_SECRET_VERSION }}
+      SENTRY_SECRET_VERSION: ${{ vars.SENTRY_SECRET_VERSION }}
+      OTLP_SECRET_VERSION: ${{ vars.OTLP_SECRET_VERSION }}
+      OTLP_ENDPOINT: ${{ vars.OTLP_ENDPOINT }}
 
     steps:
       - name: Harden the runner
@@ -375,6 +395,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          envs="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_SNAPSHOT_DIR=/snapshots,PYECONOMICS_DEPLOYMENT=production"
+          keys="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${RATELIMIT_SECRET_VERSION:-1},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${EDGE_SECRET_VERSION:-1}"
+          if [ -n "${SENTRY_SECRET_VERSION:-}" ]; then
+            keys="${keys},PYECONOMICS_SENTRY_DSN=sentry-dsn:${SENTRY_SECRET_VERSION}"
+          fi
+          if [ -n "${OTLP_SECRET_VERSION:-}" ]; then
+            if [ -z "${OTLP_ENDPOINT:-}" ]; then
+              echo "::error::OTLP_SECRET_VERSION is set without OTLP_ENDPOINT."
+              exit 1
+            fi
+            keys="${keys},PYECONOMICS_OTLP_HEADERS=otlp-headers:${OTLP_SECRET_VERSION}"
+            envs="${envs},PYECONOMICS_OTLP_ENDPOINT=${OTLP_ENDPOINT}"
+          fi
           gcloud run deploy "$GCP_SERVICE" \
             --project="$GCP_PROJECT_ID" \
             --region="$GCP_REGION" \
@@ -390,8 +423,8 @@ jobs:
             --startup-probe=httpGet.path=/healthz,httpGet.port=8080,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
             --ingress=all \
             --execution-environment=gen2 \
-            --set-env-vars="PYECONOMICS_MODE=hosted,PYECONOMICS_WORKERS=2,PYECONOMICS_GIT_SHA=${GITHUB_SHA},PYECONOMICS_SNAPSHOT_DIR=/snapshots" \
-            --set-secrets="PYECONOMICS_RATELIMIT_URL=ratelimit-url:${RATELIMIT_SECRET_VERSION:-1},PYECONOMICS_EDGE_CREDENTIAL=edge-credential:${EDGE_SECRET_VERSION:-1}" \
+            --set-env-vars="$envs" \
+            --set-secrets="$keys" \
             --clear-volume-mounts \
             --clear-volumes \
             --add-volume="name=snapshots,type=cloud-storage,bucket=${GCP_SNAPSHOT_BUCKET},readonly=true" \
@@ -645,11 +678,14 @@ jobs:
 
       # scripts/headers.ts refuses indexing for a pre-release and allows it for a
       # final release (ADR-0013 decision 4).
+      # PUBLIC_SENTRY_DSN is the browser project's DSN, public by design: it
+      # ships in the islands of production builds only (Phase 5 Step 14).
       - name: Build the production flavour of the site
         working-directory: web
         env:
           SITE_FLAVOUR: production
           GIT_SHA: ${{ github.sha }}
+          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
         run: npm run build
 
       - name: Record the Worker version serving now

@@ -28,9 +28,11 @@ value; keys belong to the key chain
 (:mod:`pyeconomics.data.credentials`). No message names a path or repeats a
 value: an error says which layer and which setting. The exceptions are the
 hosted service's own secrets, which these settings ignore:
-``PYECONOMICS_EDGE_CREDENTIAL``, which :mod:`pyeconomics.server.edge` reads, and
+``PYECONOMICS_EDGE_CREDENTIAL``, which :mod:`pyeconomics.server.edge` reads;
 ``PYECONOMICS_SNAPSHOT_HEARTBEAT``, the snapshot job's heartbeat URL, which
-:func:`snapshot_heartbeat` reads and registers with redaction.
+:func:`snapshot_heartbeat` reads and registers with redaction; and
+``PYECONOMICS_SENTRY_DSN`` and ``PYECONOMICS_OTLP_HEADERS``, which
+:mod:`pyeconomics.server.observability` reads and registers (Phase 5 Step 14).
 
 ``snapshot_dir`` (Phase 5 Step 8) names the directory the hosted snapshot lives
 in: the job writes it, and in hosted mode every series fetch reads it
@@ -437,7 +439,9 @@ _ENVIRONMENT: Final[dict[str, tuple[str, Callable[[str, str], object]]]] = {
 # (pyeconomics.server.edge) and the snapshot job its heartbeat URL
 # (snapshot_heartbeat), and these settings neither read nor refuse them. A
 # provider's key never takes this prefix.
-_SERVER_SECRETS: Final = frozenset({"EDGE_CREDENTIAL", "SNAPSHOT_HEARTBEAT"})
+_SERVER_SECRETS: Final = frozenset(
+    {"EDGE_CREDENTIAL", "OTLP_HEADERS", "SENTRY_DSN", "SNAPSHOT_HEARTBEAT"}
+)
 #: The variable that holds the snapshot job's heartbeat URL.
 HEARTBEAT_VARIABLE: Final = f"{ENV_PREFIX}SNAPSHOT_HEARTBEAT"
 

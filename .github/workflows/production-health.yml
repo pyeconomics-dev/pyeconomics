@@ -1,0 +1,237 @@
+# .github/workflows/production-health.yml
+#
+# Hourly synthetic check of production through its edge (Phase 5 Step 14;
+# ROADMAP §5 "Operations & observability strategy"; ADR-0013 decision 15).
+#
+# - Only on schedule (hourly) and workflow_dispatch from main, never on a pull
+#   request.
+# - The `deployed` job, with `actions: read` and no secret, reads the commit of
+#   the newest successful `deploy-production.yml` run, and of any run in
+#   progress (a deploy may be mid-verification when the check runs).
+# - The `probe` job runs in the `production-health` environment (`main` only).
+#   Every job in `production` waits for the maintainer's approval, so an hourly
+#   check cannot run there: this environment holds only the Access service token
+#   `pyeconomics-production-health`, which the cutover (Phase 5 Step 19) deletes,
+#   after which the probe sends no Access header. Checked out at the deployed
+#   commit, it checks through the edge that:
+#   1. `/version` (the API) and `/version.json` (the site) name the same commit,
+#      the newest successful deploy's or one in progress;
+#   2. one golden case per populated domain answers the bytes this commit's
+#      wheel gives, with the container's extras and uv.lock's versions
+#      (`scripts/parity/check_deployed.py`, as the deploy runs it);
+#   3. a hosted-safe series downloaded as CSV carries its attribution.
+#   It fails when `simulate_failure` is true: the alarm proof.
+# - The `report` job is the only job with `issues: write`: on a failure or a
+#   timeout it opens one issue labelled `production-health` and closes older
+#   open `production-health` issues as superseded, while the failed run itself
+#   notifies the maintainer. Its runbook is `docs/operations/production.md`.
+
+name: production-health
+
+on:
+  schedule:
+    # Every hour at minute 41 UTC, away from staging-health's minute 23.
+    - cron: "41 * * * *"
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: Force the probe to fail, to prove the production-health alarm
+        required: false
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: production-health
+  cancel-in-progress: false
+
+jobs:
+  deployed:
+    name: find the deployed commit
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      newest: ${{ steps.runs.outputs.newest }}
+      running: ${{ steps.runs.outputs.running }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      - name: Read the newest successful and the running deploy-production commits
+        id: runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          newest=$(gh run list --workflow deploy-production.yml --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // ""')
+          running=$(gh run list --workflow deploy-production.yml --status in_progress \
+            --json headSha --jq '[.[].headSha] | join(" ")')
+          if [[ ! "$newest" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::No successful deploy-production run."
+            exit 1
+          fi
+          echo "newest=${newest}" >> "$GITHUB_OUTPUT"
+          echo "running=${running}" >> "$GITHUB_OUTPUT"
+
+  probe:
+    name: check production through the edge
+    needs: deployed
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production-health
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      PRODUCTION_HOST: pyeconomics.dev
+      DEPLOYED_SHA: ${{ needs.deployed.outputs.newest }}
+      RUNNING_SHAS: ${{ needs.deployed.outputs.running }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Check out the deployed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.deployed.outputs.newest }}
+          persist-credentials: false
+
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.0"
+          python-version: "3.14"
+          enable-cache: false
+
+      - name: Install the deployed commit's wheel as the container has it
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv build --no-config --wheel
+          uv export --no-config --frozen --no-dev --no-emit-project \
+            --extra server --extra mcp --extra econometrics --extra plot --extra sdmx \
+            --output-file "$RUNNER_TEMP/requirements.txt"
+          uv venv "$RUNNER_TEMP/wheel-venv"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --require-hashes --requirement "$RUNNER_TEMP/requirements.txt"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv/bin/python" --no-deps dist/pyeconomics-*.whl
+
+      - name: Check the commit, one model per domain and a CSV download
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          SIMULATE_FAILURE: ${{ inputs.simulate_failure && '1' || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          golden="$PWD/tests/golden"
+          check="$PWD/scripts/parity/check_deployed.py"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -I - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          host = os.environ["PRODUCTION_HOST"].strip()
+          base = f"https://{host}"
+          headers = {"User-Agent": "pyeconomics-production-health/1.0"}
+          # The service token until the cutover deletes it; no Access header after.
+          client_id = os.environ.get("CF_ACCESS_CLIENT_ID", "").strip()
+          client_secret = os.environ.get("CF_ACCESS_CLIENT_SECRET", "").strip()
+          if client_id and client_secret:
+              headers["CF-Access-Client-Id"] = client_id
+              headers["CF-Access-Client-Secret"] = client_secret
+
+          def fetch(path: str) -> tuple[int, dict[str, str], bytes]:
+              request = urllib.request.Request(f"{base}{path}", headers=headers)
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      return response.status, dict(response.headers), response.read()
+              except urllib.error.HTTPError as error:
+                  return error.code, dict(error.headers), error.read()
+
+          # 1. The API and the site name the same commit, the one deployed.
+          accepted = {os.environ["DEPLOYED_SHA"].strip(), *os.environ.get("RUNNING_SHAS", "").split()}
+          status, _, body = fetch("/version")
+          assert status == 200, f"/version returned {status}"
+          api = json.loads(body)
+          assert api.get("mode") == "hosted", f"/version reports mode {api.get('mode')}"
+          status, _, body = fetch("/version.json")
+          assert status == 200, f"/version.json returned {status}"
+          site = json.loads(body)
+          assert api.get("git_sha") == site.get("git_sha"), (
+              f"the API runs {api.get('git_sha')} and the site {site.get('git_sha')}"
+          )
+          assert api.get("git_sha") in accepted, (
+              f"production runs {api.get('git_sha')}, not the newest successful deploy's {os.environ['DEPLOYED_SHA']}"
+          )
+
+          # 3. A hosted-safe series downloaded as CSV carries its attribution.
+          end = dt.datetime.now(dt.UTC).date()
+          start = end - dt.timedelta(days=14)
+          status, response_headers, body = fetch(
+              f"/v1/series/treasury:par_nominal?start={start.isoformat()}&end={end.isoformat()}&format=csv"
+          )
+          assert status == 200, f"the CSV download returned {status}"
+          content_type = {k.lower(): v for k, v in response_headers.items()}.get("content-type", "")
+          assert content_type.startswith("text/csv"), f"the CSV download is {content_type}"
+          assert "Treasury" in body.decode("utf-8"), "the CSV download lacks Treasury's attribution"
+          print(f"Production runs {api['git_sha']} ({api['pyeconomics']}); the CSV carries its attribution.")
+          PY
+          # 2. One golden case per populated domain equals this commit's bytes.
+          "$RUNNER_TEMP/wheel-venv/bin/python" -I "$check" "$golden" "https://${PRODUCTION_HOST}"
+          if [ "${SIMULATE_FAILURE}" = "1" ]; then
+            echo "::error::Simulated production-health failure requested via workflow_dispatch."
+            exit 1
+          fi
+
+  report:
+    name: report the check's failure
+    needs: [deployed, probe]
+    # A job that reaches its timeout ends cancelled, which failure() misses.
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      - name: Open one production-health issue and close the older ones
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "The hourly production health check failed: ${RUN_URL}"
+            echo
+            echo "Follow the incident procedure and the runbooks in \`docs/operations/production.md\` (section 11). Older open \`production-health\` issues are closed as superseded."
+          } > body.md
+          old=$(gh issue list --label production-health --state open --json number --jq '.[].number')
+          new=$(gh issue create --label production-health \
+            --title "production-health check failed ($(date -u +%Y-%m-%d))" --body-file body.md)
+          for number in $old; do
+            gh issue close "$number" --reason "not planned" --comment "Superseded by ${new}."
+          done

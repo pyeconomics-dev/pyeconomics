@@ -6,13 +6,15 @@
 Every error the table maps is raised with a planted key, a planted file path (in
 Windows, POSIX and home forms) and a planted upstream URL in its message. The
 problem's detail, its JSON body, the command line's message, the traceback the
-command line's ``--debug`` prints and the record ``report`` logs are searched
-for each of them. A failing assertion names the sinks, never the planted values
+command line's ``--debug`` prints, the record ``report`` logs and the hosted
+service's error events (Phase 5 Step 14) are searched for each of them. A
+failing assertion names the sinks, never the planted values
 (tests/data/leakcheck.py).
 """
 
 from __future__ import annotations
 
+import json
 import secrets
 from dataclasses import dataclass, field
 
@@ -177,6 +179,31 @@ def test_no_planted_value_reaches_a_debug_traceback(plants: Plants) -> None:
         lines = debug_traceback(_raised(error))
         assert any(line.startswith("Traceback") for line in lines)
         check.add(f"debug:{problem_for(error).slug}", "\n".join(lines))
+    check.assert_clean()
+
+
+def test_no_planted_value_reaches_an_error_event(
+    plants: Plants, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from telemetry_support import capturing  # noqa: PLC0415 - the hosted group
+
+    from pyeconomics.server import observability  # noqa: PLC0415
+
+    found = capturing(monkeypatch)
+    telemetry = observability.start(component="api", git_sha="unknown")
+    check = LeakCheck(plants)
+    try:
+        for error in [*_errors(plants.text), _validation_error(plants)]:
+            problem = problem_for(error)
+            name = type(error).__qualname__
+            route = "/v1/models/{model_id}/run"
+            telemetry.problem(problem.slug, 500, name, route=route)
+            telemetry.exception(_raised(error), route="/v1/models")
+    finally:
+        telemetry.close()
+    for index, event in enumerate(found.events):
+        check.add(f"event:{index}", json.dumps(event, default=str))
+    assert len(check.sinks) == 2 * len([*_errors("x"), _validation_error(plants)])
     check.assert_clean()
 
 

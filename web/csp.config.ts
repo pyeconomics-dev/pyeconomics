@@ -6,10 +6,46 @@
 // file is the only place a source is added: the analytics collector (Step 15),
 // Sentry's ingest origin (Step 14) and the email processor's form endpoint
 // (Step 15) join here, and the post-build check refuses anything decision 9
-// does not allow.
+// does not allow. Sentry's origin joins connect-src in a production build that
+// carries the browser DSN (sentryBuild) and in no other build: staging, local
+// and the app wheel's build load no error tracking (decision 16).
 
 /** A directive's sources, in the order they are written. */
 export type Sources = readonly string[];
+
+/** Sentry's US ingest: the one origin the browser DSN may name (decision 15). */
+export const SENTRY_INGEST = /^https:\/\/o\d{1,12}\.ingest\.us\.sentry\.io$/;
+const SENTRY_DSN = /^https:\/\/[0-9a-f]{32}@(o\d{1,12}\.ingest\.us\.sentry\.io)\/\d{1,20}$/;
+
+/** The browser DSN a production build carries, and the origin it posts to. */
+export interface SentryBuild {
+  dsn: string;
+  origin: string;
+}
+
+/**
+ * Read PUBLIC_SENTRY_DSN, the browser project's DSN (public by design): null
+ * without one. Only a production build may carry it, and only on Sentry's US
+ * ingest, so a staging, local or app build that is handed one fails rather
+ * than report from a page whose policy would refuse the request.
+ */
+export function sentryBuild(
+  flavour: string | undefined = process.env.SITE_FLAVOUR,
+  dsn: string | undefined = process.env.PUBLIC_SENTRY_DSN,
+): SentryBuild | null {
+  if (dsn === undefined || dsn === "") return null;
+  if (flavour !== "production") {
+    throw new Error("PUBLIC_SENTRY_DSN is for production builds only (SITE_FLAVOUR=production)");
+  }
+  const match = SENTRY_DSN.exec(dsn);
+  if (match === null) {
+    throw new Error("PUBLIC_SENTRY_DSN is not a Sentry DSN on the US ingest");
+  }
+  return { dsn, origin: `https://${match[1] ?? ""}` };
+}
+
+/** This build's browser DSN, read once. */
+export const SENTRY = sentryBuild();
 
 /**
  * Every directive of the policy, in the order the header writes them. Astro
@@ -21,7 +57,7 @@ export const DIRECTIVES: Readonly<Record<string, Sources>> = {
   "style-src": ["'self'"],
   "img-src": ["'self'", "data:"],
   "font-src": ["'self'"],
-  "connect-src": ["'self'"],
+  "connect-src": ["'self'", ...(SENTRY ? [SENTRY.origin] : [])],
   "worker-src": ["'self'", "blob:"],
   "form-action": ["'self'"],
   "frame-ancestors": ["'none'"],
@@ -54,6 +90,14 @@ export const ALLOWED: Readonly<Record<string, Sources>> = {
   "base-uri": ["'none'"],
   "object-src": ["'none'"],
   "upgrade-insecure-requests": [],
+};
+
+/**
+ * Sources decision 9 allows by pattern: Sentry's ingest origin, which names
+ * the account's organization (o<number>), so it cannot be listed above.
+ */
+export const ALLOWED_PATTERNS: Readonly<Record<string, readonly RegExp[]>> = {
+  "connect-src": [SENTRY_INGEST],
 };
 
 /** Sources no directive may hold, whatever a later edit adds above. */

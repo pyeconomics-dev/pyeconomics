@@ -202,7 +202,8 @@ From Phase 3, which builds the data layer (ADR-0011):
   any cache read, so no provider can override it; the resolver skips a
   disabled candidate as `disabled` before any request, and every candidate
   disabled is `SourceDisabledError` (503). Never re-implement it in a provider.
-- `PYECONOMICS_EDGE_CREDENTIAL` and `PYECONOMICS_SNAPSHOT_HEARTBEAT` are the
+- `PYECONOMICS_EDGE_CREDENTIAL`, `PYECONOMICS_SNAPSHOT_HEARTBEAT`,
+  `PYECONOMICS_SENTRY_DSN` and `PYECONOMICS_OTLP_HEADERS` are the
   `PYECONOMICS_*` secrets the settings skip, because they are the hosted
   service's own (`config._SERVER_SECRETS`); provider keys never take the prefix.
 
@@ -863,6 +864,50 @@ From Phase 5 Step 13, which builds production (ADR-0013 decisions 3 to 7):
 - Until the cutover, the deploy checks that Access refuses a request without the
   token. The `production` environment's `PRODUCTION_PUBLIC` variable, set at the
   cutover, ends that check and no other.
+
+## Observability rules
+
+From Phase 5 Step 14, which makes production observable (ADR-0013 decision 15):
+
+- Errors and telemetry live in `server/observability.py`, imported only when
+  `settings.telemetry_wanted` says so: hosted mode with `PYECONOMICS_SENTRY_DSN` or
+  `PYECONOMICS_OTLP_ENDPOINT` set. A local server and a worker process never import
+  it (`tests/server/test_server_telemetry.py` proves it in a fresh interpreter), and
+  its libraries come from the `hosted` dependency group, which the image installs
+  and no extra carries; `scripts/checks/licences.py` holds that group to the runtime
+  allowlist (`RUNTIME_GROUPS`).
+- Sentry runs through a client of the module's own, never `sentry_sdk.init`, with no
+  integration, no `send_default_pii` and no `data_collection` mapping; only
+  `Telemetry`'s methods send. `clean_event` rebuilds every event from an allowlist:
+  an exception's message is withheld (as a problem withholds an unexpected error's),
+  strings pass through `problems.scrub`, and a tag survives only as a plain
+  identifier or route template (`scrub` would turn a template into `<path>`). A new
+  field an event needs joins that allowlist and the canary.
+- OpenTelemetry uses providers of the module's own; never call
+  `set_tracer_provider` or `set_meter_provider`. FastAPI, Starlette and the MCP SDK
+  import OpenTelemetry's API and make spans through the global provider, which must
+  stay a no-op. Attributes are route templates (a model's run routes as one in
+  metrics), methods, status classes, route kinds, model ids, cost classes and
+  problem slugs: never a path, a query, an input, an address or a key.
+- Each exporter's host is declared: a DSN on `o<n>.ingest.us.sentry.io`, an endpoint
+  on `otlp-gateway-<region>.grafana.net`. Telemetry never breaks a request: every
+  method swallows its own failure, and `close` flushes within Cloud Run's ten
+  seconds of `SIGTERM`, from the app's lifespan.
+- The snapshot job runs `python -m pyeconomics.server.snapshot_job write`, which
+  calls `data.snapshots.__main__.main` with an `observe` callback: the data layer
+  imports no server module.
+- The browser reports only from the calculator and explorer islands, through
+  `web/src/lib/error-reporting.ts`, which loads `@sentry/browser` on the first
+  report. Only a production build carries the DSN (`csp.config.ts sentryBuild`
+  refuses one in any other flavour and adds its exact ingest origin to
+  `connect-src`); the SDK starts with no default integration, every
+  `dataCollection` category off, and `cleanEvent` withholding messages and
+  stripping every URL's query. Report what an island did not expect (a load or
+  render failure, a chart that cannot draw, an answer that will not parse), never a
+  failed request, a problem or the parse worker's messages.
+- `production-health.yml` runs in the `production-health` environment, because
+  `production` asks the maintainer to approve every job. Each alarm has its row and
+  proof in `docs/operations/production.md` section 11 and names its runbook there.
 
 ## Documentation rules
 

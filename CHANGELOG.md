@@ -15,6 +15,22 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Observability for the hosted service (Phase 5 Step 14; ADR-0013 decision 15):
+  `pyeconomics.server.observability` sends the hosted service's server errors to
+  Sentry and its request and task metrics and sampled traces to Grafana Cloud over
+  OTLP, from the `hosted` dependency group, which only the container image
+  installs (no extra carries it, so no user's installation sends telemetry). It
+  starts only in hosted mode with `PYECONOMICS_SENTRY_DSN` or
+  `PYECONOMICS_OTLP_ENDPOINT` set, never imports in local mode, and carries no
+  path, query, input, address or key: every event is rebuilt from an allowlist
+  with exception messages withheld, and attributes are route templates, status
+  classes, route kinds, model ids and cost classes. The snapshot job runs as
+  `python -m pyeconomics.server.snapshot_job write`, which reports each run. The
+  calculator and explorer islands report unexpected errors from production builds
+  only, with every `dataCollection` category off. `production-health.yml` checks
+  production hourly, the site's footer links the status page at
+  `status.pyeconomics.dev`, and `docs/operations/production.md` holds the alarms,
+  the incident procedure and the runbooks.
 - Production (Phase 5 Step 13; ADR-0013 decisions 3 to 7): `pyeconomics.dev` on
   Cloudflare and Cloud Run, private behind Cloudflare Access until the launch. A
   release tag or a dispatch runs `deploy-production.yml`, which refuses a commit
