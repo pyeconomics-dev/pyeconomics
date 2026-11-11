@@ -356,6 +356,10 @@ def test_clean_event_rebuilds_an_event_from_its_allowlist() -> None:
         (SENTRY_DSN_VARIABLE, "https://{key}:x@o1.ingest.us.sentry.io/1"),
         (SENTRY_DSN_VARIABLE, "https://{key}@o1.ingest.us.sentry.io/1?x=1"),
         (SENTRY_DSN_VARIABLE, "https://[::1"),
+        (
+            SENTRY_DSN_VARIABLE,
+            "https://{key}@o123456789012345678901.ingest.us.sentry.io/1",
+        ),
         (OTLP_ENDPOINT_VARIABLE, "https://{key}.example.org/otlp"),
         (OTLP_HEADERS_VARIABLE, "Authorization=Bearer%20{key}"),
         (OTLP_HEADERS_VARIABLE, "Authorization=Basic%20{key},X-Key={key}"),
@@ -375,6 +379,26 @@ def test_a_bad_setting_names_its_variable_never_its_value(
     with pytest.raises(ConfigError, match=variable) as caught:
         observability.start(component="api", git_sha="unknown", environ=environ)
     assert key not in str(caught.value)
+
+
+@pytest.mark.parametrize(
+    ("organisation", "project"),
+    [(1, 1), (4510273591942001, 4510273591942002), (10**19, 10**19)],
+)
+def test_a_dsn_with_ids_of_up_to_twenty_digits_starts_sentry(
+    organisation: int, project: int
+) -> None:
+    key = secrets.token_hex(16)
+    environ = {
+        SENTRY_DSN_VARIABLE: f"https://{key}@o{organisation}.ingest.us.sentry.io/{project}"
+    }
+    telemetry = observability.start(
+        component="api", git_sha="unknown", environ=environ, sentry_transport=Captured
+    )
+    try:
+        assert telemetry.sentry is not None
+    finally:
+        telemetry.close()
 
 
 def test_the_otlp_endpoint_and_headers_come_together() -> None:

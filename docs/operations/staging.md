@@ -859,6 +859,13 @@ heartbeat URL in Better Stack, adding it as a new version the same way, moving
 `HEARTBEAT_SECRET_VERSION`, redeploying, and deleting the old heartbeat in
 Better Stack.
 
+Store the URL as `https://incidents.betterstack.com/api/v1/heartbeat/<token>`,
+the host the writer accepts (`writer.HEARTBEAT_HOST`). Better Stack's API can
+hand back the same token on `uptime.betterstack.com`, and the job refuses that
+URL before it writes anything (exit 2, "is not a Better Stack heartbeat URL"):
+keep the token and change the host. That happened on 2026-11-11, when the first
+versions were created through the API.
+
 ### Measured runtime against the free tier
 
 Measured on 2026-11-03 (execution `pyeconomics-snapshots-staging-2p9js`, the

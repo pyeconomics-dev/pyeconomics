@@ -13,9 +13,12 @@
 /** A directive's sources, in the order they are written. */
 export type Sources = readonly string[];
 
-/** Sentry's US ingest: the one origin the browser DSN may name (decision 15). */
-export const SENTRY_INGEST = /^https:\/\/o\d{1,12}\.ingest\.us\.sentry\.io$/;
-const SENTRY_DSN = /^https:\/\/[0-9a-f]{32}@(o\d{1,12}\.ingest\.us\.sentry\.io)\/\d{1,20}$/;
+/**
+ * Sentry's US ingest: the one origin the browser DSN may name (decision 15).
+ * Organisation and project ids run to 16 digits today, so each takes up to 20.
+ */
+export const SENTRY_INGEST = /^https:\/\/o\d{1,20}\.ingest\.us\.sentry\.io$/;
+const SENTRY_DSN = /^https:\/\/[0-9a-f]{32}@(o\d{1,20}\.ingest\.us\.sentry\.io)\/\d{1,20}$/;
 
 /** The browser DSN a production build carries, and the origin it posts to. */
 export interface SentryBuild {

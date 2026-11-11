@@ -8407,7 +8407,9 @@ conversation per phase-boundary hygiene.
       page and its DNS record; store the DSN, the OTLP
       header and both heartbeat URLs with `gcloud secrets
       versions add <name> --data-file=-`; confirm the email
-      and push channels; and approve the merge and the
+      channel (Better Stack's free plan alerts by email and
+      Slack only: its apps, push, calls and SMS need a paid
+      responder licence); and approve the merge and the
       production deploy. Record what was done, never a value.
     </requirement>
 
