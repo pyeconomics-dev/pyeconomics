@@ -616,7 +616,7 @@ class Telemetry:
     def snapshot(self, report: Report) -> None:
         """Record a snapshot run: whether it worked, its time, series and data age.
 
-        A provider that failed becomes a warning grouped by provider and problem
+        A provider that failed becomes an error grouped by provider and problem
         slug; a run in which none succeeded becomes an error.
         """
         manifest = report.manifest
@@ -651,7 +651,7 @@ class Telemetry:
             slug = manifest.providers[provider].failure or "internal-error"
             self._capture(
                 {
-                    "level": "warning",
+                    "level": "error",
                     "message": f"snapshot provider {provider} failed: {slug}",
                     "tags": self._tags(provider=provider, slug=slug, route="snapshot"),
                     "fingerprint": ["snapshot", provider, slug],

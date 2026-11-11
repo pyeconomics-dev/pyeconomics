@@ -697,10 +697,13 @@ Added in Phase 5 Step 14 (2026-11-10 onwards):
 - **Google Cloud:** the secrets `sentry-dsn`, `otlp-headers` and `snapshot-heartbeat`
   in production and `snapshot-heartbeat` in staging, with the accessor roles section
   1.3 lists (staging's job identity reads its own heartbeat).
-- **Sentry** (US region, the maintainer's account, DPA accepted): organization
-  `pyeconomics`, projects `pyeconomics-api` (Python) and `pyeconomics-web` (browser
-  JavaScript, allowed domain `pyeconomics.dev`), each alerting by email on every new
-  issue; IP addresses are not stored and the default scrubbers are required.
+- **Sentry** (US region, signed up with the maintainer's GitHub identity, DPA
+  accepted): organization `pyeconomics`, projects `pyeconomics-api` (Python) and
+  `pyeconomics-web` (browser JavaScript, no framework; allowed domain
+  `pyeconomics.dev`), error monitoring only, each alerting by email on new
+  high-priority issues (Sentry's project form offers no "every new issue" option any
+  more, so every event pyeconomics sends is error level); IP addresses are not stored
+  and the default scrubbers are required.
 - **Grafana Cloud** (US region): stack `pyeconomics`; access policy
   `pyeconomics-production-telemetry` with metrics, logs and traces write only; token
   `pyeconomics-api-production`.
@@ -729,7 +732,7 @@ secret with production.
 | Signal | From | Goes to | Holds | Kept |
 | --- | --- | --- | --- | --- |
 | Server errors | the API (`pyeconomics.server.observability`): an exception that reached the guard, a 5xx problem from a worker or the app | Sentry `pyeconomics-api`, environment `production` | the error's type and frames (its message withheld), the problem's slug, status and error type, the route's template, the release (`pyeconomics@<version>+<sha>`) | 30 days |
-| Snapshot failures | the job (`python -m pyeconomics.server.snapshot_job write`) | Sentry `pyeconomics-api` | a warning per failed provider with its slug; an error when no provider succeeded | 30 days |
+| Snapshot failures | the job (`python -m pyeconomics.server.snapshot_job write`) | Sentry `pyeconomics-api` | an error per failed provider with its slug (error level, so Sentry's high-priority alert emails it); an error when no provider succeeded | 30 days |
 | Browser errors | the calculator and explorer islands of a production build | Sentry `pyeconomics-web` | the error's type and frames (message withheld), the island, the page's URL without its query | 30 days |
 | Request metrics and traces | the API's guard | Grafana Cloud, service `pyeconomics-api` | `http.server.request.duration` by method, route template (a model's runs as one), status class and route kind; 5% of requests as spans | 14 days |
 | Task metrics | the API's worker results | Grafana Cloud | `pyeconomics.tasks` by kind, model id, cost class and outcome (slug); `pyeconomics.task.duration` | 14 days |
@@ -774,8 +777,8 @@ failure, which was then undone.
 | Monitor `pyeconomics model run` (a `GET` run of `foundations.time_value`) | the run fails or answers another model | email, push | 11.4 deploy regressed, cost spike | pending |
 | Heartbeat `pyeconomics production snapshot job` (24 h, 2 h grace) | no ping for 26 hours, or a `/fail` ping | email, push | 11.4 snapshot job silent | pending |
 | Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email, push | 11.4 snapshot job silent | its first ping |
-| Sentry `pyeconomics-api` new issue | a new server error or snapshot failure | email | 11.4 by the issue's slug | pending |
-| Sentry `pyeconomics-web` new issue | a new browser error | email | 11.4 deploy regressed | pending |
+| Sentry `pyeconomics-api` new high-priority issue (every event pyeconomics sends is error level) | a new server error or snapshot failure | email | 11.4 by the issue's slug | pending |
+| Sentry `pyeconomics-web` new high-priority issue | a new browser error | email | 11.4 deploy regressed | pending |
 | `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down | pending |
 | Budget `pyeconomics-production-monthly-budget` | spend passes 50, 90 or 100% of `$10` | email; Pub/Sub `production-budget-alerts` | section 8 | pending |
 
@@ -826,7 +829,7 @@ Each names the alarm that leads to it.
   round trip (a deploy's checks, the monitors), disable the old version, and publish
   an advisory if a user's key or data was exposed.
 - **Upstream source down or changed** (a Sentry `snapshot provider ... failed`
-  warning, `production-health`'s CSV check, a provider's live test): the service
+  error, `production-health`'s CSV check, a provider's live test): the service
   keeps serving the last snapshot; open an issue, and if the source changed its
   format, update its provider and contract cassettes. Disable it on the job (section
   7) if it keeps failing.

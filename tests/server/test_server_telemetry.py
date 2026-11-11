@@ -554,7 +554,8 @@ def test_a_snapshot_run_records_its_series_age_and_failures(world: World) -> Non
     assert "pyeconomics.snapshot.data_age" in names
     messages = [event["message"] for event in world.events]
     assert messages == ["snapshot provider fed failed: upstream-rate-limited"]
-    assert world.events[0]["level"] == "warning"
+    # Error level: Sentry alerts on new high-priority issues, which a warning is not.
+    assert world.events[0]["level"] == "error"
 
 
 def test_a_snapshot_run_with_no_success_is_an_error(world: World) -> None:
