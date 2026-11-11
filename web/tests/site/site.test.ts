@@ -12,7 +12,10 @@
 // /data/ listing every concept, one page per concept with its sources, the
 // models that read it and its explorer island, and the library-only notice
 // on each model whose data the hosted site may not serve. Step 11: each model
-// page's link to its documentation page.
+// page's link to its documentation page. Step 15: the sign-up forms' action,
+// method and fields, the Pro preview's disclosure and prices with no payment
+// field, every click an element records on the analytics allowlist, and no
+// tracker in a build that is not production's.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +25,11 @@ import { describe, expect, it } from "vitest";
 import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
 import { DOMAINS, ORIGIN, conceptPath, domainPath, modelPath } from "@/lib/paths";
 import { dataProfiles, docsUrl, unservedSources } from "@/lib/models";
+import { TRACKER_PATH } from "@/lib/analytics";
+import { checkEvent } from "@/lib/events";
 import { ogImagePath } from "@/lib/pages";
+import { PRO_DISCLOSURE, PRO_TIERS } from "@/lib/pro";
+import { PRIVACY_POLICY, SIGNUP_ACTION } from "@/lib/signup";
 import { conceptData, problemData, registryData, sourceData, syllabusData } from "@/lib/site-data";
 
 const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
@@ -34,6 +41,7 @@ const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 const PLANNED: ReadonlyMap<string, string> = new Map([
   ["/legal/disclaimers/", "Phase 5 Step 16"],
   ["/sources/", "Phase 5 Step 16"],
+  ["/legal/privacy/", "Phase 5 Step 16"],
 ]);
 
 /** The model page sections, in order; `data` only for a model with bindings. */
@@ -254,7 +262,9 @@ describe("every page", () => {
       // Every page has the header's search island: Astro's runtime, inline and
       // hashed in the page's policy (checkPage, the post-build check, finds no
       // problem), and its one style element. The only forms are the search
-      // forms, the /models/ filters and a data concept's series reader.
+      // forms, the /models/ filters, a data concept's series reader and the
+      // sign-up forms, which post to the email processor (Step 15); the only
+      // other script is the Pro preview's, a same-origin module.
       expect(checkPage(page).problems, path).toEqual([]);
       for (const tag of tags(page)) {
         const name = /^<([a-zA-Z][a-zA-Z0-9-]*)/.exec(tag)?.[1]?.toLowerCase() ?? "";
@@ -262,9 +272,13 @@ describe("every page", () => {
         const form = attributes(tag);
         const known =
           name === "form" &&
-          (form.get("role") === "search" || ["Filter models", "Read the series"].includes(form.get("aria-label") ?? ""));
+          (form.get("role") === "search" ||
+            ["Filter models", "Read the series"].includes(form.get("aria-label") ?? "") ||
+            (form.get("action") === SIGNUP_ACTION && form.get("method") === "post"));
+        const proScript =
+          path === "/pro/" && name === "script" && form.get("type") === "module" && /^\/_astro\/[\w.-]+\.js$/.test(form.get("src") ?? "");
         if (!runtime && !known) expect(["iframe", "object", "embed", "style", "form", "base"], `${path}: ${tag}`).not.toContain(name);
-        if (name === "script" && !runtime) expect(attributes(tag).get("type"), `${path}: ${tag}`).toBe("application/ld+json");
+        if (name === "script" && !runtime && !proScript) expect(attributes(tag).get("type"), `${path}: ${tag}`).toBe("application/ld+json");
         if (name === "img") expect(attributes(tag).get("src"), `${path}: ${tag}`).toBe("/favicon.svg");
         for (const attribute of attributes(tag).keys()) {
           expect(attribute, `${path}: ${tag}`).not.toMatch(/^on|^style$|^srcdoc$/);
@@ -422,5 +436,102 @@ describe("indexing", () => {
     expect(robots).toMatch(/^User-agent: \*\n(Allow|Disallow): \/\n/);
     expect(robots).toContain(`Sitemap: ${ORIGIN}/sitemap-index.xml`);
     expect(FILES).toContain("_redirects");
+  });
+});
+
+/** Each form of a page: its start tag's attributes, its fields' attributes and its markup. */
+function forms(page: string): { form: Map<string, string>; fields: Map<string, string>[]; body: string }[] {
+  return [...page.matchAll(/(<form\b[^>]*>)([\s\S]*?)<\/form>/g)].map((match) => ({
+    form: attributes(match[1] ?? ""),
+    fields: tags(match[2] ?? "")
+      .filter((tag) => /^<(input|select|textarea|button)\b/i.test(tag))
+      .map((tag) => attributes(tag)),
+    body: match[2] ?? "",
+  }));
+}
+
+describe("growth signals (Phase 5 Step 15)", () => {
+  const signups = (page: string) => forms(page).filter(({ form }) => form.get("action") === SIGNUP_ACTION);
+
+  it("posts every sign-up form straight to the processor, with the address and fixed fields only", () => {
+    let seen = 0;
+    for (const path of PAGES) {
+      for (const { form, fields, body } of signups(html(path))) {
+        seen += 1;
+        expect(form.get("method"), path).toBe("post");
+        expect(form.has("target"), path).toBe(false);
+        const list = form.get("data-signup");
+        const named = fields.filter((field) => field.has("name"));
+        const names = [...new Set(named.map((field) => field.get("name")))].sort();
+        const expected = ["email", "embed", "metadata__list", "metadata__source", ...(list === "waitlist" ? ["metadata__tier"] : [])];
+        expect(names, path).toEqual(expected.sort());
+        expect(named.find((field) => field.get("name") === "email")?.get("type"), path).toBe("email");
+        expect(named.find((field) => field.get("name") === "metadata__list")?.get("value"), path).toBe(list);
+        expect(named.find((field) => field.get("name") === "embed")?.get("value"), path).toBe("1");
+        for (const field of named.filter((entry) => entry.get("name") === "metadata__tier")) {
+          expect(field.get("type"), path).toBe("radio");
+          expect(["personal", "commercial", "team"], path).toContain(field.get("value"));
+        }
+        expect(body, path).toContain(`href="${PRIVACY_POLICY}"`);
+        expect(text(body), path).toContain("confirm by the email");
+      }
+    }
+    // The footer's form on every page but the two with their own, and theirs.
+    expect(seen).toBe(PAGES.length);
+  });
+
+  it("puts no field anywhere that could take a password, a card or an account", () => {
+    for (const path of PAGES) {
+      for (const tag of tags(html(path))) {
+        const found = attributes(tag);
+        expect(found.get("type"), `${path}: ${tag}`).not.toBe("password");
+        expect(found.get("autocomplete") ?? "", `${path}: ${tag}`).not.toMatch(/^cc-|password|username/);
+        if (found.get("type") === "email") expect(found.get("name"), path).toBe("email");
+      }
+    }
+  });
+
+  it("leads /pro/ with the statement that nothing is sold, and shows the planned prices", () => {
+    const page = html("/pro/");
+    const note = /<div[^>]*data-disclosure="pro"[^>]*>([\s\S]*?)<\/div>/.exec(page)?.[1] ?? "";
+    expect(text(note)).toContain(PRO_DISCLOSURE);
+    expect(text(page).indexOf(PRO_DISCLOSURE)).toBeLessThan(text(page).indexOf("Indicative prices"));
+    for (const tier of PRO_TIERS) expect(text(page)).toContain(`$${String(tier.price)}`);
+    expect(signups(page).map(({ form }) => form.get("data-signup"))).toEqual(["waitlist"]);
+    expect(page).not.toMatch(/card number|cvc|billing/i);
+  });
+
+  it("records only allowlisted clicks: every data-umami-event attribute passes the allowlist", () => {
+    let clicks = 0;
+    for (const path of DOCUMENTS) {
+      for (const tag of tags(readFileSync(join(DIST, path), "utf8"))) {
+        const found = attributes(tag);
+        const event = found.get("data-umami-event");
+        const properties = Object.fromEntries(
+          [...found].filter(([key]) => key.startsWith("data-umami-event-")).map(([key, value]) => [key.slice("data-umami-event-".length), value]),
+        );
+        if (event === undefined) {
+          expect(Object.keys(properties), `${path}: ${tag}`).toEqual([]);
+          continue;
+        }
+        clicks += 1;
+        expect(checkEvent(event, properties), `${path}: ${tag}`).not.toBeNull();
+      }
+    }
+    expect(clicks).toBeGreaterThan(PAGES.length);
+  });
+
+  it("carries no tracker in a build that is not production's", () => {
+    expect(existsSync(join(DIST, TRACKER_PATH))).toBe(false);
+    for (const path of DOCUMENTS) expect(readFileSync(join(DIST, path), "utf8"), path).not.toContain("data-website-id");
+  });
+
+  it("links Discussions, the newsletter and the Pro preview from every page's footer", () => {
+    for (const path of PAGES) {
+      const footer = /<footer[\s\S]*?<\/footer>/.exec(html(path))?.[0] ?? "";
+      for (const href of ["https://github.com/pyeconomics-dev/pyeconomics/discussions", "/newsletter/", "/pro/"]) {
+        expect(footer, `${path}: ${href}`).toContain(`href="${href}"`);
+      }
+    }
   });
 });

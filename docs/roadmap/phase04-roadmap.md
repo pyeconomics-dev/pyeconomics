@@ -9776,3 +9776,10 @@ alert with a proven alarm; and `verify-phase04.sh` as the template for
   approval. The check now admits those two names for that one workflow,
   requires it to run in `production-health` and never in `production` or
   `staging`; every other workflow's rule is unchanged.
+
+- Static check 64 (Phase 5 Step 15): `growth-metrics.yml`, the weekly Gate G2
+  ledger, reads `GRAFANA_READ_TOKEN`, a Grafana Cloud access-policy token with
+  `metrics:read` alone, from the `growth` environment (`main` only), beside its
+  own read-only `GITHUB_TOKEN`. The check now admits that one name for that one
+  workflow, requires it to run in `growth` and never in `production`,
+  `production-health` or `staging`; every other workflow's rule is unchanged.

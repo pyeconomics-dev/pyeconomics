@@ -1,0 +1,38 @@
+---
+// web/src/pages/newsletter/index.astro
+// /newsletter/ (Phase 5 Step 15; ADR-0013 decisions 2 and 14): the newsletter
+// sign-up, a plain form that posts straight to the email processor
+// (src/components/SignupForm.astro), and where to ask questions instead:
+// GitHub Discussions.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import SignupForm from "@/components/SignupForm.astro";
+import Base from "@/layouts/Base.astro";
+import { DISCUSSIONS } from "@/lib/links";
+import { NEWSLETTER } from "@/lib/pages";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: NEWSLETTER.title, path: "/newsletter/" },
+];
+---
+
+<Base
+  title={NEWSLETTER.title}
+  description={NEWSLETTER.description}
+  jsonLd={webPage("/newsletter/", NEWSLETTER.title, NEWSLETTER.description, trail)}
+  signup={false}
+>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">Newsletter</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    New models, data sources and releases of pyeconomics, by email, a few times a year. No advertising, and no
+    tracking of opens or clicks.
+  </p>
+  <div class="mt-8">
+    <SignupForm list="newsletter" source="newsletter-page" id="newsletter" />
+  </div>
+  <p class="mt-10 max-w-3xl">
+    Have a question, an idea or something you built with pyeconomics? Ask in <a href={DISCUSSIONS}>GitHub Discussions</a>.
+  </p>
+</Base>

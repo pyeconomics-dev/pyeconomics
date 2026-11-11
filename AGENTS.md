@@ -909,6 +909,38 @@ From Phase 5 Step 14, which makes production observable (ADR-0013 decision 15):
   `production` asks the maintainer to approve every job. Each alarm has its row and
   proof in `docs/operations/production.md` section 11 and names its runbook there.
 
+## Growth signal rules
+
+From Phase 5 Step 15, which instruments Gate G2 (ADR-0013 decisions 13, 14 and 19):
+
+- `web/src/lib/events.ts` is the analytics allowlist and the only code that hands
+  an event to the tracker: six events, whose properties are a model id, a download
+  format, a Pro tier or a sign-up list, each from a closed set or a pattern. An
+  island calls `track()`; a static element records a click through
+  `eventAttributes()`, which throws at build time on anything the allowlist
+  refuses. Never send a search query, an input, a value, a result or an address,
+  and never add an event or property without its tests (`tests/unit/events.test.ts`,
+  the dist test that checks every `data-umami-event`, and the analytics test in
+  `tests/e2e/growth.spec.ts`), and `scripts/growth_metrics.py`'s `EVENTS`.
+- The tracker is `web/vendor/umami/script.js`, Umami's file byte for byte, pinned by
+  `TRACKER_SHA256` in `src/lib/analytics.ts` and copied into a production build
+  only (`csp.config.ts analyticsBuild`, which refuses a website id in any other
+  flavour). Its tag excludes the query and fragment and honours Do Not Track. Never
+  edit the file; a new copy moves the hash and `vendor/umami/README.md` together.
+- The sign-up forms (`src/components/SignupForm.astro`) are plain HTML forms that
+  post by navigation to the email processor's endpoint (`src/lib/signup.ts`); no
+  script reads or sends an address, and every form says what is collected, that
+  confirmation is by email and links the privacy policy. The app wheel's build
+  carries no form (`signupForms`) and links to the public site instead.
+- `/pro/` sells nothing: it leads with `PRO_DISCLOSURE` (`src/lib/pro.ts`, held to
+  the built page by `tests/site/`), and no page has an account, payment field or
+  checkout. Its prices are the maintainer's; change them only with their decision,
+  recorded in the pull request.
+- `growth-metrics.yml` writes counts only. Its secret lives in the `growth`
+  environment (`main` only), `report` alone has `issues: write`, and no key that can
+  read a subscriber's address is ever stored in GitHub: the sign-up rows stay
+  manual. The runbook is `docs/operations/production.md` section 12.
+
 ## Documentation rules
 
 From Phase 5 Step 11, which builds the tutorials, how-to guides, study paths and

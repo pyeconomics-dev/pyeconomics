@@ -680,12 +680,16 @@ jobs:
       # final release (ADR-0013 decision 4).
       # PUBLIC_SENTRY_DSN is the browser project's DSN, public by design: it
       # ships in the islands of production builds only (Phase 5 Step 14).
+      # PUBLIC_UMAMI_WEBSITE_ID is the analytics site's id, public by design
+      # too: with it, and only in this flavour, every page loads the vendored,
+      # cookie-less tracker from our own origin (Phase 5 Step 15).
       - name: Build the production flavour of the site
         working-directory: web
         env:
           SITE_FLAVOUR: production
           GIT_SHA: ${{ github.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.PUBLIC_UMAMI_WEBSITE_ID }}
         run: npm run build
 
       - name: Record the Worker version serving now

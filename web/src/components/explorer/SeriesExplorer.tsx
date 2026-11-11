@@ -40,6 +40,7 @@ import {
 } from "@/lib/explorer";
 import IslandBoundary from "@/components/IslandBoundary";
 import { report } from "@/lib/error-reporting";
+import { track } from "@/lib/events";
 import { STYLE_MARKER, loadPlotly } from "@/lib/plotly";
 import { decode } from "@/lib/results";
 import type { RunAnswer } from "@/lib/run-request";
@@ -334,6 +335,7 @@ function Explorer(props: SeriesExplorerProps) {
         return;
       }
       save(answer.bytes, answer.filename ?? filename(props.conceptId, extension), answer.contentType);
+      track("download", { format });
       setAnnouncement(`The ${format} download is ready.`);
     } catch {
       setAnnouncement("The download could not reach the server.");
@@ -446,7 +448,10 @@ function Explorer(props: SeriesExplorerProps) {
               <button
                 type="button"
                 className={SMALL_BUTTON}
-                onClick={() => save(outcome.answer.bytes, filename(props.conceptId, "json"), "application/json")}
+                onClick={() => {
+                  save(outcome.answer.bytes, filename(props.conceptId, "json"), "application/json");
+                  track("download", { format: "json" });
+                }}
               >
                 JSON
               </button>

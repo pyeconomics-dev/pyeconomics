@@ -1,0 +1,128 @@
+---
+// web/src/components/SignupForm.astro
+// A newsletter or Pro waitlist sign-up (Phase 5 Step 15; ADR-0013 decision
+// 14): a plain HTML form that posts, by navigation, straight to the email
+// processor's embed endpoint (src/lib/signup.ts), which asks the visitor to
+// confirm by email. It sends the address, the list, where it came from and,
+// on the waitlist, the tier chosen; no script reads or sends the address. Its
+// submit button records `newsletter_submit` or `waitlist_submit` with the list
+// alone (src/lib/events.ts), through attributes the analytics tracker reads.
+// Each form says what is collected, by whom, that confirmation is by email,
+// and links the privacy policy.
+//
+// The app wheel's build carries no form (FORMS_ENABLED): it links to the
+// public site's page instead, so the local app posts nothing anywhere.
+import { buttonVariants } from "@/components/ui/button";
+import { TIERS, eventAttributes, type List } from "@/lib/events";
+import {
+  FORMS_ENABLED,
+  PRIVACY_POLICY,
+  PROCESSOR_NAME,
+  PUBLIC_NEWSLETTER,
+  PUBLIC_PRO,
+  SIGNUP_ACTION,
+  TIER_FIELD,
+  tierLabel,
+  hiddenFields,
+  type Source,
+} from "@/lib/signup";
+
+interface Props {
+  list: List;
+  source: Source;
+  /** The form's id, unique on the page; the fields' ids derive from it. */
+  id: string;
+  /** The footer's narrower form. */
+  compact?: boolean;
+}
+
+const { list, source, id, compact = false } = Astro.props;
+const waitlist = list === "waitlist";
+const label = waitlist ? "Join the Pro waitlist" : "Subscribe to the newsletter";
+const submit = waitlist ? "Join the waitlist" : "Subscribe";
+const event = eventAttributes(waitlist ? "waitlist_submit" : "newsletter_submit", { list });
+const input =
+  "w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs " +
+  "outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
+---
+
+{
+  FORMS_ENABLED ? (
+    <form
+      id={id}
+      method="post"
+      action={SIGNUP_ACTION}
+      aria-label={label}
+      class:list={["flex flex-col gap-3", compact ? "max-w-xl" : "max-w-2xl"]}
+      data-signup={list}
+    >
+      <label for={`${id}-email`} class="font-medium text-foreground">
+        Email address
+      </label>
+      <div class="flex flex-wrap gap-2">
+        <input
+          id={`${id}-email`}
+          name="email"
+          type="email"
+          required
+          maxlength="254"
+          autocomplete="email"
+          class={input}
+          aria-describedby={`${id}-notice`}
+        />
+        {!waitlist && (
+          <button type="submit" class={buttonVariants({ className: "no-underline" })} {...event}>
+            {submit}
+          </button>
+        )}
+      </div>
+      {hiddenFields(list, source).map(([name, value]) => (
+        <input type="hidden" name={name} value={value} />
+      ))}
+      {waitlist && (
+        <fieldset class="flex flex-col gap-2">
+          <legend class="font-medium text-foreground">Which plan would you consider?</legend>
+          <div class="flex flex-wrap gap-x-6 gap-y-2">
+            {TIERS.map((tier, index) => (
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={TIER_FIELD}
+                  value={tier}
+                  id={`${id}-tier-${tier}`}
+                  required={index === 0}
+                  data-tier={tier}
+                />
+                {tierLabel(tier)}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+      {waitlist && (
+        <div>
+          <button type="submit" class={buttonVariants({ className: "no-underline" })} {...event}>
+            {submit}
+          </button>
+        </div>
+      )}
+      <p id={`${id}-notice`} class="text-sm text-muted-foreground" data-signup-notice="">
+        {waitlist
+          ? "Joining the waitlist buys nothing and commits you to nothing: we email you if Pro opens. "
+          : "An occasional email about new models, data and releases. "}
+        We send your email address{waitlist ? " and the plan you chose" : ""} to {PROCESSOR_NAME}, which holds the list
+        and records when you signed up, your IP address and the page you came from. You are added only after you
+        confirm by the email it sends you. Every email has an unsubscribe link, and you can ask for your address to be
+        deleted at any time. <a href={PRIVACY_POLICY}>Privacy policy</a>.
+      </p>
+    </form>
+  ) : (
+    <p class="text-sm text-muted-foreground" data-signup-link={list}>
+      {waitlist ? "Join the Pro waitlist" : "Subscribe to the newsletter"} on the public site:{" "}
+      <a href={waitlist ? `${PUBLIC_PRO}#waitlist` : PUBLIC_NEWSLETTER}>
+        {waitlist ? "pyeconomics.dev/pro/" : "pyeconomics.dev/newsletter/"}
+      </a>
+      .
+    </p>
+  )
+}

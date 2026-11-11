@@ -15,6 +15,20 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Feedback channels and Gate G2's instruments (Phase 5 Step 15; ADR-0013
+  decisions 13, 14 and 19): the site's `/newsletter/` page, a newsletter form in
+  every page's footer and the Pro waitlist post plain HTML forms straight to the
+  email processor, which confirms each address by email; no script, API, log or
+  analytics sees an address. `/pro/` previews a possible paid Pro tier with its
+  planned features and indicative prices, and says plainly that nothing exists, is
+  sold or is charged. Production builds load Umami's cookie-less tracker from the
+  site's own origin, pinned by its SHA-256, with query strings and fragments
+  excluded and six allowlisted events whose properties are a model id, a format, a
+  tier or a list. `growth-metrics.yml` posts the week's counts (downloads, stars,
+  Discussions, API and MCP requests by route kind, and manual analytics and sign-up
+  rows) on the pinned "Gate G3 ledger" issue. The issue forms send questions to
+  GitHub Discussions, which CONTRIBUTING and the footer link. The local app's build
+  carries neither forms nor tracker.
 - Observability for the hosted service (Phase 5 Step 14; ADR-0013 decision 15):
   `pyeconomics.server.observability` sends the hosted service's server errors to
   Sentry and its request and task metrics and sampled traces to Grafana Cloud over

@@ -68,8 +68,9 @@ describe("the Lighthouse runner", () => {
     expect(unmeasured({ categories: {} })).toMatch(/^no score for performance, accessibility/);
   });
 
-  it("measures decision 19's thirteen pages in all four categories", () => {
-    expect(SAMPLE).toHaveLength(13);
+  it("measures decision 19's thirteen pages and Step 15's two in all four categories", () => {
+    expect(SAMPLE).toHaveLength(15);
+    expect(SAMPLE.slice(-2)).toEqual(["/pro/", "/newsletter/"]);
     expect(SAMPLE[0]).toBe("/");
     expect(CATEGORIES).toEqual(["performance", "accessibility", "best-practices", "seo"]);
   });

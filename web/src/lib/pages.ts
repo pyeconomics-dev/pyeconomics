@@ -48,6 +48,19 @@ export const DATA_INDEX = {
     "The economic series pyeconomics models read: search the catalog, see each series' sources and licence, and chart and download those this site serves.",
 };
 
+/** The newsletter page's title and description (Phase 5 Step 15). */
+export const NEWSLETTER = {
+  title: "Newsletter",
+  description: "New pyeconomics models, data sources and releases, by email a few times a year; confirmed by email, no tracking.",
+};
+
+/** The Pro preview's title and description (Phase 5 Step 15). */
+export const PRO = {
+  title: "Pro preview",
+  description:
+    "A preview of a possible paid pyeconomics Pro tier, with planned features and indicative prices. Pro does not exist yet and nothing is sold.",
+};
+
 /** A concept page's description: its definition, its unit and frequency. */
 export function conceptDescription(concept: ConceptEntry): string {
   const unit = concept.unit ?? concept.unit_kind;
@@ -89,6 +102,7 @@ export function sitePages(): SitePage[] {
     pages.push({ path: conceptPath(concept.id), title: concept.title, description: conceptDescription(concept) });
   }
   pages.push({ path: "/search/", ...SEARCH }, { path: "/coverage/", ...COVERAGE });
+  pages.push({ path: "/newsletter/", ...NEWSLETTER }, { path: "/pro/", ...PRO });
   pages.push({ path: "/problems/", ...PROBLEMS_INDEX });
   for (const problem of problemData) {
     pages.push({ path: `/problems/${problem.slug}/`, title: problem.title, description: problem.meaning });

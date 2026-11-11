@@ -8,6 +8,12 @@ before proposing large changes. By taking part you agree to the
 
 Coding agents follow [AGENTS.md](AGENTS.md), which restates these rules.
 
+Questions, ideas and things you built with pyeconomics belong in
+[GitHub Discussions](https://github.com/pyeconomics-dev/pyeconomics/discussions);
+issues are for bugs, model requests and data-source requests. For news of
+releases, new models and data, subscribe to the
+[newsletter](https://pyeconomics.dev/newsletter/).
+
 ## Setup
 
 You need [uv](https://docs.astral.sh/uv/) and git. Then, once per clone:

@@ -39,6 +39,7 @@ import {
   type CalculatorProps,
 } from "@/lib/calculator";
 import { report } from "@/lib/error-reporting";
+import { track } from "@/lib/events";
 import { applicable } from "@/lib/figure";
 import { decode, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
@@ -204,6 +205,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
           return;
         }
         setOutcome({ kind: "result", answer, result });
+        track("calculator_run", { model: props.modelId });
         const warnings = result.warnings.length;
         setAnnouncement(`Done. The result has ${String(Object.keys(result.outputs).length)} outputs and ${String(warnings)} warning${warnings === 1 ? "" : "s"}.`);
       } else {
@@ -233,6 +235,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
         return;
       }
       save(answer.bytes, answer.filename ?? `${props.modelId}.${extension}`, answer.contentType);
+      track("download", { model: props.modelId, format });
       setAnnouncement(`The ${format} download is ready.`);
     } catch {
       setAnnouncement("The download could not reach the server.");
@@ -371,7 +374,10 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
               <div className="flex flex-col gap-2">
                 <h4 className="font-medium">Download</h4>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" className={SMALL_BUTTON} onClick={() => save(outcome.answer.bytes, `${props.modelId}.json`, "application/json")}>
+                  <button type="button" className={SMALL_BUTTON} onClick={() => {
+                      save(outcome.answer.bytes, `${props.modelId}.json`, "application/json");
+                      track("download", { model: props.modelId, format: "json" });
+                    }}>
                     JSON
                   </button>
                   {DOWNLOADS.map((entry) => (

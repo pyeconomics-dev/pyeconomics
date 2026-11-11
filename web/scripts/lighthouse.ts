@@ -26,7 +26,10 @@ const ORIGIN = `http://127.0.0.1:${PORT}`;
 const RUNS = 3;
 const MINIMUM = 0.9;
 
-/** Decision 19's thirteen pages; those the build has not written yet are skipped. */
+/**
+ * Decision 19's thirteen pages, and the Pro preview and newsletter Step 15
+ * adds at the same scores; those the build has not written yet are skipped.
+ */
 export const SAMPLE = [
   "/",
   "/models/",
@@ -41,6 +44,8 @@ export const SAMPLE = [
   "/sources/",
   "/legal/privacy/",
   "/problems/invalid-input/",
+  "/pro/",
+  "/newsletter/",
 ] as const;
 
 export const CATEGORIES = ["performance", "accessibility", "best-practices", "seo"] as const;

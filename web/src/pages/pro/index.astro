@@ -1,0 +1,129 @@
+---
+// web/src/pages/pro/index.astro
+// /pro/, the priced Pro preview (Phase 5 Step 15; ROADMAP §5 Gate G2;
+// ADR-0013 decision 19): a fake door that records intent and sells nothing.
+// It leads with the statement that Pro does not exist and that nothing is
+// sold, charged or collected here but the optional waitlist (src/lib/pro.ts,
+// which tests/site/ checks in the built page), lists the planned features and
+// the indicative prices, and offers the waitlist. Each tier's "Notify me"
+// records `pro_preview_click` with its tier (src/lib/events.ts) and leads to
+// the waitlist form; the page's script also chooses that tier in the form. No
+// account, payment field or checkout exists anywhere on the site.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import SignupForm from "@/components/SignupForm.astro";
+import { buttonVariants } from "@/components/ui/button";
+import Base from "@/layouts/Base.astro";
+import { eventAttributes } from "@/lib/events";
+import { PRO } from "@/lib/pages";
+import { FREE_CORE, PRO_DISCLOSURE, PRO_FEATURES, PRO_TIERS } from "@/lib/pro";
+import { tierLabel } from "@/lib/signup";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: PRO.title, path: "/pro/" },
+];
+---
+
+<Base title={PRO.title} description={PRO.description} jsonLd={webPage("/pro/", PRO.title, PRO.description, trail)} signup={false}>
+  <Breadcrumbs trail={trail} />
+  <h1 class="text-4xl font-bold tracking-tight">pyeconomics Pro: a preview</h1>
+  <div role="note" aria-label="Pro does not exist yet" class="mt-6 max-w-3xl rounded-lg border-2 border-foreground p-4" data-disclosure="pro">
+    <p class="font-semibold text-foreground">{PRO_DISCLOSURE}</p>
+    <p class="mt-2">{FREE_CORE}</p>
+  </div>
+  <p class="mt-6 max-w-3xl text-lg">
+    If enough people want it, a paid Pro tier could add the features below to this site. This page asks whether you
+    would: tell us which plan you would consider, and we will email you if Pro opens.
+  </p>
+
+  <section class="mt-10" aria-labelledby="pro-features">
+    <h2 id="pro-features" class="text-2xl font-semibold">Planned features</h2>
+    <ul class="mt-4 grid gap-4 sm:grid-cols-2">
+      {
+        PRO_FEATURES.map((feature) => (
+          <li class="rounded-lg border p-4">
+            <p class="font-medium">{feature.title}</p>
+            <p class="mt-1 text-sm text-muted-foreground">{feature.detail}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="mt-10" aria-labelledby="pro-prices">
+    <h2 id="pro-prices" class="text-2xl font-semibold">Indicative prices</h2>
+    <p class="mt-2 text-sm text-muted-foreground">In US dollars a month. Not an offer: nothing can be bought.</p>
+    <ul class="mt-4 grid gap-4 md:grid-cols-3">
+      {
+        PRO_TIERS.map((entry) => (
+          <li class="flex flex-col gap-3 rounded-lg border p-4" data-tier-card={entry.tier}>
+            <h3 class="text-xl font-semibold">{tierLabel(entry.tier)}</h3>
+            <p>
+              <span class="text-3xl font-bold" data-price="">
+                ${entry.price}
+              </span>
+              <span class="text-sm text-muted-foreground"> a month, indicative</span>
+            </p>
+            <p class="text-sm">{entry.summary}</p>
+            <ul class="list-disc pl-5 text-sm">
+              {entry.includes.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+            <a
+              href="#waitlist"
+              class={buttonVariants({ variant: "outline", className: "mt-auto text-foreground no-underline" })}
+              data-notify-tier={entry.tier}
+              {...eventAttributes("pro_preview_click", { tier: entry.tier })}
+            >
+              Notify me about {tierLabel(entry.tier)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="mt-10" aria-labelledby="pro-waitlist">
+    <h2 id="pro-waitlist" class="text-2xl font-semibold">The waitlist</h2>
+    <p class="mt-2 mb-4 max-w-3xl">Optional. Leave your email address and the plan you would consider.</p>
+    <SignupForm list="waitlist" source="pro-page" id="waitlist" />
+  </section>
+</Base>
+
+<script>
+  // Choose the tier a "Notify me" link names in the waitlist form, and keep
+  // the submit button's recorded tier equal to the form's choice. Only a tier
+  // the allowlist knows is ever written; no address is read.
+  import { TIERS } from "@/lib/events";
+
+  const form = document.querySelector<HTMLFormElement>("form[data-signup='waitlist']");
+  const submit = form?.querySelector<HTMLButtonElement>("button[type='submit']");
+  const known = (tier: string | undefined): tier is (typeof TIERS)[number] =>
+    tier !== undefined && (TIERS as readonly string[]).includes(tier);
+  const choose = (tier: string | undefined): void => {
+    if (form && known(tier)) {
+      const radio = [...form.querySelectorAll<HTMLInputElement>("input[data-tier]")].find((input) => input.value === tier);
+      if (radio) radio.checked = true;
+      submit?.setAttribute("data-umami-event-tier", tier);
+    }
+  };
+  form?.addEventListener("change", (event) => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement && target.dataset.tier !== undefined) choose(target.value);
+  });
+  // Focus moves to the address once the link has scrolled to the form: the
+  // fragment's navigation, which the tracker may delay until it has recorded
+  // the click, would otherwise take the focus back.
+  const focusAddress = (): void => form?.querySelector<HTMLInputElement>("input[type='email']")?.focus({ preventScroll: true });
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash === "#waitlist") focusAddress();
+  });
+  for (const link of document.querySelectorAll<HTMLAnchorElement>("a[data-notify-tier]")) {
+    link.addEventListener("click", () => {
+      choose(link.dataset.notifyTier);
+      if (window.location.hash === "#waitlist") setTimeout(focusAddress, 0);
+    });
+  }
+</script>

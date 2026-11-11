@@ -6,16 +6,22 @@ import { describe, expect, it } from "vitest";
 import {
   ALLOWED,
   ALLOWED_PATTERNS,
+  ANALYTICS,
   DIRECTIVES,
+  EMAIL_PROCESSOR,
   FORBIDDEN,
+  FORMS,
   HASHED,
   HEADER_ONLY,
   PERMISSIONS_POLICY,
   SECURITY_HEADERS,
   SENTRY,
   SENTRY_INGEST,
+  UMAMI_COLLECTOR,
+  analyticsBuild,
   metaDirectives,
   sentryBuild,
+  signupForms,
 } from "../../csp.config.ts";
 
 describe("decision 9's policy", () => {
@@ -118,5 +124,44 @@ describe("Sentry's ingest origin (Phase 5 Step 14)", () => {
     for (const origin of ["https://o42.ingest.de.sentry.io", "https://ingest.us.sentry.io", "https://o42.ingest.us.sentry.io.evil.example"]) {
       expect(pattern?.test(origin)).toBe(false);
     }
+  });
+});
+
+describe("the analytics collector and the email processor (Phase 5 Step 15)", () => {
+  const id = "0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0";
+
+  it("records analytics only in a production build given its website id", () => {
+    expect(analyticsBuild("production", id)).toEqual({ websiteId: id });
+    expect(analyticsBuild("production", undefined)).toBeNull();
+    expect(analyticsBuild("production", "")).toBeNull();
+  });
+
+  it.each([undefined, "", "local", "staging", "app"])("refuses a website id in a %s build", (flavour) => {
+    expect(() => analyticsBuild(flavour, id)).toThrow(/production builds only/);
+  });
+
+  it.each(["not-a-uuid", `${id}x`, id.toUpperCase(), `${id}\n`])("refuses %j as a website id", (given) => {
+    expect(() => analyticsBuild("production", given)).toThrow(/not an Umami website id/);
+  });
+
+  it("carries the sign-up forms in every build but the app wheel's", () => {
+    for (const flavour of [undefined, "", "local", "staging", "production"]) expect(signupForms(flavour)).toBe(true);
+    expect(signupForms("app")).toBe(false);
+  });
+
+  it("allows the collector only in connect-src and the processor only in form-action", () => {
+    expect(UMAMI_COLLECTOR).toBe("https://gateway.umami.is");
+    expect(EMAIL_PROCESSOR).toBe("https://buttondown.com");
+    for (const [name, sources] of Object.entries(ALLOWED)) {
+      expect(sources.includes(UMAMI_COLLECTOR), name).toBe(name === "connect-src");
+      expect(sources.includes(EMAIL_PROCESSOR), name).toBe(name === "form-action");
+    }
+  });
+
+  it("builds this (local) build's policy: no collector, the processor's forms", () => {
+    expect(ANALYTICS).toBeNull();
+    expect(FORMS).toBe(true);
+    expect(DIRECTIVES["connect-src"]).not.toContain(UMAMI_COLLECTOR);
+    expect(DIRECTIVES["form-action"]).toEqual(["'self'", EMAIL_PROCESSOR]);
   });
 });

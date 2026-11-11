@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import SearchResults from "@/components/search/SearchResults";
+import { trackOnce } from "@/lib/events";
 import { MAX_QUERY, search, type SearchHit } from "@/lib/search";
 
 const INPUT =
@@ -42,7 +43,11 @@ export default function SearchPage() {
     let current = true;
     search(text, LIMIT).then(
       (found) => {
-        if (current) setHits(found);
+        if (current) {
+          setHits(found);
+          // That a search ran, once per page view; never what was asked.
+          trackOnce("search");
+        }
       },
       () => {
         if (current) setFailed(true);

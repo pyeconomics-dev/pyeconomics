@@ -12,8 +12,13 @@
 // adds the source and legal pages) marks its main landmark data-pagefind-body,
 // and Pagefind indexes only such pages (scripts/search-index.ts), so the
 // header and footer, the home page, /search/ and the 404 page stay out.
+// A production build given its website id (csp.config.ts analyticsBuild) adds
+// the cookie-less analytics tracker, served from our own origin
+// (src/lib/analytics.ts); no other build loads it (Phase 5 Step 15).
+import { ANALYTICS } from "../../csp.config.ts";
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
+import { trackerAttributes } from "@/lib/analytics";
 import { ORIGIN } from "@/lib/models";
 import { ogImagePath } from "@/lib/pages";
 import { jsonLdText } from "@/lib/structured-data";
@@ -28,9 +33,12 @@ interface Props {
   noindex?: boolean;
   /** A page the site's search indexes. */
   searchable?: boolean;
+  /** Whether the footer carries the newsletter form (false on a page with its own). */
+  signup?: boolean;
 }
 
-const { title, description, jsonLd, noindex = false, searchable = false } = Astro.props;
+const { title, description, jsonLd, noindex = false, searchable = false, signup = true } = Astro.props;
+const tracker = ANALYTICS ? trackerAttributes(ANALYTICS.websiteId) : null;
 const pageTitle = title === "pyeconomics" ? title : `${title} · pyeconomics`;
 const canonical = new URL(Astro.url.pathname, ORIGIN).href;
 const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
@@ -67,6 +75,7 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
       )
     }
     {jsonLd && <script is:inline type="application/ld+json" set:html={jsonLdText(jsonLd)} />}
+    {tracker && <script is:inline defer {...tracker} />}
   </head>
   <body class="flex min-h-screen flex-col">
     <a
@@ -84,6 +93,6 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
     >
       <slot />
     </main>
-    <Footer />
+    <Footer signup={signup} />
   </body>
 </html>
