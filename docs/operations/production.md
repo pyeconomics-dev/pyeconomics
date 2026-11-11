@@ -768,19 +768,20 @@ gcloud run jobs execute pyeconomics-snapshots --project=pyeconomics-production \
 
 ### 11.2 The alarms and their proofs
 
-Each alarm reaches the maintainer by email; Better Stack's also by push where its
-plan allows, and GitHub's through its notifications. Each fired once on a synthetic
+Each alarm reaches the maintainer by email, and GitHub's also through its
+notifications. Better Stack's free plan alerts by email and Slack only: its apps,
+push, calls and SMS need a paid responder licence. Each fired once on a synthetic
 failure, which was then undone.
 
 | Alarm | Fires when | Reaches | Runbook | Proof (date, run or event, confirmation) |
 | --- | --- | --- | --- | --- |
-| Monitor `pyeconomics site` (`/`, keyword `pyeconomics`) | the page fails or lacks the keyword from more than one region | email, push | 11.4 deploy regressed | with the run monitor below |
-| Monitor `pyeconomics site version` (`/version.json`, `git_sha`) | as above | email, push | 11.4 deploy regressed | with the run monitor below |
-| Monitor `pyeconomics API version` (`/version`, `"mode":"hosted"`) | as above | email, push | 11.4 deploy regressed | with the run monitor below |
-| Monitor `pyeconomics API health` (`/healthz`, `"status":"ok"`) | as above | email, push | 11.4 deploy regressed | with the run monitor below |
-| Monitor `pyeconomics model run` (a `GET` run of `foundations.time_value`) | the run fails or answers another model | email, push | 11.4 deploy regressed, cost spike | pending |
-| Heartbeat `pyeconomics production snapshot job` (24 h, 2 h grace) | no ping for 26 hours, or a `/fail` ping | email, push | 11.4 snapshot job silent | pending |
-| Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email, push | 11.4 snapshot job silent | its first ping |
+| Monitor `pyeconomics site` (`/`, keyword `pyeconomics`) | the page fails or lacks the keyword from more than one region | email | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics site version` (`/version.json`, `git_sha`) | as above | email | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics API version` (`/version`, `"mode":"hosted"`) | as above | email | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics API health` (`/healthz`, `"status":"ok"`) | as above | email | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics model run` (a `GET` run of `foundations.time_value`) | the run fails or answers another model | email | 11.4 deploy regressed, cost spike | pending |
+| Heartbeat `pyeconomics production snapshot job` (24 h, 2 h grace) | no ping for 26 hours, or a `/fail` ping | email | 11.4 snapshot job silent | pending |
+| Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email | 11.4 snapshot job silent | its first ping |
 | Sentry `pyeconomics-api` new high-priority issue (every event pyeconomics sends is error level) | a new server error or snapshot failure | email | 11.4 by the issue's slug | pending |
 | Sentry `pyeconomics-web` new high-priority issue | a new browser error | email | 11.4 deploy regressed | pending |
 | `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down | pending |
