@@ -26,7 +26,10 @@ from pyeconomics.server.settings import DEPLOYMENT_VARIABLE, SENTRY_DSN_VARIABLE
 if TYPE_CHECKING:
     import pytest
 
-__all__ = ["Captured", "World", "capturing", "fake_dsn"]
+__all__ = ["REAL_START", "Captured", "World", "capturing", "fake_dsn"]
+
+#: The unpatched ``observability.start``, for a test that needs it back.
+REAL_START = observability.start
 
 
 class Captured(Transport):
@@ -91,7 +94,7 @@ def capturing(monkeypatch: pytest.MonkeyPatch) -> World:
         observability,
         "start",
         functools.partial(
-            observability.start,
+            REAL_START,
             sentry_transport=Captured,
             metric_reader=found.reader,
             span_exporter=found.spans,

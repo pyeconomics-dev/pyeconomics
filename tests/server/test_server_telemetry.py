@@ -32,7 +32,7 @@ import pytest
 from leakcheck import Canary, LeakCheck, canary
 from opentelemetry import metrics, trace
 from server_support import ERRORS, LOOPBACK_ONLY, client, service_of, use_toys
-from telemetry_support import Captured, World, capturing, fake_dsn
+from telemetry_support import REAL_START, Captured, World, capturing, fake_dsn
 
 from pyeconomics import __version__
 from pyeconomics.core.canonical import canonical_json
@@ -640,7 +640,7 @@ def test_the_test_event_command(
     assert capsys.readouterr().out.startswith("test event: sent ")
     # Without the DSN there is nothing to send to: the unpatched start, all off.
     monkeypatch.delenv(SENTRY_DSN_VARIABLE)
-    monkeypatch.setattr(observability, "start", observability.start.func)  # type: ignore[attr-defined]
+    monkeypatch.setattr(observability, "start", REAL_START)
     assert observability._main(["test-event"]) == 1  # noqa: SLF001
     assert capsys.readouterr().out == "test event: not configured\n"
 

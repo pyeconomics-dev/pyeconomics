@@ -535,8 +535,9 @@ Each is read by a pinned version, so a new one takes effect on the next deploy.
 
   The browser project's DSN is public and needs no rotation; a new one is
   `gh variable set PUBLIC_SENTRY_DSN --env production`.
-- **The OTLP header.** In Grafana Cloud, **My Account** → **Security** → **Access
-  Policies** → `pyeconomics-production-telemetry` → **Add token**, then store
+- **The OTLP header.** In the `rubywolf301` stack, **Administration** → **Users and
+  access** → **Cloud access policies** → `pyeconomics-production-telemetry` → **Add
+  token**, then store
   `Authorization=Basic%20<base64 of instance-id:token>` in `otlp-headers` the same
   way, move `OTLP_SECRET_VERSION`, redeploy, and delete the old token.
 - **A heartbeat URL.** As `docs/operations/staging.md` section 7 describes, in each
@@ -704,9 +705,12 @@ Added in Phase 5 Step 14 (2026-11-10 onwards):
   high-priority issues (Sentry's project form offers no "every new issue" option any
   more, so every event pyeconomics sends is error level); IP addresses are not stored
   and the default scrubbers are required.
-- **Grafana Cloud** (US region): stack `pyeconomics`; access policy
-  `pyeconomics-production-telemetry` with metrics, logs and traces write only; token
-  `pyeconomics-api-production`.
+- **Grafana Cloud** (US region, a free account on a 14-day trial that falls back to
+  the free tier): stack and organization `rubywolf301`, the name Grafana gave at
+  sign-up (`rubywolf301.grafana.net`); in-stack access policy
+  `pyeconomics-production-telemetry` (**Administration → Users and access → Cloud
+  access policies**) with metrics, logs and traces write only and no IP range,
+  because Cloud Run sends from no fixed address; token `pyeconomics-api-production`.
 - **Better Stack** (free plan): team `pyeconomics`; the five monitors and two
   heartbeats section 11.2 lists; the status page at `status.pyeconomics.dev`, with
   subscriptions off, so it collects no address.
