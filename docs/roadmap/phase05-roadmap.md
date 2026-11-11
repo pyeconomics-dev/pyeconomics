@@ -8879,6 +8879,19 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
       and stars — all recording, instrumentation verified
       live. Gate G3 (decision 19): the window and thresholds
       the maintainer confirmed in Step 2.
+    - Re-read at Step 15's kickoff (2026-11-11), correcting
+      the lines below: Discussions already had its launch
+      categories (Announcements, Q&A, Ideas, Show and tell,
+      with General and Polls), so none was created; Buttondown
+      no longer sells a Basic plan (free to 100 subscribers,
+      then $9-a-month add-ons, metadata a paid feature); its
+      only key that counts sign-ups reads every address, so the
+      sign-up rows stay manual; Umami's tracker is not on npm,
+      so the vendored copy is cloud.umami.is's file, pinned by
+      SHA-256 under web/vendor/ and copied into production
+      builds only (the app wheel ships no unused tracker);
+      staging and local builds carry the forms, the app build
+      none.
     - Facts read on 2026-10-29 (re-check at kickoff): Umami
       Cloud's free Hobby plan records 100,000 events a month
       for one website with custom events and properties,
@@ -10538,6 +10551,10 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       downloads, stars); the maintainer confirms or adjusts
       the Gate G3 window and thresholds, and the parent
       roadmap's G3 row is amended in this PR if they change.
+      Before the cutover makes /pro/ public (Step 15 left it
+      behind Access), the maintainer confirms that any outside
+      approval a priced preview of a future paid tier needs
+      is in hand, and records that it is, never what it is.
     </requirement>
 
     <requirement>
