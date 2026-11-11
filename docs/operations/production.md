@@ -781,13 +781,23 @@ failure, which was then undone.
 | Monitor `pyeconomics site version` (`/version.json`, `git_sha`) | as above | email | 11.4 deploy regressed | with the run monitor below |
 | Monitor `pyeconomics API version` (`/version`, `"mode":"hosted"`) | as above | email | 11.4 deploy regressed | with the run monitor below |
 | Monitor `pyeconomics API health` (`/healthz`, `"status":"ok"`) | as above | email | 11.4 deploy regressed | with the run monitor below |
-| Monitor `pyeconomics model run` (a `GET` run of `foundations.time_value`) | the run fails or answers another model | email | 11.4 deploy regressed, cost spike | pending |
-| Heartbeat `pyeconomics production snapshot job` (24 h, 2 h grace) | no ping for 26 hours, or a `/fail` ping | email | 11.4 snapshot job silent | pending |
-| Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email | 11.4 snapshot job silent | its first ping |
-| Sentry `pyeconomics-api` new high-priority issue (every event pyeconomics sends is error level) | a new server error or snapshot failure | email | 11.4 by the issue's slug | pending |
-| Sentry `pyeconomics-web` new high-priority issue | a new browser error | email | 11.4 deploy regressed | pending |
-| `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down | pending |
-| Budget `pyeconomics-production-monthly-budget` | spend passes 50, 90 or 100% of `$10` | email; Pub/Sub `production-budget-alerts` | section 8 | pending |
+| Monitor `pyeconomics model run` (a `GET` run of `foundations.time_value`) | the run fails or answers another model | email | 11.4 deploy regressed, cost spike | 2026-11-11: the monitor pointed at `foundations.no_such_model` at 04:15:18Z; incident 1050499954 ("Status 404") at 04:16:30Z, emailed 04:16:32Z; path restored 04:16:50Z, resolved 04:20:36Z, emailed 04:20:37Z. The maintainer confirmed both emails. |
+| Heartbeat `pyeconomics production snapshot job` (24 h, 2 h grace) | no ping for 26 hours, or a `/fail` ping | email | 11.4 snapshot job silent | 2026-11-11: first ping from snapshot run `20261111T152704Z-6e47d597` (deploy run 43047889685). The period was cut to 30 s with no grace at 16:07:15Z (a missed ping without skipping a night's snapshot); incident 1050770649 ("Missed heartbeat") at 16:07:28Z; 24 h and 2 h restored at 16:07:36Z, one ping, resolved 16:07:43Z. The maintainer confirmed both emails. |
+| Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email | 11.4 snapshot job silent | 2026-11-11: its first ping, from staging snapshot run `20261111T042908Z-9c848723` (`"heartbeat": "sent"`); its alert path is production's, proven above. |
+| Sentry `pyeconomics-api` new high-priority issue (every event pyeconomics sends is error level) | a new server error or snapshot failure | email | 11.4 by the issue's slug | 2026-11-11: `python -m pyeconomics.server.observability test-event` run in the production job (execution `pyeconomics-snapshots-4fgmq`) sent event `540ed8195f3d4eb68c11fed38e651935` at 16:05:22Z. The maintainer confirmed the email. |
+| Sentry `pyeconomics-web` new high-priority issue | a new browser error | email | 11.4 deploy regressed | 2026-11-11: production's duration calculator, driven in headless Chromium with the CI service token, was handed a run answer that does not parse; the island showed "The server's answer could not be read." and Sentry's ingest answered 200 at 16:06:20Z. The maintainer confirmed the email. |
+| `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down | 2026-11-11: run 43057148476, dispatched with `simulate_failure`, failed and opened issue #295, closed after; runs 43056971358 and 43057821091 passed on `c8f7bc3`. |
+| Budget `pyeconomics-production-monthly-budget` | spend passes 50, 90 or 100% of `$10` | email; Pub/Sub `production-budget-alerts` | section 8 | 2026-11-11: an unacknowledged pull of `production-budget-alerts-sub` returned the budget's notification of 2026-11-06T13:18:33Z (cost `$0.00` of `$10`). The threshold email cannot be triggered without real spend; Google sends it to the billing account's administrators. |
+
+Step 14's Deployed & verified check, 2026-11-11: `deploy-production.yml` run
+43047889685 on `c8f7bc3` succeeded (its site job rerun after an `apt-get` hang,
+issue #294); production's `/version` and `/version.json` (CI service token) report
+`c8f7bc3`; Grafana's `target_info` shows `pyeconomics-api` and
+`pyeconomics-snapshots` with `vcs_ref_head_revision` `c8f7bc3`; the Sentry events
+above came from that revision; the status page showed all five monitors up ("All
+services are online", 16:33Z); and `production-health` run 43057821091 passed.
+Two setup fixes came out of the first deploy: Sentry's 16-digit organisation ids
+(#293) and the heartbeat URL's host (section 6.6).
 
 The monitors send the Access headers of `pyeconomics-production-uptime` until the
 cutover (section 5). Staging has no monitor of its own: `staging-health.yml` checks it
