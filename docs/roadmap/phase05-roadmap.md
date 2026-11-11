@@ -8540,9 +8540,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 15 — Feedback Channels and Gate G2 Instrumentation
+## Step 15 — Feedback Channels and Gate G2 Instrumentation ✅
 
-**Status:** Not started
+**Status:** Complete — PR #297 (2026-11-11)
 
 > **Goal:** Make demand measurable from the first day, without tracking
 > anyone (ROADMAP §5 Gate G2; ADR-0013 decisions 13, 14 and 19). Configure
@@ -8595,6 +8595,8 @@ production before launch with the maintainer's own sessions.
 
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-11: Quality Runner-up — Opus 5.5 · High.
 
 **Conversation:** New
 
@@ -12038,7 +12040,7 @@ workflow above maps directly to the corresponding row below.
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Complete — PR #257 |
 | 13   | Production platform            | Sonnet 5.5     | Complete — PR #289 |
 | 14   | Observability + operations     | Sonnet 5.5     | Complete — PR #290 |
-| 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Not started        |
+| 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Not started        |
 | 17   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 18   | Launch readiness gate          | Sonnet 5.5     | Not started        |
