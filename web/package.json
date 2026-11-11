@@ -53,7 +53,7 @@
     "@hey-api/openapi-ts": "0.99.0",
     "@playwright/test": "1.64.1",
     "@tailwindcss/vite": "4.3.3",
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.6",
     "@types/papaparse": "5.5.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
