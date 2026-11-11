@@ -541,8 +541,10 @@ Each is read by a pinned version, so a new one takes effect on the next deploy.
   `Authorization=Basic%20<base64 of instance-id:token>` in `otlp-headers` the same
   way, move `OTLP_SECRET_VERSION`, redeploy, and delete the old token.
 - **A heartbeat URL.** As `docs/operations/staging.md` section 7 describes, in each
-  project: a new heartbeat in Better Stack, a new `snapshot-heartbeat` version,
-  `HEARTBEAT_SECRET_VERSION` moved, a deploy, and the old heartbeat deleted.
+  project: a new heartbeat in Better Stack, a new `snapshot-heartbeat` version
+  on the host `incidents.betterstack.com` (never `uptime.betterstack.com`, which
+  the job refuses), `HEARTBEAT_SECRET_VERSION` moved, a deploy, and the old
+  heartbeat deleted.
 
 Prove each with a dispatch of `deploy-production.yml` and the signal it carries
 (section 11.2).
