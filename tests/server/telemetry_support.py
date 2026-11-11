@@ -50,11 +50,19 @@ class Captured(Transport):
 
 
 def fake_dsn() -> str:
-    """A DSN on Sentry's US ingest, built at run time; it reaches no network."""
+    """A DSN on Sentry's US ingest, built at run time; it reaches no network.
+
+    Its organisation and project ids have 16 digits, as real ones do: a pattern
+    that allowed 12 passed every test with shorter ids and refused production's.
+    """
     return (
-        f"https://{secrets.token_hex(16)}@o{secrets.randbelow(10**6)}"
-        f".ingest.us.sentry.io/{secrets.randbelow(10**6)}"
+        f"https://{secrets.token_hex(16)}@o{_sixteen_digits()}"
+        f".ingest.us.sentry.io/{_sixteen_digits()}"
     )
+
+
+def _sixteen_digits() -> int:
+    return 10**15 + secrets.randbelow(9 * 10**15)
 
 
 @dataclass

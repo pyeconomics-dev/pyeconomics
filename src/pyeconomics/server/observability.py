@@ -114,8 +114,10 @@ WITHHELD: Final = "(withheld: pyeconomics never reports an unexpected error's me
 #: What runs: the API service or the snapshot job.
 Component = Literal["api", "snapshots"]
 
+#: Sentry's organisation and project ids both run to 16 digits today (the
+#: production DSN's did on 2026-11-11), so each takes up to 20.
 _SENTRY_DSN: Final = re.compile(
-    r"https://(?P<key>[0-9a-f]{32})@o\d{1,12}\.ingest\.us\.sentry\.io/\d{1,20}"
+    r"https://(?P<key>[0-9a-f]{32})@o\d{1,20}\.ingest\.us\.sentry\.io/\d{1,20}"
 )
 _ESCAPE: Final = re.compile(r"%([0-9A-Fa-f]{2})")
 _OTLP_ENDPOINT: Final = re.compile(

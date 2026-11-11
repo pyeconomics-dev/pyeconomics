@@ -13,6 +13,7 @@ import {
   PERMISSIONS_POLICY,
   SECURITY_HEADERS,
   SENTRY,
+  SENTRY_INGEST,
   metaDirectives,
   sentryBuild,
 } from "../../csp.config.ts";
@@ -84,6 +85,16 @@ describe("Sentry's ingest origin (Phase 5 Step 14)", () => {
     // These tests build no production flavour: the policy holds no Sentry origin.
     expect(SENTRY).toBeNull();
     expect(DIRECTIVES["connect-src"]).toEqual(["'self'"]);
+  });
+
+  it("accepts the 16-digit organisation and project ids Sentry issues today", () => {
+    const real = "https://0123456789abcdef0123456789abcdef@o4510273591942001.ingest.us.sentry.io/4510273591942002";
+    expect(sentryBuild("production", real)).toEqual({
+      dsn: real,
+      origin: "https://o4510273591942001.ingest.us.sentry.io",
+    });
+    expect(SENTRY_INGEST.test("https://o4510273591942001.ingest.us.sentry.io")).toBe(true);
+    expect(SENTRY_INGEST.test(`https://o${"1".repeat(21)}.ingest.us.sentry.io`)).toBe(false);
   });
 
   it.each(["staging", "local", "app", undefined])("refuses a DSN in a %s build", (flavour) => {
