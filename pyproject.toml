@@ -176,7 +176,20 @@ yfinance = [
 
 # PEP 735 groups: development-only, never published (ADR-0002).
 [dependency-groups]
+# What only the hosted service runs (Phase 5 Step 14; ADR-0013 decision 15): error
+# tracking and telemetry. The image installs it from uv.lock with hashes. No extra
+# carries it, so no user's install sends telemetry, and scripts/checks/licences.py
+# holds it to the runtime allowlist as it holds the extras.
+hosted = [
+    "opentelemetry-api>=1.45.2",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.2",
+    "opentelemetry-sdk>=1.45.2",
+    "sentry-sdk>=2.74.0",
+]
 test = [
+    # The hosted group, so the telemetry canary runs and the licence check finds
+    # its packages installed wherever the tests run (Phase 5 Step 14).
+    { include-group = "hosted" },
     # The app extra's own package, the workspace member (Phase 5 Step 10), so the
     # licence check's closure finds it installed wherever the tests run.
     "pyeconomics-app",

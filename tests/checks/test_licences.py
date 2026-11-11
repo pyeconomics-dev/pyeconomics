@@ -56,6 +56,7 @@ def lock(
     *packages: Package,
     root_deps: Collection[Package] = (),
     extras: dict[str, list[Package]] | None = None,
+    groups: dict[str, list[Package]] | None = None,
 ) -> dict[str, list[Package]]:
     root: Package = {
         "name": "pyeconomics",
@@ -63,7 +64,7 @@ def lock(
         "source": {"editable": "."},
         "dependencies": list(root_deps),
         "optional-dependencies": extras or {},
-        "dev-dependencies": {"dev": [{"name": "devtool"}]},
+        "dev-dependencies": {"dev": [{"name": "devtool"}], **(groups or {})},
     }
     devtool = {"name": "devtool", "version": "1.0", "source": {"registry": "x"}}
     return {"package": [root, devtool, *packages]}
@@ -165,18 +166,21 @@ def test_licence_of_metadata(
     assert (licence.text, licence.allowed) == (text, allowed)
 
 
-def test_closure_follows_extras_and_markers_but_not_groups() -> None:
+def test_closure_follows_extras_markers_and_the_hosted_group_only() -> None:
     data = lock(
         pkg("numpy"),
         pkg("click", deps=[{"name": "colorama", "marker": "sys_platform == 'win32'"}]),
         pkg("colorama"),
         pkg("httpx", optional={"http2": [{"name": "h2"}]}),
         pkg("h2"),
+        pkg("telemetry"),
+        pkg("lintkit"),
         root_deps=[{"name": "numpy"}],
         extras={
             "cli": [{"name": "click"}],
             "server": [{"name": "httpx", "extra": ["http2"]}],
         },
+        groups={"hosted": [{"name": "telemetry"}], "docs": [{"name": "lintkit"}]},
     )
     everywhere = licences.runtime_closure(data, "pyeconomics", follow_markers=False)
     on_linux = licences.runtime_closure(
@@ -191,10 +195,13 @@ def test_closure_follows_extras_and_markers_but_not_groups() -> None:
         "colorama",
         "httpx",
         "h2",
+        "telemetry",
     }
     assert ("colorama", "1.0") not in on_linux
     assert ("colorama", "1.0") in on_windows
-    assert "devtool" not in {name for name, _ in everywhere}
+    # The hosted service's group is runtime (Phase 5 Step 14); the others are not.
+    assert licences.RUNTIME_GROUPS == ("hosted",)
+    assert {"devtool", "lintkit"}.isdisjoint(name for name, _ in everywhere)
 
 
 def test_empty_closure_passes() -> None:

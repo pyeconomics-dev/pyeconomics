@@ -228,6 +228,7 @@ def test_dockerfile_invariants() -> None:
         "--extra econometrics",
         "--extra plot",
         "--extra sdmx",
+        "--group hosted",
         "--no-emit-project",
         "--require-hashes",
         "--no-deps",

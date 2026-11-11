@@ -10,6 +10,10 @@ Production repeats staging's pattern (`docs/operations/staging.md`) with its
 findings applied. Where the two match, such as how the snapshot job behaves, this
 page says so and points there.
 
+Section 11 holds what watches production (Phase 5 Step 14): the error tracker,
+the telemetry, the monitors, the heartbeats, the hourly check and the budget, each
+alarm's proof, the incident procedure and the runbooks.
+
 This document is operational documentation for maintainers and is excluded from
 the public Sphinx documentation build (`exclude_patterns` in `docs/conf.py`).
 
@@ -109,10 +113,10 @@ account key exists anywhere, and none is ever made.
 | | `roles/iam.serviceAccountUser` | `pyeconomics-production-runtime`, `pyeconomics-prod-snapshots` |
 | | `roles/storage.objectViewer` | the bucket, to check `current.json` came from the deploy's run |
 | | `roles/iam.workloadIdentityUser`, to the pool's principal set | itself |
-| `pyeconomics-production-runtime` | `roles/secretmanager.secretAccessor` | `ratelimit-url`, `edge-credential` |
+| `pyeconomics-production-runtime` | `roles/secretmanager.secretAccessor` | `ratelimit-url`, `edge-credential`, `sentry-dsn`, `otlp-headers` |
 | | `roles/storage.objectViewer` | the bucket |
 | `pyeconomics-prod-snapshots` | `roles/storage.objectUser` | the bucket |
-| | `roles/secretmanager.secretAccessor` | `bea-api-key`, `bls-api-key` |
+| | `roles/secretmanager.secretAccessor` | `bea-api-key`, `bls-api-key`, `snapshot-heartbeat`, `sentry-dsn`, `otlp-headers` |
 | `pyeconomics-prod-scheduler` | `roles/run.invoker` | job `pyeconomics-snapshots` |
 
 Google limits a service account's name to 30 characters, which is why the last two
@@ -141,8 +145,23 @@ maintainer. It admits the branch `main` and tags matching `v*`, and nothing else
   `GCP_SNAPSHOT_BUCKET`, `GCP_SNAPSHOT_SERVICE_ACCOUNT`,
   `STAGING_IMAGE_REPOSITORY`, `PRODUCTION_HOST`, `CLOUDFLARE_ACCOUNT_ID`,
   `RATELIMIT_SECRET_VERSION`, `EDGE_SECRET_VERSION`, `BEA_SECRET_VERSION`,
-  `BLS_SECRET_VERSION`; Step 14 adds `HEARTBEAT_SECRET_VERSION`, and the cutover
-  adds `PRODUCTION_PUBLIC`.
+  `BLS_SECRET_VERSION`; Step 14 added `HEARTBEAT_SECRET_VERSION`,
+  `SENTRY_SECRET_VERSION`, `OTLP_SECRET_VERSION`, `OTLP_ENDPOINT` (Grafana Cloud's
+  OTLP gateway, not a secret) and `PUBLIC_SENTRY_DSN` (the browser project's DSN,
+  public by design: every production page that reports an error sends it), and the
+  cutover adds `PRODUCTION_PUBLIC`. A version variable left unset leaves its secret
+  out of the deploy, so the service runs without that signal.
+
+### 1.5 The `production-health` GitHub environment
+
+The hourly check (`production-health.yml`, section 11) cannot run in `production`:
+every job there waits for the maintainer. This environment admits the branch `main`
+alone, has no reviewer, and holds two secrets, `CF_ACCESS_CLIENT_ID` and
+`CF_ACCESS_CLIENT_SECRET`, of the Access service token
+`pyeconomics-production-health`, which is in the policy `production-site-ci` and
+nothing else. The cutover deletes both (section 5); the check then sends no Access
+header. Phase 3 check 78 and Phase 4 check 64 admit those two names for that one
+workflow, in this environment alone.
 
 ---
 
@@ -347,8 +366,27 @@ without the edge credential, and the rate rule and the managed WAF stay on.
    The second must show `cf-cache-status: HIT`, or an `age`. Then check `POST` runs
    and a problem never show one.
 
+5. **Retire the monitors' Access tokens (Step 14).** Once step 2 is done, the
+   monitors and the hourly check reach production without a token:
+   - In Better Stack, open each of the five production monitors, **Configure** →
+     **Advanced settings** → **Request headers**, delete both `CF-Access-Client-*`
+     headers and **Save**.
+   - Delete the `production-health` environment's two secrets:
+
+     ```bash
+     gh secret delete CF_ACCESS_CLIENT_ID --env production-health -R pyeconomics-dev/pyeconomics
+     gh secret delete CF_ACCESS_CLIENT_SECRET --env production-health -R pyeconomics-dev/pyeconomics
+     ```
+
+   - In Zero Trust, **Access** → **Service Auth** → **Service Tokens**, delete
+     `pyeconomics-production-uptime` and `pyeconomics-production-health`, and remove
+     the keyring entries `UPTIME_CF_ACCESS_CLIENT_ID` and
+     `UPTIME_CF_ACCESS_CLIENT_SECRET` (service `pyeconomics-production`).
+   - Dispatch `production-health.yml` and check every monitor stays up.
+
 **Rollback:** create the Access application again, as section 10 records it, and
-delete `PRODUCTION_PUBLIC`. This takes minutes.
+delete `PRODUCTION_PUBLIC`. This takes minutes. The monitors then need their
+headers back: create the two service tokens again and repeat Step 14's setup.
 
 ---
 
@@ -364,6 +402,12 @@ Each row is production's alone: nothing here is shared with staging. Rotate at l
 | BEA and BLS keys | Secret Manager `bea-api-key`, `bls-api-key` | never |
 | Access service token `pyeconomics-production-ci` | `production` environment, keyring | `2027-11-10` |
 | Cloudflare API token `pyeconomics-web-deploy` | `production` environment | `2027-11-11` |
+| Sentry DSN (`pyeconomics-api`) | Secret Manager `sentry-dsn` | never; rotate if leaked (6.6) |
+| Grafana Cloud token `pyeconomics-api-production` | Secret Manager `otlp-headers` | `2027-11-10` |
+| Heartbeat URLs | Secret Manager `snapshot-heartbeat`, here and in staging | never; rotate if leaked (6.6) |
+| Access service token `pyeconomics-production-uptime` | Better Stack's monitors, keyring | one year from its creation; deleted at the cutover |
+| Access service token `pyeconomics-production-health` | `production-health` environment | one year from its creation; deleted at the cutover |
+| Better Stack API token | keyring `BETTERSTACK_API_TOKEN` | never; for setup and the alarm proofs |
 
 ### 6.1 The edge credential
 
@@ -475,6 +519,34 @@ To rotate it:
 3. Prove it with a dispatch of `deploy-production.yml` from `main`, and update the
    dates above.
 
+### 6.6 The telemetry's secrets
+
+Each is read by a pinned version, so a new one takes effect on the next deploy.
+
+- **Sentry's DSN.** In Sentry, **Settings** → **Projects** → `pyeconomics-api` →
+  **Client Keys (DSN)**, generate a new key and disable the old one. Store it with
+  the helper the maintainer used at Step 14, or from a hidden prompt:
+
+  ```bash
+  read -rs DSN && printf '%s' "$DSN" | gcloud secrets versions add sentry-dsn \
+    --project=pyeconomics-production --data-file=- && unset DSN
+  gh variable set SENTRY_SECRET_VERSION --env production --body "<NEW_VERSION>" -R pyeconomics-dev/pyeconomics
+  ```
+
+  The browser project's DSN is public and needs no rotation; a new one is
+  `gh variable set PUBLIC_SENTRY_DSN --env production`.
+- **The OTLP header.** In the `rubywolf301` stack, **Administration** → **Users and
+  access** → **Cloud access policies** → `pyeconomics-production-telemetry` → **Add
+  token**, then store
+  `Authorization=Basic%20<base64 of instance-id:token>` in `otlp-headers` the same
+  way, move `OTLP_SECRET_VERSION`, redeploy, and delete the old token.
+- **A heartbeat URL.** As `docs/operations/staging.md` section 7 describes, in each
+  project: a new heartbeat in Better Stack, a new `snapshot-heartbeat` version,
+  `HEARTBEAT_SECRET_VERSION` moved, a deploy, and the old heartbeat deleted.
+
+Prove each with a dispatch of `deploy-production.yml` and the signal it carries
+(section 11.2).
+
 ---
 
 ## 7. Disabling a Data Provider
@@ -548,9 +620,16 @@ it share them.
 | Cloud Storage | 5 GB-months | about 280 MB: 31 runs × 7.3 MB, and 7 days of soft delete | $0 |
 | Cloud Scheduler | 3 jobs | 1 (2 with staging's) | $0 |
 | Artifact Registry | 0.5 GiB, shared with staging | about 251 MiB an image: the three newest and every `v*`, shared layers stored once, beside staging's two | about $0.10 per GiB over |
-| Secret Manager | 6 active versions, 10,000 accesses | 4 (8 with staging's): two over, at $0.06 | $0.12 |
+| Secret Manager | 6 active versions, 10,000 accesses | 7 (12 with staging's): six over, at $0.06 | $0.36 |
 | Upstash Redis | none: a free account holds one database, which staging uses | a few commands per request | $0.20 per 100,000 commands |
 | Workers, static assets, Access | 100,000 Worker requests a day, unlimited assets, 50 seats | 1 service token, 1 seat, 1 application | $0 |
+
+The telemetry's vendors are on free plans (Step 14): Sentry's Developer plan
+(5,000 errors and 5 million spans a month, 30 days' lookback, one user), Grafana
+Cloud's free tier (10,000 active metric series, 50 GB of traces, 14 days'
+retention) and Better Stack's free plan (10 monitors and heartbeats together,
+3-minute checks, one status page). Production uses five monitors and two
+heartbeats of the ten.
 
 So production costs under $1 a month before launch, and the alert budget of `$10`
 stays quiet.
@@ -613,3 +692,160 @@ Created from 2026-11-05 to 2026-11-10, in Phase 5 Step 13. Names only.
 - **Cloudflare Web Analytics' Real User Measurements** stay disabled for the zone, as
   `docs/operations/staging.md` section 1 records. The setting is zone-wide, and their
   beacon's CSP violations would fail the site job's browser check.
+
+Added in Phase 5 Step 14 (2026-11-10 onwards):
+
+- **Google Cloud:** the secrets `sentry-dsn`, `otlp-headers` and `snapshot-heartbeat`
+  in production and `snapshot-heartbeat` in staging, with the accessor roles section
+  1.3 lists (staging's job identity reads its own heartbeat).
+- **Sentry** (US region, signed up with the maintainer's GitHub identity, DPA
+  accepted): organization `pyeconomics`, projects `pyeconomics-api` (Python) and
+  `pyeconomics-web` (browser JavaScript, no framework; allowed domain
+  `pyeconomics.dev`), error monitoring only, each alerting by email on new
+  high-priority issues (Sentry's project form offers no "every new issue" option any
+  more, so every event pyeconomics sends is error level); IP addresses are not stored
+  and the default scrubbers are required.
+- **Grafana Cloud** (US region, a free account on a 14-day trial that falls back to
+  the free tier): stack and organization `rubywolf301`, the name Grafana gave at
+  sign-up (`rubywolf301.grafana.net`); in-stack access policy
+  `pyeconomics-production-telemetry` (**Administration → Users and access → Cloud
+  access policies**) with metrics, logs and traces write only and no IP range,
+  because Cloud Run sends from no fixed address; token `pyeconomics-api-production`.
+- **Better Stack** (free plan): team `pyeconomics`; the five monitors and two
+  heartbeats section 11.2 lists; the status page at `status.pyeconomics.dev`, with
+  subscriptions off, so it collects no address.
+- **Cloudflare:** the Access service tokens `pyeconomics-production-uptime` and
+  `pyeconomics-production-health`, in the policy `production-site-ci`; the DNS-only
+  `CNAME` `status` → `statuspage.betteruptime.com`, which Better Stack's certificate
+  needs.
+- **GitHub:** the environment `production-health` (section 1.5), the label
+  `production-health`, and the `production` variables section 1.4 lists.
+
+---
+
+## 11. Observability, Alarms and Incidents
+
+Every runtime surface has a health signal, an alarm that reached the maintainer once
+on a synthetic failure, and a runbook (ROADMAP §5 "Operations & observability
+strategy"; ADR-0013 decision 15). Staging keeps `staging-health.yml` and its own
+heartbeat; errors and telemetry are production's alone, because staging shares no
+secret with production.
+
+### 11.1 What reports where
+
+| Signal | From | Goes to | Holds | Kept |
+| --- | --- | --- | --- | --- |
+| Server errors | the API (`pyeconomics.server.observability`): an exception that reached the guard, a 5xx problem from a worker or the app | Sentry `pyeconomics-api`, environment `production` | the error's type and frames (its message withheld), the problem's slug, status and error type, the route's template, the release (`pyeconomics@<version>+<sha>`) | 30 days |
+| Snapshot failures | the job (`python -m pyeconomics.server.snapshot_job write`) | Sentry `pyeconomics-api` | an error per failed provider with its slug (error level, so Sentry's high-priority alert emails it); an error when no provider succeeded | 30 days |
+| Browser errors | the calculator and explorer islands of a production build | Sentry `pyeconomics-web` | the error's type and frames (message withheld), the island, the page's URL without its query | 30 days |
+| Request metrics and traces | the API's guard | Grafana Cloud, service `pyeconomics-api` | `http.server.request.duration` by method, route template (a model's runs as one), status class and route kind; 5% of requests as spans | 14 days |
+| Task metrics | the API's worker results | Grafana Cloud | `pyeconomics.tasks` by kind, model id, cost class and outcome (slug); `pyeconomics.task.duration` | 14 days |
+| Snapshot metrics | the job | Grafana Cloud, service `pyeconomics-snapshots` | `pyeconomics.snapshot.ok`, `.duration`, `.series` by provider and state, `.data_age` in days | 14 days |
+| Uptime | Better Stack, every 3 minutes | Better Stack, the status page | up or down, response time | no period stated (ADR-0013) |
+| Heartbeats | each snapshot job, at its end | Better Stack | a ping, or `/fail` when no provider succeeded | no period stated |
+| Synthetic check | `production-health.yml`, hourly | GitHub issues and notifications | the run's log | GitHub's |
+| Spend | the `$10` budget | email, Pub/Sub `production-budget-alerts` | spend against the budget | Google's |
+
+Nothing in any of them holds a path, a query, an input, a client address or a key:
+`tests/server/test_server_telemetry.py` plants all of them and finds none, and
+`web/tests/unit/error-reporting.test.ts` holds the browser's options. The process's
+global OpenTelemetry providers stay OpenTelemetry's no-op proxies, so spans FastAPI or
+the MCP SDK make through the API go nowhere.
+
+If Grafana stops showing data, the service logs `telemetry: an OpenTelemetry export
+failed` once per failed export, without the exporter's text: look for it in the
+service's log, then check the token's expiry (section 6).
+
+To send one test event from the production image, which proves the DSN and the
+release, run the job once with other arguments (the job's command is `python`; an
+execution may override its arguments, never its command), which writes nothing to the
+bucket:
+
+```bash
+gcloud run jobs execute pyeconomics-snapshots --project=pyeconomics-production \
+  --region=us-central1 --args=-m,pyeconomics.server.observability,test-event --wait
+```
+
+### 11.2 The alarms and their proofs
+
+Each alarm reaches the maintainer by email; Better Stack's also by push where its
+plan allows, and GitHub's through its notifications. Each fired once on a synthetic
+failure, which was then undone.
+
+| Alarm | Fires when | Reaches | Runbook | Proof (date, run or event, confirmation) |
+| --- | --- | --- | --- | --- |
+| Monitor `pyeconomics site` (`/`, keyword `pyeconomics`) | the page fails or lacks the keyword from more than one region | email, push | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics site version` (`/version.json`, `git_sha`) | as above | email, push | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics API version` (`/version`, `"mode":"hosted"`) | as above | email, push | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics API health` (`/healthz`, `"status":"ok"`) | as above | email, push | 11.4 deploy regressed | with the run monitor below |
+| Monitor `pyeconomics model run` (a `GET` run of `foundations.time_value`) | the run fails or answers another model | email, push | 11.4 deploy regressed, cost spike | pending |
+| Heartbeat `pyeconomics production snapshot job` (24 h, 2 h grace) | no ping for 26 hours, or a `/fail` ping | email, push | 11.4 snapshot job silent | pending |
+| Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email, push | 11.4 snapshot job silent | its first ping |
+| Sentry `pyeconomics-api` new high-priority issue (every event pyeconomics sends is error level) | a new server error or snapshot failure | email | 11.4 by the issue's slug | pending |
+| Sentry `pyeconomics-web` new high-priority issue | a new browser error | email | 11.4 deploy regressed | pending |
+| `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down | pending |
+| Budget `pyeconomics-production-monthly-budget` | spend passes 50, 90 or 100% of `$10` | email; Pub/Sub `production-budget-alerts` | section 8 | pending |
+
+The monitors send the Access headers of `pyeconomics-production-uptime` until the
+cutover (section 5). Staging has no monitor of its own: `staging-health.yml` checks it
+hourly, and giving Better Stack staging's CI token would share CI's credential with a
+vendor.
+
+### 11.3 Incident procedure
+
+1. **Acknowledge.** In Better Stack, acknowledge the incident (the email's or the
+   app's **Acknowledge**), so it stops escalating. A Sentry or GitHub alarm has no
+   acknowledgement: assign the issue to yourself.
+2. **Say so.** If visitors are affected, post on the status page: Better Stack →
+   **Status pages** → `pyeconomics` → **Status updates** → **New update**, naming the
+   affected part (site, API, data) and nothing about the cause yet. Monitors that are
+   down already show there.
+3. **Triage.** Which alarm, and what changed: the newest `deploy-production.yml`
+   run, the newest snapshot run (`current.json`'s `completed_at`), Sentry's issue and
+   its release, the service's log (route templates and problem slugs only). Pick the
+   runbook below.
+4. **Mitigate.** Prefer the fast reversible step: roll back the part that changed
+   (section 3), disable a failing source (section 7), lower the maximum instances
+   (section 8). Never fix forward under pressure what a rollback restores.
+5. **Verify.** Dispatch `production-health.yml` (`gh workflow run
+   production-health.yml --ref main`), and watch the monitors return to up.
+6. **Close.** Resolve the Better Stack incident, post the resolution on the status
+   page, and close the Sentry and GitHub issues.
+7. **Post-incident note.** Within five days, open an issue labelled `incident`:
+   what visitors saw and for how long, the timeline, the cause, the fix, and each
+   follow-up as its own issue. A shipped wrong number is also a model error (11.4).
+
+### 11.4 Runbooks
+
+Each names the alarm that leads to it.
+
+- **Deploy regressed** (any monitor, `production-health`, a Sentry issue whose
+  release is the newest): roll back the part that changed (section 3: the API, the
+  site or the data), then open a `fix/` issue with the failing check's output. The
+  next deploy of a fixed commit restores latest traffic itself.
+- **Snapshot job silent** (a heartbeat, a Sentry `snapshot run failed` error, the
+  `stale_snapshot` warning): follow `docs/operations/staging.md` section 7, "A silent
+  or failing job", with production's names (section 3.3). The site keeps serving the
+  last good snapshot with its date; run the job by hand once fixed and check the
+  heartbeat turns up.
+- **Secret leaked** (gitleaks, trufflehog or a report): rotate it in Secret Manager or
+  where section 6 says it lives, redeploy, prove the new one with an authenticated
+  round trip (a deploy's checks, the monitors), disable the old version, and publish
+  an advisory if a user's key or data was exposed.
+- **Upstream source down or changed** (a Sentry `snapshot provider ... failed`
+  error, `production-health`'s CSV check, a provider's live test): the service
+  keeps serving the last snapshot; open an issue, and if the source changed its
+  format, update its provider and contract cassettes. Disable it on the job (section
+  7) if it keeps failing.
+- **Data terms changed** (a terms review, a notice from the source): reclassify the
+  source in its provider's `Terms` in a pull request and purge its hosted snapshots
+  (`docs/operations/staging.md` section 7, "Purging a source's snapshots"), then
+  record it in the changelog (ROADMAP §5 licensing rule 7).
+- **Bad release on PyPI** (the release workflow's smoke, a user's report): yank the
+  version on PyPI, publish a fixed patch release, and post an advisory or a changelog
+  note; production deploys the fixed tag.
+- **Model error reported** (an issue, a Sentry error naming a model): reproduce it as
+  a failing golden case on a `fix/` branch, fix it with a new model version, and
+  publish the erratum (ROADMAP §5 "Model quality & governance").
+- **Cost spike** (the budget's alerts, the run monitor slowing, a burst of 429s in
+  Grafana's request metrics): section 8.

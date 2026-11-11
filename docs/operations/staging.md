@@ -710,7 +710,7 @@ Cloud Scheduler  pyeconomics-snapshots-staging-daily  (30 23 * * *, Etc/UTC)
   │  as pyeconomics-staging-scheduler (roles/run.invoker on the job, nothing else)
   ▼
 Cloud Run job  pyeconomics-snapshots-staging  (same image, hosted mode)
-  │  python -m pyeconomics.data.snapshots write
+  │  python -m pyeconomics.server.snapshot_job write  (the writer; Step 14)
   │  1 task, parallelism 1, max retries 0, task timeout 30 min, 1 vCPU, 2 GiB
   │  as pyeconomics-staging-snapshots: BEA_API_KEY, BLS_API_KEY from Secret Manager
   │  fetches the snapshot set through data.get, within each source's rate limits
@@ -776,8 +776,11 @@ load on the sources.
 ### A silent or failing job
 
 Symptoms: `current.json`'s `completed_at` is more than a day old, records carry
-`stale_snapshot`, or the deploy's snapshot check fails. (Step 14 adds the
-Better Stack heartbeat that alarms on a missing run.)
+`stale_snapshot`, the deploy's snapshot check fails, or the Better Stack
+heartbeat `pyeconomics staging snapshot job` alarms: it expects a ping every
+24 hours with 2 hours' grace, and the job sends its `/fail` form when no
+provider succeeded (Phase 5 Step 14; `docs/operations/production.md` section
+11 has the runbook).
 
 1. Look at the last executions and the scheduler:
    `gcloud run jobs executions list --job=pyeconomics-snapshots-staging

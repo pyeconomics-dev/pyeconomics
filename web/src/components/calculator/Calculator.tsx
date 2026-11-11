@@ -8,10 +8,14 @@
 // form renders the schema with RJSF, posts the inputs' JSON to the run route
 // on the site's own origin, and shows the result's bytes as received with its
 // table, chart, sources, downloads and snippets. It also holds Plotly's
-// no-inline-styles marker, which must be in the page before Plotly loads.
+// no-inline-styles marker, which must be in the page before Plotly loads. An
+// error that stops it loading or rendering goes to the error tracker in a
+// production build (src/lib/error-reporting.ts; Phase 5 Step 14).
 import { useEffect, useState, type ComponentType } from "react";
 
+import IslandBoundary from "@/components/IslandBoundary";
 import type { CalculatorProps } from "@/lib/calculator";
+import { report } from "@/lib/error-reporting";
 import { STYLE_MARKER } from "@/lib/plotly";
 import { loadModel, type LoadedModel } from "@/lib/validators";
 
@@ -28,6 +32,7 @@ export default function Calculator(props: CalculatorProps) {
         if (current) setReady({ model, Form: module.default });
       },
       (error: unknown) => {
+        void report(error, "calculator");
         if (current) setFailure(error instanceof Error ? error.message : String(error));
       },
     );
@@ -41,7 +46,9 @@ export default function Calculator(props: CalculatorProps) {
       {/* Plotly reads this before it would inject a <style> element (src/lib/plotly.ts). */}
       <div id={STYLE_MARKER.id} className={STYLE_MARKER.className} hidden />
       {ready ? (
-        <ready.Form {...props} model={ready.model} />
+        <IslandBoundary island="calculator">
+          <ready.Form {...props} model={ready.model} />
+        </IslandBoundary>
       ) : (
         <p className="text-sm">{failure ? `The calculator could not load: ${failure}` : "Loading the calculator…"}</p>
       )}

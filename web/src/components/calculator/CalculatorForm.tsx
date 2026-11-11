@@ -38,6 +38,7 @@ import {
   uiSchemaFor,
   type CalculatorProps,
 } from "@/lib/calculator";
+import { report } from "@/lib/error-reporting";
 import { applicable } from "@/lib/figure";
 import { decode, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
@@ -191,7 +192,17 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
       const answer = await runModel(props.modelId, request.inputs, request.options);
       setSent(request);
       if (answer.ok) {
-        const result = parseResult(answer.bytes);
+        let result: ReturnType<typeof parseResult>;
+        try {
+          result = parseResult(answer.bytes);
+        } catch (error) {
+          // The server answered 200 with bytes that are not a result: a fault
+          // to report, never the visitor's.
+          void report(error, "calculator");
+          setOutcome({ kind: "error", message: "The server's answer could not be read." });
+          setAnnouncement("The server's answer could not be read.");
+          return;
+        }
         setOutcome({ kind: "result", answer, result });
         const warnings = result.warnings.length;
         setAnnouncement(`Done. The result has ${String(Object.keys(result.outputs).length)} outputs and ${String(warnings)} warning${warnings === 1 ? "" : "s"}.`);

@@ -56,6 +56,13 @@ with ``pyeconomics-app`` installed) serves it at ``/`` after every other route,
 with the site's own headers and behind the same host check
 (:mod:`~pyeconomics.server.site`, ADR-0013 decision 16).
 
+A hosted server with its variables set reports errors and telemetry
+(:mod:`~pyeconomics.server.observability`, Phase 5 Step 14): the guard records
+each request by its route's template, the service each task by its model id,
+cost class and outcome, and a server error goes to the error tracker. None of
+them sees a path, a query, an input or an address. A local server never imports
+that module.
+
 Examples
 --------
 >>> app = create_app(settings=ServerSettings(workers=0))
@@ -68,6 +75,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import contextlib
+import contextvars
 import importlib.util
 import logging
 import math
@@ -108,6 +116,7 @@ from pyeconomics.server.settings import (
     data_mode,
     git_sha,
     limits_for,
+    telemetry_wanted,
     worker_count,
 )
 from pyeconomics.server.work import SERIES_OPTIONS, Outcome, Task
@@ -118,7 +127,7 @@ from pyeconomics.surfaces.budgets import (
     local_command,
 )
 from pyeconomics.surfaces.invoke import BindRequest
-from pyeconomics.surfaces.problems import Problem, record, report
+from pyeconomics.surfaces.problems import Problem, problem_for, record, report
 from pyeconomics.surfaces.service import (
     HostNotAllowedError,
     MethodNotAllowedError,
@@ -135,6 +144,7 @@ if TYPE_CHECKING:
     from pyeconomics.core.model import Model
     from pyeconomics.core.provenance import LlmUsePolicy
     from pyeconomics.mcp.transport import HttpEndpoint
+    from pyeconomics.server.observability import Telemetry
     from pyeconomics.surfaces.invoke import BindRequest as Bind
 
 __all__ = ["create_app", "problem_response"]
@@ -151,6 +161,11 @@ _REPEATED: Final = frozenset({"concept", "param"})
 _SEARCH_LIMIT: Final = 20
 #: The Retry-After of a problem that knows no wait of its own, in seconds.
 _RETRY: Final = {"server-busy": "1", "limits-unavailable": "5"}
+#: What the request in progress ran, for its span: the task's kind, model, cost
+#: class and outcome. Set by the guard only when telemetry is on.
+_DETAILS: Final[contextvars.ContextVar[dict[str, str] | None]] = contextvars.ContextVar(
+    "pyeconomics_request_details", default=None
+)
 
 
 def problem_response(problem: Problem) -> Response:
@@ -186,6 +201,7 @@ class _Service:
         self.budgets = budgets_for(mode, settings)
         self.git_sha = git_sha(settings)
         self.pool: Pool | None = None
+        self.telemetry: Telemetry | None = None
         self.documents: dict[str, bytes] = {}
         hosted = mode == "hosted"
         # Only the hosted service sits behind an edge; local mode checks Host.
@@ -197,9 +213,13 @@ class _Service:
         self.body_limit = HOSTED_BODY_LIMIT if hosted else codec.MAX_INPUT_BYTES
 
     def start(self) -> None:
-        """Configure the data layer once, then start the worker pool."""
+        """Start the telemetry if wanted, configure the data layer, start the pool."""
         from pyeconomics import data  # noqa: PLC0415 - the data layer loads here
 
+        if telemetry_wanted(self.mode):
+            from pyeconomics.server import observability  # noqa: PLC0415 - hosted only
+
+            self.telemetry = observability.start(component="api", git_sha=self.git_sha)
         chosen = data_mode(self.mode)
         data.configure(mode=chosen, offline=self.settings.offline)
         self.pool = make_pool(
@@ -211,10 +231,13 @@ class _Service:
         self.pool.start()
 
     def close(self) -> None:
-        """Stop the worker pool."""
+        """Stop the worker pool, then flush the telemetry."""
         pool, self.pool = self.pool, None
         if pool is not None:
             pool.close()
+        telemetry, self.telemetry = self.telemetry, None
+        if telemetry is not None:
+            telemetry.close()
 
     def budget(self, cost: CostClass | None) -> float | None:
         """Return the budget of a run of this cost class; ``None`` for none."""
@@ -232,6 +255,7 @@ class _Service:
         if self.pool is None:
             msg = "the server's worker pool is not running"
             raise RuntimeError(msg)
+        started = time.perf_counter()
         outcome = await self.pool.submit(task)
         if outcome.problem is not None:
             record(
@@ -240,7 +264,36 @@ class _Service:
                 logger=_LOGGER,
                 detail=task.payload is None,
             )
+        if self.telemetry is not None:
+            self._observe(self.telemetry, task, outcome, time.perf_counter() - started)
         return outcome
+
+    @staticmethod
+    def _observe(
+        telemetry: Telemetry, task: Task, outcome: Outcome, seconds: float
+    ) -> None:
+        """Report a task: its count and time, its span's details, a server error."""
+        problem = outcome.problem
+        slug = "ok" if problem is None else problem.slug
+        model = task.target if task.kind == "run" else None
+        cost = CostClass.HEAVY.value
+        if model is not None:
+            with contextlib.suppress(PyeconomicsError):
+                cost = (registry.get(model).spec.cost or CostClass.HEAVY).value
+        telemetry.task(
+            kind=task.kind, model=model, cost=cost, outcome=slug, seconds=seconds
+        )
+        details = _DETAILS.get()
+        if details is not None:
+            details.update(
+                {"task_kind": task.kind, "cost_class": cost, "outcome": slug}
+            )
+            if model is not None:
+                details["model"] = model
+        if problem is not None:
+            telemetry.problem(
+                problem.slug, problem.status, outcome.error_name, route=task.kind
+            )
 
     async def answer(self, task: Task, name: str) -> Response:
         """Run a task in the pool and answer its body, or its problem.
@@ -709,8 +762,23 @@ def _add_docs(app: FastAPI) -> None:
 # --- errors and the guard -----------------------------------------------------------
 
 
-async def _pyeconomics_error(_request: Request, error: Exception) -> Response:
-    return problem_response(report(error, logger=_LOGGER))
+def _template(scope: Scope) -> str:
+    """Return the template of the route a request matched, never its path."""
+    route = scope.get("route")
+    return getattr(route, "path_format", None) or "(no route)"
+
+
+async def _pyeconomics_error(request: Request, error: Exception) -> Response:
+    problem = report(error, logger=_LOGGER)
+    telemetry = _service(request).telemetry
+    if telemetry is not None:
+        telemetry.problem(
+            problem.slug,
+            problem.status,
+            type(error).__qualname__,
+            route=_template(request.scope),
+        )
+    return problem_response(problem)
 
 
 def _allowed(request: Request) -> list[str]:
@@ -773,6 +841,7 @@ class _Guard:
         started = time.perf_counter()
         status = 500
         sent = False
+        observed = _Observed(self.service.telemetry)
 
         async def tracked(message: Message) -> None:
             nonlocal status, sent
@@ -788,17 +857,18 @@ class _Guard:
                 raise HostNotAllowedError  # noqa: TRY301 - answered just below
             client = self.service.edge.check(scope)
             limiter = self.service.limiter
+            counted = route_kind(scope["path"], Headers(scope=scope))
+            observed.kind = counted or "probe"
             if limiter is not None:
-                kind = route_kind(scope["path"], Headers(scope=scope))
-                await limiter.check(kind, client_key(client))
+                await limiter.check(counted, client_key(client))
             await self.app(scope, receive, tracked)
         except Exception as error:  # noqa: BLE001 - every failure becomes a problem
+            observed.unexpected = error
             if not sent:
                 response = problem_response(report(error, logger=_LOGGER))
                 await response(scope, receive, tracked)
         finally:
-            route = scope.get("route")
-            template = getattr(route, "path_format", None) or "(no route)"
+            template = _template(scope)
             _ACCESS.info(
                 "%s %s %d %.0f ms",
                 scope.get("method", ""),
@@ -806,6 +876,48 @@ class _Guard:
                 status,
                 (time.perf_counter() - started) * 1000,
             )
+            observed.finish(scope, template, status)
+
+
+class _Observed:
+    """One request's facts for the telemetry, gathered as the guard runs.
+
+    Without telemetry (local mode, or no variables) it records nothing.
+    """
+
+    def __init__(self, telemetry: Telemetry | None) -> None:
+        self.telemetry = telemetry
+        self.started = time.time_ns()
+        self.kind = "probe"
+        self.unexpected: Exception | None = None
+        self.details: dict[str, str] = {}
+        self.token = None if telemetry is None else _DETAILS.set(self.details)
+
+    def finish(self, scope: Scope, template: str, status: int) -> None:
+        """Report the request, and an error the guard answered."""
+        telemetry = self.telemetry
+        if telemetry is None or self.token is None:
+            return
+        _DETAILS.reset(self.token)
+        telemetry.request(
+            method=str(scope.get("method", "")),
+            route=template,
+            status=status,
+            kind=self.kind,
+            started=self.started,
+            ended=time.time_ns(),
+            details=self.details,
+        )
+        error = self.unexpected
+        if error is None:
+            return
+        if isinstance(error, PyeconomicsError):
+            problem = problem_for(error)
+            telemetry.problem(
+                problem.slug, problem.status, type(error).__qualname__, route=template
+            )
+        else:
+            telemetry.exception(error, route=template)
 
 
 # --- the MCP mount ------------------------------------------------------------------

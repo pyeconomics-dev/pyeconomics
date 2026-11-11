@@ -34,6 +34,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   ALLOWED,
+  ALLOWED_PATTERNS,
   DIRECTIVES,
   FORBIDDEN,
   HASHED,
@@ -65,6 +66,7 @@ const HASH = /^'sha256-[A-Za-z0-9+/]{43}='$/;
 
 const BASE = new Map(Object.entries(DIRECTIVES));
 const PERMITTED = new Map(Object.entries(ALLOWED));
+const PATTERNS = new Map(Object.entries(ALLOWED_PATTERNS));
 
 /** A policy: each directive's sources, in the order they were written. */
 export type Policy = Map<string, string[]>;
@@ -212,7 +214,7 @@ export function checkPolicy(
         problems.push(`${name} holds ${source}`);
       } else if (HASHED.has(name) && HASH.test(source)) {
         found.push(source);
-      } else if (!allowed.includes(source)) {
+      } else if (!allowed.includes(source) && !(PATTERNS.get(name) ?? []).some((pattern) => pattern.test(source))) {
         problems.push(`${name} holds ${source}, which decision 9 does not allow`);
       }
     }

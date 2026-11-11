@@ -922,7 +922,27 @@ jobs:
           for banned in ('yfinance', 'keyring', 'blpapi'):
               assert not any(banned in n for n in names), f'forbidden distribution installed: {banned}'
           assert 'pyarrow' in names, 'expected pyarrow in container image'
+          for hosted in ('sentry-sdk', 'opentelemetry-sdk', 'opentelemetry-exporter-otlp-proto-http'):
+              assert hosted in names, f'expected the hosted group in the image: {hosted}'
           "
+
+          # The hosted group loads and starts in the image (Phase 5 Step 14), with
+          # a DSN made up here: closing a client that captured nothing sends nothing.
+          dsn="https://$(openssl rand -hex 16)@o1.ingest.us.sentry.io/1"
+          docker exec -e PYECONOMICS_SENTRY_DSN="$dsn" pyeconomics-smoke python -c "
+          from pyeconomics.server import observability
+          telemetry = observability.start(component='api', git_sha='0' * 40)
+          assert telemetry.sentry is not None and telemetry.meters is None
+          telemetry.close()
+          "
+          set +e
+          docker exec pyeconomics-smoke python -m pyeconomics.server.snapshot_job --help
+          usage=$?
+          set -e
+          if [ "$usage" != "2" ]; then
+            echo "::error::Expected the snapshot job's usage error (exit 2), got ${usage}"
+            exit 1
+          fi
 
           docker exec pyeconomics-smoke python -c "
           import pyeconomics, sys
