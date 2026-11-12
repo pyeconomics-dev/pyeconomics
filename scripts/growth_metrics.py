@@ -114,8 +114,14 @@ def fetch_json(request: urllib.request.Request) -> object:
         return json.loads(response.read())
 
 
-def _warn(message: str) -> None:
-    sys.stderr.write(f"::warning::{message}\n")
+def _failed(source: str, error: Exception) -> None:
+    """Warn that a source failed, by name and error type only, and close it.
+
+    An HTTP error holds the response's open body; closing it frees the socket.
+    """
+    if isinstance(error, urllib.error.HTTPError):
+        error.close()
+    sys.stderr.write(f"::warning::{source}: {type(error).__name__}\n")
 
 
 def _count(value: object) -> int:
@@ -135,7 +141,7 @@ def pypi_rows(fetch: Fetch = fetch_json) -> list[Row]:
             data = document["data"]  # type: ignore[index]
             week, month = _count(data["last_week"]), _count(data["last_month"])
         except FAILURES as error:
-            _warn(f"pypistats: {package}: {type(error).__name__}")
+            _failed(f"pypistats: {package}", error)
             week = month = UNAVAILABLE  # type: ignore[assignment]
         rows.append(
             Row("PyPI downloads", f"{package}, last 7 days", week, "pypistats.org")
@@ -205,7 +211,7 @@ def github_rows(
             sum(_count(node["comments"]["totalCount"]) for node in recent),
         ]
     except FAILURES as error:
-        _warn(f"GitHub: {type(error).__name__}")
+        _failed("GitHub", error)
         values = [UNAVAILABLE] * len(measures)
     return [
         Row(signal, measure, value, "GitHub GraphQL")
@@ -265,7 +271,7 @@ def grafana_rows(
             found = _by_route_kind(fetch(request))
             values: dict[str, int | str] = {k: found.get(k, 0) for k in ROUTE_KINDS}
         except FAILURES as error:
-            _warn(f"Grafana: {surface}: {type(error).__name__}")
+            _failed(f"Grafana: {surface}", error)
             values = dict.fromkeys(ROUTE_KINDS, UNAVAILABLE)
         rows.extend(
             Row(

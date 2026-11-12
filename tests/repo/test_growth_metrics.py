@@ -23,7 +23,7 @@ import urllib.parse
 import urllib.request
 from email.message import Message
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 import pytest
 
@@ -97,9 +97,17 @@ ENVIRON = {
 }
 
 
-def values(rows: list[object]) -> dict[tuple[str, str], object]:
+class RowLike(Protocol):
+    """What the tests read from a row."""
+
+    signal: str
+    measure: str
+    value: object
+
+
+def values(rows: list[RowLike]) -> dict[tuple[str, str], object]:
     """Each row's value, by signal and measure."""
-    return {(row.signal, row.measure): row.value for row in rows}  # type: ignore[attr-defined]
+    return {(row.signal, row.measure): row.value for row in rows}
 
 
 def test_the_table_holds_every_g2_count(
