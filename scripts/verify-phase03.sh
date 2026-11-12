@@ -423,6 +423,10 @@ production_sets = {"deploy-production.yml": staging_secrets | {"CLOUDFLARE_API_T
 # token pyeconomics-production-health from the production-health environment
 # alone: production's required reviewer would hold every hourly run.
 health_sets = {"production-health.yml": staging_secrets}
+# Phase 5 Step 15: growth-metrics.yml's weekly ledger reads GRAFANA_READ_TOKEN, a
+# Grafana Cloud metrics:read token, from the growth environment (main only)
+# alone, beside its own read-only GITHUB_TOKEN.
+growth_sets = {"growth-metrics.yml": {"GITHUB_TOKEN", "GRAFANA_READ_TOKEN"}}
 for path in Path(".github/workflows").glob("*.yml"):
     if path.name == "providers-live.yml":
         continue
@@ -443,6 +447,10 @@ for path in Path(".github/workflows").glob("*.yml"):
         assert re.search(r"^\s+environment:\s*production-health\s*$", body, re.M), path.name
         assert not re.search(r"^\s+environment:\s*(?:production|staging)\s*$", body, re.M), path.name
         assert not re.search(r"^\s+name:\s*(?:production|staging)\s*$", body, re.M), path.name
+    elif path.name in growth_sets:
+        assert set(names) <= growth_sets[path.name], path.name
+        assert re.search(r"^\s+environment:\s*growth\s*$", body, re.M), path.name
+        assert not re.search(r"^\s+environment:\s*(?:production|production-health|staging)\s*$", body, re.M), path.name
     else:
         assert set(names) <= {"GITHUB_TOKEN"}, path.name
 PY

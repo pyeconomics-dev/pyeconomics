@@ -1,0 +1,131 @@
+# .github/workflows/growth-metrics.yml
+#
+# Gate G2's weekly ledger (Phase 5 Step 15; ROADMAP §5 "Monetization strategy &
+# validation gates"; ADR-0013 decision 19).
+#
+# - Weekly, and on a dispatch from main; never on a pull request.
+# - The `collect` job runs in the `growth` environment (`main` only), whose one
+#   secret is GRAFANA_READ_TOKEN, a Grafana Cloud access-policy token with
+#   metrics:read alone; its variables GRAFANA_PROM_URL and GRAFANA_PROM_USER
+#   name the Prometheus endpoint. With the workflow's own token, read-only, it
+#   runs scripts/growth_metrics.py (standard library only), which writes counts
+#   only: PyPI downloads, stars, forks and Discussions activity, and API and MCP
+#   requests by route kind; the analytics and sign-up rows read "manual",
+#   because Umami's plan has no API and the email processor's only key that
+#   counts sign-ups also reads every address, so none is held here.
+# - The `report` job is the only job with `issues: write`, and holds no secret:
+#   it posts the table as a comment on the pinned "Gate G3 ledger" issue
+#   (label `gate-g3-ledger`), creating and pinning the issue on the first run,
+#   whose comment is the pre-launch baseline. The runbook for the manual rows is
+#   docs/operations/production.md section 12.
+
+name: growth-metrics
+
+on:
+  schedule:
+    # Mondays at 06:17 UTC, a quiet minute.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: growth-metrics
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: collect the week's counts
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: growth
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      discussions: read
+    outputs:
+      table: ${{ steps.collect.outputs.table }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypistats.org:443
+            *.grafana.net:443
+
+      - name: Check out the script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/growth_metrics.py
+          sparse-checkout-cone-mode: false
+
+      - name: Collect the counts
+        id: collect
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GRAFANA_PROM_URL: ${{ vars.GRAFANA_PROM_URL }}
+          GRAFANA_PROM_USER: ${{ vars.GRAFANA_PROM_USER }}
+          GRAFANA_READ_TOKEN: ${{ secrets.GRAFANA_READ_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -I scripts/growth_metrics.py --output "$RUNNER_TEMP/table.md"
+          delimiter="TABLE_$(openssl rand -hex 16)"
+          {
+            echo "table<<${delimiter}"
+            cat "$RUNNER_TEMP/table.md"
+            echo "${delimiter}"
+          } >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/table.md" >> "$GITHUB_STEP_SUMMARY"
+
+  report:
+    name: post the counts on the Gate G3 ledger
+    needs: collect
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      - name: Comment on the pinned ledger issue, creating it on the first run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TABLE: ${{ needs.collect.outputs.table }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          label="gate-g3-ledger"
+          gh label create "$label" --color 5319e7 \
+            --description "The weekly Gate G2 counts toward Gate G3 (ADR-0013 decision 19)" --force
+          issue=$(gh issue list --label "$label" --state open --limit 1 --json number --jq '.[0].number // ""')
+          heading="Weekly counts"
+          if [ -z "$issue" ]; then
+            {
+              echo "The weekly counts behind Gate G3 (ROADMAP §5 \"Monetization strategy & validation gates\"; ADR-0013 decision 19): page views and the allowlisted events, sign-ups by list and tier, API and MCP requests by route kind, PyPI downloads and GitHub stars."
+              echo
+              echo "\`growth-metrics.yml\` comments here every Monday. Counts only: no address, identifier or input. Gate G3's window is the 90 days after the 1.0.0 announcement; its thresholds are in ROADMAP §5."
+            } > issue.md
+            url=$(gh issue create --label "$label" --title "Gate G3 ledger" --body-file issue.md)
+            issue="${url##*/}"
+            gh issue pin "$issue"
+            heading="Pre-launch baseline"
+          fi
+          {
+            echo "**${heading}** ([run](${RUN_URL}))"
+            echo
+            printf '%s\n' "$TABLE"
+          } > comment.md
+          gh issue comment "$issue" --body-file comment.md

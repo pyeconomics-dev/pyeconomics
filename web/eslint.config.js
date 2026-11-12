@@ -25,6 +25,8 @@ export default defineConfig(
     "test-results/",
     "src/client/",
     "src/data/generated/",
+    // Umami's tracker, vendored byte for byte (vendor/umami/README.md).
+    "vendor/",
   ]),
   js.configs.recommended,
   tseslint.configs.strict,

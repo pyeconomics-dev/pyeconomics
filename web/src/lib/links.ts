@@ -3,7 +3,8 @@
 // beside it come from src/lib/paths.ts DOMAINS), the data explorer among them,
 // and the footer's links to the notices, the licence, the repository, the
 // documentation with its gallery, in-browser examples and finance tutorials,
-// and the service's public status page (Phase 5 Step 14).
+// and the service's public status page (Phase 5 Step 14), and where to ask a
+// question (GitHub Discussions) and sign up for the newsletter (Step 15).
 
 export interface Link {
   label: string;
@@ -18,6 +19,8 @@ export const EXAMPLE_GALLERY = `${DOCUMENTATION}gallery/index.html`;
 export const IN_BROWSER_EXAMPLES = `${DOCUMENTATION}wasm/index.html`;
 export const FINANCE_TUTORIALS = `${DOCUMENTATION}tutorials/finance/index.html`;
 export const LICENCE = `${REPOSITORY}/blob/main/LICENSE`;
+// Questions, ideas and show and tell (Phase 5 Step 15).
+export const DISCUSSIONS = `${REPOSITORY}/discussions`;
 // Better Stack's status page for production's monitors (ADR-0013 decision 15).
 export const STATUS_PAGE = "https://status.pyeconomics.dev/";
 
@@ -37,6 +40,9 @@ export const FOOTER_LINKS: readonly Link[] = [
   { label: "Data sources", href: "/sources/" },
   { label: "Licence (Apache-2.0)", href: LICENCE },
   { label: "GitHub", href: REPOSITORY },
+  { label: "Discussions", href: DISCUSSIONS },
+  { label: "Newsletter", href: "/newsletter/" },
+  { label: "Pro preview", href: "/pro/" },
   { label: "Documentation", href: DOCUMENTATION },
   { label: "Example gallery", href: EXAMPLE_GALLERY },
   { label: "In-browser examples", href: IN_BROWSER_EXAMPLES },

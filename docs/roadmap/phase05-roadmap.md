@@ -8540,9 +8540,9 @@ conversation per phase-boundary hygiene.
 
 ---
 
-## Step 15 — Feedback Channels and Gate G2 Instrumentation
+## Step 15 — Feedback Channels and Gate G2 Instrumentation ✅
 
-**Status:** Not started
+**Status:** Complete — PR #297 (2026-11-11)
 
 > **Goal:** Make demand measurable from the first day, without tracking
 > anyone (ROADMAP §5 Gate G2; ADR-0013 decisions 13, 14 and 19). Configure
@@ -8595,6 +8595,8 @@ production before launch with the maintainer's own sessions.
 
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-11: Quality Runner-up — Opus 5.5 · High.
 
 **Conversation:** New
 
@@ -8879,13 +8881,29 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
       and stars — all recording, instrumentation verified
       live. Gate G3 (decision 19): the window and thresholds
       the maintainer confirmed in Step 2.
+    - Re-read at Step 15's kickoff (2026-11-11), correcting
+      the lines below: Discussions already had its launch
+      categories (Announcements, Q&A, Ideas, Show and tell,
+      with General and Polls), so none was created; Buttondown's
+      public pricing page shows only a free tier and add-ons,
+      but its upgrade dialog still sells Basic ($9 a month to
+      1,000 subscribers, subscriber metadata and tags
+      included), which the account took; its
+      only key that counts sign-ups reads every address, so the
+      sign-up rows stay manual; Umami's tracker is not on npm,
+      so the vendored copy is cloud.umami.is's file, pinned by
+      SHA-256 under web/vendor/ and copied into production
+      builds only (the app wheel ships no unused tracker);
+      staging and local builds carry the forms, the app build
+      none.
     - Facts read on 2026-10-29 (re-check at kickoff): Umami
       Cloud's free Hobby plan records 100,000 events a month
       for one website with custom events and properties,
       keeps six months and has no API (the ledger's analytics
       rows are manual), sets no cookies, and collects at
       `https://gateway.umami.is` through `data-host-url`; its
-      region (EU, decision 13) is fixed at sign-up.
+      region (EU, decision 13) is fixed at sign-up. (Step 15
+      took the US region; ADR-0013 decision 13 is amended.)
       Buttondown's plain form posts to
       `https://buttondown.com/api/emails/embed-subscribe/
       <username>` with no key (not by fetch), takes hidden
@@ -10538,6 +10556,10 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       downloads, stars); the maintainer confirms or adjusts
       the Gate G3 window and thresholds, and the parent
       roadmap's G3 row is amended in this PR if they change.
+      Before the cutover makes /pro/ public (Step 15 left it
+      behind Access), the maintainer confirms that any outside
+      approval a priced preview of a future paid tier needs
+      is in hand, and records that it is, never what it is.
     </requirement>
 
     <requirement>
@@ -12021,7 +12043,7 @@ workflow above maps directly to the corresponding row below.
 | 12   | Docs: gallery, WASM, finance   | Gemini 4 Argon | Complete — PR #257 |
 | 13   | Production platform            | Sonnet 5.5     | Complete — PR #289 |
 | 14   | Observability + operations     | Sonnet 5.5     | Complete — PR #290 |
-| 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Not started        |
+| 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Not started        |
 | 17   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 18   | Launch readiness gate          | Sonnet 5.5     | Not started        |

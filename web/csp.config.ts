@@ -8,7 +8,12 @@
 // (Step 15) join here, and the post-build check refuses anything decision 9
 // does not allow. Sentry's origin joins connect-src in a production build that
 // carries the browser DSN (sentryBuild) and in no other build: staging, local
-// and the app wheel's build load no error tracking (decision 16).
+// and the app wheel's build load no error tracking (decision 16). Likewise the
+// analytics collector joins connect-src only in a production build given its
+// website id (analyticsBuild), and the email processor joins form-action in
+// every build but the app wheel's (signupForms): the local app on a user's
+// machine carries no sign-up form and no tracker, and links to the site's
+// /newsletter/ instead (Phase 5 Step 15).
 
 /** A directive's sources, in the order they are written. */
 export type Sources = readonly string[];
@@ -50,6 +55,53 @@ export function sentryBuild(
 /** This build's browser DSN, read once. */
 export const SENTRY = sentryBuild();
 
+/** Umami Cloud's collector, which its tracker posts to (decision 13). */
+export const UMAMI_COLLECTOR = "https://gateway.umami.is";
+
+/** The email processor's origin, where the sign-up forms post (decision 14). */
+export const EMAIL_PROCESSOR = "https://buttondown.com";
+
+/** An Umami website id: a UUID, public by design (it is in every page). */
+export const UMAMI_WEBSITE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** What a build that records analytics needs: its website id. */
+export interface AnalyticsBuild {
+  websiteId: string;
+}
+
+/**
+ * Read PUBLIC_UMAMI_WEBSITE_ID: null without one. Only a production build may
+ * carry it (decision 13: staging, local and the app wheel's build load no
+ * tracker), so any other build handed one fails rather than count visits that
+ * are not the public site's.
+ */
+export function analyticsBuild(
+  flavour: string | undefined = process.env.SITE_FLAVOUR,
+  websiteId: string | undefined = process.env.PUBLIC_UMAMI_WEBSITE_ID,
+): AnalyticsBuild | null {
+  if (websiteId === undefined || websiteId === "") return null;
+  if (flavour !== "production") {
+    throw new Error("PUBLIC_UMAMI_WEBSITE_ID is for production builds only (SITE_FLAVOUR=production)");
+  }
+  if (!UMAMI_WEBSITE_ID.test(websiteId)) throw new Error("PUBLIC_UMAMI_WEBSITE_ID is not an Umami website id");
+  return { websiteId };
+}
+
+/** This build's analytics, read once. */
+export const ANALYTICS = analyticsBuild();
+
+/**
+ * Whether a build carries the sign-up forms, which post to the email
+ * processor: every build but the app wheel's (decision 16), whose pages link
+ * to the public site's forms instead.
+ */
+export function signupForms(flavour: string | undefined = process.env.SITE_FLAVOUR): boolean {
+  return flavour !== "app";
+}
+
+/** Whether this build carries the sign-up forms, read once. */
+export const FORMS = signupForms();
+
 /**
  * Every directive of the policy, in the order the header writes them. Astro
  * appends each page's hashes to script-src and style-src.
@@ -60,9 +112,9 @@ export const DIRECTIVES: Readonly<Record<string, Sources>> = {
   "style-src": ["'self'"],
   "img-src": ["'self'", "data:"],
   "font-src": ["'self'"],
-  "connect-src": ["'self'", ...(SENTRY ? [SENTRY.origin] : [])],
+  "connect-src": ["'self'", ...(ANALYTICS ? [UMAMI_COLLECTOR] : []), ...(SENTRY ? [SENTRY.origin] : [])],
   "worker-src": ["'self'", "blob:"],
-  "form-action": ["'self'"],
+  "form-action": ["'self'", ...(FORMS ? [EMAIL_PROCESSOR] : [])],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'none'"],
   "object-src": ["'none'"],
@@ -86,9 +138,9 @@ export const ALLOWED: Readonly<Record<string, Sources>> = {
   "style-src": ["'self'"],
   "img-src": ["'self'", "data:"],
   "font-src": ["'self'"],
-  "connect-src": ["'self'", "https://gateway.umami.is"],
+  "connect-src": ["'self'", UMAMI_COLLECTOR],
   "worker-src": ["'self'", "blob:"],
-  "form-action": ["'self'", "https://buttondown.com"],
+  "form-action": ["'self'", EMAIL_PROCESSOR],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'none'"],
   "object-src": ["'none'"],

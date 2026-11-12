@@ -41,6 +41,9 @@ const SAMPLE = [
   "/models/econometrics/ols/",
   "/problems/",
   "/problems/invalid-input/",
+  // Step 15's sign-up forms and the Pro preview
+  "/newsletter/",
+  "/pro/",
   NOT_FOUND,
 ];
 

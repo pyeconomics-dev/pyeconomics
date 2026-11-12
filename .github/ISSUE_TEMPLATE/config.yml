@@ -1,6 +1,12 @@
 # .github/ISSUE_TEMPLATE/config.yml
 blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/pyeconomics-dev/pyeconomics/discussions/categories/q-a
+    about: Questions about using pyeconomics go to Discussions (Q&A), where answers help the next person; issues are for bugs, models and data sources.
+  - name: Share an idea or something you built
+    url: https://github.com/pyeconomics-dev/pyeconomics/discussions
+    about: Ideas, show and tell, and announcements live in GitHub Discussions.
   - name: Report a security vulnerability
     url: https://github.com/pyeconomics-dev/pyeconomics/security/advisories/new
     about: Report vulnerabilities privately through GitHub private vulnerability reporting, never in a public issue (SECURITY.md).

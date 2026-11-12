@@ -456,8 +456,12 @@ later step that needs a different rule writes a superseding ADR.
 - Umami Cloud's free Hobby plan: 100,000 events a month, one website,
   custom events and event properties, and six months' retention; no API
   access on Hobby [S27].
-- Its EU region, chosen at sign-up and fixed thereafter [S27]. Umami's
-  DPA applies without a signature [S28].
+- Its US region, chosen at sign-up and fixed thereafter [S27]. Umami's
+  DPA applies without a signature [S28]. (Amended at Step 15,
+  2026-11-11: this decision first named the EU region; the maintainer
+  chose the US, where every other processor here already keeps its
+  data and the maintainer is based. What Umami keeps holds no cookie,
+  no stored IP address and no input.)
 - No cookies [S28]. The vendor's pricing page says no cookie banner is
   needed, while its documentation says that depends on the site's setup
   [S27][S28]; counsel confirms the site needs none (decision 20).
@@ -485,6 +489,18 @@ later step that needs a different rule writes a superseding ADR.
   the waitlist, `metadata__tier` [S32].
 - Double opt-in, which Buttondown requires for signup forms [S32]. Open
   and click tracking, both opt-in, stay off [S32].
+- Read again at Step 15 (2026-11-11), when the account was opened:
+  Buttondown's public pricing page shows only a free tier (100
+  subscribers) and $9-a-month add-ons, but the account's upgrade dialog
+  sells Basic at $9 a month to 1,000 subscribers with subscriber
+  metadata and tags, which the account took. Double opt-in has no
+  switch; open and click tracking and UTM parameters are off. The DPA
+  (last updated 2026-10-23) forms part of the terms of service, so it
+  applies without a signature, and processes data in the United
+  States under the standard contractual clauses. Its only API
+  permission that counts sign-ups also reads every address, so the
+  weekly ledger's sign-up rows stay manual and no such key is kept in
+  CI.
 - No list, address or export passes through pyeconomics' own systems,
   logs or analytics. The maintainer holds the only account, with
   two-factor authentication, and accepts Buttondown's DPA when opening it
@@ -623,7 +639,7 @@ shared for advertising or used to profile a visitor.
 | API requests | The service's records: route template, status, duration, problem slug; never a path, query, body or key. Cloud Run's request log is excluded | Google Cloud (Cloud Run, Cloud Logging), under its Cloud Data Processing Addendum [S46] | Cloud Logging's `global` location | 30 days [S17] | 5 |
 | Rate limits | A counter keyed by the client's address (IPv6 by /64) | Upstash (Redis) | A US region beside the service, chosen at Step 13 | The window, one minute | 5 |
 | Run inputs, including values from a user's file | The values in a run's body, in memory for one run; never stored, cached or logged | Google Cloud (Cloud Run) | `us-central1`, in memory | The request | 8, 11 |
-| Analytics | Page views and allowlisted events, the referrer, browser, operating system, device type, language, screen size and approximate location; no cookie, no input; the IP address used in passing for a visitor hash and location, not stored with the analytics, though it may reach the vendor's operational logs [S28] | Umami Software (Umami Cloud), under its DPA [S28] | Umami Cloud's EU region [S27] | Six months [S27] | 13 |
+| Analytics | Page views and allowlisted events, the referrer, browser, operating system, device type, language, screen size and approximate location; no cookie, no input; the IP address used in passing for a visitor hash and location, not stored with the analytics, though it may reach the vendor's operational logs [S28] | Umami Software (Umami Cloud), under its DPA [S28] | Umami Cloud's US region, chosen at Step 15 [S27] | Six months [S27] | 13 |
 | Newsletter and waitlist | Email address, IP address, referrer, subscription and confirmation times, list, source and tier interest [S33] | Buttondown, under its DPA [S33] | The United States (AWS `us-west-2`) [S33] | Until the subscriber leaves or asks for deletion | 14 |
 | Errors | Error type, stack trace, release and route; no IP address, user detail, cookie, header, body or input | Functional Software (Sentry), under its DPA [S35] | Sentry's US region; some account data always in the US [S35] | 30 days [S35] | 15 |
 | Telemetry | Metrics and sampled traces of route templates, outcomes and durations; no personal data | Grafana Labs (Grafana Cloud) | A US region [S36] | 14 days [S36] | 15 |

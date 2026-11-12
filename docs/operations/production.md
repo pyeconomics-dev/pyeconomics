@@ -862,3 +862,55 @@ Each names the alarm that leads to it.
   publish the erratum (ROADMAP §5 "Model quality & governance").
 - **Cost spike** (the budget's alerts, the run monitor slowing, a burst of 429s in
   Grafana's request metrics): section 8.
+
+## 12. Growth Signals and the Gate G3 Ledger
+
+Phase 5 Step 15 (ROADMAP §5 Gate G2; ADR-0013 decisions 13, 14 and 19). Everything
+here records counts or holds an address only at the processor; nothing passes an
+address, an input or an identifier through pyeconomics' own systems.
+
+### 12.1 What records what
+
+| Signal | Where | Who holds it | How it reaches the ledger |
+|--------|-------|--------------|---------------------------|
+| Page views and the six allowlisted events (`web/src/lib/events.ts`) | Umami Cloud, US region, free Hobby plan; the tracker is `web/vendor/umami/script.js`, served from our origin in production builds only | Umami Software | Manual: Hobby has no API |
+| Newsletter and waitlist sign-ups, with list, source and tier | Buttondown, by plain form posts with double opt-in | Buttondown, under its DPA | Manual: its only key that counts sign-ups also reads every address, so none is kept in CI |
+| API and MCP requests by route kind | Grafana Cloud's request histogram (section 11) | Grafana Labs | `growth-metrics.yml`, with `GRAFANA_READ_TOKEN` (`metrics:read`) in the `growth` environment |
+| PyPI downloads, stars, forks, Discussions activity | pypistats.org, GitHub | Public | `growth-metrics.yml` |
+
+The production build reads the analytics site's id from the `production`
+environment's variable `PUBLIC_UMAMI_WEBSITE_ID` (public: it is in every page).
+The forms post to `https://buttondown.com/api/emails/embed-subscribe/<username>`,
+the username in `web/src/lib/signup.ts`.
+
+### 12.2 The weekly comment and its manual rows
+
+`growth-metrics.yml` runs every Monday at 06:17 UTC and on a dispatch from `main`. It
+comments on the pinned issue "Gate G3 ledger" (label `gate-g3-ledger`), which its
+first run created and pinned, and whose first comment is the pre-launch baseline.
+Each Monday, edit that week's comment (the `...` menu, Edit) and replace each
+_manual_ with the figure:
+
+1. **Analytics**: at https://cloud.umami.is, open the `pyeconomics` website, set the
+   range to the last 7 days, and copy Views and Visitors; under Events, copy each of
+   `calculator_run`, `download`, `pro_preview_click`, `newsletter_submit`,
+   `waitlist_submit` and `search`.
+2. **Sign-ups**: at https://buttondown.com, Subscribers, filter by type Regular
+   (confirmed), and read the count for metadata `list` = `newsletter`, then for
+   `list` = `waitlist` with `tier` = `personal`, `commercial` and `team`.
+
+A row reading _unavailable_ means that source failed that week (the run's log names
+it); _not configured_ means the `growth` environment lacks the secret or variable.
+
+### 12.3 A deletion request
+
+A subscriber who asks to be deleted is deleted in Buttondown (Subscribers, the
+address, Delete), which holds the only copy; nothing else holds an address. Reply
+from the maintainer's own mailbox that it is done.
+
+### 12.4 Rotating the Grafana token
+
+Create a new token on the access policy `pyeconomics-growth-read` (Grafana Cloud,
+Access Policies), store it with `gh secret set GRAFANA_READ_TOKEN --env growth`
+from its prompt, dispatch `growth-metrics.yml`, check its comment's API and MCP rows
+show counts, then delete the old token.
