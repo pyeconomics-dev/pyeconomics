@@ -4,7 +4,7 @@
 // calculator, filled with its first example, runs against the staging API on
 // the same origin and shows the result, with no Content Security Policy
 // violation or console error.
-import { expect, test } from "../e2e/support.ts";
+import { expect, test } from "./support.ts";
 
 test("staging serves the commit deployed", async ({ request }) => {
   const response = await request.get("/version.json");
