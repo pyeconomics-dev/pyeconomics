@@ -8884,9 +8884,11 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
     - Re-read at Step 15's kickoff (2026-11-11), correcting
       the lines below: Discussions already had its launch
       categories (Announcements, Q&A, Ideas, Show and tell,
-      with General and Polls), so none was created; Buttondown
-      no longer sells a Basic plan (free to 100 subscribers,
-      then $9-a-month add-ons, metadata a paid feature); its
+      with General and Polls), so none was created; Buttondown's
+      public pricing page shows only a free tier and add-ons,
+      but its upgrade dialog still sells Basic ($9 a month to
+      1,000 subscribers, subscriber metadata and tags
+      included), which the account took; its
       only key that counts sign-ups reads every address, so the
       sign-up rows stay manual; Umami's tracker is not on npm,
       so the vendored copy is cloud.umami.is's file, pinned by
