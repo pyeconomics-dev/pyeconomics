@@ -81,8 +81,8 @@ for (const entry of CASES) {
     expect(posts[0]?.fields).toEqual([
       ["email", ADDRESS],
       ["embed", "1"],
-      ["metadata__list", entry.list],
-      ["metadata__source", entry.source],
+      [`metadata__${entry.list}`, "yes"],
+      [`metadata__${entry.list}_source`, entry.source],
       ...(entry.tier ? [["metadata__tier", entry.tier]] : []),
     ]);
     // The address went out once, in the form's own navigation; no script sent it.

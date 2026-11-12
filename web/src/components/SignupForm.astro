@@ -3,8 +3,8 @@
 // A newsletter or Pro waitlist sign-up (Phase 5 Step 15; ADR-0013 decision
 // 14): a plain HTML form that posts, by navigation, straight to the email
 // processor's embed endpoint (src/lib/signup.ts), which asks the visitor to
-// confirm by email. It sends the address, the list, where it came from and,
-// on the waitlist, the tier chosen; no script reads or sends the address. Its
+// confirm by email. It sends the address, the list's own keys (that it was
+// joined, and from where) and, on the waitlist, the tier chosen; no script reads or sends the address. Its
 // submit button records `newsletter_submit` or `waitlist_submit` with the list
 // alone (src/lib/events.ts), through attributes the analytics tracker reads.
 // Each form says what is collected, by whom, that confirmation is by email,

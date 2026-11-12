@@ -896,14 +896,22 @@ _manual_ with the figure:
    `calculator_run`, `download`, `pro_preview_click`, `newsletter_submit`,
    `waitlist_submit` and `search`.
 2. **Sign-ups**: at https://buttondown.com, Subscribers, filter by type Regular
-   (confirmed), and read the count for metadata `list` = `newsletter`, then for
-   `list` = `waitlist` with `tier` = `personal`, `commercial` and `team`.
+   (confirmed), and read the count for metadata `newsletter` = `yes`, then for
+   `waitlist` = `yes` with `tier` = `personal`, `commercial` and `team`. One
+   address can be on both lists: Buttondown keeps one subscriber per address and
+   merges a second sign-up into it, so each list has keys of its own
+   (`<list>` and `<list>_source`, `web/src/lib/signup.ts`).
 
 A row reading _unavailable_ means that source failed that week (the run's log names
 it); _not configured_ means the `growth` environment lacks the secret or variable;
 _not on PyPI_ means pypistats.org has no such package yet (`pyeconomics-app` until
 its first release). PyPI counts are sums of pypistats.org's daily series up to its
 latest day, not its `/recent` summary, whose 30-day figure was wrong on 2026-11-11.
+
+A newsletter goes only to subscribers with `newsletter` = `yes`, and a Pro email only
+to those with `waitlist` = `yes`: a waitlist sign-up agreed to an email if Pro
+opens, not to the newsletter. Before the first send, check in the draft that its
+recipients are filtered on that metadata (not yet tried: nothing has been sent).
 
 ### 12.3 A deletion request
 
