@@ -8902,7 +8902,8 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
       keeps six months and has no API (the ledger's analytics
       rows are manual), sets no cookies, and collects at
       `https://gateway.umami.is` through `data-host-url`; its
-      region (EU, decision 13) is fixed at sign-up.
+      region (EU, decision 13) is fixed at sign-up. (Step 15
+      took the US region; ADR-0013 decision 13 is amended.)
       Buttondown's plain form posts to
       `https://buttondown.com/api/emails/embed-subscribe/
       <username>` with no key (not by fetch), takes hidden

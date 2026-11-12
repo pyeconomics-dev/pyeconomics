@@ -873,7 +873,7 @@ address, an input or an identifier through pyeconomics' own systems.
 
 | Signal | Where | Who holds it | How it reaches the ledger |
 |--------|-------|--------------|---------------------------|
-| Page views and the six allowlisted events (`web/src/lib/events.ts`) | Umami Cloud, EU region, free Hobby plan; the tracker is `web/vendor/umami/script.js`, served from our origin in production builds only | Umami Software | Manual: Hobby has no API |
+| Page views and the six allowlisted events (`web/src/lib/events.ts`) | Umami Cloud, US region, free Hobby plan; the tracker is `web/vendor/umami/script.js`, served from our origin in production builds only | Umami Software | Manual: Hobby has no API |
 | Newsletter and waitlist sign-ups, with list, source and tier | Buttondown, by plain form posts with double opt-in | Buttondown, under its DPA | Manual: its only key that counts sign-ups also reads every address, so none is kept in CI |
 | API and MCP requests by route kind | Grafana Cloud's request histogram (section 11) | Grafana Labs | `growth-metrics.yml`, with `GRAFANA_READ_TOKEN` (`metrics:read`) in the `growth` environment |
 | PyPI downloads, stars, forks, Discussions activity | pypistats.org, GitHub | Public | `growth-metrics.yml` |
