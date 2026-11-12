@@ -463,10 +463,11 @@ describe("growth signals (Phase 5 Step 15)", () => {
         const list = form.get("data-signup");
         const named = fields.filter((field) => field.has("name"));
         const names = [...new Set(named.map((field) => field.get("name")))].sort();
-        const expected = ["email", "embed", "metadata__list", "metadata__source", ...(list === "waitlist" ? ["metadata__tier"] : [])];
+        const expected = ["email", "embed", `metadata__${String(list)}`, `metadata__${String(list)}_source`, ...(list === "waitlist" ? ["metadata__tier"] : [])];
         expect(names, path).toEqual(expected.sort());
         expect(named.find((field) => field.get("name") === "email")?.get("type"), path).toBe("email");
-        expect(named.find((field) => field.get("name") === "metadata__list")?.get("value"), path).toBe(list);
+        // Each list's own keys, so a second sign-up never overwrites the first.
+        expect(named.find((field) => field.get("name") === `metadata__${String(list)}`)?.get("value"), path).toBe("yes");
         expect(named.find((field) => field.get("name") === "embed")?.get("value"), path).toBe("1");
         for (const field of named.filter((entry) => entry.get("name") === "metadata__tier")) {
           expect(field.get("type"), path).toBe("radio");

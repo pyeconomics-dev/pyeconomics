@@ -24,8 +24,14 @@ export const PROCESSOR_NAME = "Buttondown";
 export const SOURCES = ["footer", "newsletter-page", "pro-page"] as const;
 export type Source = (typeof SOURCES)[number];
 
-/** Every field a sign-up form sends, beside the address. */
-export const HIDDEN_FIELDS = ["embed", "metadata__list", "metadata__source"] as const;
+/**
+ * The processor keeps one subscriber per address and merges a second sign-up
+ * into it, each metadata key overwriting its old value (seen in production on
+ * 2026-11-12: a waitlist sign-up's `list` became `newsletter`). So each list
+ * has keys of its own, `<list>` and `<list>_source`, and joining both keeps
+ * both; a shared `list` key would drop the first.
+ */
+export const JOINED = "yes";
 
 /** The waitlist's tier field (a choice the visitor makes). */
 export const TIER_FIELD = "metadata__tier";
@@ -49,12 +55,12 @@ export function tierLabel(tier: Tier): string {
   return TIER_LABELS.get(tier) ?? tier;
 }
 
-/** A form's hidden fields, in order. */
+/** A form's hidden fields, in order: the list's own two keys (see JOINED). */
 export function hiddenFields(list: List, source: Source): readonly (readonly [string, string])[] {
   return [
     ["embed", "1"],
-    ["metadata__list", list],
-    ["metadata__source", source],
+    [`metadata__${list}`, JOINED],
+    [`metadata__${list}_source`, source],
   ];
 }
 

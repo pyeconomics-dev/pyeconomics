@@ -486,7 +486,11 @@ later step that needs a different rule writes a superseding ADR.
   (`https://buttondown.com/api/emails/embed-subscribe/<username>`) by
   form navigation, never by `fetch`, because the response can hold a
   CAPTCHA; with no key; with `metadata__list`, `metadata__source` and, on
-  the waitlist, `metadata__tier` [S32].
+  the waitlist, `metadata__tier` [S32]. Amended 2026-11-12: Buttondown
+  keeps one subscriber per address and a second sign-up overwrites each
+  key it sends, so a shared `list` key dropped the first list. Each list
+  now sends keys of its own, `metadata__<list>` (`yes`) and
+  `metadata__<list>_source`, beside the waitlist's `metadata__tier`.
 - Double opt-in, which Buttondown requires for signup forms [S32]. Open
   and click tracking, both opt-in, stay off [S32].
 - Read again at Step 15 (2026-11-11), when the account was opened:

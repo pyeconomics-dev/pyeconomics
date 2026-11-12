@@ -883,6 +883,22 @@ environment's variable `PUBLIC_UMAMI_WEBSITE_ID` (public: it is in every page).
 The forms post to `https://buttondown.com/api/emails/embed-subscribe/<username>`,
 the username in `web/src/lib/signup.ts`.
 
+Verified live on 2026-11-12, after deploy run 43161922517 (commit `197528c`), from
+the maintainer's session through Access:
+- Umami recorded the page views and each of the six events (`calculator_run`,
+  `search`, `download`, `waitlist_submit`, `pro_preview_click`,
+  `newsletter_submit`).
+- A waitlist sign-up (tier Personal) and then a newsletter sign-up reached
+  Buttondown as one subscriber with `tier` = `personal`. The second sign-up
+  overwrote `list`, which is why each list now has keys of its own (PR #304). The
+  test subscriber was then deleted in Buttondown.
+- Grafana's API and MCP counts by route kind are in the ledger's baseline comment
+  on issue #298.
+
+The views of `/models/equity/cape/` and `/data/us/unemployment/rate/` that day
+came from deploy run 43154922210's browser checks, before
+`web/tests/staging/support.ts` opted them out of analytics.
+
 ### 12.2 The weekly comment and its manual rows
 
 `growth-metrics.yml` runs every Monday at 06:17 UTC and on a dispatch from `main`. It
@@ -896,14 +912,22 @@ _manual_ with the figure:
    `calculator_run`, `download`, `pro_preview_click`, `newsletter_submit`,
    `waitlist_submit` and `search`.
 2. **Sign-ups**: at https://buttondown.com, Subscribers, filter by type Regular
-   (confirmed), and read the count for metadata `list` = `newsletter`, then for
-   `list` = `waitlist` with `tier` = `personal`, `commercial` and `team`.
+   (confirmed), and read the count for metadata `newsletter` = `yes`, then for
+   `waitlist` = `yes` with `tier` = `personal`, `commercial` and `team`. One
+   address can be on both lists: Buttondown keeps one subscriber per address and
+   merges a second sign-up into it, so each list has keys of its own
+   (`<list>` and `<list>_source`, `web/src/lib/signup.ts`).
 
 A row reading _unavailable_ means that source failed that week (the run's log names
 it); _not configured_ means the `growth` environment lacks the secret or variable;
 _not on PyPI_ means pypistats.org has no such package yet (`pyeconomics-app` until
 its first release). PyPI counts are sums of pypistats.org's daily series up to its
 latest day, not its `/recent` summary, whose 30-day figure was wrong on 2026-11-11.
+
+A newsletter goes only to subscribers with `newsletter` = `yes`, and a Pro email only
+to those with `waitlist` = `yes`: a waitlist sign-up agreed to an email if Pro
+opens, not to the newsletter. Before the first send, check in the draft that its
+recipients are filtered on that metadata (not yet tried: nothing has been sent).
 
 ### 12.3 A deletion request
 
