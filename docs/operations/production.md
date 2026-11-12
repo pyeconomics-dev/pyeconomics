@@ -900,7 +900,10 @@ _manual_ with the figure:
    `list` = `waitlist` with `tier` = `personal`, `commercial` and `team`.
 
 A row reading _unavailable_ means that source failed that week (the run's log names
-it); _not configured_ means the `growth` environment lacks the secret or variable.
+it); _not configured_ means the `growth` environment lacks the secret or variable;
+_not on PyPI_ means pypistats.org has no such package yet (`pyeconomics-app` until
+its first release). PyPI counts are sums of pypistats.org's daily series up to its
+latest day, not its `/recent` summary, whose 30-day figure was wrong on 2026-11-11.
 
 ### 12.3 A deletion request
 
