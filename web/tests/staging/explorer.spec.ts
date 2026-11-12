@@ -8,7 +8,7 @@
 // origin and no API request but the run's one same-origin POST.
 import { fileURLToPath } from "node:url";
 
-import { expect, test } from "../e2e/support.ts";
+import { expect, test } from "./support.ts";
 
 const CONCEPT = "us.unemployment.rate";
 const BLS = "Source: U.S. Bureau of Labor Statistics.";
