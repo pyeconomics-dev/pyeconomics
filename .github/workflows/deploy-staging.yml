@@ -681,19 +681,39 @@ jobs:
               assert time.monotonic() < deadline, f"/version.json returned {status}: {found}"
               time.sleep(5)
 
-          # 3. A page carries the build's exact policy and refuses indexing.
-          status, headers, _ = request("/", access)
-          assert status == 200, f"/ returned {status}"
-          assert headers.get("Content-Security-Policy") == expected_policy, "/ policy differs from dist/_headers"
+          # 3. Pages carry the build's exact policy. A deploy at 100% reaches every
+          # Cloudflare location over seconds, so a page may still come from the old
+          # version just after /version.json reports the new one: read each until its
+          # policy matches, and on the deadline name the directives that differ (the
+          # policy is public; every response carries it).
+          deadline = time.monotonic() + 120
+
+          def directives(policy):
+              pairs = (part.strip().split(None, 1) + [""] for part in (policy or "").split(";") if part.strip())
+              return {pair[0]: pair[1] for pair in pairs}
+
+          def settled(path):
+              while True:
+                  status, headers, _ = request(path, access)
+                  policy = headers.get("Content-Security-Policy")
+                  if status == 200 and policy == expected_policy:
+                      return headers
+                  if time.monotonic() >= deadline:
+                      built, served = directives(expected_policy), directives(policy)
+                      differ = sorted(k for k in built.keys() | served.keys() if built.get(k) != served.get(k))
+                      detail = "; ".join(f"{k}: built {built.get(k)!r}, served {served.get(k)!r}" for k in differ)
+                      raise AssertionError(f"{path} returned {status}; its policy differs in {detail or 'nothing'}")
+                  time.sleep(5)
+
+          # The home page refuses indexing.
+          headers = settled("/")
           assert headers.get("X-Robots-Tag") == "noindex", "/ does not refuse indexing"
           assert headers.get("X-Content-Type-Options") == "nosniff"
 
           # 3b. A model page and a problem page answer the same way, robots.txt
           # refuses every path, and the sitemap lists every model's page.
           for path in ("/models/fixed-income/duration/", "/problems/invalid-input/"):
-              status, headers, _ = request(path, access)
-              assert status == 200, f"{path} returned {status}"
-              assert headers.get("Content-Security-Policy") == expected_policy, f"{path} policy differs"
+              headers = settled(path)
               assert headers.get("X-Robots-Tag") == "noindex", f"{path} does not refuse indexing"
           status, _, body = request("/robots.txt", access)
           assert status == 200 and b"Disallow: /\n" in body, f"/robots.txt returned {status}: {body[:80]!r}"
