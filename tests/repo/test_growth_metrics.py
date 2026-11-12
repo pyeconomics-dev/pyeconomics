@@ -115,11 +115,13 @@ def test_the_table_holds_every_g2_count(
 ) -> None:
     rows = growth.collect(ENVIRON, NOW, World())
     found = values(rows)
-    assert found[("PyPI downloads", "pyeconomics, last 7 days")] == 372
-    assert found[("PyPI downloads", "pyeconomics, last 30 days")] == 59
-    # pyeconomics-app was not on PyPI on the day recorded: unavailable, with a warning.
-    assert found[("PyPI downloads", "pyeconomics-app, last 7 days")] == "unavailable"
-    assert "::warning::pypistats: pyeconomics-app: HTTPError" in capsys.readouterr().err
+    # The recorded daily series sums to these; pypistats' /recent said 283 and 59.
+    assert found[("PyPI downloads", "pyeconomics, last 7 days")] == 283
+    assert found[("PyPI downloads", "pyeconomics, last 30 days")] == 881
+    # pyeconomics-app was not on PyPI on the day recorded: marked, not an alarm.
+    assert found[("PyPI downloads", "pyeconomics-app, last 7 days")] == "not on PyPI"
+    assert found[("PyPI downloads", "pyeconomics-app, last 30 days")] == "not on PyPI"
+    assert "pypistats" not in capsys.readouterr().err
     assert found[("GitHub", "stars")] == 11
     assert found[("GitHub", "forks")] == 2
     assert found[("Discussions", "discussions, all time")] == 0
@@ -213,7 +215,7 @@ def test_requests_go_only_to_declared_hosts_with_their_own_credentials(
 def test_the_real_fetch_refuses_an_undeclared_host(growth: ModuleType) -> None:
     for url in (
         "https://example.com/x",
-        "http://pypistats.org/api/packages/x/recent",
+        "http://pypistats.org/api/packages/x/overall?mirrors=false",
         "https://grafana.net.example/x",
         "file:///etc/passwd",
     ):
@@ -235,6 +237,42 @@ def test_a_failing_source_gives_unavailable_rows(
     assert "::warning::Grafana: MCP: HTTPError" in err
     assert TOKEN not in err
     assert GRAFANA_TOKEN not in err
+
+
+def test_downloads_sum_the_days_up_to_the_latest_one(growth: ModuleType) -> None:
+    def day(date: str, downloads: int, category: str = "without_mirrors") -> object:
+        return {"category": category, "date": date, "downloads": downloads}
+
+    series = {
+        "data": [
+            day("2026-09-30", 1000),  # 31 days before the latest: in neither window
+            day(
+                "2026-10-01", 100
+            ),  # 30 days back counting the latest: the month's first
+            day("2026-10-23", 10),  # 8 days back: the month's, not the week's
+            day("2026-10-24", 1),  # 7 days back: the week's first
+            day("2026-10-24", 1000, "with_mirrors"),  # a mirror's: never counted
+            day("2026-10-30", 2),  # the latest day pypistats has
+        ]
+    }
+    rows = growth.pypi_rows(lambda _request: series)
+    found = values(rows)
+    assert found[("PyPI downloads", "pyeconomics, last 7 days")] == 3
+    assert found[("PyPI downloads", "pyeconomics, last 30 days")] == 113
+
+
+def test_a_failing_or_empty_download_series_is_unavailable(
+    growth: ModuleType, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def down(request: urllib.request.Request) -> object:
+        raise http_error(request.full_url, 503)
+
+    assert {row.value for row in growth.pypi_rows(down)} == {"unavailable"}
+    answers: tuple[object, ...] = ({"data": []}, {"data": [{}]})
+    for answer in answers:
+        rows = growth.pypi_rows(lambda _request, a=answer: a)
+        assert {row.value for row in rows} == {"unavailable"}, answer
+    assert "::warning::pypistats: pyeconomics: HTTPError" in capsys.readouterr().err
 
 
 def test_a_failed_query_or_a_malformed_answer_is_unavailable(
@@ -267,7 +305,7 @@ def test_missing_secrets_are_not_configured(growth: ModuleType) -> None:
     found = values(rows)
     assert found[("GitHub", "stars")] == "not configured"
     assert found[("REST API requests", "runs, last 7 days")] == "not configured"
-    assert found[("PyPI downloads", "pyeconomics, last 7 days")] == 372
+    assert found[("PyPI downloads", "pyeconomics, last 7 days")] == 283
 
 
 def test_a_row_holds_only_a_count_or_a_marker(growth: ModuleType) -> None:
@@ -310,7 +348,7 @@ def test_the_rendered_table_is_counts_and_markers(growth: ModuleType) -> None:
     for line in body:
         count = line.split(" | ")[2]
         assert (
-            count in {"_manual_", "_unavailable_", "_not configured_"}
+            count in {"_manual_", "_unavailable_", "_not configured_", "_not on PyPI_"}
             or count.replace(",", "").isdigit()
         ), line
     assert "| REST API requests | runs, last 7 days | 1,234 | Grafana Cloud |" in lines

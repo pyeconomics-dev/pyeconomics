@@ -11,7 +11,10 @@ the package, and imports the standard library only.
 It writes counts only, never an address, an identifier or an input:
 
 - PyPI downloads of ``pyeconomics`` and ``pyeconomics-app`` over the last
-  week and month, from pypistats.org (no key);
+  7 and 30 days of pypistats.org's daily series (no key). Its ``/recent``
+  summary is not used: on 2026-11-11 its ``last_month`` was 59 while its
+  ``last_week`` was 283 and the daily series summed to 881 over 30 days.
+  A package PyPI does not have yet is marked so, not counted as zero;
 - GitHub stars, forks and Discussions activity (``GITHUB_TOKEN``);
 - API and MCP requests by route kind over the last seven days, from Grafana
   Cloud's Prometheus endpoint with a ``metrics:read`` token
@@ -43,6 +46,7 @@ import urllib.parse
 import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from http import HTTPStatus
 from pathlib import Path
 
 USER_AGENT = "pyeconomics-growth-metrics/1.0"
@@ -59,7 +63,9 @@ WINDOW = "7d"
 MANUAL = "manual"
 UNAVAILABLE = "unavailable"
 NOT_CONFIGURED = "not configured"
-MARKERS = frozenset({MANUAL, UNAVAILABLE, NOT_CONFIGURED})
+NOT_ON_PYPI = "not on PyPI"
+MARKERS = frozenset({MANUAL, UNAVAILABLE, NOT_CONFIGURED, NOT_ON_PYPI})
+DOWNLOAD_WINDOWS = (7, 30)
 UMAMI = "Umami Cloud dashboard"
 BUTTONDOWN = "Buttondown dashboard"
 FAILURES = (urllib.error.URLError, OSError, ValueError, KeyError, TypeError)
@@ -131,23 +137,55 @@ def _count(value: object) -> int:
     return max(round(value), 0)
 
 
+def _downloads(document: object) -> dict[int, int]:
+    """Sum a daily series over each window, ending on its latest day.
+
+    The series is pypistats.org's ``overall`` answer without mirrors: one row
+    per day, ``{"category": "without_mirrors", "date": ..., "downloads": n}``.
+    """
+    days: dict[dt.date, int] = {}
+    for row in document["data"]:  # type: ignore[index]
+        if row["category"] == "without_mirrors":
+            day = dt.date.fromisoformat(row["date"])
+            days[day] = days.get(day, 0) + _count(row["downloads"])
+    if not days:
+        msg = "no daily rows"
+        raise ValueError(msg)
+    latest = max(days)
+    return {
+        window: sum(n for day, n in days.items() if (latest - day).days < window)
+        for window in DOWNLOAD_WINDOWS
+    }
+
+
 def pypi_rows(fetch: Fetch = fetch_json) -> list[Row]:
-    """Count each package's downloads over the last week and month."""
+    """Count each package's downloads over the last 7 and 30 days."""
     rows: list[Row] = []
     for package in PACKAGES:
-        url = f"https://pypistats.org/api/packages/{package}/recent"
+        url = f"https://pypistats.org/api/packages/{package}/overall?mirrors=false"
+        found: dict[int, int | str]
         try:
-            document = fetch(urllib.request.Request(url))
-            data = document["data"]  # type: ignore[index]
-            week, month = _count(data["last_week"]), _count(data["last_month"])
+            found = dict(_downloads(fetch(urllib.request.Request(url))))
+        except urllib.error.HTTPError as error:
+            # pypistats answers 404 for a package PyPI does not have yet.
+            missing = error.code == HTTPStatus.NOT_FOUND
+            if not missing:
+                _failed(f"pypistats: {package}", error)
+            error.close()
+            found = dict.fromkeys(
+                DOWNLOAD_WINDOWS, NOT_ON_PYPI if missing else UNAVAILABLE
+            )
         except FAILURES as error:
             _failed(f"pypistats: {package}", error)
-            week = month = UNAVAILABLE  # type: ignore[assignment]
-        rows.append(
-            Row("PyPI downloads", f"{package}, last 7 days", week, "pypistats.org")
-        )
-        rows.append(
-            Row("PyPI downloads", f"{package}, last 30 days", month, "pypistats.org")
+            found = dict.fromkeys(DOWNLOAD_WINDOWS, UNAVAILABLE)
+        rows.extend(
+            Row(
+                "PyPI downloads",
+                f"{package}, last {window} days",
+                found[window],
+                "pypistats.org",
+            )
+            for window in DOWNLOAD_WINDOWS
         )
     return rows
 
