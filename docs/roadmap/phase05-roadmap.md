@@ -10458,10 +10458,12 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       The clearance search is expected by 2026-12-15, ordered
       through counsel (ADR-0009's dated entry). The operator is
       the maintainer as an individual (src/lib/legal.ts
-      OPERATOR) until Pyeconomics LLC exists. Also open from
-      Step 16: Grafana Labs' DPA applies only once signed and
-      returned (data-flows.json says so until it is), and
-      Buttondown's hard deletion (#306).
+      OPERATOR) until Pyeconomics LLC exists. Grafana Labs'
+      DPA needs a signature, so none is in force: the telemetry
+      holds no personal data, and data-flows.json says so;
+      sign it before any personal data could reach Grafana.
+      Also open from Step 16: Buttondown's hard deletion
+      (#306).
       security.txt expires 2027-11-01 (renewal:
       docs/operations/production.md section 13.1).
     - Facts read on 2026-10-29 (re-check at kickoff): the

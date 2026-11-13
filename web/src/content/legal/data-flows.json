@@ -68,7 +68,7 @@
       "service": "the API's metrics and sampled traces",
       "dpa": {
         "url": "https://grafana.com/legal/data-processing-addendum/",
-        "basis": "Grafana Labs' Data Processing Agreement, which applies once the maintainer signs and returns it"
+        "basis": "None needed: the telemetry holds no personal data; Grafana Labs' Data Processing Agreement is signed if that ever changes"
       },
       "privacy": "https://grafana.com/legal/privacy-policy/"
     },
