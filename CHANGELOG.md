@@ -15,6 +15,22 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- Legal and trust pages (Phase 5 Step 16; ADR-0013 decision 20): the site's
+  `/legal/terms/` (the service, acceptable use and the API's rate limits, the data's
+  own terms with the New York Fed's and the OECD's conditions passed through, the
+  FRED® API's terms for local use, no warranty, a limit of liability, Florida law),
+  `/legal/privacy/` (generated from one data-flows file that tests hold to the
+  Content Security Policy, ADR-0013's table and the hosts and logs the service
+  keeps), `/legal/disclaimers/`, `/sources/` (every provider's licence class, terms,
+  attribution, notices and whether the site serves it, from provider metadata),
+  `/legal/licence/` (Apache-2.0, NOTICE and the licences of every package the site
+  ships to browsers) and `/.well-known/security.txt` (RFC 9116). Models whose
+  outputs are simulated or hypothetical carry a hypothetical-results legend beside
+  their results, chosen by their registry tags; `risk.value_at_risk` gains the
+  `monte carlo` and `historical simulation` tags (no output changes). The site data
+  export's `sources.json` gains `snapshot_series`. `docs/operations/permissions.md`
+  holds the permission letters and `docs/operations/counsel-review.md` the counsel
+  packet.
 - Feedback channels and Gate G2's instruments (Phase 5 Step 15; ADR-0013
   decisions 13, 14 and 19): the site's `/newsletter/` page, a newsletter form in
   every page's footer and the Pro waitlist post plain HTML forms straight to the
@@ -107,6 +123,12 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- `nyfed`'s reference rates carry every notice the New York Fed's Terms of Use
+  require: the disclaimer of a service that names a rate, the label of modified
+  content (percentages shown as decimals) and, on SOFR and BGCR, DTCC Solutions'
+  notice, which they had lacked.
+- The data explorer's chart note keeps a source's required notice when a series
+  document has no `attributions` list, as the server builds it.
 - XLSX sources read a workbook whose document properties openpyxl cannot parse.
   `philadelphia_fed`'s `rtd:ROUTPUT`, `rtd:P` and `rtd:PCONX` had failed with
   `ResponseError` since the source's export of 2026-10-30, which writes a

@@ -68,6 +68,8 @@ export interface SourceEntry {
   name: string;
   licence: string;
   hosted: boolean;
+  /** How many of its series the hosted snapshot keeps: the site serves it only above zero. */
+  snapshot_series: number;
   terms_url: string;
   terms_checked: string;
   attribution: string;

@@ -6,7 +6,10 @@
 //   build of a pre-release (headers.ts indexable(), which also sends
 //   X-Robots-Tag: noindex through _headers);
 // - _redirects, sending each model alias's page to its model's page (301), so
-//   a retired id's URL keeps answering.
+//   a retired id's URL keeps answering;
+// - .well-known/security.txt (RFC 9116; Phase 5 Step 16), from
+//   src/lib/security-txt.ts, in every build served as a site: not the app
+//   wheel's, which a user's own machine serves (ADR-0013 decision 16).
 //
 // It fails the build, naming each problem, on:
 // - a path web/released-pages.json lists that neither builds nor redirects:
@@ -14,12 +17,14 @@
 //   released-id ledger);
 // - a page the sitemap does not list, or a sitemap entry off the production
 //   origin;
-// - a robots.txt or _redirects file that came from public/ instead of here.
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+// - a robots.txt, _redirects or security.txt file that came from public/
+//   instead of here.
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { ORIGIN, modelPath } from "../src/lib/paths.ts";
+import { SECURITY_TXT_PATH, carriesSecurityTxt, securityTxt } from "../src/lib/security-txt.ts";
 import { buildVersion, indexable, siteFlavour } from "./headers.ts";
 
 const WEB = fileURLToPath(new URL("..", import.meta.url));
@@ -143,14 +148,22 @@ export interface IndexingReport {
   files: Record<string, string>;
 }
 
-/** Check a build and return robots.txt and _redirects for it. */
+/** security.txt's path in a build, without its leading slash. */
+export const SECURITY_TXT_FILE = SECURITY_TXT_PATH.slice(1);
+
+/** Check a build and return robots.txt, _redirects and, if it carries one, security.txt for it. */
 export function checkIndexing(
   dist: string,
-  { index, models, ledger }: { index: boolean; models: readonly AliasSource[]; ledger: Ledger },
+  {
+    index,
+    models,
+    ledger,
+    security = true,
+  }: { index: boolean; models: readonly AliasSource[]; ledger: Ledger; security?: boolean },
 ): IndexingReport {
   const problems: string[] = [];
   const files = walk(dist);
-  for (const name of ["robots.txt", "_redirects"]) {
+  for (const name of ["robots.txt", "_redirects", SECURITY_TXT_FILE]) {
     if (files.includes(name)) problems.push(`dist/${name} already exists: it comes from scripts/indexing.ts, never public/`);
   }
   const pages = builtPages(files);
@@ -179,7 +192,14 @@ export function checkIndexing(
       if (!listed.has(page)) problems.push(`the sitemap does not list ${page}`);
     }
   }
-  return { problems, files: { "robots.txt": robotsTxt(index), _redirects: renderRedirects(redirects) } };
+  return {
+    problems,
+    files: {
+      "robots.txt": robotsTxt(index),
+      _redirects: renderRedirects(redirects),
+      ...(security ? { [SECURITY_TXT_FILE]: securityTxt() } : {}),
+    },
+  };
 }
 
 function main(): number {
@@ -192,8 +212,11 @@ function main(): number {
   }
   let report: IndexingReport;
   let index: boolean;
+  let security: boolean;
   try {
-    index = indexable(siteFlavour(), buildVersion());
+    const flavour = siteFlavour();
+    index = indexable(flavour, buildVersion());
+    security = carriesSecurityTxt(flavour);
     // Fixed paths under web/: the generated registry and the ledger.
     // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
     const registry = JSON.parse(readFileSync(join(WEB, "src", "data", "generated", "registry.json"), "utf8")) as {
@@ -201,7 +224,7 @@ function main(): number {
     };
     // eslint-disable-next-line security/detect-non-literal-fs-filename -- the ledger, a fixed path
     const ledger = parseLedger(readFileSync(join(WEB, "released-pages.json"), "utf8"));
-    report = checkIndexing(dist, { index, models: registry.models, ledger });
+    report = checkIndexing(dist, { index, models: registry.models, ledger, security });
   } catch (error) {
     process.stderr.write(`indexing: ${(error as Error).message}\n`);
     return 1;
@@ -213,11 +236,14 @@ function main(): number {
   for (const [name, text] of Object.entries(report.files)) {
     // A fixed name under the build output directory.
     // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
+    mkdirSync(dirname(join(dist, name)), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- see the line above
     writeFileSync(join(dist, name), text);
   }
   const redirects = report.files._redirects?.split("\n").filter(Boolean).length ?? 0;
   process.stdout.write(
-    `indexing: robots.txt ${index ? "allows" : "refuses"} indexing; ${redirects} alias redirects; the ledger and the sitemap hold\n`,
+    `indexing: robots.txt ${index ? "allows" : "refuses"} indexing; ${redirects} alias redirects; ` +
+      `${security ? "security.txt written" : "no security.txt (the app's build)"}; the ledger and the sitemap hold\n`,
   );
   return 0;
 }

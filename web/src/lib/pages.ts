@@ -3,6 +3,7 @@
 // its social image is drawn from (src/pages/og/[...slug].ts), and the path of
 // each page's social image. The pages themselves are the routes under
 // src/pages/; tests/site/ holds this list equal to what the build wrote.
+import { LEGAL_INDEX, LEGAL_PAGES } from "@/lib/legal";
 import { DOMAINS, describe, domainPath, modelPath, type Domain } from "@/lib/models";
 import { DATA_PATH, conceptPath } from "@/lib/paths";
 import { conceptData, domains, problemData, registryData, type ConceptEntry } from "@/lib/site-data";
@@ -103,6 +104,9 @@ export function sitePages(): SitePage[] {
   }
   pages.push({ path: "/search/", ...SEARCH }, { path: "/coverage/", ...COVERAGE });
   pages.push({ path: "/newsletter/", ...NEWSLETTER }, { path: "/pro/", ...PRO });
+  for (const page of [LEGAL_INDEX, ...LEGAL_PAGES]) {
+    pages.push({ path: page.path, title: page.title, description: page.description });
+  }
   pages.push({ path: "/problems/", ...PROBLEMS_INDEX });
   for (const problem of problemData) {
     pages.push({ path: `/problems/${problem.slug}/`, title: problem.title, description: problem.meaning });

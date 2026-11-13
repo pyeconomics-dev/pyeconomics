@@ -9067,9 +9067,9 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 16 — Legal, Trust and Brand
+## Step 16 — Legal, Trust and Brand ✅
 
-**Status:** Not started
+**Status:** Complete — PR #318 (2026-11-12)
 
 > **Goal:** Get the launch's legal, attribution and trademark obligations
 > right before anyone outside can see the site (ROADMAP §4 5.7; ADR-0013
@@ -9123,6 +9123,8 @@ step.
 Ranked for knowledge, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels.
+
+> Ran 2026-11-12: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -9594,7 +9596,11 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
 - The letters are in `docs/operations/permissions.md`, each sent by the
   maintainer and tracked by an issue; CFA Institute's asks about URL paths.
 - ADR-0009 records the clearance search (or its expected date) and any
-  filing; `docs/operations/counsel-review.md` is with counsel.
+  filing; `docs/operations/counsel-review.md` is with counsel. *Amended
+  2026-11-12 by the maintainer's decision: counsel was not yet engaged, so
+  the packet is ready and is sent once counsel is engaged, before Step 18,
+  whose gate fails without counsel's review unless the maintainer waives it
+  with a recorded reason.*
 - **Deployed & verified:** the dispatched `deploy-production.yml` run on
   this step's merge commit succeeded; through Access, production's six
   legal and trust URLs answer 200 with their headers,
@@ -10440,9 +10446,30 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       skeleton; docs/releases/1.0.0b1-readiness.md is the
       shape (fourteen sections ending in the decision).
     - The alarm proofs are in docs/operations/production.md;
-      the legal pages are live behind Access; the letters
-      are sent; counsel and the clearance search were
-      engaged in Step 16; the G3 ledger has its baseline.
+      the legal pages are live behind Access; the G3 ledger
+      has its baseline.
+    - Step 16 note (2026-11-12): the letters' sent dates and
+      answers are in docs/operations/permissions.md, one issue
+      each (#308 to #315, label `permissions`). Counsel was not
+      yet engaged at Step 16: the packet,
+      docs/operations/counsel-review.md, is ready, the
+      maintainer engages counsel and sends it, and this step
+      fills its outcome table. Each open question shows on its
+      page through CounselNote.astro in words the packet
+      repeats (web/tests/site/ holds them equal): when counsel
+      answers one, change the page's text, remove its note and
+      the packet's "The page's note", and record the answer.
+      The clearance search is expected by 2026-12-15, ordered
+      through counsel (ADR-0009's dated entry). The operator is
+      the maintainer as an individual (src/lib/legal.ts
+      OPERATOR) until Pyeconomics LLC exists. Grafana Labs'
+      DPA needs a signature, so none is in force: the telemetry
+      holds no personal data, and data-flows.json says so;
+      sign it before any personal data could reach Grafana.
+      Also open from Step 16: Buttondown's hard deletion
+      (#306).
+      security.txt expires 2027-11-01 (renewal:
+      docs/operations/production.md section 13.1).
     - Facts read on 2026-10-29 (re-check at kickoff): the
       ZAP baseline action is zaproxy/action-baseline v0.15.0
       (commit de8ad967d3548d44ef623df22cf95c3b0baf8b25), with
@@ -12044,7 +12071,7 @@ workflow above maps directly to the corresponding row below.
 | 13   | Production platform            | Sonnet 5.5     | Complete — PR #289 |
 | 14   | Observability + operations     | Sonnet 5.5     | Complete — PR #290 |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
-| 16   | Legal, trust + brand           | Gemini 4 Argon | Not started        |
+| 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
 | 17   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 18   | Launch readiness gate          | Sonnet 5.5     | Not started        |
 | 19   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |

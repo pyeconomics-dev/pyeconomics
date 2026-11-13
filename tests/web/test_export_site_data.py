@@ -92,6 +92,7 @@ def test_sources_come_from_metadata_without_a_key_or_a_setting(
             "name",
             "licence",
             "hosted",
+            "snapshot_series",
             "terms_url",
             "terms_checked",
             "attribution",
@@ -102,6 +103,21 @@ def test_sources_come_from_metadata_without_a_key_or_a_setting(
             "key_required",
             "extra",
         }
+
+
+def test_sources_count_their_series_in_the_snapshot_set() -> None:
+    from pyeconomics.data.snapshots.set import snapshot_set  # noqa: PLC0415
+
+    entries = snapshot_set().entries
+    sources = {s["id"]: s for s in export.sources_document()["sources"]}
+    assert sum(s["snapshot_series"] for s in sources.values()) == len(entries)
+    for source in sources.values():
+        expected = sum(1 for entry in entries if entry.provider == source["id"])
+        assert source["snapshot_series"] == expected
+        # Only a source hosted mode may serve is ever snapshotted.
+        assert source["hosted"] or source["snapshot_series"] == 0
+    assert sources["fred"]["snapshot_series"] == 0
+    assert sources["treasury"]["snapshot_series"] > 0
 
 
 def test_concepts_carry_candidates_and_hosted_availability() -> None:

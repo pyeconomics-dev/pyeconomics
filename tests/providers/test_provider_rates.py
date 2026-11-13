@@ -31,7 +31,7 @@ from pyeconomics.data.providers.openfigi import OpenFigi
 from pyeconomics.data.providers.treasury import Treasury
 from pyeconomics.data.records import FigiMapping
 from pyeconomics.data.transport import files
-from pyeconomics.data.types import Table
+from pyeconomics.data.types import Series, Table
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -167,6 +167,33 @@ def test_nyfed_zero_volumes_and_multiple_daily_operations_are_preserved() -> Non
         )
     assert isinstance(frame, Table)
     assert frame.data == ((12.0,), (10.0,))
+
+
+@pytest.mark.parametrize("rate", ["sofr", "bgcr", "tgcr", "effr", "obfr"])
+def test_each_reference_rate_carries_the_terms_of_use_notices(rate: str) -> None:
+    # The New York Fed's Terms of Use (read 2026-11-12, Phase 5 Step 16): the
+    # reference-rate notice completed for this rate and for pyeconomics, the
+    # disclaimer of a service that names a rate, the label of modified
+    # content, and DTCC Solutions' notice on SOFR and BGCR alone.
+    from pyeconomics.data.providers.nyfed import DTCC_NOTICE, NOTICE  # noqa: PLC0415
+
+    case = next(c for c in NyFed.cases if c.name == rate)
+    with cache.bypass():
+        frame = NyFed().run_case(case, transport=replay("nyfed", case))
+    assert isinstance(frame, Series | Table)
+    notice = frame.meta.terms.notice
+    assert notice is not None
+    assert notice.startswith(NOTICE)
+    name = rate.upper()
+    assert (
+        f"The {name} is subject to the Terms of Use posted at newyorkfed.org. "
+        f"The New York Fed is not responsible for publication of the {name} by "
+        "pyeconomics, does not sanction or endorse any particular "
+        "republication, and has no liability for your use."
+    ) in notice
+    assert "pyeconomics is not affiliated with the New York Fed." in notice
+    assert "Modified by pyeconomics" in notice
+    assert (DTCC_NOTICE in notice) is (rate in {"sofr", "bgcr"})
 
 
 def test_xml_external_entities_are_refused() -> None:

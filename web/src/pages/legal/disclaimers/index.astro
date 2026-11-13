@@ -1,0 +1,164 @@
+---
+// web/src/pages/legal/disclaimers/index.astro
+// /legal/disclaimers/ (Phase 5 Step 16; ROADMAP §5 "pyeconomics' own licence,
+// name and posture": "Disclaimers on every surface"; ADR-0013 decision 20):
+// educational and informational use only; not personal advice; not registered
+// with any regulator; as is, with the limit of liability; models and data that
+// can be wrong, delayed or revised; the hypothetical-results legend (FINRA
+// Rule 2214's as the template, CFTC Rule 4.41(b)(1)'s statement for futures)
+// and the models that carry it, generated from their registry tags; the data
+// notices; AI assistants; referral links; and the CFA® marks notice.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import {
+  CFTC_STATEMENT,
+  CONTACT_EMAIL,
+  DISCLAIMERS,
+  FINRA_2214_LEGEND,
+  FUTURES_TAGS,
+  HYPOTHETICAL_LEGEND,
+  LEGAL_INDEX,
+  SIMULATED_TAGS,
+  simulates,
+} from "@/lib/legal";
+import { AS_IS_NOTICE, CFA_NOTICE } from "@/lib/links";
+import { modelPath } from "@/lib/paths";
+import { parseModels } from "@/lib/registry-schema";
+import { registryData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: LEGAL_INDEX.title, path: LEGAL_INDEX.path },
+  { name: DISCLAIMERS.title, path: DISCLAIMERS.path },
+];
+const simulated = parseModels(registryData)
+  .filter(simulates)
+  .sort((a, b) => a.title.localeCompare(b.title));
+const h2 = "mt-10 text-2xl font-semibold";
+const p = "mt-3 max-w-3xl";
+const quote = "mt-3 max-w-3xl border-l-4 pl-4";
+---
+
+<Base
+  title={DISCLAIMERS.title}
+  description={DISCLAIMERS.description}
+  jsonLd={webPage(DISCLAIMERS.path, DISCLAIMERS.title, DISCLAIMERS.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Legal"></span>
+  <h1 class="text-4xl font-bold tracking-tight">{DISCLAIMERS.title}</h1>
+  <p class="mt-2 text-sm text-muted-foreground">Last updated {DISCLAIMERS.updated}</p>
+  <p class="mt-4 max-w-3xl text-lg font-medium" data-notice="as-is">{AS_IS_NOTICE}</p>
+
+  <h2 id="education" class={h2}>Education and information only</h2>
+  <p class={p}>
+    pyeconomics is for educational and informational use only. Nothing on this site, from its API or MCP endpoint, in
+    the Python package, the command line or the local app, or in anything they return, is investment, financial, tax,
+    legal or accounting advice, or a recommendation or offer to buy, sell or hold any security, futures contract or
+    other instrument.
+  </p>
+
+  <h2 id="not-personal" class={h2}>Not personal advice</h2>
+  <p class={p}>
+    pyeconomics publishes general tools: formula calculators, pricing models, regressions, simulations of rules you
+    set, and charts. They give every user the same function and know nothing of your circumstances, objectives or risk
+    tolerance. Before acting on any result, consider whether it suits you, and seek advice from a qualified professional
+    who knows your situation.
+  </p>
+
+  <h2 id="not-registered" class={h2}>Not registered with any regulator</h2>
+  <p class={p}>
+    pyeconomics is not registered with any securities, commodities or other financial regulator, in any country, and
+    offers no service that would require registration: it manages no money, executes no trades, routes no orders and
+    gives no recommendations.
+  </p>
+
+  <h2 id="as-is" class={h2}>As is, with a limit of liability</h2>
+  <p class={p}>
+    The software, the service, their results and their data are provided as is, without warranty of any kind, and our
+    liability is limited, as the <a href="/legal/terms/#no-warranty">terms of use</a> and the
+    <a href="/legal/licence/">licence</a> set out.
+  </p>
+
+  <h2 id="models-and-data" class={h2}>Models and data can be wrong</h2>
+  <p class={p}>
+    Every model rests on assumptions and has limitations, which its page states with its sources. A model can be wrong,
+    or unsuitable for a particular purpose, and a correct model gives wrong answers from wrong inputs. Verify results
+    independently before you rely on them.
+  </p>
+  <p class={p}>
+    Data can be delayed, revised, incomplete or wrong. This site's data comes from a daily snapshot, so it can be up to a
+    day old, and older when a source is down; a result then carries a stale-data warning. Sources revise what they
+    publish, and a result marks where it read revised data rather than the data known on a past date.
+  </p>
+
+  <h2 id="hypothetical-results" class={h2}>Hypothetical results</h2>
+  <p class={p}>
+    Some models simulate: they draw many possible paths, replay history or test a rule against the past. Their outputs
+    are hypothetical. Wherever a model's results are simulated or hypothetical, its page shows this legend beside them,
+    which follows the wording of FINRA Rule 2214(c)(4):
+  </p>
+  <blockquote class={quote} data-legend="hypothetical">
+    <p class="font-semibold">{HYPOTHETICAL_LEGEND}</p>
+  </blockquote>
+  <p class={p}>
+    FINRA's text, which pyeconomics uses as a template and is not bound by, reads: "{FINRA_2214_LEGEND}" Results may also
+    vary with each use and over time, as the inputs, the random seed and the data change.
+  </p>
+  <p class={p}>
+    A model that simulates the performance of futures or other commodity interests also carries the statement CFTC Rule
+    4.41(b)(1)(i) prescribes:
+  </p>
+  <blockquote class={quote} data-legend="cftc">
+    <p>{CFTC_STATEMENT}</p>
+  </blockquote>
+  <p class={p}>
+    A model carries the legend when its tags include {SIMULATED_TAGS.map((tag) => `"${tag}"`).join(", ")}, and the CFTC
+    statement too when they also include {FUTURES_TAGS.map((tag) => `"${tag}"`).join(" or ")}. Today these models
+    carry the legend:
+  </p>
+  <ul class="mt-3 max-w-3xl list-disc pl-6" data-legend-models="">
+    {
+      simulated.map((model) => (
+        <li data-legend-model={model.id}>
+          <a href={modelPath(model.id)}>{model.title}</a> (<code>{model.id}</code>)
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2 id="data-notices" class={h2}>Data notices</h2>
+  <p class={p}>
+    Every chart, table and file carries its data's attribution, its source's required notices and a link to the
+    source's terms. The sources do not endorse pyeconomics. <a href="/sources/">Data sources and licences</a> lists each
+    source's notices, and the <a href="/legal/terms/#data">terms of use</a> pass on the conditions the New York Fed and
+    the OECD attach to their data.
+  </p>
+
+  <h2 id="assistants" class={h2}>AI assistants</h2>
+  <p class={p}>
+    An AI assistant that uses pyeconomics through its MCP server runs the same models and reads the same data, but what
+    the assistant then says is its own, not pyeconomics'. An assistant can misread a result or present it as advice it
+    is not. pyeconomics offers no tool that answers what to buy or sell.
+  </p>
+
+  <h2 id="referrals" class={h2}>Referral links</h2>
+  <p class={p}>pyeconomics has no referral or affiliate links. If it ever adds one, the link will say so.</p>
+
+  <h2 id="trademarks" class={h2}>Trademarks</h2>
+  <p class={p}>
+    pyeconomics implements formulas commonly covered in the CFA® Program curriculum and maps its models to the
+    Program's topic areas as factual tags; it copies no curriculum content.
+  </p>
+  <p class={p} data-notice="cfa-disclaimer">{CFA_NOTICE}</p>
+  <p class={p}>
+    FRED® and ALFRED® are registered trademarks of the Federal Reserve Bank of St. Louis. Other names are the marks of
+    their owners, used only to name their data. pyeconomics is not the GitHub project davidrpugh/pyeconomics or the site
+    pyecon.org.
+  </p>
+
+  <h2 id="contact" class={h2}>Contact</h2>
+  <p class={p}>Questions about these disclaimers: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+</Base>

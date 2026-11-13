@@ -10,7 +10,7 @@ import type { Page } from "@playwright/test";
 
 import { DOMAINS, domainPath } from "../../src/lib/paths.ts";
 import { MODELS, SEED } from "./catalog.ts";
-import { expect, test } from "./support.ts";
+import { expect, test, useColorScheme } from "./support.ts";
 
 /** Wait for the /models/ filter island to hydrate and read the address. */
 async function filtersReady(page: Page): Promise<void> {
@@ -22,7 +22,7 @@ const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 async function axe(page: Page): Promise<string[]> {
   const found: string[] = [];
   for (const colorScheme of ["light", "dark"] as const) {
-    await page.emulateMedia({ colorScheme });
+    await useColorScheme(page, colorScheme);
     const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     found.push(...results.violations.map((violation) => `${colorScheme} ${violation.id}: ${violation.help}`));
   }

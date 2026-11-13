@@ -1,0 +1,348 @@
+{
+  "format": 1,
+  "updated": "2026-11-12",
+  "processors": [
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare, Inc.",
+      "service": "the content delivery network, web application firewall and rate limiting in front of pyeconomics.dev, the hosting of its pages, the Worker that forwards API requests, and Cloudflare Access, which keeps staging and, until launch, production private",
+      "dpa": {
+        "url": "https://www.cloudflare.com/cloudflare-customer-dpa/",
+        "basis": "Cloudflare's Customer Data Processing Addendum, which section 6.1 of its Self-Serve Subscription Agreement incorporates for every plan, the Free plan included"
+      },
+      "privacy": "https://www.cloudflare.com/privacypolicy/"
+    },
+    {
+      "id": "google-cloud",
+      "name": "Google LLC (Google Cloud)",
+      "service": "Cloud Run, which runs the API and the daily data snapshot job, Cloud Logging, which keeps the service's own records, Cloud Storage, which holds the data snapshots, and Secret Manager",
+      "dpa": {
+        "url": "https://cloud.google.com/terms/data-processing-addendum",
+        "basis": "Google's Cloud Data Processing Addendum, which the Google Cloud terms incorporate"
+      },
+      "privacy": "https://policies.google.com/privacy"
+    },
+    {
+      "id": "upstash",
+      "name": "Upstash, Inc.",
+      "service": "the Redis database that counts each client's requests to the API for its rate limits",
+      "dpa": {
+        "url": "https://upstash.com/trust/dpa.pdf",
+        "basis": "Upstash's Data Processing Agreement, which its terms of service incorporate"
+      },
+      "privacy": "https://upstash.com/trust/privacy.pdf"
+    },
+    {
+      "id": "umami",
+      "name": "Umami Software, Inc. (Umami Cloud)",
+      "service": "cookie-less, aggregate page and event counts on the public site",
+      "dpa": {
+        "url": "https://umami.is/dpa",
+        "basis": "Umami's Data Processing Agreement, which applies automatically, without a signature"
+      },
+      "privacy": "https://umami.is/privacy"
+    },
+    {
+      "id": "buttondown",
+      "name": "Buttondown, LLC",
+      "service": "the newsletter and the Pro waitlist: sign-ups, their confirmation by email, and sending",
+      "dpa": {
+        "url": "https://buttondown.com/legal/data-processing-agreement",
+        "basis": "Buttondown's Data Processing Agreement, which forms part of its agreement with its customers"
+      },
+      "privacy": "https://buttondown.com/legal/privacy"
+    },
+    {
+      "id": "sentry",
+      "name": "Functional Software, Inc. (Sentry)",
+      "service": "reports of errors the API and the calculator and data explorer pages did not expect",
+      "dpa": {
+        "url": "https://sentry.io/legal/dpa/",
+        "basis": "Sentry's Data Protection Addendum, accepted by the maintainer in Sentry's settings"
+      },
+      "privacy": "https://sentry.io/privacy/"
+    },
+    {
+      "id": "grafana",
+      "name": "Grafana Labs Inc. (Grafana Cloud)",
+      "service": "the API's metrics and sampled traces",
+      "dpa": {
+        "url": "https://grafana.com/legal/data-processing-addendum/",
+        "basis": "None needed: the telemetry holds no personal data; Grafana Labs' Data Processing Agreement is signed if that ever changes"
+      },
+      "privacy": "https://grafana.com/legal/privacy-policy/"
+    },
+    {
+      "id": "betterstack",
+      "name": "Better Stack, Inc.",
+      "service": "uptime checks of the site and the API, the snapshot job's heartbeats, and the status page at status.pyeconomics.dev",
+      "dpa": {
+        "url": "https://betterstack.com/dpa",
+        "basis": "Better Stack's Data Processing Agreement, which its terms make part of the agreement"
+      },
+      "privacy": "https://betterstack.com/privacy"
+    },
+    {
+      "id": "github",
+      "name": "GitHub, Inc.",
+      "service": "the repository, its issues, Discussions and private vulnerability reports, and the public issue that records the weekly counts",
+      "dpa": {
+        "url": "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement",
+        "basis": "None: for your GitHub account and what you post, GitHub is the controller, under its General Privacy Statement"
+      },
+      "privacy": "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+    },
+    {
+      "id": "readthedocs",
+      "name": "Read the Docs, Inc.",
+      "service": "the documentation at docs.pyeconomics.dev",
+      "dpa": {
+        "url": "https://about.readthedocs.com/privacy-policy/",
+        "basis": "None: Read the Docs Community serves the documentation, and Read the Docs is the controller of its readers' data, under its privacy policy"
+      },
+      "privacy": "https://about.readthedocs.com/privacy-policy/"
+    },
+    {
+      "id": "google-mail",
+      "name": "Google LLC (Gmail)",
+      "service": "the maintainer's mailbox, which receives email sent to the contact address",
+      "dpa": {
+        "url": "https://policies.google.com/privacy",
+        "basis": "None: the maintainer's mailbox is a personal Gmail account, for which Google is the controller, under its privacy policy"
+      },
+      "privacy": "https://policies.google.com/privacy"
+    }
+  ],
+  "flows": [
+    {
+      "id": "edge",
+      "title": "Every request to pyeconomics.dev",
+      "collected": "Your IP address, browser's user agent and the request, as Cloudflare's network, firewall and rate rule see them. pyeconomics sets no cookie, and turns on neither Cloudflare's log push nor Workers logs.",
+      "purpose": "To deliver the site and the API, and to protect them from abuse and floods.",
+      "basis": "Legitimate interests: running and securing the service.",
+      "processor": "cloudflare",
+      "location": "Cloudflare's global network",
+      "retention": "Cloudflare keeps no HTTP request logs for pyeconomics (none are turned on); its analytics keep at least 31 days of request data for Free zones, and its DPA keeps customer logs only as long as processing needs them.",
+      "decision": 3,
+      "origins": [
+        "'self'"
+      ],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "access",
+      "title": "Staging, and production until launch, behind Cloudflare Access",
+      "collected": "The maintainer's identity and the use of the continuous-integration service token. No visitor can reach these sites.",
+      "purpose": "To keep unreleased sites private.",
+      "basis": "Legitimate interests: securing the service.",
+      "processor": "cloudflare",
+      "location": "Cloudflare",
+      "retention": "Access logs for up to 24 hours on Cloudflare Zero Trust's Free plan.",
+      "decision": 4,
+      "origins": [],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "api-records",
+      "title": "API requests",
+      "collected": "The service's own records of each request: the route's template, the status, the duration and, for a failure, the problem's type. Never a path, a query, a body, an input, an address or a key. Cloud Run's automatic request logs, which would record each URL with its query, your IP address and user agent, are excluded before they are stored.",
+      "purpose": "To run the service and find faults.",
+      "basis": "Legitimate interests: running the service.",
+      "processor": "google-cloud",
+      "location": "Cloud Logging's global location",
+      "retention": "30 days.",
+      "decision": 5,
+      "origins": [
+        "'self'"
+      ],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "rate-limits",
+      "title": "Rate limits",
+      "collected": "A counter keyed by your IP address (an IPv6 address by its /64 network).",
+      "purpose": "To share the API fairly and stop floods.",
+      "basis": "Legitimate interests: securing the service.",
+      "processor": "upstash",
+      "location": "Google Cloud's us-central1 region, beside the service",
+      "retention": "The limit's window: one minute.",
+      "decision": 5,
+      "origins": [],
+      "hosts": [
+        "<database>.upstash.io"
+      ],
+      "counsel": null
+    },
+    {
+      "id": "run-inputs",
+      "title": "Calculator inputs, and values from your own file",
+      "collected": "The values in a run's body: the calculator sends them with POST, so they stay out of every URL. A file you choose is read in your browser, in a Web Worker, and never uploaded; only the values you map into the form travel. The server neither logs nor stores a run's body, and answers it with Cache-Control: no-store.",
+      "purpose": "To compute the result you asked for.",
+      "basis": "Legitimate interests: providing the calculation you request.",
+      "processor": "google-cloud",
+      "location": "Cloud Run in us-central1, in memory",
+      "retention": "The request only.",
+      "decision": 8,
+      "origins": [
+        "'self'"
+      ],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "analytics",
+      "title": "Analytics",
+      "collected": "Page views and a fixed list of events (a model run, a download format, a sign-up list, a Pro tier of interest), with the referrer, browser, operating system, device type, language, screen size and approximate location. No cookie and no input. Your IP address is used in passing, hashed with a salt that changes each month into a visitor identifier and turned into an approximate location; it is not stored with the analytics, though Umami and its providers may record it in their operational and security logs. The tracker honours Do Not Track, and only the public site's production build loads it.",
+      "purpose": "To count how the site is used, in aggregate, and decide what to build.",
+      "basis": "Legitimate interests: understanding use of the site, without cookies or profiles.",
+      "processor": "umami",
+      "location": "Umami Cloud's United States region",
+      "retention": "Six months; residual copies may stay in Umami's backups for its ordinary backup cycle.",
+      "decision": 13,
+      "origins": [
+        "https://gateway.umami.is"
+      ],
+      "hosts": [],
+      "counsel": "Whether cookie-less analytics needs a consent banner in the EU and the UK: Umami's pricing page says none is needed, while its documentation says that depends on the site's setup."
+    },
+    {
+      "id": "newsletter",
+      "title": "Newsletter and Pro waitlist",
+      "collected": "Your email address, the IP address you signed up from, the referrer, the times you subscribed and confirmed, the list, the page you signed up on and, on the waitlist, the Pro tier you chose. Sign-up is confirmed by email (double opt-in). Open and click tracking are off.",
+      "purpose": "To send the newsletter, and to tell you if Pro opens.",
+      "basis": "Consent, given by confirming your address; withdraw it by unsubscribing.",
+      "processor": "buttondown",
+      "location": "The United States (Amazon Web Services, us-west-2)",
+      "retention": "Until you unsubscribe or ask for deletion. Buttondown marks an unsubscribed or deleted address rather than erasing it at once, so a later import cannot sign you up again; on request, pyeconomics has Buttondown erase it.",
+      "decision": 14,
+      "origins": [
+        "https://buttondown.com"
+      ],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "errors",
+      "title": "Errors",
+      "collected": "An unexpected error's type, stack trace, release and route. No IP address, user detail, cookie, header, body or input; an error's message is withheld.",
+      "purpose": "To find and fix faults.",
+      "basis": "Legitimate interests: keeping the service working.",
+      "processor": "sentry",
+      "location": "Sentry's United States region; Sentry keeps account data in the United States",
+      "retention": "30 days.",
+      "decision": 15,
+      "origins": [
+        "https://o<organisation>.ingest.us.sentry.io"
+      ],
+      "hosts": [
+        "o<organisation>.ingest.us.sentry.io"
+      ],
+      "counsel": null
+    },
+    {
+      "id": "telemetry",
+      "title": "Telemetry",
+      "collected": "Metrics and sampled traces of route templates, outcomes and durations. No personal data.",
+      "purpose": "To measure the service's health and cost.",
+      "basis": "Legitimate interests: running the service.",
+      "processor": "grafana",
+      "location": "A Grafana Cloud United States region",
+      "retention": "14 days.",
+      "decision": 15,
+      "origins": [],
+      "hosts": [
+        "otlp-gateway-<region>.grafana.net"
+      ],
+      "counsel": null
+    },
+    {
+      "id": "uptime",
+      "title": "Uptime",
+      "collected": "The vendor's own test requests to the site and the API, and the snapshot job's heartbeats. No visitor data.",
+      "purpose": "To learn of an outage, and to show the service's status.",
+      "basis": "Legitimate interests: running the service.",
+      "processor": "betterstack",
+      "location": "Primarily the European Union; Better Stack's DPA allows transfer to the United States",
+      "retention": "No period stated; Better Stack's DPA returns or destroys the data at the end of the service or on request.",
+      "decision": 15,
+      "origins": [],
+      "hosts": [
+        "incidents.betterstack.com"
+      ],
+      "counsel": null
+    },
+    {
+      "id": "ledger",
+      "title": "Weekly counts",
+      "collected": "Counts only: page views and events, sign-ups by list and tier, API and MCP requests by kind, package downloads and stars. No address, identifier or input.",
+      "purpose": "To judge, in public, whether the project is worth growing.",
+      "basis": "Legitimate interests; the counts hold no personal data.",
+      "processor": "github",
+      "location": "GitHub, in a pinned public issue",
+      "retention": "Kept as a public record.",
+      "decision": 19,
+      "origins": [],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "github",
+      "title": "Issues, Discussions and vulnerability reports",
+      "collected": "What you choose to post on GitHub, under your GitHub account. A vulnerability report stays private between you and the maintainer.",
+      "purpose": "To answer questions, track work and fix vulnerabilities.",
+      "basis": "GitHub's own, as controller; for pyeconomics, legitimate interests in running an open-source project.",
+      "processor": "github",
+      "location": "GitHub",
+      "retention": "Until you or the maintainer delete it; public posts are public.",
+      "decision": null,
+      "origins": [],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "documentation",
+      "title": "The documentation",
+      "collected": "What Read the Docs collects from readers of docs.pyeconomics.dev under its own privacy policy: your browser, language, the referring site, the time of each request and your IP address, in logs it deletes after 10 days; page views, which the project's dashboard shows for 90 days; and search queries. On its free Community plan an EthicalAds advertisement, chosen by the page's content and the country your IP address is in, appears beside the documentation; EthicalAds deletes its IP address logs within 10 days. Read the Docs honours Do Not Track for its analytics.",
+      "purpose": "To host the documentation.",
+      "basis": "Read the Docs' own, under its privacy policy.",
+      "processor": "readthedocs",
+      "location": "The United States",
+      "retention": "Logs with IP addresses 10 days; page views 90 days; otherwise as Read the Docs' privacy policy states.",
+      "decision": null,
+      "origins": [],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "email",
+      "title": "Email to the contact address",
+      "collected": "Your email address and what you write.",
+      "purpose": "To answer you, and to handle a privacy or legal request.",
+      "basis": "Legitimate interests: answering you; legal obligation, for a data-rights request.",
+      "processor": "google-mail",
+      "location": "Google",
+      "retention": "As long as the conversation needs, and a data-rights request's record as long as the law requires.",
+      "decision": null,
+      "origins": [],
+      "hosts": [],
+      "counsel": null
+    },
+    {
+      "id": "local",
+      "title": "The Python package, the command line and the local app",
+      "collected": "Nothing reaches pyeconomics. They run on your own computer; your data and your API keys stay there, and data comes from each source under your own acceptance of its terms. The local app loads no analytics and no error tracking.",
+      "purpose": "To run pyeconomics where you are.",
+      "basis": "None needed: no personal data reaches pyeconomics.",
+      "processor": null,
+      "location": "Your own computer",
+      "retention": "Yours to decide.",
+      "decision": 16,
+      "origins": [],
+      "hosts": [],
+      "counsel": null
+    }
+  ]
+}

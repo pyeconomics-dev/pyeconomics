@@ -1,0 +1,255 @@
+---
+// web/src/pages/sources/index.astro
+// /sources/, "Data sources and licences" (Phase 5 Step 16; ROADMAP §4 5.7;
+// ADR-0005; ADR-0013 decision 20), generated from sources.json: every provider
+// with its licence class, terms page and the date it was read, attribution,
+// required notice, storage and LLM terms, whether this site may serve its data
+// and how many of its series the daily snapshot keeps, and the data concepts it
+// answers, each linking to its page under /data/. Beside them, ADR-0005's
+// licence classes and ROADMAP §5's required-notices table. A new provider
+// appears here with no web code.
+//
+// FRED's notice is shown only as the notice local surfaces carry
+// (data-local-only): this site never serves FRED data, so nothing it serves
+// carries that notice (ROADMAP §5 "Required notices"; tests/site/).
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { LICENCE_CLASSES, REQUIRED_NOTICES, SNAPSHOT_CADENCE, SOURCES_PAGE } from "@/lib/legal";
+import { conceptPath } from "@/lib/paths";
+import { conceptData, sourceData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: SOURCES_PAGE.title, path: SOURCES_PAGE.path },
+];
+const served = sourceData.filter((source) => source.snapshot_series > 0);
+const conceptsOf = (id: string) =>
+  conceptData
+    .filter((concept) => concept.candidates.some((candidate) => candidate.provider === id))
+    .sort((a, b) => a.title.localeCompare(b.title));
+const STORAGE: Readonly<Record<string, string>> = {
+  allowed: "Its terms allow storage: pyeconomics may cache it on your computer.",
+  forbidden: "Its terms forbid storage: pyeconomics never writes it to disk.",
+};
+const LLM_USE: Readonly<Record<string, string>> = {
+  allowed: "Its terms allow its data to reach an AI assistant.",
+  forbidden: "Its terms do not allow its data to reach an AI assistant.",
+  unclear: "Its terms are unclear about AI use: the MCP server passes its data to an assistant only if you opt in.",
+};
+const cell = "py-2 pr-4 align-top";
+---
+
+<Base
+  title={SOURCES_PAGE.title}
+  description={SOURCES_PAGE.description}
+  jsonLd={webPage(SOURCES_PAGE.path, SOURCES_PAGE.title, SOURCES_PAGE.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Source"></span>
+  <h1 class="text-4xl font-bold tracking-tight">{SOURCES_PAGE.title}</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    pyeconomics reads economic and financial data from {sourceData.length} sources, each on its own terms. Every source
+    has a licence class that decides where its data may go, and every chart, table and file carries its attribution and
+    notices.
+  </p>
+  <p class="mt-2 max-w-3xl">
+    This site serves the data of {served.length} sources, read {SNAPSHOT_CADENCE} into a snapshot from the bodies that
+    publish them, never through an aggregator. The others run on your own computer, under your own acceptance of each
+    source's terms. Last reviewed {SOURCES_PAGE.updated}; each source's terms page was read on the date beside it.
+  </p>
+
+  <section class="mt-10" aria-labelledby="classes">
+    <h2 id="classes" class="text-2xl font-semibold">Licence classes</h2>
+    <div class="mt-4 overflow-x-auto" role="region" aria-label="Licence classes" tabindex="0">
+      <table class="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr class="border-b">
+            <th scope="col" class={cell}>Class</th>
+            <th scope="col" class={cell}>Meaning</th>
+            <th scope="col" class={cell}>On your computer</th>
+            <th scope="col" class="py-2 align-top">On this site</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            LICENCE_CLASSES.map((entry) => (
+              <tr class="border-b">
+                <th scope="row" class={`${cell} font-normal`}>
+                  <code>{entry.id}</code>
+                </th>
+                <td class={cell}>{entry.meaning}</td>
+                <td class={cell}>{entry.local}</td>
+                <td class="py-2 align-top">{entry.hosted}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-2 max-w-3xl text-sm text-muted-foreground">
+      A source's class comes from its own terms, read before its provider was added and again each year. A change in a
+      source's terms moves its class and, where it must, removes its data from this site.
+    </p>
+  </section>
+
+  <section class="mt-10" aria-labelledby="sources-list">
+    <h2 id="sources-list" class="text-2xl font-semibold">Sources</h2>
+    <div class="mt-4 overflow-x-auto" role="region" aria-label="Sources at a glance" tabindex="0">
+      <table class="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr class="border-b">
+            <th scope="col" class={cell}>Source</th>
+            <th scope="col" class={cell}>Class</th>
+            <th scope="col" class="py-2 align-top">On this site</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            sourceData.map((source) => (
+              <tr class="border-b">
+                <th scope="row" class={`${cell} font-normal`}>
+                  <a href={`#${source.id}`}>{source.name}</a>
+                </th>
+                <td class={cell}>
+                  <code>{source.licence}</code>
+                </td>
+                <td class="py-2 align-top">
+                  {source.snapshot_series > 0
+                    ? `Yes: ${String(source.snapshot_series)} series, ${SNAPSHOT_CADENCE}`
+                    : source.hosted
+                      ? "Allowed, not yet snapshotted: run it locally"
+                      : "No: run it locally"}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="mt-8 flex flex-col gap-6">
+      {
+        sourceData.map((source) => {
+          const concepts = conceptsOf(source.id);
+          return (
+            <li
+              id={source.id}
+              class="scroll-mt-24 rounded-lg border p-4"
+              data-source={source.id}
+              data-licence={source.licence}
+            >
+              <h3 class="text-xl font-semibold">{source.name}</h3>
+              <p class="text-sm text-muted-foreground">
+                Provider id <code>{source.id}</code>
+              </p>
+              <dl class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[12rem_1fr]">
+                <dt class="font-medium">Licence class</dt>
+                <dd>
+                  <code>{source.licence}</code>
+                </dd>
+                <dt class="font-medium">On this site</dt>
+                <dd>
+                  {source.snapshot_series > 0
+                    ? `Served from the snapshot, ${SNAPSHOT_CADENCE}: ${String(source.snapshot_series)} series.`
+                    : source.hosted
+                      ? "Its terms allow this site to serve it, but the snapshot keeps none of its series yet: run it with pyeconomics on your computer."
+                      : "Never: its terms keep its data to your own computer."}
+                </dd>
+                <dt class="font-medium">Terms</dt>
+                <dd>
+                  <a href={source.terms_url} rel="noopener noreferrer">
+                    {source.name}'s terms
+                  </a>
+                  , read {source.terms_checked}
+                </dd>
+                <dt class="font-medium">Attribution</dt>
+                <dd data-attribution="">{source.attribution}</dd>
+                {source.notice && (
+                  <Fragment>
+                    <dt class="font-medium">{source.id === "fred" ? "Notice on local surfaces" : "Required notice"}</dt>
+                    {source.id === "fred" ? (
+                      <dd data-notice="" data-local-only="">
+                        {source.notice} Shown by the Python package, the command line, the local app and their files only:
+                        this site never serves FRED data.
+                      </dd>
+                    ) : (
+                      <dd data-notice="">{source.notice}</dd>
+                    )}
+                  </Fragment>
+                )}
+                <dt class="font-medium">Storage</dt>
+                <dd>{STORAGE[source.storage] ?? source.storage}</dd>
+                <dt class="font-medium">AI use</dt>
+                <dd>{LLM_USE[source.llm_use] ?? source.llm_use}</dd>
+                <dt class="font-medium">Key</dt>
+                <dd>
+                  {source.key_variable ? (
+                    <Fragment>
+                      Your own, in <code>{source.key_variable}</code>
+                      {source.key_required ? "" : " (optional)"}
+                    </Fragment>
+                  ) : (
+                    "None needed"
+                  )}
+                </dd>
+                {source.extra && (
+                  <Fragment>
+                    <dt class="font-medium">Install</dt>
+                    <dd>
+                      <code>pip install "pyeconomics[{source.extra}]"</code>
+                    </dd>
+                  </Fragment>
+                )}
+              </dl>
+              {concepts.length > 0 && (
+                <details class="mt-3 text-sm">
+                  <summary class="cursor-pointer">
+                    {String(concepts.length)} data {concepts.length === 1 ? "concept" : "concepts"} it can answer
+                  </summary>
+                  <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1" data-pagefind-ignore="all">
+                    {concepts.map((concept) => (
+                      <li>
+                        <a href={conceptPath(concept.id)}>{concept.title}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  <section class="mt-10" aria-labelledby="required-notices">
+    <h2 id="required-notices" class="text-2xl font-semibold">Required notices</h2>
+    <p class="mt-2 max-w-3xl">The notices the sources' terms require wherever their data appears.</p>
+    <div class="mt-4 overflow-x-auto" role="region" aria-label="Required notices" tabindex="0">
+      <table class="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr class="border-b">
+            <th scope="col" class={cell}>Source</th>
+            <th scope="col" class="py-2 align-top">Notice wherever its data appears</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            REQUIRED_NOTICES.map((row) => (
+              <tr class="border-b">
+                <th scope="row" class={`${cell} font-normal`}>
+                  {row.source}
+                </th>
+                <td class="py-2 align-top" data-local-only={row.source === "FRED" ? "" : undefined}>
+                  {row.notice}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Base>

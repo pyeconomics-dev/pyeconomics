@@ -8,7 +8,10 @@
 // time: src/lib/catalog.ts relatedModels) and where else to use the model.
 // A model whose bound data the hosted site may not serve says which sources
 // and gives the local app's command beside its calculator (Phase 5 Step 9),
-// and each bound concept links to its page under /data/.
+// and each bound concept links to its page under /data/. A model whose outputs
+// are simulated or hypothetical (its registry tags; src/lib/legal.ts) carries
+// the hypothetical-results legend beside the calculator's result and the
+// worked example's outputs (Phase 5 Step 16).
 // Search indexes the page (data-pagefind-body on its main landmark) with the
 // model's domain and summary as its result's text; the calculator's loading
 // text and form are not page content, so search ignores that section.
@@ -24,6 +27,7 @@
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Math from "@/components/Math.astro";
 import Calculator from "@/components/calculator/Calculator";
+import HypotheticalLegend from "@/components/models/HypotheticalLegend.astro";
 import VariablesTable from "@/components/models/VariablesTable.astro";
 import Base from "@/layouts/Base.astro";
 import { calculatorProps } from "@/lib/calculator";
@@ -44,6 +48,7 @@ import {
   variables,
 } from "@/lib/models";
 import { LOCAL_APP } from "@/lib/explorer";
+import { simulates } from "@/lib/legal";
 import { conceptPath } from "@/lib/paths";
 import type { Model } from "@/lib/registry-schema";
 import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
@@ -74,6 +79,7 @@ const syllabi = syllabusData.filter((syllabus) => topics.some((entry) => entry.s
 const related = relatedModels(model, models, syllabusData);
 const example = model.examples[0];
 const result = model.example_result;
+const hypothetical = simulates(model);
 const sectionClass = "mt-12 flex flex-col gap-4";
 const headingClass = "text-2xl font-semibold";
 const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
@@ -170,6 +176,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         )
       }
       <Calculator client:visible {...calculator} />
+      {hypothetical && <HypotheticalLegend model={model} place="calculator" />}
       <noscript>
         <p class="max-w-3xl">
           The calculator needs JavaScript. The worked example below shows the model's inputs and outputs, and the
@@ -195,6 +202,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           <Fragment>
             <p>Outputs:</p>
             <pre class={preClass} role="region" tabindex="0" aria-label="Example outputs"><code>{pretty(result.outputs)}</code></pre>
+            {hypothetical && <HypotheticalLegend model={model} place="worked-example" />}
             {result.warnings.length > 0 && (
               <Fragment>
                 <p>Warnings:</p>

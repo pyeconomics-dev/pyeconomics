@@ -1,0 +1,59 @@
+---
+// web/src/pages/legal/index.astro
+// /legal/, the index of the legal and trust pages (Phase 5 Step 16): the terms
+// of use, the privacy policy, the disclaimers, the licence and the data
+// sources, each with what it covers and the date it last changed, and where
+// to report a vulnerability (/.well-known/security.txt, RFC 9116).
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { CONTACT_EMAIL, LEGAL_INDEX, LEGAL_PAGES, OPERATOR } from "@/lib/legal";
+import { SECURITY_POLICY, SECURITY_TXT_PATH, VULNERABILITY_REPORTING, carriesSecurityTxt } from "@/lib/security-txt";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: LEGAL_INDEX.title, path: LEGAL_INDEX.path },
+];
+---
+
+<Base
+  title={LEGAL_INDEX.title}
+  description={LEGAL_INDEX.description}
+  jsonLd={webPage(LEGAL_INDEX.path, LEGAL_INDEX.title, LEGAL_INDEX.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Legal"></span>
+  <h1 class="text-4xl font-bold tracking-tight">{LEGAL_INDEX.title}</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    pyeconomics.dev is operated by {OPERATOR}, the project's maintainer. Write to
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> about any of these pages.
+  </p>
+  <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+    {
+      LEGAL_PAGES.map((page) => (
+        <li class="rounded-lg border p-4">
+          <a href={page.path} class="text-lg font-medium">
+            {page.title}
+          </a>
+          <p class="mt-1 text-sm text-muted-foreground">{page.description}</p>
+          <p class="mt-1 text-xs text-muted-foreground">Last updated {page.updated}</p>
+        </li>
+      ))
+    }
+  </ul>
+  <section class="mt-10" aria-labelledby="security-heading">
+    <h2 id="security-heading" class="text-2xl font-semibold">Reporting a vulnerability</h2>
+    <p class="mt-2 max-w-3xl">
+      Report it privately through <a href={VULNERABILITY_REPORTING}>GitHub's private vulnerability reporting</a>, never
+      in a public issue. The <a href={SECURITY_POLICY}>security policy</a> says what happens next{
+        carriesSecurityTxt() ? (
+          <Fragment>
+            , and <a href={SECURITY_TXT_PATH}><code>{SECURITY_TXT_PATH}</code></a> gives the same route in the form RFC
+            9116 sets
+          </Fragment>
+        ) : null
+      }.
+    </p>
+  </section>
+</Base>

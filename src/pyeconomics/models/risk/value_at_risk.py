@@ -652,7 +652,15 @@ _MANISTRE = Reference(
     ),
     evidence=Evidence.STANDARD,
     cost=CostClass.HEAVY,
-    tags=("value at risk", "expected shortfall", "cornish-fisher", "ewma", "risk"),
+    tags=(
+        "value at risk",
+        "expected shortfall",
+        "cornish-fisher",
+        "ewma",
+        "risk",
+        "monte carlo",
+        "historical simulation",
+    ),
     invariants=(
         Invariant(
             id="es_at_least_var",

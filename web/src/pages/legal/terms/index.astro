@@ -1,0 +1,239 @@
+---
+// web/src/pages/legal/terms/index.astro
+// /legal/terms/, the terms of use (Phase 5 Step 16; ROADMAP §4 5.7; ADR-0013
+// decision 20): the service and its licence, acceptable use and the API's
+// rate limits, the data's own terms with the New York Fed's and the OECD's
+// conditions passed through as their terms require, every source this site
+// serves linked to its terms (generated from sources.json), the FRED® API's
+// terms for anyone reading FRED through pyeconomics, no warranty, a limit of
+// liability, changes, the governing law and the contact. The New York Fed's
+// and the OECD's words are quoted from their terms as read on 2026-11-12, and
+// the questions still open for counsel are marked (CounselNote).
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import CounselNote from "@/components/CounselNote.astro";
+import Base from "@/layouts/Base.astro";
+import {
+  CONTACT_EMAIL,
+  FRED_API_TERMS,
+  GOVERNING_LAW,
+  LEGAL_INDEX,
+  NYFED_TERMS,
+  OECD_TERMS,
+  OPERATOR,
+  RATE_LIMITS,
+  REPOSITORY,
+  TERMS,
+} from "@/lib/legal";
+import { sourceData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: LEGAL_INDEX.title, path: LEGAL_INDEX.path },
+  { name: TERMS.title, path: TERMS.path },
+];
+const served = sourceData.filter((source) => source.snapshot_series > 0);
+const h2 = "mt-10 text-2xl font-semibold";
+const p = "mt-3 max-w-3xl";
+const quote = "mt-3 max-w-3xl border-l-4 pl-4";
+---
+
+<Base
+  title={TERMS.title}
+  description={TERMS.description}
+  jsonLd={webPage(TERMS.path, TERMS.title, TERMS.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Legal"></span>
+  <h1 class="text-4xl font-bold tracking-tight">{TERMS.title}</h1>
+  <p class="mt-2 text-sm text-muted-foreground">Last updated {TERMS.updated}</p>
+
+  <h2 id="about" class={h2}>1. About these terms</h2>
+  <p class={p}>
+    These terms govern your use of pyeconomics.dev, its API under <code>/v1/</code> and its MCP endpoint at
+    <code>/mcp</code> (together, "the service"), which {OPERATOR} ("we", "us") operates. By using the service you accept
+    these terms; if you do not accept them, do not use it. The <a href="/legal/privacy/">privacy policy</a> and the
+    <a href="/legal/disclaimers/">disclaimers</a> form part of them.
+  </p>
+  <p class={p}>
+    The pyeconomics software you install yourself (the Python package, the command line, the local app and the MCP
+    server you run) is governed by its licence, not by these terms, except that the data it reads stays subject to each
+    source's terms (section 4).
+  </p>
+
+  <h2 id="licence" class={h2}>2. The software and its licence</h2>
+  <p class={p}>
+    pyeconomics is open-source software under the <a href="/legal/licence/">Apache License, Version 2.0</a>. Its
+    source, this site's included, is public at <a href={REPOSITORY}>{REPOSITORY}</a>. The licence's terms, its
+    disclaimer of warranty and its limitation of liability among them, apply to the software whichever way you reach
+    it. These terms add nothing to what the licence lets you do with the software.
+  </p>
+
+  <h2 id="acceptable-use" class={h2}>3. Acceptable use and rate limits</h2>
+  <p class={p}>The service is free. Use it lawfully and fairly. Do not:</p>
+  <ul class="mt-2 max-w-3xl list-disc pl-6">
+    <li>try to get around its security, its access controls or its rate limits, or test its security without following the <a href={`${REPOSITORY}/blob/main/SECURITY.md`}>security policy</a>;</li>
+    <li>send requests meant to overload it or to run up its costs;</li>
+    <li>use it to copy a data source's own product, or to download a source's data in bulk to redistribute it;</li>
+    <li>use it in a way that breaks the law or a data source's terms; or</li>
+    <li>say or imply that we, or any data source, endorse you, your product or your use of the service.</li>
+  </ul>
+  <p class={p}>
+    The API limits each client's requests over a moving minute: {RATE_LIMITS.runs.replace("/", " a ")} model runs,
+    {" "}{RATE_LIMITS.series.replace("/", " a ")} series reads and {RATE_LIMITS.metadata.replace("/", " a ")} other
+    requests. Beyond a limit it answers <code>429</code> with a <code>Retry-After</code> header, and a costly run has
+    budgets of its own. The limits can change. For heavy use, run pyeconomics on your own computer, where the only limits
+    are the data sources' own.
+  </p>
+
+  <h2 id="data" class={h2}>4. The data and its terms</h2>
+  <p class={p}>
+    The data the models read is not ours: each source publishes it under its own terms, and those terms stay with it
+    wherever it goes. This site serves only data whose source's terms allow a third-party service to display it, from a
+    daily snapshot taken from the body that publishes it. Every chart, table and file carries the source's attribution
+    and required notices. Keep them when you reuse the data, and follow the source's terms, which may limit what you
+    can do with it. <a href="/sources/">Data sources and licences</a> lists every source, its class and its notices.
+  </p>
+
+  <h3 id="nyfed" class="mt-8 text-xl font-semibold">4.1 Data from the Federal Reserve Bank of New York</h3>
+  <p class={p}>
+    Content from the Federal Reserve Bank of New York is made available to you with the same permissions, conditions
+    and restrictions set forth in the <a href={NYFED_TERMS}>New York Fed's Terms of Use</a>; these terms add none that
+    are more restrictive. Among them, in the New York Fed's words:
+  </p>
+  <blockquote class={quote} data-pass-through="nyfed">
+    <p>
+      "If you distribute the Content, you must make the Content available with the same permissions, conditions, and
+      restrictions set forth in these Terms. You may not impose more restrictive terms or conditions on the Content."
+    </p>
+    <p class="mt-2">
+      "When you copy or distribute any Content, you must include any copyright notice and other source identifiers that
+      the New York Fed includes with that Content."
+    </p>
+    <p class="mt-2">
+      "You must not state or imply that the New York Fed endorses your use, reproduction, or distribution of the Content
+      or any product, service, financial instrument, or material you create or derive using the Content or any excerpt
+      of the Content."
+    </p>
+    <p class="mt-2">
+      "If you modify any of the Content, you must clearly label the modified Content to ensure there is no confusion or
+      ambiguity about the difference between the original Content and the modifications or the source of the
+      modifications. You may not attribute any modifications or derivative works to the New York Fed."
+    </p>
+    <p class="mt-2">"None of the Content is investment advice."</p>
+  </blockquote>
+  <p class={p}>
+    pyeconomics modifies the New York Fed's content in one way: rates published as percentages are shown as decimals
+    (5.31% as 0.0531). The modification is ours, not the New York Fed's. Each reference rate (SOFR, BGCR, TGCR, EFFR
+    and OBFR) carries the notice the Terms of Use require, for example:
+  </p>
+  <blockquote class={quote}>
+    <p>
+      "The SOFR is subject to the Terms of Use posted at newyorkfed.org. The New York Fed is not responsible for
+      publication of the SOFR by pyeconomics, does not sanction or endorse any particular republication, and has no
+      liability for your use."
+    </p>
+    <p class="mt-2">
+      "The Secured Overnight Financing Rate (SOFR) Data and Broad General Collateral Rate (BGCR) Data are calculated
+      using data provided under a license granted to the New York Fed by DTCC Solutions LLC (“Solutions”), an affiliate
+      of The Depository Trust &amp; Clearing Corporation. Solutions, its affiliates, and third parties from which they
+      obtained data have no liability for the content of this material."
+    </p>
+  </blockquote>
+  <p class={p}>
+    pyeconomics is not affiliated with the New York Fed. The New York Fed does not sanction, endorse, or recommend any
+    products or services offered by pyeconomics.
+  </p>
+
+  <h3 id="oecd" class="mt-8 text-xl font-semibold">4.2 Data from the OECD</h3>
+  <p class={p}>
+    Data from the OECD is subject to the <a href={OECD_TERMS}>OECD's terms and conditions</a>, which say:
+  </p>
+  <blockquote class={quote} data-pass-through="oecd">
+    <p>
+      "Except where additional restrictions apply as stated above, you can extract from, download, copy, adapt, print,
+      distribute, share and embed Data for any purpose, even for commercial use. You must give appropriate credit to
+      the OECD by using the citation associated with the relevant Data, or, if no specific citation is available, you
+      must cite the source information using the following format: OECD (year), (dataset name),(data source) DOI or URL
+      (accessed on (date)). When sharing or licensing work created using the Data, you agree to include the same
+      acknowledgment requirement in any sub-licenses that you grant, along with the requirement that any further
+      sub-licensees do the same."
+    </p>
+    <p class="mt-2">
+      "Data may be subject to restrictions beyond the scope of these Terms and Conditions, either because specific terms
+      apply to those Data or because third parties may have ownership interests."
+    </p>
+  </blockquote>
+  <p class={p}>
+    So when you use OECD data from pyeconomics, cite it as the OECD asks, and require the same of anyone you pass it on
+    to, and of anyone they pass it on to. Check a dataset's own metadata for third-party restrictions before you reuse
+    it. The OECD does not endorse pyeconomics or your use of its data, and provides the data "as is"; it is without
+    prejudice to the status of or sovereignty over any territory.
+  </p>
+
+  <h3 id="fred" class="mt-8 text-xl font-semibold">4.3 FRED® data on your own computer</h3>
+  <p class={p}>
+    This site never serves FRED® or ALFRED® data. When you use pyeconomics on your own computer to read them, with your
+    own key, you agree to be bound by the <a href={FRED_API_TERMS}>FRED® API Terms of Use</a>, and what pyeconomics
+    shows you from FRED carries the notice those terms require. FRED's terms forbid storing or caching its data, so
+    pyeconomics never writes it to disk.
+  </p>
+
+  <h3 id="hosted-sources" class="mt-8 text-xl font-semibold">4.4 Every source this site serves</h3>
+  <ul class="mt-3 max-w-3xl list-disc pl-6" data-hosted-terms="">
+    {
+      served.map((source) => (
+        <li>
+          <a href={source.terms_url} rel="noopener noreferrer">
+            {source.name}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2 id="not-advice" class={h2}>5. Not advice</h2>
+  <p class={p}>
+    The service is for education and information. It gives no investment, financial, tax, legal or accounting advice,
+    and nothing it returns is a recommendation. Read the <a href="/legal/disclaimers/">disclaimers</a>.
+  </p>
+
+  <h2 id="no-warranty" class={h2}>6. No warranty</h2>
+  <p class={`${p} uppercase`}>
+    The service, its results and its data are provided "as is" and "as available", without warranty of any kind,
+    express or implied, including any warranty of accuracy, completeness, timeliness, merchantability, fitness for a
+    particular purpose or non-infringement. We do not warrant that the service will be uninterrupted, error-free or
+    secure, or that its data is current or correct.
+  </p>
+
+  <h2 id="liability" class={h2}>7. Limitation of liability</h2>
+  <p class={p}>
+    To the fullest extent the law allows, we are not liable for any indirect, incidental, special, consequential or
+    punitive damages, or for any loss of profits, revenue, data or opportunity, arising from your use of the service,
+    its results or its data, even if we were told they were possible. Our total liability for all claims about the
+    service is limited to one hundred US dollars (US$100). Some laws do not allow these limits; where they do not, the
+    limits apply only as far as the law allows.
+  </p>
+  <CounselNote question="the amount of the cap, and whether the limits hold for readers in the EU and the UK." />
+
+  <h2 id="changes" class={h2}>8. Changes</h2>
+  <p class={p}>
+    We may change, suspend or end the service, or any part of it, at any time. We may change these terms; the date at
+    the top says when they last changed, and the repository keeps every earlier version. Using the service after a
+    change means you accept the new terms.
+  </p>
+
+  <h2 id="law" class={h2}>9. Governing law</h2>
+  <p class={p}>
+    These terms are governed by the laws of {GOVERNING_LAW}, without regard to its conflict-of-laws rules. Nothing in
+    them takes away rights the law where you live gives you and that cannot be given up by contract.
+  </p>
+  <CounselNote question="the governing law, and where a dispute is heard." />
+
+  <h2 id="contact" class={h2}>10. Contact</h2>
+  <p class={p}>
+    Write to {OPERATOR} at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Report a vulnerability privately
+    through the <a href={`${REPOSITORY}/blob/main/SECURITY.md`}>security policy</a>, never by email or a public issue.
+  </p>
+</Base>

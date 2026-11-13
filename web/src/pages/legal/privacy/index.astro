@@ -1,0 +1,168 @@
+---
+// web/src/pages/legal/privacy/index.astro
+// /legal/privacy/, the privacy policy (Phase 5 Step 16; ROADMAP §5 "Privacy";
+// ADR-0013 decision 20 and "Personal data"), generated from
+// src/content/legal/data-flows.json: each flow (what is collected, why, on
+// what basis, by which processor, where and for how long) and each processor
+// with its data processing agreement. tests/unit/legal.test.ts holds the file
+// complete against the Content Security Policy, and tests/web/test_data_flows.py
+// against ADR-0013's table and the hosts and logs the service keeps, so a flow
+// cannot exist without its row here. The short version up top states the
+// promises the tests prove: no cookie, no account, the calculator's inputs in
+// a POST body that is neither logged nor stored, a user's file parsed in the
+// browser and never uploaded, and Cloud Run's request logs excluded. An open
+// question for counsel is marked beside its flow.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import CounselNote from "@/components/CounselNote.astro";
+import Base from "@/layouts/Base.astro";
+import { CONTACT_EMAIL, DATA_FLOWS, LEGAL_INDEX, OPERATOR, PRIVACY, processorOf } from "@/lib/legal";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: LEGAL_INDEX.title, path: LEGAL_INDEX.path },
+  { name: PRIVACY.title, path: PRIVACY.path },
+];
+const h2 = "mt-10 text-2xl font-semibold";
+const p = "mt-3 max-w-3xl";
+---
+
+<Base
+  title={PRIVACY.title}
+  description={PRIVACY.description}
+  jsonLd={webPage(PRIVACY.path, PRIVACY.title, PRIVACY.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Legal"></span>
+  <h1 class="text-4xl font-bold tracking-tight">{PRIVACY.title}</h1>
+  <p class="mt-2 text-sm text-muted-foreground">Last updated {PRIVACY.updated}</p>
+  <p class="mt-4 max-w-3xl text-lg">
+    pyeconomics.dev is operated by {OPERATOR}, who decides what happens to the personal data described here (the
+    controller). Write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with any question or request.
+  </p>
+
+  <h2 id="short" class={h2}>The short version</h2>
+  <ul class="mt-3 max-w-3xl list-disc pl-6" data-promises="">
+    <li>No cookies, no accounts, no advertising, and no profiles. Nothing is sold or shared for advertising.</li>
+    <li>
+      The calculator sends your inputs with POST, in the request's body, so they never appear in a URL. The server neither
+      logs nor stores a run's body, and tells every cache not to keep the answer.
+    </li>
+    <li>
+      A file you use for "Use my own data" is read in your browser, in a Web Worker, and never uploaded: only the values
+      you map into the form travel, in the run's body.
+    </li>
+    <li>
+      Cloud Run's automatic request logs, which would record each URL, your IP address and your browser, are excluded
+      before they are stored. The service keeps its own records of each request's route, status and duration only, for
+      30 days, and no URL.
+    </li>
+    <li>Analytics count visits without cookies and honour Do Not Track; the local app counts nothing.</li>
+    <li>Your email address is kept only if you sign up for the newsletter or the Pro waitlist, and confirm it.</li>
+  </ul>
+
+  <h2 id="flows" class={h2}>What is collected, why, and for how long</h2>
+  <p class={p}>
+    Each way personal data could reach pyeconomics or the services it uses, with who processes it, where it is kept and
+    for how long. A processor handles the data only for pyeconomics, under the data processing agreement named in the
+    next section.
+  </p>
+  <div class="mt-6 flex flex-col gap-6">
+    {
+      DATA_FLOWS.flows.map((flow) => {
+        const processor = processorOf(flow);
+        return (
+          <section class="rounded-lg border p-4" aria-labelledby={`flow-${flow.id}`} data-flow={flow.id}>
+            <h3 id={`flow-${flow.id}`} class="text-lg font-semibold">
+              {flow.title}
+            </h3>
+            <dl class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[10rem_1fr]">
+              <dt class="font-medium">What</dt>
+              <dd>{flow.collected}</dd>
+              <dt class="font-medium">Why</dt>
+              <dd>{flow.purpose}</dd>
+              <dt class="font-medium">Lawful basis</dt>
+              <dd>{flow.basis}</dd>
+              <dt class="font-medium">Who processes it</dt>
+              <dd data-processor={flow.processor ?? ""}>
+                {processor ? <a href={`#processor-${processor.id}`}>{processor.name}</a> : "No one: it stays on your device"}
+              </dd>
+              <dt class="font-medium">Where</dt>
+              <dd>{flow.location}</dd>
+              <dt class="font-medium">How long</dt>
+              <dd>{flow.retention}</dd>
+            </dl>
+            {flow.counsel && <CounselNote question={flow.counsel} />}
+          </section>
+        );
+      })
+    }
+  </div>
+
+  <h2 id="processors" class={h2}>Processors and their agreements</h2>
+  <ul class="mt-4 flex flex-col gap-4">
+    {
+      DATA_FLOWS.processors.map((processor) => (
+        <li id={`processor-${processor.id}`} class="scroll-mt-24 rounded-lg border p-4 text-sm" data-processor-entry={processor.id}>
+          <p class="text-base font-semibold">{processor.name}</p>
+          <p class="mt-1">For {processor.service}.</p>
+          <p class="mt-1">
+            Agreement: <a href={processor.dpa.url} rel="noopener noreferrer">{processor.dpa.basis}</a>.
+          </p>
+          <p class="mt-1">
+            <a href={processor.privacy} rel="noopener noreferrer">
+              {processor.name}'s privacy policy
+            </a>
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2 id="transfers" class={h2}>Where the data goes</h2>
+  <p class={p}>
+    pyeconomics and most of its processors are in the United States, and so is most of the data described here. Where
+    personal data from the European Union, the European Economic Area, Switzerland or the United Kingdom goes to the
+    United States, the processors' agreements rely on the European Commission's standard contractual clauses (and the
+    United Kingdom's addendum) or an equivalent safeguard.
+  </p>
+  <CounselNote question="whether pyeconomics needs a representative in the EU or the UK, and the safeguards each transfer relies on." />
+
+  <h2 id="rights" class={h2}>Your rights</h2>
+  <p class={p}>
+    Wherever you live, you can ask what personal data pyeconomics holds about you, and ask for it to be corrected or
+    deleted. If you are in the EU, the EEA, Switzerland or the UK, you also have the rights the GDPR and the UK GDPR give
+    you: to access, rectify and erase your data, to restrict or object to its processing, to data portability, and to
+    withdraw consent at any time without affecting what was done before. You can complain to your data protection
+    authority. In California and other US states, you have the rights their privacy laws give you; pyeconomics does not
+    sell or share personal data as those laws define it.
+  </p>
+  <p class={p}>
+    To use a right, write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. You will have an answer within a
+    month. Most of what is described here holds no name, so pyeconomics may not be able to find data about you unless
+    you tell it what to look for, such as the email address you signed up with. To leave the newsletter or the waitlist,
+    use the unsubscribe link in any email; to have your address deleted from the email processor too, write to the
+    address above.
+  </p>
+
+  <h2 id="children" class={h2}>Children</h2>
+  <p class={p}>
+    pyeconomics is not directed at children under 16 and does not knowingly collect their personal data. If you believe
+    a child has signed up, write to the address above and the address will be deleted.
+  </p>
+
+  <h2 id="security" class={h2}>Security</h2>
+  <p class={p}>
+    Every connection to pyeconomics.dev is encrypted (HTTPS, with HSTS). The service keeps no input, file or key, the
+    snapshot bucket is private, and the service's secrets live in a secret manager. Report a vulnerability through the
+    <a href="https://github.com/pyeconomics-dev/pyeconomics/blob/main/SECURITY.md">security policy</a>.
+  </p>
+
+  <h2 id="changes" class={h2}>Changes to this policy</h2>
+  <p class={p}>
+    This policy is generated from the same file that the site's tests check against what the site and the service
+    really do. When a flow or a processor changes, the policy changes with it, in the same change to the repository, and
+    the date at the top moves. The repository keeps every earlier version.
+  </p>
+</Base>
