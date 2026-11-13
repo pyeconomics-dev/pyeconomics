@@ -36,13 +36,14 @@ pages read that day.
 | Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | | |
 | International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | | |
 | Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
-| Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | not yet | #313 | | |
+| Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | 2026-11-12, by web form | #313 | | |
 | Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | 2026-11-12, by email | #314 | | |
 | CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | | |
 
-The seven emailed letters went out on 2026-11-12 from nathan.ramos.github@gmail.com,
-sent through the Gmail API with a send-only grant that was revoked after sending; their
-follow-ups are due on 2026-12-12. The Atlanta Fed's goes through its web form.
+All eight letters went out on 2026-11-12: seven by email from
+nathan.ramos.github@gmail.com, sent at the maintainer's request through the Gmail API
+with a send-only grant revoked after sending, and the Atlanta Fed's through its web
+form. Follow-ups are due on 2026-12-12.
 
 ## What each letter asks
 
@@ -222,6 +223,17 @@ Send through the [GDPNow inquiry form](https://www.atlantafed.org/en/research-an
 The GDPNow page grants reproduction "for personal and educational use only"; the
 Bank's terms of use allow reproduction "not for commercial gain or monetary profit"
 with attribution.
+
+The form's Question field takes at most 512 characters, and its server refuses as
+"invalid input" both a version with quotation marks, apostrophes, parentheses and a
+slash and one naming the site's domain. So the form carried this plain 469-character
+version of the letter below, submitted on 2026-11-12 (the page answered "You should
+receive a response within 48 hours"); the full letter goes by email if the team asks
+for detail:
+
+> I maintain pyeconomics, a free and open source Python library of economics models, published on GitHub as pyeconomics-dev. May our non-commercial website display the GDPNow estimates in charts, keep a daily copy, offer them as downloads and pass them to an AI assistant a visitor connects, never for training, each credited to the Federal Reserve Bank of Atlanta, GDPNow? Until you allow it, GDPNow stays on the computers of our users only. Thank you. Nathan Ramos, CFA
+
+The full letter:
 
 > **Subject:** Permission request: GDPNow on a non-commercial, open-source model site
 >
