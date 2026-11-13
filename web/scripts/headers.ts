@@ -4,7 +4,10 @@
 // header can carry frame-ancestors, and the Cloudflare adapter sends none, so
 // this step reads every page's policy and writes their union into
 // dist/_headers, with the other security headers and a year's immutable
-// caching for /_astro/*.
+// caching for /_astro/*. A build that carries security.txt (every one but the
+// app wheel's) also gives it RFC 9116's media type, `text/plain;
+// charset=utf-8`, which Cloudflare's assets omit the charset of (Phase 5 Step
+// 16).
 //
 // It fails the build, naming each problem, on:
 // - 'unsafe-inline', 'unsafe-eval' or any source csp.config.ts does not allow;
@@ -42,8 +45,16 @@ import {
   IMMUTABLE,
   SECURITY_HEADERS,
 } from "../csp.config.ts";
+import { SECURITY_TXT_PATH, carriesSecurityTxt } from "../src/lib/security-txt.ts";
 
 const WEB = fileURLToPath(new URL("..", import.meta.url));
+
+/**
+ * security.txt's media type, as RFC 9116 section 3 requires it ("text/plain"
+ * with charset "utf-8"). Cloudflare's static assets send a bare `text/plain`
+ * for a .txt file, and a _headers rule overrides what Cloudflare sends.
+ */
+export const SECURITY_TXT_TYPE = "text/plain; charset=utf-8";
 
 /** Cloudflare's limits on a _headers file (ADR-0013 decision 9). */
 export const MAX_LINE = 2000;
@@ -354,11 +365,13 @@ export function siteFlavour(given: string | undefined = process.env.SITE_FLAVOUR
  * The _headers file: the policy and security headers on every path, noindex
  * on every path of a build that must not be indexed, and caching.
  */
-export function renderHeaders(policy: Policy, index = true): string {
+export function renderHeaders(policy: Policy, index = true, securityTxt = false): string {
   const lines = ["/*", `  Content-Security-Policy: ${formatPolicy(policy)}`];
   const every = { ...SECURITY_HEADERS, ...(index ? {} : NOINDEX) };
   for (const [name, value] of Object.entries(every)) lines.push(`  ${name}: ${value}`);
   lines.push("/_astro/*", `  Cache-Control: ${IMMUTABLE}`);
+  // Only a build that carries security.txt (scripts/indexing.ts) gets its rule.
+  if (securityTxt) lines.push(SECURITY_TXT_PATH, `  Content-Type: ${SECURITY_TXT_TYPE}`);
   return `${lines.join("\n")}\n`;
 }
 
@@ -393,7 +406,7 @@ export interface BuildReport {
 }
 
 /** Check a build output directory and return the _headers text it needs. */
-export function checkBuild(dist: string, index = true): BuildReport {
+export function checkBuild(dist: string, index = true, securityTxt = false): BuildReport {
   const problems: string[] = [];
   const files = walk(dist);
   for (const name of SERVER_OUTPUT) {
@@ -419,7 +432,7 @@ export function checkBuild(dist: string, index = true): BuildReport {
   const policy = headerPolicy(union);
   const header = checkPolicy(policy);
   problems.push(...header.problems.map((problem) => `the header policy: ${problem}`));
-  const headers = renderHeaders(policy, index);
+  const headers = renderHeaders(policy, index, securityTxt);
   problems.push(...checkHeaders(headers));
   return { problems, pages: pages.length, headers };
 }
@@ -441,7 +454,7 @@ function main(): number {
     process.stderr.write(`headers: ${(error as Error).message}\n`);
     return 1;
   }
-  const report = checkBuild(dist, index);
+  const report = checkBuild(dist, index, carriesSecurityTxt(flavour));
   if (report.problems.length > 0) {
     process.stderr.write(
       `headers: the build breaks decision 9's policy (ADR-0013):\n${report.problems
