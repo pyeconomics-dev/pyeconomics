@@ -123,6 +123,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- Display formulas on the site no longer show a vertical scrollbar beside them
+  in browsers that always draw scrollbars (Chrome and Edge on Windows). A
+  formula's box scrolls sideways only, with room for tall glyphs (#319).
 - `nyfed`'s reference rates carry every notice the New York Fed's Terms of Use
   require: the disclaimer of a service that names a rate, the label of modified
   content (percentages shown as decimals) and, on SOFR and BGCR, DTCC Solutions'

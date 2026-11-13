@@ -81,9 +81,14 @@
 
   /*
    * MathML from KaTeX: a display formula (math display="block", inside its
-   * span.katex) sits on its own line and scrolls rather than overflowing.
+   * span.katex) sits on its own line and scrolls sideways rather than
+   * overflowing. overflow-x alone would make overflow-y auto too (CSS turns the
+   * other axis's visible into auto), and MathML boxes reach a few pixels past
+   * the line, so every formula showed a vertical scrollbar where scrollbars
+   * are always drawn (Windows; issue #319). The padding keeps tall glyphs from
+   * being clipped.
    */
   .katex:has(> math[display="block"]) {
-    @apply my-4 block max-w-full overflow-x-auto;
+    @apply my-4 block max-w-full overflow-x-auto overflow-y-hidden py-1;
   }
 }
