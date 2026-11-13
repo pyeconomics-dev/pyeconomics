@@ -31,14 +31,18 @@ pages read that day.
 
 | Recipient | Published contact | Sent | Issue | Answer | Outcome |
 |-----------|-------------------|------|-------|--------|---------|
-| Federal Reserve Bank of St. Louis (FRED, ALFRED) | [FRED contact form](https://fred.stlouisfed.org/contactus/), "Permissions to use the Data" | not yet | #308 | | |
-| Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | not yet | #309 | | |
-| Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | not yet | #310 | | |
-| International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | not yet | #311 | | |
-| Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | not yet | #312 | | |
+| Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | | |
+| Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | | |
+| Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | | |
+| International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | | |
+| Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
 | Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | not yet | #313 | | |
-| Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | not yet | #314 | | |
-| CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | not yet | #315 | | |
+| Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | 2026-11-12, by email | #314 | | |
+| CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | | |
+
+The seven emailed letters went out on 2026-11-12 from nathan.ramos.github@gmail.com,
+sent through the Gmail API with a send-only grant that was revoked after sending; their
+follow-ups are due on 2026-12-12. The Atlanta Fed's goes through its web form.
 
 ## What each letter asks
 
@@ -63,8 +67,9 @@ for percentages shown as decimals (labelled), and promises removal on request.
 
 ### 1. Federal Reserve Bank of St. Louis: FRED® and ALFRED®
 
-Send through the [FRED contact form](https://fred.stlouisfed.org/contactus/):
-product "FRED API", topic "Permissions to use the Data". FRED's terms forbid
+Email stlsFRED@stls.frb.org, the address FRED's legal page prefers for questions
+about its data (its [contact form](https://fred.stlouisfed.org/contactus/), topic
+"Permissions to use the Data", is the other route). FRED's terms forbid
 storing or caching FRED content, and the Bank cannot grant permission for series
 owned by third parties, so the letter asks only about what the Bank owns.
 

@@ -9596,7 +9596,11 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
 - The letters are in `docs/operations/permissions.md`, each sent by the
   maintainer and tracked by an issue; CFA Institute's asks about URL paths.
 - ADR-0009 records the clearance search (or its expected date) and any
-  filing; `docs/operations/counsel-review.md` is with counsel.
+  filing; `docs/operations/counsel-review.md` is with counsel. *Amended
+  2026-11-12 by the maintainer's decision: counsel was not yet engaged, so
+  the packet is ready and is sent once counsel is engaged, before Step 18,
+  whose gate fails without counsel's review unless the maintainer waives it
+  with a recorded reason.*
 - **Deployed & verified:** the dispatched `deploy-production.yml` run on
   this step's merge commit succeeded; through Access, production's six
   legal and trust URLs answer 200 with their headers,
