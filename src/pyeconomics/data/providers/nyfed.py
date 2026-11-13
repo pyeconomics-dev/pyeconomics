@@ -69,13 +69,46 @@ _NOWCAST: Final = (
 )
 
 
+#: The Terms of Use's notice for the two rates calculated from DTCC Solutions'
+#: data ("Use Restrictions", "Reference Rates"; read 2026-11-12), verbatim.
+DTCC_NOTICE: Final = (
+    "The Secured Overnight Financing Rate (SOFR) Data and Broad General "
+    "Collateral Rate (BGCR) Data are calculated using data provided under a "
+    "license granted to the New York Fed by DTCC Solutions LLC "
+    "(“Solutions”), an affiliate of The Depository Trust & Clearing "
+    "Corporation. Solutions, its affiliates, and third parties from which they "
+    "obtained data have no liability for the content of this material."
+)
+_DTCC_RATES: Final = frozenset({"sofr", "bgcr"})
+
+
 def _reference_notice(name: str) -> str:
-    return (
-        f"{NOTICE} The {name.upper()} is subject to the Terms of Use posted at "
-        f"newyorkfed.org. The New York Fed is not responsible for publication of "
-        f"the {name.upper()} by pyeconomics, does not sanction or endorse any "
-        "particular republication, and has no liability for your use."
+    """Return the notice a reference rate's data carries wherever it appears.
+
+    The Terms of Use's own form for reference rate data, completed for the
+    rate and for pyeconomics; the disclaimer it asks of a service that names a
+    rate; the label it asks of modified content (the percentages become
+    decimals, ADR-0008); and, for SOFR and BGCR, DTCC Solutions' notice.
+    """
+    rate = name.upper()
+    terms_notice = (
+        f"The {rate} is subject to the Terms of Use posted at newyorkfed.org. "
+        f"The New York Fed is not responsible for publication of the {rate} by "
+        "pyeconomics, does not sanction or endorse any particular republication, "
+        "and has no liability for your use."
     )
+    not_affiliated = (
+        "pyeconomics is not affiliated with the New York Fed. The New York Fed "
+        "does not sanction, endorse, or recommend any products or services "
+        "offered by pyeconomics."
+    )
+    modified = (
+        "Modified by pyeconomics: the published percentages are shown as decimals."
+    )
+    parts = [NOTICE, terms_notice, not_affiliated, modified]
+    if name in _DTCC_RATES:
+        parts.append(DTCC_NOTICE)
+    return " ".join(parts)
 
 
 class NyFed(DataProvider):
