@@ -7,7 +7,7 @@
 import AxeBuilder from "@axe-core/playwright";
 
 import { modelPath } from "../../src/lib/paths.ts";
-import { expect, test } from "./support.ts";
+import { expect, test, useColorScheme } from "./support.ts";
 import { MODELS } from "./catalog.ts";
 
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -58,7 +58,7 @@ test("/search/ lists results with a model's domain and summary, sends nothing of
   await expect(hit).toContainText("Macaulay");
   await expect(page.locator("[data-search-status]")).toContainText("for “duration”");
   for (const colorScheme of ["light", "dark"] as const) {
-    await page.emulateMedia({ colorScheme });
+    await useColorScheme(page, colorScheme);
     const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     expect(results.violations.map((violation) => `${colorScheme} ${violation.id}: ${violation.help}`)).toEqual([]);
   }

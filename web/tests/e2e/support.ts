@@ -9,11 +9,13 @@
 // (tests/web/e2e_api.py) and hands the page its answer unchanged, so the
 // browser still sees one origin. The `network` fixture records every request
 // the page makes, to any origin, with its body (the privacy test's log).
+// `useColorScheme` switches a loaded page's colour scheme for axe and waits
+// for the CSS transitions the switch starts.
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 
 export const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 
@@ -126,5 +128,24 @@ export const test = base.extend<{ watch: Watch; api: ApiLog; network: NetworkLog
     { auto: true },
   ],
 });
+
+/**
+ * Switch a loaded page to a colour scheme and wait until every CSS transition
+ * the switch started has finished. A button's `transition-all` otherwise shows
+ * axe a colour half-way between the two schemes on a slow runner: the footer's
+ * sign-up button failed color-contrast that way in CI, in light and in dark
+ * (PR #318). Only transitions are awaited: a looping animation never finishes.
+ */
+export async function useColorScheme(page: Page, colorScheme: "light" | "dark"): Promise<void> {
+  await page.emulateMedia({ colorScheme });
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation instanceof CSSTransition)
+        .map((animation) => animation.finished),
+    ),
+  );
+}
 
 export { expect };
