@@ -32,7 +32,7 @@ pages read that day.
 | Recipient | Published contact | Sent | Issue | Answer | Outcome |
 |-----------|-------------------|------|-------|--------|---------|
 | Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | | |
-| Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | | |
+| Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | 2026-11-13, by email from Professor French: we may not include the data in software we distribute | Declined: `ken_french` stays library-only; nothing we distribute holds the data (section 2) |
 | Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | 2026-11-13, by email: they cannot permit showing S&P data, which belongs to S&P; they named S&P's licensing contact | Declined: `shiller` stays library-only; no S&P licence sought (section 3) |
 | International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | 2026-11-13: an automatic reply only, pointing to the Copyright Clearance Center; no answer from a person yet | |
 | Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
@@ -127,6 +127,27 @@ ICE BofA, so the letter asks about the authors' rights and acknowledges the inpu
 > Nathan Ramos, CFA
 > Maintainer, pyeconomics
 > nathan.ramos.github@gmail.com · https://github.com/pyeconomics-dev/pyeconomics
+
+**Answer (2026-11-13).** Professor French replied himself: "I'm sorry, but you
+may not include the data in software you distribute."
+
+**Outcome.** Declined. `ken_french` stays library-only and the hosted site never
+serves it, so the live data of `asset_pricing.factor_regression`,
+`asset_pricing.factor_model_tests`, `econometrics.garch`,
+`portfolio.black_litterman` and `portfolio.risk_based_allocation` runs on a user's
+own computer only. An audit the same day found the data in nothing we distribute:
+
+- the wheels hold the provider's code, which downloads the files from his site at
+  run time, on the user's machine;
+- the provider's cassettes (in the sdist) are synthetic, as every library-only
+  source's must be;
+- the five models' golden cases cite papers, NIST StRD and identities; and
+- their worked examples (on the site and in the app wheel) are invented or
+  seeded-simulated values.
+
+Keep it so: no file of his, or values copied from one, is ever committed,
+packaged, cached on our servers or shown on the site. Issue #309 is closed as
+declined.
 
 ### 3. Robert J. Shiller: US stock market data and the CAPE ratio
 
