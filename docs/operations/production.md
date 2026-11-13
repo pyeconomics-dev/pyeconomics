@@ -335,7 +335,7 @@ Left alone, the cap lifts by itself on the first of the next month.
 
 ---
 
-## 5. The Cutover (Phase 5 Step 19)
+## 5. The Cutover (Phase 5 Step 21)
 
 Opening the site removes Access and nothing else. The origin still refuses requests
 without the edge credential, and the rate rule and the managed WAF stay on.
@@ -959,7 +959,7 @@ them is configured by hand. What each is generated from, and what keeps it true:
 A change to a processor, a region, a retention period or a log is a change to
 `data-flows.json` in the same pull request, which moves the policy's date; an open
 counsel question stays marked on its page and listed in
-`docs/operations/counsel-review.md` until counsel answers (Step 18).
+`docs/operations/counsel-review.md` until counsel answers (Step 20).
 
 ### 13.1 Renewing security.txt
 

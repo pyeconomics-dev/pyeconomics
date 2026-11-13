@@ -3,7 +3,7 @@
 The packet the maintainer sends to counsel before pyeconomics.dev goes public
 (ROADMAP §5 "Legal & brand guardrails": counsel reviews the pages and the licensing
 policy before the Phase 5 launch; ADR-0013 decision 20). Prepared in Phase 5 Step
-16 on 2026-11-12. Phase 5 Step 18, the launch readiness gate, records counsel's
+16 on 2026-11-12. Phase 5 Step 20, the launch readiness gate, records counsel's
 answers in the outcome table below; a missing review is a FAIL there unless the
 maintainer waives it with a recorded reason.
 
@@ -31,7 +31,7 @@ counsel.
 
 ## What to review
 
-Production is behind Cloudflare Access until the cutover (Step 19): the maintainer
+Production is behind Cloudflare Access until the cutover (Step 21): the maintainer
 sends counsel each page as a PDF printed from production, and the source of each
 is public at the repository paths given.
 
@@ -118,7 +118,7 @@ where they arise, in these words, until counsel answers.
     month; the email processor soft-deletes an unsubscribed address and erases it on
     request. Is that adequate?
 
-## Outcome (Step 18)
+## Outcome (Step 20)
 
 | Question | Counsel's answer | Change made | Date |
 |----------|------------------|-------------|------|
