@@ -974,6 +974,9 @@ ROADMAP §4 5.7):
   `web/src/lib/security-txt.ts` into every build but the app wheel's; never put one
   in `public/`. Its `Expires` stays under a year ahead and the unit test fails 30 days
   before it passes: renew it as `docs/operations/production.md` section 13.1 says.
+  Cloudflare's assets send a bare `text/plain`, so `web/scripts/headers.ts` gives it
+  `text/plain; charset=utf-8` in `_headers` (RFC 9116 section 3); `wrangler dev`
+  adds the charset itself, so only a deployed site shows the difference.
 - `/legal/licence/` reads `LICENSE`, `NOTICE` and the production tree of
   `web/package-lock.json` at build time (`web/src/lib/licences.ts`); its
   `BUILD_OUTPUT` is held equal to `scripts/checks/web_licences.py`'s.

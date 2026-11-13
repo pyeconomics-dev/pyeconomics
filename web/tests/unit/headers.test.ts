@@ -237,6 +237,13 @@ describe("headerPolicy and renderHeaders", () => {
     expect(checkHeaders(text)).toEqual([]);
   });
 
+  it("gives security.txt RFC 9116's media type, only in a build that carries it", () => {
+    const site = renderHeaders(headerPolicy(new Map()), true, true);
+    expect(site.endsWith("\n/.well-known/security.txt\n  Content-Type: text/plain; charset=utf-8\n")).toBe(true);
+    expect(checkHeaders(site)).toEqual([]);
+    expect(renderHeaders(headerPolicy(new Map()))).not.toContain("security.txt");
+  });
+
   it("refuses indexing on every path of a build that must not be indexed", () => {
     const text = renderHeaders(headerPolicy(new Map()), false);
     const [every] = text.split("\n/_astro/*\n");
