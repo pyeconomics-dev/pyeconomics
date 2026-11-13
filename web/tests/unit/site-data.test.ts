@@ -60,12 +60,15 @@ describe("the site data", () => {
           "llm_use",
           "name",
           "notice",
+          "snapshot_series",
           "storage",
           "terms_checked",
           "terms_url",
         ].sort(),
       );
       expect(source.hosted).toBe(source.licence === "hosted-safe" || source.licence === "user-supplied");
+      // Only a source hosted mode may serve is ever in the snapshot (Phase 5 Step 16's /sources/).
+      expect(source.snapshot_series === 0 || source.hosted, source.id).toBe(true);
     }
   });
 

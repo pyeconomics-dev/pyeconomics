@@ -1,0 +1,18 @@
+---
+// web/src/components/CounselNote.astro
+// A question counsel has still to answer about the text beside it (Phase 5
+// Step 16: the legal pages mark their open counsel questions). Each one is
+// listed in docs/operations/counsel-review.md; Step 18 records counsel's
+// answers, and the page's text changes and the note goes once counsel has
+// answered. tests/site/ counts them, so none disappears unrecorded.
+interface Props {
+  question: string;
+}
+
+const { question } = Astro.props;
+---
+
+<p class="mt-2 max-w-3xl rounded-md border border-dashed p-3 text-sm text-muted-foreground" data-counsel="">
+  <span class="font-medium text-foreground">Under review by counsel before launch:</span>
+  {question}
+</p>

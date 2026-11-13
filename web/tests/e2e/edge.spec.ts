@@ -5,6 +5,8 @@
 // answers 503 with nosniff; every other path is the assets', the 404 page
 // when nothing matches, navigation or not, and never reaches the Worker. A
 // local build sends no X-Robots-Tag; only a staging build refuses indexing.
+// security.txt answers as RFC 9116 asks: UTF-8 plain text at /.well-known/.
+import { SECURITY_TXT_PATH, securityTxtProblems } from "../../src/lib/security-txt.ts";
 import { expect, headerPolicy, test } from "./support.ts";
 
 const API_PATHS = ["/v1/models", "/mcp", "/healthz", "/version", "/openapi.json"];
@@ -49,4 +51,13 @@ test("pages and files are the assets', with the policy and no X-Robots-Tag", asy
     expect(headers["content-security-policy"], path).toBe(headerPolicy());
     expect(headers["x-robots-tag"], path).toBeUndefined();
   }
+});
+
+test("security.txt answers at /.well-known/ as UTF-8 plain text with RFC 9116's fields (Phase 5 Step 16)", async ({
+  request,
+}) => {
+  const response = await request.get(SECURITY_TXT_PATH);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toMatch(/^text\/plain;\s*charset=utf-8$/i);
+  expect(securityTxtProblems(await response.text(), new Date())).toEqual([]);
 });

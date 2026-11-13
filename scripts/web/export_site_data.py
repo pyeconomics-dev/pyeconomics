@@ -17,7 +17,8 @@ directory, ``web/src/data/generated/`` by default:
   to local mode, the command (``surfaces.problem_guide``), and what each exit
   code means;
 - ``sources.json``: every provider's licence class, terms page, attribution,
-  notice and whether hosted mode serves it, sorted by id;
+  notice, whether hosted mode may serve it and how many of its series the
+  hosted snapshot holds (``/sources/``, Phase 5 Step 16), sorted by id;
 - ``concepts.json``: every catalog concept with its unit, frequency and
   candidates, whether hosted mode may use one of them (``hosted``) and whether
   the hosted site serves it from the snapshot (``snapshot``: the snapshot set
@@ -122,7 +123,7 @@ def problems_document() -> dict[str, Any]:
     }
 
 
-def _source(info: ProviderInfo) -> dict[str, Any]:
+def _source(info: ProviderInfo, snapshot_series: int) -> dict[str, Any]:
     from pyeconomics.data.providers.base import AuthKind  # noqa: PLC0415
 
     terms = info.terms
@@ -132,6 +133,7 @@ def _source(info: ProviderInfo) -> dict[str, Any]:
         "name": info.name,
         "licence": terms.licence.value,
         "hosted": terms.licence.hosted_allowed,
+        "snapshot_series": snapshot_series,
         "terms_url": terms.terms_url,
         "terms_checked": terms.checked,
         "attribution": terms.attribution,
@@ -145,11 +147,24 @@ def _source(info: ProviderInfo) -> dict[str, Any]:
 
 
 def sources_document() -> dict[str, Any]:
-    """Describe every installed provider from its metadata, sorted by id."""
-    from pyeconomics.data import registry  # noqa: PLC0415
+    """Describe every installed provider from its metadata, sorted by id.
 
+    ``snapshot_series`` counts the provider's series in the hosted snapshot set
+    (:func:`~pyeconomics.data.snapshots.set.snapshot_set`, never by hand): the
+    hosted site serves a provider's data only when it is above zero.
+    """
+    from pyeconomics.data import registry  # noqa: PLC0415
+    from pyeconomics.data.snapshots.set import snapshot_set  # noqa: PLC0415
+
+    entries = snapshot_set().entries
     infos = sorted(registry.installed().infos(), key=lambda info: info.id)
-    return {"format": SITE_DATA_FORMAT, "sources": [_source(i) for i in infos]}
+    return {
+        "format": SITE_DATA_FORMAT,
+        "sources": [
+            _source(info, sum(1 for e in entries if e.provider == info.id))
+            for info in infos
+        ],
+    }
 
 
 def _candidate(candidate: CandidateInfo) -> dict[str, Any]:

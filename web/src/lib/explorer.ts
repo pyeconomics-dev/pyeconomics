@@ -348,9 +348,24 @@ export function asOfDate(records: readonly SeriesRecord[]): string {
   return record.observation_end ?? "";
 }
 
-/** The note every chart carries: the attributions, and the date the data is as of. */
+/**
+ * The note every chart carries: the attributions and required notices, and
+ * the date the data is as of. A document without its `attributions` list gets
+ * them from its records as the server builds that list
+ * (surfaces/documents.py attributions): every attribution, then every notice,
+ * once each, so no chart drops a notice (Phase 5 Step 16's audit).
+ */
 export function chartNote(document: Pick<SeriesDocument, "attributions" | "sources">): string {
-  const texts = document.attributions.length > 0 ? document.attributions : [...new Set(document.sources.map((r) => r.attribution))];
+  const records = document.sources.filter((record) => record.licence !== "user-supplied");
+  const texts =
+    document.attributions.length > 0
+      ? document.attributions
+      : [
+          ...new Set([
+            ...records.map((record) => record.attribution),
+            ...records.flatMap((record) => (record.notice ? [record.notice] : [])),
+          ]),
+        ];
   const date = asOfDate(document.sources);
   return [...texts, date ? `Data as of ${date}.` : ""].filter(Boolean).join(" ");
 }

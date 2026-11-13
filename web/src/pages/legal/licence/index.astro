@@ -1,0 +1,114 @@
+---
+// web/src/pages/legal/licence/index.astro
+// /legal/licence/ (Phase 5 Step 16; ROADMAP §4 5.7): pyeconomics' own licence,
+// Apache-2.0, with its NOTICE, both read verbatim from the repository's root,
+// and the licences of the third-party code this site sends to browsers,
+// generated at build time from the production dependency tree
+// (src/lib/licences.ts). The bundles keep few licence comments, and the
+// pyeconomics-app wheel redistributes this site, so this page is the notice
+// for both. Each package's licence text is its own file, verbatim, behind a
+// disclosure; search indexes the page's prose, not the licence texts.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { ANALYTICS } from "../../../../csp.config.ts";
+import { LEGAL_INDEX, LICENCE_PAGE, REPOSITORY } from "@/lib/legal";
+import { licenceCounts, repositoryFile, shippedLicences } from "@/lib/licences";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: LEGAL_INDEX.title, path: LEGAL_INDEX.path },
+  { name: LICENCE_PAGE.title, path: LICENCE_PAGE.path },
+];
+const packages = shippedLicences(process.cwd(), ANALYTICS !== null);
+const counts = licenceCounts(packages);
+const license = repositoryFile("LICENSE");
+const notice = repositoryFile("NOTICE");
+const pre = "mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-muted px-4 py-3 text-xs";
+---
+
+<Base
+  title={LICENCE_PAGE.title}
+  description={LICENCE_PAGE.description}
+  jsonLd={webPage(LICENCE_PAGE.path, LICENCE_PAGE.title, LICENCE_PAGE.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Legal"></span>
+  <h1 class="text-4xl font-bold tracking-tight">{LICENCE_PAGE.title}</h1>
+  <p class="mt-4 max-w-3xl text-lg">
+    pyeconomics is free and open-source software, licensed under the
+    <a href={`${REPOSITORY}/blob/main/LICENSE`}>Apache License, Version 2.0</a>. Releases up to and including the 0.2.x
+    series remain under the MIT License, as published.
+  </p>
+  <p class="mt-2 max-w-3xl">
+    The licence covers the software: the Python package, the command line, the API and MCP servers, the local app and
+    this site's own code. The data the models read is not pyeconomics' to license; each source's terms govern it (see
+    <a href="/sources/">Data sources and licences</a>). Last updated {LICENCE_PAGE.updated}.
+  </p>
+
+  <section class="mt-10" aria-labelledby="notice-heading">
+    <h2 id="notice-heading" class="text-2xl font-semibold">NOTICE</h2>
+    <pre class={pre} role="region" tabindex="0" aria-label="The NOTICE file" data-notice-file=""><code>{notice}</code></pre>
+  </section>
+
+  <section class="mt-10" aria-labelledby="apache-heading">
+    <h2 id="apache-heading" class="text-2xl font-semibold">The Apache License, Version 2.0</h2>
+    <details class="mt-2" data-pagefind-ignore="all">
+      <summary class="cursor-pointer">The licence's full text</summary>
+      <pre class={pre} role="region" tabindex="0" aria-label="The Apache License, Version 2.0" data-license-file=""><code>{license}</code></pre>
+    </details>
+  </section>
+
+  <section class="mt-10" aria-labelledby="third-party">
+    <h2 id="third-party" class="text-2xl font-semibold">Third-party code this site sends to browsers</h2>
+    <p class="mt-2 max-w-3xl">
+      The pages and their scripts include code from {packages.length} packages, each under a permissive licence: {
+        counts.map(([licence, count], index) => (
+          <Fragment>
+            {index > 0 && (index === counts.length - 1 ? " and " : ", ")}
+            {String(count)} <code>{licence}</code>
+          </Fragment>
+        ))
+      }. Each one's licence, as the package ships it, is below. The same files are in the pyeconomics-app wheel, which
+      carries this site to your computer.
+    </p>
+    <ul class="mt-4 flex flex-col gap-2 text-sm" data-third-party="">
+      {
+        packages.map((entry) => (
+          <li class="rounded-md border px-3 py-2" data-package={entry.name} data-package-licence={entry.licence}>
+            <details>
+              <summary class="cursor-pointer">
+                <span class="font-medium">{entry.name}</span> {entry.version} · <code>{entry.licence}</code>
+              </summary>
+              <p class="mt-2 text-muted-foreground">
+                {entry.why}
+                {entry.url && (
+                  <Fragment>
+                    {" · "}
+                    <a href={entry.url} rel="noopener noreferrer">
+                      source
+                    </a>
+                  </Fragment>
+                )}
+              </p>
+              {entry.text ? (
+                <pre
+                  class={pre}
+                  role="region"
+                  tabindex="0"
+                  aria-label={`The licence of ${entry.name}`}
+                  data-pagefind-ignore="all"
+                ><code>{entry.text}</code></pre>
+              ) : (
+                <p class="mt-2">
+                  The package ships no licence file; its package metadata declares <code>{entry.licence}</code>.
+                </p>
+              )}
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

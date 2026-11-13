@@ -44,6 +44,10 @@ const SAMPLE = [
   // Step 15's sign-up forms and the Pro preview
   "/newsletter/",
   "/pro/",
+  // Step 16's legal and trust pages: decision 19's two, and the terms
+  "/legal/privacy/",
+  "/sources/",
+  "/legal/terms/",
   NOT_FOUND,
 ];
 

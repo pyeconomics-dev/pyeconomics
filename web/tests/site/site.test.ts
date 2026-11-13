@@ -15,7 +15,14 @@
 // page's link to its documentation page. Step 15: the sign-up forms' action,
 // method and fields, the Pro preview's disclosure and prices with no payment
 // field, every click an element records on the analytics allowlist, and no
-// tracker in a build that is not production's.
+// tracker in a build that is not production's. Step 16's legal and trust
+// pages: all six and security.txt built, each in every page's footer and
+// marked for search; /sources/ listing every provider with its class and
+// notices; FRED's notice only where /sources/ marks it local; the
+// hypothetical-results legend on exactly the models the tags mark; the New
+// York Fed's and the OECD's conditions passed through; the privacy policy
+// holding every data flow and processor; the licence page every shipped
+// package; and every open counsel question recorded in the counsel packet.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,21 +35,22 @@ import { dataProfiles, docsUrl, unservedSources } from "@/lib/models";
 import { TRACKER_PATH } from "@/lib/analytics";
 import { checkEvent } from "@/lib/events";
 import { ogImagePath } from "@/lib/pages";
+import { CFTC_STATEMENT, DATA_FLOWS, HYPOTHETICAL_LEGEND, LEGAL_INDEX, LEGAL_PAGES, simulates } from "@/lib/legal";
+import { shippedLicences } from "@/lib/licences";
 import { PRO_DISCLOSURE, PRO_TIERS } from "@/lib/pro";
+import { parseModels } from "@/lib/registry-schema";
+import { SECURITY_TXT_PATH, VULNERABILITY_REPORTING, parseSecurityTxt, securityTxtProblems } from "@/lib/security-txt";
 import { PRIVACY_POLICY, SIGNUP_ACTION } from "@/lib/signup";
 import { conceptData, problemData, registryData, sourceData, syllabusData } from "@/lib/site-data";
 
 const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 
 /**
- * Internal links to pages a later step builds, each with that step. Step 16
- * writes the legal pages and /sources/, and removes its rows here.
+ * Internal links to pages a later step builds, each with that step, which
+ * removes its row when the page exists. Empty since Step 16 built the legal
+ * pages and /sources/.
  */
-const PLANNED: ReadonlyMap<string, string> = new Map([
-  ["/legal/disclaimers/", "Phase 5 Step 16"],
-  ["/sources/", "Phase 5 Step 16"],
-  ["/legal/privacy/", "Phase 5 Step 16"],
-]);
+const PLANNED: ReadonlyMap<string, string> = new Map();
 
 /** The model page sections, in order; `data` only for a model with bindings. */
 const SECTIONS = [
@@ -412,7 +420,10 @@ describe("CFA Institute's marks", () => {
   it("uses the mark as an adjective, with ® on first use, beside the non-affiliation notice", () => {
     const ALLOWED = /^CFA(® Program|® and Chartered Financial Analyst®| Program| Institute)/;
     for (const file of DOCUMENTS) {
-      const words = text(readFileSync(join(DIST, file), "utf8"));
+      // The maintainer's designation after his name ("Sign as 'Nathan Ramos,
+      // CFA'", ROADMAP §5), which the licence page's NOTICE carries, is not
+      // the mark used as an adjective and takes no ®.
+      const words = text(readFileSync(join(DIST, file), "utf8")).replaceAll("Nathan Ramos, CFA", "Nathan Ramos");
       const uses = [...words.matchAll(/CFA/g)].map((match) => words.slice(match.index, match.index + 40));
       for (const use of uses) expect(use, file).toMatch(ALLOWED);
       const marks = uses.filter((use) => !use.startsWith("CFA Institute"));
@@ -534,5 +545,116 @@ describe("growth signals (Phase 5 Step 15)", () => {
         expect(footer, `${path}: ${href}`).toContain(`href="${href}"`);
       }
     }
+  });
+});
+
+describe("legal and trust (Phase 5 Step 16)", () => {
+  const LEGAL = [LEGAL_INDEX, ...LEGAL_PAGES];
+  const FRED_NOTICE = "This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.";
+  const COUNSEL = readFileSync(join(DIST, "..", "..", "docs", "operations", "counsel-review.md"), "utf8").replace(/\s+/g, " ");
+
+  it("writes the legal pages, /sources/ and a security.txt that parses with Contact and Expires", () => {
+    for (const page of LEGAL) expect(PAGES, page.path).toContain(page.path);
+    const security = readFileSync(join(DIST, SECURITY_TXT_PATH), "utf8");
+    expect(parseSecurityTxt(security).get("contact")).toEqual([VULNERABILITY_REPORTING]);
+    expect(securityTxtProblems(security, new Date())).toEqual([]);
+  });
+
+  it("links every legal page from every page's footer, and marks each for search", () => {
+    for (const path of PAGES) {
+      const footer = /<footer[\s\S]*?<\/footer>/.exec(html(path))?.[0] ?? "";
+      for (const page of LEGAL_PAGES) expect(footer, `${path}: ${page.path}`).toContain(`href="${page.path}"`);
+    }
+    for (const page of LEGAL) {
+      const built = html(page.path);
+      expect(built, page.path).toContain("data-pagefind-body");
+      expect(built, page.path).toContain(`data-pagefind-meta="kind:${page.path === "/sources/" ? "Source" : "Legal"}"`);
+    }
+  });
+
+  it("lists every provider on /sources/ with its class, attribution and notice", () => {
+    const words = text(html("/sources/")).replaceAll("&quot;", '"').replaceAll("&#39;", "'").replaceAll("&amp;", "&");
+    const page = html("/sources/");
+    for (const source of sourceData) {
+      expect(page, source.id).toContain(`data-source="${source.id}" data-licence="${source.licence}"`);
+      expect(words, source.id).toContain(source.attribution.replace(/\s+/g, " "));
+      if (source.notice) expect(words, source.id).toContain(source.notice.replace(/\s+/g, " "));
+    }
+  });
+
+  it("shows FRED's notice only where /sources/ marks it as the local surfaces' notice", () => {
+    const local = /<(dd|td)[^>]*data-local-only[^>]*>[\s\S]*?<\/\1>/g;
+    expect(text(html("/sources/"))).toContain(FRED_NOTICE);
+    for (const file of DOCUMENTS) {
+      const page = readFileSync(join(DIST, file), "utf8").replace(local, "");
+      expect(text(page), file).not.toContain("FRED® API but is not endorsed");
+    }
+  });
+
+  it("puts the hypothetical-results legend beside the results of exactly the models whose tags mark them", () => {
+    for (const model of parseModels(registryData)) {
+      const page = html(modelPath(model.id));
+      const places = [...page.matchAll(/data-legend-place="([a-z-]+)"/g)].map((match) => match[1]);
+      const expected = simulates(model) ? ["calculator", ...(model.example_result ? ["worked-example"] : [])] : [];
+      expect(places, model.id).toEqual(expected);
+      if (simulates(model)) expect(text(page), model.id).toContain(HYPOTHETICAL_LEGEND);
+    }
+    const disclaimers = html("/legal/disclaimers/");
+    const listed = [...disclaimers.matchAll(/data-legend-model="([a-z_.]+)"/g)].map((match) => match[1]).sort();
+    expect(listed).toEqual(
+      parseModels(registryData)
+        .filter(simulates)
+        .map((model) => model.id)
+        .sort(),
+    );
+    expect(text(disclaimers)).toContain(CFTC_STATEMENT);
+  });
+
+  it("passes the New York Fed's and the OECD's conditions through, and links every served source's terms", () => {
+    const page = html("/legal/terms/");
+    const words = text(page);
+    expect(page).toContain('data-pass-through="nyfed"');
+    expect(page).toContain('data-pass-through="oecd"');
+    expect(words).toContain("You may not impose more restrictive terms or conditions on the Content.");
+    expect(words).toContain("DTCC Solutions LLC");
+    expect(words).toContain("you agree to include the same acknowledgment requirement in any sub-licenses that you grant");
+    for (const source of sourceData.filter((entry) => entry.snapshot_series > 0)) {
+      expect(page, source.id).toContain(`href="${source.terms_url}"`);
+    }
+  });
+
+  it("generates the privacy policy from every data flow and processor, with the promises the tests prove", () => {
+    const page = html("/legal/privacy/");
+    const flows = [...page.matchAll(/data-flow="([a-z-]+)"/g)].map((match) => match[1]);
+    expect(flows).toEqual(DATA_FLOWS.flows.map((flow) => flow.id));
+    const processors = [...page.matchAll(/data-processor-entry="([a-z-]+)"/g)].map((match) => match[1]);
+    expect(processors).toEqual(DATA_FLOWS.processors.map((processor) => processor.id));
+    const words = text(page);
+    for (const promise of ["POST", "never uploaded", "request logs", "excluded", "No cookies"]) expect(words).toContain(promise);
+  });
+
+  it("lists every shipped package and the NOTICE on the licence page", () => {
+    const page = html("/legal/licence/");
+    const listed = [...page.matchAll(/data-package="([^"]+)"/g)].length;
+    expect(listed).toBe(shippedLicences(join(DIST, ".."), false).length);
+    expect(text(page)).toContain("This product is licensed under the Apache License, Version 2.0");
+  });
+
+  it("records every open counsel question in docs/operations/counsel-review.md", () => {
+    let found = 0;
+    for (const file of DOCUMENTS) {
+      const page = readFileSync(join(DIST, file), "utf8");
+      for (const match of page.matchAll(/data-counsel="">[\s\S]*?<\/span>([\s\S]*?)<\/p>/g)) {
+        const question = (match[1] ?? "")
+          .replaceAll("&#39;", "'")
+          .replaceAll("&quot;", '"')
+          .replaceAll("&amp;", "&")
+          .replace(/\s+/g, " ")
+          .trim();
+        expect(COUNSEL, `${file}: ${question}`).toContain(question);
+        found += 1;
+      }
+    }
+    expect(found).toBeGreaterThan(0);
   });
 });

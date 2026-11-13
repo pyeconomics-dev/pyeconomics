@@ -1,0 +1,35 @@
+---
+// web/src/components/models/HypotheticalLegend.astro
+// The hypothetical-results legend (Phase 5 Step 16; ROADMAP §5 "Disclaimers";
+// ADR-0013 decision 20), placed beside a result of a model whose outputs are
+// simulated or hypothetical (src/lib/legal.ts simulates(), from the model's
+// registry tags): FINRA Rule 2214's legend as the template, with the CFTC Rule
+// 4.41(b)(1) statement added for a model that simulates futures. Its words are
+// HYPOTHETICAL_LEGEND and CFTC_STATEMENT, which the disclaimers page states
+// too; tests/site/ finds it on exactly the models the tags mark.
+import { CFTC_STATEMENT, HYPOTHETICAL_LEGEND, HYPOTHETICAL_NOTES, simulatesFutures } from "@/lib/legal";
+import type { Model } from "@/lib/registry-schema";
+
+interface Props {
+  model: Pick<Model, "tags">;
+  /** Where the legend sits, for the tests: beside the calculator or the worked example. */
+  place: "calculator" | "worked-example";
+}
+
+const { model, place } = Astro.props;
+const futures = simulatesFutures(model);
+---
+
+<aside
+  class="max-w-3xl rounded-md border-2 border-foreground p-4 text-sm"
+  aria-label="Hypothetical results"
+  data-legend="hypothetical"
+  data-legend-place={place}
+>
+  <p class="font-semibold text-foreground">{HYPOTHETICAL_LEGEND}</p>
+  {HYPOTHETICAL_NOTES.map((note) => <p class="mt-2">{note}</p>)}
+  {futures && <p class="mt-2" data-legend="cftc">{CFTC_STATEMENT}</p>}
+  <p class="mt-2">
+    See the <a href="/legal/disclaimers/#hypothetical-results">disclaimers</a>.
+  </p>
+</aside>

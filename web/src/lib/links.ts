@@ -1,8 +1,9 @@
 // web/src/lib/links.ts
 // The site's fixed links: the header's main navigation (the domain sections
 // beside it come from src/lib/paths.ts DOMAINS), the data explorer among them,
-// and the footer's links to the notices, the licence, the repository, the
-// documentation with its gallery, in-browser examples and finance tutorials,
+// and the footer's links to the terms, the privacy policy, the notices, the
+// licence page (Step 16), the repository, the documentation with its gallery,
+// in-browser examples and finance tutorials,
 // and the service's public status page (Phase 5 Step 14), and where to ask a
 // question (GitHub Discussions) and sign up for the newsletter (Step 15).
 
@@ -18,7 +19,6 @@ export const DOCUMENTATION = "https://docs.pyeconomics.dev/en/main/";
 export const EXAMPLE_GALLERY = `${DOCUMENTATION}gallery/index.html`;
 export const IN_BROWSER_EXAMPLES = `${DOCUMENTATION}wasm/index.html`;
 export const FINANCE_TUTORIALS = `${DOCUMENTATION}tutorials/finance/index.html`;
-export const LICENCE = `${REPOSITORY}/blob/main/LICENSE`;
 // Questions, ideas and show and tell (Phase 5 Step 15).
 export const DISCUSSIONS = `${REPOSITORY}/discussions`;
 // Better Stack's status page for production's monitors (ADR-0013 decision 15).
@@ -34,11 +34,17 @@ export const NAVIGATION: readonly Link[] = [
   { label: "GitHub", href: REPOSITORY },
 ];
 
-/** The footer's links, beside the notices every page carries. */
+/**
+ * The footer's links, beside the notices every page carries: the legal and
+ * trust pages first (Phase 5 Step 16; tests/site/ holds each in every page's
+ * footer).
+ */
 export const FOOTER_LINKS: readonly Link[] = [
+  { label: "Terms of use", href: "/legal/terms/" },
+  { label: "Privacy", href: "/legal/privacy/" },
   { label: "Disclaimers", href: "/legal/disclaimers/" },
   { label: "Data sources", href: "/sources/" },
-  { label: "Licence (Apache-2.0)", href: LICENCE },
+  { label: "Licence (Apache-2.0)", href: "/legal/licence/" },
   { label: "GitHub", href: REPOSITORY },
   { label: "Discussions", href: DISCUSSIONS },
   { label: "Newsletter", href: "/newsletter/" },

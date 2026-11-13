@@ -23,6 +23,7 @@ import {
   robotsTxt,
   sitemapPaths,
 } from "../../scripts/indexing.ts";
+import { securityTxt } from "../../src/lib/security-txt.ts";
 
 const MODELS = [
   { id: "fixed_income.bond_pricing", aliases: [{ id: "fixed_income.bond_price" }] },
@@ -137,12 +138,20 @@ describe("checkIndexing", () => {
     ]);
   });
 
-  it("refuses robots.txt or _redirects copied from public/", () => {
-    const copied = { ...SITE, "robots.txt": "", _redirects: "" };
+  it("refuses robots.txt, _redirects or security.txt copied from public/", () => {
+    const copied = { ...SITE, "robots.txt": "", _redirects: "", ".well-known/security.txt": "" };
     expect(checkIndexing(build(copied), { index: true, models: MODELS, ledger: EMPTY }).problems).toEqual([
       "dist/robots.txt already exists: it comes from scripts/indexing.ts, never public/",
       "dist/_redirects already exists: it comes from scripts/indexing.ts, never public/",
+      "dist/.well-known/security.txt already exists: it comes from scripts/indexing.ts, never public/",
     ]);
+  });
+
+  it("writes security.txt (Phase 5 Step 16) into every build but the app wheel's", () => {
+    const site = checkIndexing(build(SITE), { index: true, models: MODELS, ledger: EMPTY });
+    expect(site.files[".well-known/security.txt"]).toBe(securityTxt());
+    const app = checkIndexing(build(SITE), { index: false, models: MODELS, ledger: EMPTY, security: false });
+    expect(Object.keys(app.files)).toEqual(["robots.txt", "_redirects"]);
   });
 
   it("names a bad alias instead of writing redirects", () => {
