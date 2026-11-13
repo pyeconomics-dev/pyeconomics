@@ -121,6 +121,28 @@ for (const path of SAMPLE) {
       expect(errors).toEqual([]);
       expect(api.requests).toEqual([]);
     });
+
+    // Issue #319's class: a box scrolls vertically only when it is given a
+    // maximum height (a code panel). Any other box that overflows by a few
+    // pixels shows a stray scrollbar where scrollbars are always drawn
+    // (Windows), which headless Chromium hides, so the boxes are measured.
+    test("no box scrolls vertically unless it has a maximum height", async ({ page }) => {
+      await page.goto(path);
+      await page.waitForLoadState("load");
+      const stray = await page.evaluate(() =>
+        [...document.querySelectorAll("body *")]
+          .filter((element) => {
+            const style = getComputedStyle(element);
+            return (
+              ["auto", "scroll"].includes(style.overflowY) &&
+              style.maxHeight === "none" &&
+              element.scrollHeight > element.clientHeight + 1
+            );
+          })
+          .map((element) => `${element.tagName.toLowerCase()}.${[...element.classList].join(".")}`),
+      );
+      expect(stray).toEqual([]);
+    });
   });
 }
 
@@ -130,6 +152,26 @@ test("formulas render as MathML with no inline style", async ({ page }) => {
     const math = page.locator(".katex math");
     await expect(math.first()).toBeAttached();
     expect(await page.locator(".katex [style], .katex-html").count()).toBe(0);
+  }
+});
+
+// Issue #319: a display formula scrolls sideways only. Headless Chromium hides
+// scrollbars, so the check reads the boxes, not the bars: no vertical
+// scrolling, and nothing clipped by the rule that prevents it.
+test("display formulas never scroll vertically and are not clipped", async ({ page }) => {
+  for (const path of ["/models/equity/cape/", "/models/fixed-income/duration/"]) {
+    await page.goto(path);
+    const boxes = await page.locator(".katex:has(> math[display='block'])").evaluateAll((elements) =>
+      elements.map((element) => ({
+        overflowY: getComputedStyle(element).overflowY,
+        spare: element.clientHeight - element.scrollHeight,
+      })),
+    );
+    expect(boxes.length, path).toBeGreaterThan(0);
+    for (const box of boxes) {
+      expect(box.overflowY, path).toBe("hidden");
+      expect(box.spare, path).toBeGreaterThanOrEqual(0);
+    }
   }
 });
 
