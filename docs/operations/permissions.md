@@ -32,8 +32,8 @@ pages read that day.
 | Recipient | Published contact | Sent | Issue | Answer | Outcome |
 |-----------|-------------------|------|-------|--------|---------|
 | Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | | |
-| Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | 2026-11-13, by email from Professor French: we may not include the data in software we distribute | Declined: `ken_french` stays library-only; nothing we distribute holds the data (section 2) |
-| Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | 2026-11-13, by email: they cannot permit showing S&P data, which belongs to S&P; they named S&P's licensing contact | Declined: `shiller` stays library-only; no S&P licence sought (section 3) |
+| Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | 2026-11-13, by email from Professor French: we may not include the data in software we distribute. Told the same day that the library downloads his files at a user's request, he wrote that this is fine, and that he may rescind the permission | Declined: `ken_french` stays library-only; nothing we distribute holds the data; the run-time download continues with his consent, which he may rescind (section 2) |
+| Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | 2026-11-13, by email: they cannot permit showing S&P data, which belongs to S&P; they named S&P's licensing contact. The file's new layout is expected within two months (#324) | Declined: `shiller` stays library-only; no S&P licence sought (section 3) |
 | International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | 2026-11-13: an automatic reply only, pointing to the Copyright Clearance Center; no answer from a person yet | |
 | Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
 | Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | 2026-11-12, by web form | #313 | | |
@@ -131,6 +131,12 @@ ICE BofA, so the letter asks about the authors' rights and acknowledges the inpu
 **Answer (2026-11-13).** Professor French replied himself: "I'm sorry, but you
 may not include the data in software you distribute."
 
+**Follow-up (2026-11-13).** Our thanks told him that the site will not use his data,
+that nothing we distribute contains it, and that the library's code downloads his
+files from his site to a user's own computer when the user asks. It offered to remove
+that download if he preferred. He answered: "That's all fine. Thanks. Please be
+forewarned, this permission may be rescinded in the future."
+
 **Outcome.** Declined. `ken_french` stays library-only and the hosted site never
 serves it, so the live data of `asset_pricing.factor_regression`,
 `asset_pricing.factor_model_tests`, `econometrics.garch`,
@@ -148,6 +154,11 @@ own computer only. An audit the same day found the data in nothing we distribute
 Keep it so: no file of his, or values copied from one, is ever committed,
 packaged, cached on our servers or shown on the site. Issue #309 is closed as
 declined.
+
+The library's run-time download continues with his consent. If he rescinds it, open
+an issue that day to retire the provider in the next release. Until that release
+ships, users can switch the provider off with the `disabled_providers` setting
+(`PYECONOMICS_DISABLED_PROVIDERS`).
 
 ### 3. Robert J. Shiller: US stock market data and the CAPE ratio
 
@@ -185,6 +196,12 @@ named a licensing contact at S&P Dow Jones Indices, which answers the letter's
 question of whom to ask. He added that the data file's structure will change
 shortly (#324). A permission to publish covers its holder, not those who copy the
 file, so the hosted site needs S&P's licence, not the authors'.
+
+**Follow-up (2026-11-13).** We asked when the new file will be published, so that the
+library's reader can follow it. He answered: "I would expect it to be in the next 2
+months". That means by mid-January 2027. #324 makes the provider read its columns by
+header and refuse a layout it does not know. It must land before the release
+candidate (Step 19), so that no frozen release reads a changed file without noticing.
 
 **Outcome.** Declined. `shiller` stays library-only with no change: the library
 still reads the file on a user's own computer, under that user's acceptance of the
