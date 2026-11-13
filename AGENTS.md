@@ -969,7 +969,7 @@ ROADMAP §4 5.7):
   `providers/nyfed.py` (`_reference_notice`, with `DTCC_NOTICE` on SOFR and BGCR).
 - An open question for counsel is shown on its page through `CounselNote.astro`, in
   words `docs/operations/counsel-review.md` repeats (the dist test holds them equal);
-  it goes only when counsel has answered and Step 18 records the answer.
+  it goes only when counsel has answered and Step 20 records the answer.
 - `security.txt` is written by `web/scripts/indexing.ts` from
   `web/src/lib/security-txt.ts` into every build but the app wheel's; never put one
   in `public/`. Its `Expires` stays under a year ahead and the unit test fails 30 days

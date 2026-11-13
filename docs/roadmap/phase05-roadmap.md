@@ -2,6 +2,15 @@
 
 **Status:** In progress
 
+> Amended 2026-11-13 (the maintainer's request; its open choices delegated
+> to best practice): Steps 17 (design direction and design system) and 18
+> (the AI dogfooding loop) were inserted before the release candidate, and
+> the old Steps 17–20 became Steps 19–22, with V17–V20 now V19–V22 and their
+> branches renamed to match. The readiness gate (Step 20) gained a "Design
+> and UX" section. Issues, pull requests, handoffs and memories written
+> before this date use the old numbers: old Step 17 is Step 19, 18 is 20, 19
+> is 21 and 20 is 22.
+
 ## Overview
 
 Phase 5 opens the launch gate. Phases 6 and 7 build on the stable 1.0.0
@@ -28,7 +37,7 @@ the hosted site. It is one phase because the launch is one irreversible
 event: the site, the docs, production and the legal pages go live
 together, or the launch is not ready.
 
-The phase lands in 20 layers:
+The phase lands in 22 layers:
 
 1. **Launch baseline** — lands this roadmap and the refreshed planning kit,
    moves `main` to `1.0.0rc1.dev1`, and closes the findings production must
@@ -97,16 +106,23 @@ The phase lands in 20 layers:
     data-sources and licence pages, `security.txt`, the attribution audit,
     the permissions letters, the trademark clearance record and the
     counsel packet.
-17. **Release candidate** — the public-API inventory pinned by a test, a
+17. **Design direction and system** — a round-0 audit of every page type
+    by fresh AI evaluators, two or three design directions, and the chosen
+    one built: design tokens, type, colour, layout, the home and model
+    pages, motion and interactive islands, inside every existing gate.
+18. **AI dogfooding loop** — rounds of independent AI persona evaluators
+    and a separate implementer on staging, stopped by a recorded rule, then
+    visual baselines and a check for each bug class the rounds found.
+19. **Release candidate** — the public-API inventory pinned by a test, a
     TestPyPI rehearsal, `1.0.0rc1` of both distributions on PyPI, and a
     seven-day production soak behind Access.
-18. **Launch readiness gate** — `docs/releases/1.0.0-readiness.md`:
-    soak, web quality, legal, counsel, rollback, load, security and growth
+20. **Launch readiness gate** — `docs/releases/1.0.0-readiness.md`:
+    soak, web quality, design and UX, legal, counsel, rollback, load, security and growth
     evidence, ending in the maintainer's GO or NO-GO.
-19. **Cutover and 1.0.0** — `v1.0.0` on PyPI, the site opened to everyone,
+21. **Cutover and 1.0.0** — `v1.0.0` on PyPI, the site opened to everyone,
     the redirects, Read the Docs' `stable` at 1.0, the MCP Registry's remote
     entry, 0.2.x's end of life and the post-launch verification.
-20. **QA + `verify-phase05.sh`** — `scripts/verify-phase05.sh` (`--fast`,
+22. **QA + `verify-phase05.sh`** — `scripts/verify-phase05.sh` (`--fast`,
     `--python`, `--node`, `--container`, `--security`, `--live`, `--all`,
     `--post`), `docs/phase05-qa-findings.md`, matrix entry `05` in
     `.github/workflows/phase-verify.yml`, and the alarm re-fired on the
@@ -117,7 +133,9 @@ The ship test for Phase 5 is straightforward: issues #210, #211, #212,
 registered model has a prerendered page listed in the sitemap, and
 Lighthouse scores at least 90 for performance, accessibility, best
 practices and SEO on the thirteen-page sample ADR-0013 decision 19 fixes,
-with no WCAG 2.2 AA violation under axe; every golden case returns the
+with no WCAG 2.2 AA violation under axe; the AI dogfooding loop met its
+stopping rule and the maintainer accepted the design at the readiness
+gate; every golden case returns the
 Python API's canonical bytes through the calculator's request path, and
 the parity check passes through the deployed API; hosted series come only
 from snapshots, and a source not hosted-safe never reaches the hosted site,
@@ -161,7 +179,7 @@ and Claude Code on the machine that runs `--live` and `--post`; and
 engages counsel and a trademark clearance search by Step 16, the outside
 parties whose answers the readiness gate records.
 
-**Dependency:** Phases 6 and 7 do not start until V1–V20 are green and
+**Dependency:** Phases 6 and 7 do not start until V1–V22 are green and
 1.0.0 is live; they then run in parallel worktrees (ROADMAP §5 "Sequencing
 & dependencies"). They inherit a frozen public API whose every change
 follows ADR-0003, a site and documentation that render new models and
@@ -193,9 +211,9 @@ built private (Step 13), made observable with every alarm proven (Step 14)
 and instrumented for demand (Step 15) before the legal pages are written
 against the data flows that now exist (Step 16). The release repeats the
 rehearse-then-release pattern of every earlier phase, with a soak in
-production between the candidate and the gate (Steps 17–18), because a
+production between the candidate and the gate (Steps 19–20), because a
 stable PyPI release cannot be unpublished and a public launch cannot be
-taken back; the cutover is a decision recorded in its own step (Step 19).
+taken back; the cutover is a decision recorded in its own step (Step 21).
 
 **ADR-0013's decisions (drafted defaults).** Step 2 writes these as the
 ADR's decisions with the defaults below, each with its alternatives and
@@ -237,7 +255,7 @@ except by a superseding ADR.
    `staging.pyeconomics.dev` behind Access — through `deploy-staging.yml`,
    ROADMAP §5's "preview"; a release tag, approved in the protected
    `production` environment, deploys `pyeconomics.dev`, behind Access until
-   Step 19 removes it. `staging-api.pyeconomics.dev` stays as staging's
+   Step 21 removes it. `staging-api.pyeconomics.dev` stays as staging's
    API-only edge. Alternative: per-PR version URLs (public on workers.dev
    unless protected, with no API behind them).
 5. **Production on Google Cloud.** A separate project,
@@ -373,7 +391,7 @@ except by a superseding ADR.
     `/` behind the API's routes with the same headers and the loopback
     guard unchanged; locally the site offers live library-only data with
     the user's keys and the whole catalog.
-17. **Public-API freeze.** Step 17 inventories the public surface in
+17. **Public-API freeze.** Step 19 inventories the public surface in
     `docs/public-api.md` and pins it with a test derived from the code;
     after 1.0.0 every change follows ADR-0003. #197, the MCP tool list's
     size, stays a compatible 1.x change — slimmer schemas keep every tool
@@ -405,7 +423,7 @@ except by a superseding ADR.
     announcement, with ROADMAP §5's thresholds (1,000 sign-ups or 1,000
     activated users, a visitor who completes a run or a download; 30
     upgrade-intent clicks or pre-orders; 10 interviews), confirmed or
-    adjusted by the maintainer at Steps 2 and 18.
+    adjusted by the maintainer at Steps 2 and 20.
 20. **Legal readiness.** The terms (with the New York Fed's and the
     OECD's conditions passed through), the privacy policy generated from
     one data-flows file, the disclaimers (FINRA Rule 2214's and CFTC Rule
@@ -477,7 +495,7 @@ options, REST paths and schemas, MCP tool names and schemas, problem slugs
 and type URIs, `registry.json`'s format, the export formats, the settings,
 the extras and — from this phase — the site's page URLs public API at
 1.0.0. Steps 2 to 16 may still change them (each change listed in the next
-release notes); Step 17 freezes them in `docs/public-api.md` with a test;
+release notes); Step 19 freezes them in `docs/public-api.md` with a test;
 after 1.0.0 a change follows ADR-0003, and a breaking one needs 2.0.0.
 
 **Licence rule.** The hosted site serves only `hosted-safe` and
@@ -519,10 +537,10 @@ echoes, logs or pastes a key or an environment value (AGENTS.md "Never
 print secrets").
 
 **Version rule.** Step 1 moves `main` from `1.0.0b1` to `1.0.0rc1.dev1`.
-Step 17 tags `main`'s head `v1.0.0rc1.dev1` to rehearse the exact
+Step 19 tags `main`'s head `v1.0.0rc1.dev1` to rehearse the exact
 candidate on TestPyPI (a failed rehearsal is a NO-GO: the fix lands on a
 `fix/` branch that moves `main` to the next `.devN`, and the rehearsal
-repeats), then sets `1.0.0rc1` and tags it. Step 19, after the gate's GO,
+repeats), then sets `1.0.0rc1` and tags it. Step 21, after the gate's GO,
 sets `1.0.0` and tags it; a NO-GO makes the next candidate `1.0.0rc2`.
 `pyeconomics-app` always carries the same version as `pyeconomics`, and
 `CITATION.cff` and `server.json` follow `pyproject.toml` at every commit.
@@ -594,12 +612,12 @@ roadmap. The ones this roadmap foresees:
 | Phase 2 and 4 package checks | one wheel and one sdist | 10 |
 | Phase 4 check 58 | the README names `1.0.0b1` | 19 |
 | Phase 1 V4.4, 2 V7.3, 3 V11.3, 4 V15.2 | `stable` docs are 0.2.6 | 19 |
-| Phase 2 V14.3, 3 V19.3, 4 V15.3 | a plain install gets 0.2.6 | 19 |
+| Phase 2 V14.3, 3 V21.3, 4 V15.3 | a plain install gets 0.2.6 | 19 |
 | Phase 1 check 36 | id-token on two publish jobs | none |
 | Phase 1 checks 17, 18 and 21 | ADR index; no `cfa` names | none |
 | Phase 1 V10.5 | no repository secret | none |
 
-**Contract-change rule.** Steps 3–19 build on contracts Phases 3 and 4
+**Contract-change rule.** Steps 3–21 build on contracts Phases 3 and 4
 fixed. A step that cannot be completed without a contract change makes it
 in-step (Triage rule: an upstream gap that blocks the step): the smallest
 change that works, every surface, golden case and snapshot kept green, the
@@ -823,7 +841,7 @@ execute all six stages before declaring a step complete.
    the twelve-cell matrix and every job this phase adds to it, such as the
    `web` job from Step 3 — package, lockfile, pr-title, dco, and both
    `phase-verify` jobs for `01`–`04`), plus both `phase-verify` jobs for
-   `05` once Step 20 adds them. If the PR goes BEHIND main while waiting,
+   `05` once Step 22 adds them. If the PR goes BEHIND main while waiting,
    refresh with `gh pr update-branch --rebase` — never merge `main` into
    the branch; `required_linear_history: true` enforces rebase. Once every
    check is green:
@@ -1095,7 +1113,7 @@ execute all six stages before declaring a step complete.
 - Several earlier checks pin facts the launch changes on purpose: Read
   the Docs `stable` serving 0.2.6 and `main` titled "1.0 preview" (Phase 1
   V4.4, Phase 2 V7.3, Phase 3 V11.3, Phase 4 V15.2), a plain `pip install
-  pyeconomics` resolving 0.2.6 (Phase 2 V14.3, Phase 3 V19.3, Phase 4
+  pyeconomics` resolving 0.2.6 (Phase 2 V14.3, Phase 3 V21.3, Phase 4
   V15.3), and the README naming `1.0.0b1` (Phase 4 check 58, a static
   check every pull request runs). The Cross-phase verification rule below
   assigns each one to the step that changes it.
@@ -1168,18 +1186,28 @@ Step 16 (legal, trust + brand)        terms, privacy, disclaimers,
                                       sources, security.txt; letters;
                                       counsel packet → implement
   ↓
-Step 17 (release candidate)           API freeze; v1.0.0rc1 on PyPI;
+Step 17 (design direction + system)   round-0 audit; design directions;
+                                      tokens, type, colour, layout,
+                                      home + model pages, motion,
+                                      interactive islands → implement
+  ↓
+Step 18 (AI dogfooding loop)          fresh AI persona evaluators;
+                                      fix; staging; repeat until the
+                                      stopping rule; visual baselines
+                                      → operate
+  ↓
+Step 19 (release candidate)           API freeze; v1.0.0rc1 on PyPI;
                                       production soak starts (7 days)
                                       → operate
   ↓
-Step 18 (launch readiness gate)       docs/releases/1.0.0-readiness.md;
+Step 20 (launch readiness gate)       docs/releases/1.0.0-readiness.md;
                                       GO / NO-GO → implement
   ↓
-Step 19 (cutover + 1.0.0)             v1.0.0 on PyPI; public site; RTD
+Step 21 (cutover + 1.0.0)             v1.0.0 on PyPI; public site; RTD
                                       stable; MCP remote; announce
                                       → operate
   ↓
-Step 20 (QA + verify-phase05.sh)      scripts/verify-phase05.sh
+Step 22 (QA + verify-phase05.sh)      scripts/verify-phase05.sh
                                       + docs/phase05-qa-findings.md
                                       + phase-verify.yml matrix entry
                                       → create
@@ -1218,12 +1246,16 @@ V15  Discussions, newsletter, waitlist, Pro preview, analytics events and
      the weekly ledger all record.
 V16  The legal pages are live and match the data flows; letters sent;
      security.txt valid; counsel packet delivered.
-V17  The public API inventory is pinned; 1.0.0rc1 on PyPI for both
+V17  The design system is in place behind every page; Lighthouse, axe
+     and the policy still pass; the maintainer saw the directions.
+V18  The loop met its stopping rule; its rounds are recorded; the
+     visual baselines and the bug-class checks run in CI.
+V19  The public API inventory is pinned; 1.0.0rc1 on PyPI for both
      distributions; production soaked 7 days.
-V18  Readiness evidenced with the maintainer's GO.
-V19  1.0.0 on PyPI; pyeconomics.dev public and indexable; RTD stable is
+V20  Readiness evidenced with the maintainer's GO.
+V21  1.0.0 on PyPI; pyeconomics.dev public and indexable; RTD stable is
      1.0; the MCP Registry lists the remote; post-launch checks pass.
-V20  verify-phase05.sh --fast and --security exit 0 in phase-verify.yml;
+V22  verify-phase05.sh --fast and --security exit 0 in phase-verify.yml;
      Phases 1–4 stay green.
 ```
 
@@ -1242,15 +1274,21 @@ navigation live. Step 8 lands the hosted data plane before Step 9's
 explorer reads it, because the explorer lists only what hosted mode can
 serve; data before the site, as ROADMAP §5's staged-rollout rule asks.
 Step 10 packages the finished site for local use and teaches the release
-workflow to publish two distributions, which Step 17's candidate needs.
+workflow to publish two distributions, which Step 19's candidate needs.
 Steps 11 and 12 document surfaces that exist by then. Step 13 deploys data,
 then API, then site to production; Step 14 makes production observable and
 proves its alarms; Step 15 adds the growth signals; and Step 16 writes the
-privacy policy last among them, so it describes data flows that exist.
-Step 17 freezes the public API and starts a seven-day production soak of
-the release candidate, which is wall-clock time; Step 18 runs only after
-the soak ends; Step 19 releases and opens the site only after the
-maintainer's GO; Step 20 follows Step 19.
+privacy policy last among them, so it describes data flows that exist. Steps
+17 and 18 come before the release candidate because Step 19 freezes the
+site's page URLs and starts a soak in which only security fixes merge, and
+Step 21's announcement opens the Gate G3 window: the site must look and
+work as intended before either. Step 17 sets the design on top of the
+finished pages, and Step 18 iterates it with independent AI evaluators
+until another round stops paying for itself.
+Step 19 freezes the public API and starts a seven-day production soak of
+the release candidate, which is wall-clock time; Step 20 runs only after
+the soak ends; Step 21 releases and opens the site only after the
+maintainer's GO; Step 22 follows Step 21.
 
 ---
 
@@ -3325,7 +3363,7 @@ conversation per phase-boundary hygiene.
 
 **Deploys:** the staging site on `staging.pyeconomics.dev` (behind Access)
 — this merge redeploys it through `deploy-staging.yml`'s `site` job with
-every model page; production receives the pages with Step 17's release
+every model page; production receives the pages with Step 19's release
 candidate.
 
 |               |          | Cost                 | Balanced             | Quality            |
@@ -3725,7 +3763,7 @@ hygiene.
     <requirement>
       Aliases and the ledger: _redirects sends each alias's
       URL to its model's page (301). web/released-pages.json
-      records every page URL a release has shipped (Step 17
+      records every page URL a release has shipped (Step 19
       writes the first entries); a test fails if a URL in it
       neither builds nor redirects, the pages' equivalent of
       the released-id ledger.
@@ -3812,7 +3850,7 @@ hygiene.
 
 **Deploys:** the staging site on `staging.pyeconomics.dev` (behind Access)
 through `deploy-staging.yml`'s `site` job — the calculators run against the
-staging API on the same origin; production receives them with Step 17's
+staging API on the same origin; production receives them with Step 19's
 release candidate.
 
 |               |          | Cost               | Balanced           | Quality            |
@@ -5399,7 +5437,7 @@ per phase-boundary hygiene.
 
 **Deploys:** the staging API and site through `deploy-staging.yml` (the
 transform option on the API first, then the explorer); production receives
-both with Step 17's release candidate.
+both with Step 19's release candidate.
 
 |               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
@@ -5901,7 +5939,7 @@ per phase-boundary hygiene.
 **Branch:** `feature/phase05-step10-local-app`
 
 **Deploys:** nothing beyond merge — the release workflow learns to publish
-two distributions, but no tag is pushed; Step 17's TestPyPI rehearsal is
+two distributions, but no tag is pushed; Step 19's TestPyPI rehearsal is
 `pyeconomics-app`'s first upload, and its PyPI release the second. The
 staging site redeploys as on every merge.
 
@@ -6423,7 +6461,7 @@ Sol at Intelligence High (50.2) and Quality Opus 5.5 at Effort XHigh
 **Branch:** `feature/phase05-step11-docs-guides`
 
 **Deploys:** the Read the Docs `main` build (the 1.0 preview) — this merge
-rebuilds it with the new pages; `stable` moves to 1.0 only at Step 19's
+rebuilds it with the new pages; `stable` moves to 1.0 only at Step 21's
 cutover.
 
 |               |          | Cost                 | Balanced           | Quality            |
@@ -6719,7 +6757,7 @@ per phase-boundary hygiene.
       equal to the command the guide gives.
     - Read the Docs builds main as the 1.0 preview with
       warnings as errors; stable and latest serve 0.2.6
-      until Step 19. docs/ holds installation, quickstart,
+      until Step 21. docs/ holds installation, quickstart,
       tutorials/first-model.md, the CLI, REST API, MCP,
       exports and AI guides, the data layer guides, and the
       generated model, provider, concept and problem
@@ -6777,7 +6815,7 @@ per phase-boundary hygiene.
       with ?inputs=, ?format=csv, the site at /), and MCP
       (stdio through uvx with a client config, the tools,
       and the hosted endpoint at https://pyeconomics.dev/mcp
-      once Step 19 opens it). Each runs under Sybil or
+      once Step 21 opens it). Each runs under Sybil or
       MyST-NB offline; the hosted-endpoint parts are text
       fences the tests do not run.
     </requirement>
@@ -6887,7 +6925,7 @@ per phase-boundary hygiene.
 
 **Deploys:** the Read the Docs `main` build — this merge rebuilds it with
 the gallery, the in-browser examples and the tutorials; `stable` moves at
-Step 19.
+Step 21.
 
 |               |          | Cost                 | Balanced           | Quality            |
 | ------------- | -------- | -------------------- | ------------------ | ------------------ |
@@ -7323,7 +7361,7 @@ phase-boundary hygiene.
 > (minimum 0, maximum 3 instances); a $10 monthly budget with 50/90/100%
 > alerts, a $20 spend-cap budget that pauses Cloud Run, and an exclusion
 > filter for Cloud Run's request logs (ADR-0013 decision 5); and in Cloudflare the Worker `pyeconomics-web` on
-> `pyeconomics.dev` behind Access until Step 19, `www` and the `.com`,
+> `pyeconomics.dev` behind Access until Step 21, `www` and the `.com`,
 > `.org` and `.io` redirects prepared but off, HSTS on the zone, the
 > managed WAF ruleset, the Worker's edge cache for cacheable GET runs and
 > the rate rule covering production's API paths. Add
@@ -7344,8 +7382,8 @@ phase-boundary hygiene.
 
 **Deploys:** production on Google Cloud and Cloudflare, behind Access — the
 first deploy is a dispatched `deploy-production.yml` run on this step's
-merge commit, approved by the maintainer; from Step 17 a release tag
-deploys it. Nothing is public until Step 19 removes the Access
+merge commit, approved by the maintainer; from Step 19 a release tag
+deploys it. Nothing is public until Step 21 removes the Access
 application.
 
 |               |          | Cost               | Balanced           | Quality            |
@@ -7848,7 +7886,7 @@ New conversation per phase-boundary hygiene.
       a hit, a miss and a no-store answer; the redirect rules
       for www and the `.com`, `.org` and `.io` zones (301 to
       the same path on pyeconomics.dev) exist but stay off
-      until Step 19.
+      until Step 21.
     </requirement>
 
     <requirement>
@@ -8450,7 +8488,7 @@ conversation per phase-boundary hygiene.
       if the free plan cannot send headers, a separate
       Access application covering only the monitored paths
       bypasses Access for the vendor's published probe
-      addresses, and Step 19 removes it with the rest.
+      addresses, and Step 21 removes it with the rest.
     </requirement>
 
     <requirement>
@@ -9098,7 +9136,7 @@ Effort High (52.6). New conversation per phase-boundary hygiene.
 
 **Deploys:** the staging site through `deploy-staging.yml`, and production
 through a dispatched, approved `deploy-production.yml` run behind Access,
-so the pages are live where Step 18 checks them; the letters and the
+so the pages are live where Step 20 checks them; the letters and the
 clearance search are the maintainer's, sent and commissioned during the
 step.
 
@@ -9549,7 +9587,7 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
       counsel advises are recorded as a dated entry in its
       Consequences (the exception ADR-0009 allows for actions
       it asks to be recorded); if the search is not back
-      before Step 18, the record says when it is expected.
+      before Step 20, the record says when it is expected.
     </requirement>
 
     <requirement>
@@ -9598,7 +9636,7 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
 - ADR-0009 records the clearance search (or its expected date) and any
   filing; `docs/operations/counsel-review.md` is with counsel. *Amended
   2026-11-12 by the maintainer's decision: counsel was not yet engaged, so
-  the packet is ready and is sent once counsel is engaged, before Step 18,
+  the packet is ready and is sent once counsel is engaged, before Step 20,
   whose gate fails without counsel's review unless the maintainer waives it
   with a recorded reason.*
 - **Deployed & verified:** the dispatched `deploy-production.yml` run on
@@ -9613,74 +9651,82 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
 
 ---
 
-## Step 17 — Public-API Freeze, Release Candidate and Production Soak
+## Step 17 — Design Direction and Design System
 
 **Status:** Not started
 
-> **Goal:** Freeze what 1.0.0 promises and put the exact candidate into
-> production for its soak (ADR-0013 decisions 17 and 18). Write
-> `docs/public-api.md`, the inventory of everything ADR-0003 makes public
-> at 1.0.0 — the Python API's `__all__`s, the command tree and options, the
-> REST paths and schemas, the MCP tool names and schemas, the problem slugs
-> and type URIs, `registry.json`'s format, the export formats, the settings
-> and environment variables, the extras and the site's page URLs — with a
-> test that derives the inventory from the code and fails on any change the
-> inventory and the changelog do not record; dispose of #197 as decision 17
-> says; rehearse the exact candidate on TestPyPI by tagging `main`'s head
-> `v1.0.0rc1.dev1`, both distributions' first joint upload, with clean
-> installs; then set `1.0.0rc1`, write its release notes and the first
-> released-page ledger, merge, tag `v1.0.0rc1`, approve the PyPI and
-> production deployments, publish the GitHub pre-release and the MCP
-> Registry entry (stdio only), freeze Dependabot to security fixes, and
-> start the seven-day production soak behind Access, with its start
-> recorded. Parent: ROADMAP §4 5.9 ("`1.0.0rc1` soaked in production-like
-> conditions"); §5 "Release & tagging" and "Readiness gate before an
-> irreversible cutover"; ADR-0003; ADR-0013 decisions 17 and 18.
+> **Goal:** Give the site a deliberate visual and interaction design before
+> the release candidate freezes its pages. *Added 2026-11-13 at the
+> maintainer's request:* production, seen through Access, read as a draft —
+> static, stock-themed, not engaging — while every automated gate passed,
+> because no step's criteria ever looked at the pages as a visitor does.
+> First run round 0 of the dogfooding protocol Step 18 repeats: fresh AI
+> evaluators, each a visitor persona with tasks, use every page type in
+> real browsers at phone, tablet and desktop widths, in light and dark,
+> with scrollbars drawn, and record findings, screenshots and rubric scores
+> in `docs/design/audit-round-0.md`. From that audit build two or three
+> distinct design directions (the home page and one model page each, as
+> real pages on the local build), have a panel of fresh evaluators rank
+> them against the rubric, and record the choice in
+> `docs/design/direction.md`; the maintainer sees the directions in the
+> pull request and may overrule there, but the step does not wait. Then
+> build the chosen direction across the site: design tokens (colour with
+> real chroma in both themes, type scale, spacing, radius, elevation,
+> motion) in one place; one self-hosted text typeface and one math font
+> from our own origin; layout and navigation; a home page that shows what
+> pyeconomics does with a working example rather than a description; model
+> pages whose formula, explanation, calculator and results read as one
+> page; the explorer, coverage, search, problem, legal and sign-up pages;
+> motion that serves a purpose and honours `prefers-reduced-motion`; and
+> interactive islands where they help a visitor understand. Every existing
+> gate holds: the one Content Security Policy, WCAG 2.2 AA in both themes,
+> Lighthouse at least 90 on decision 19's sample, no third-party script,
+> generated pages only, and the privacy rules. Parent: ROADMAP §4 5.11
+> (added 2026-11-13); ADR-0013 decisions 2, 9 and 19.
 
-**Branch:** `feature/phase05-step17-release-candidate`
+**Branch:** `feature/phase05-step17-design-system`
 
-**Deploys:** TestPyPI (`v1.0.0rc1.dev1`, before the PR merges), then PyPI
-(`v1.0.0rc1`, both distributions, a pre-release that plain `pip install`
-ignores), the GitHub pre-release, the MCP Registry entry at `1.0.0rc1`,
-and production through `deploy-production.yml` on the tag, behind Access;
-the soak runs for seven days from that deploy.
+**Deploys:** the staging site through `deploy-staging.yml` when the pull
+request merges. Production receives the design with Step 19's release
+candidate; this step dispatches no production deploy.
 
 |               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
-| **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
-|               | Platform | Codex              | Claude Code        | Claude Code        |
-|               | Level    | Medium             | XHigh              | XHigh              |
-|               | AA       | 47.8               | 51.9               | 56                 |
-|               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
-| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-|               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
-|               | Platform | Antigravity        | Antigravity        | Codex              |
-|               | Level    | Low                | Medium             | XHigh              |
-|               | AA       | ≈45.2              | ≈49.8              | 52.4               |
-|               | Price    | $2.31/1M           | $2.37/1M           | $17.73/1M          |
+| **Pick**      | Model    | **Gemini 4 Argon** | **Opus 5.5**       | **Opus 5.5**       |
+|               | Platform | Antigravity        | Claude Code        | Claude Code        |
+|               | Level    | High               | High               | XHigh              |
+|               | AA       | 52.6               | 53.6               | 56                 |
+|               | Price    | $6.13/1M           | $6.76/1M           | $8.29/1M           |
+| **Runner‑up** | Model    | **Opus 5.5**       | **Gemini 4 Argon** | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Antigravity        | Antigravity        |
+|               | Level    | Medium             | Medium             | High               |
+|               | AA       | 51.2               | ≈49.8              | 52.6               |
+|               | Price    | $6.39/1M           | $2.37/1M           | $6.13/1M           |
+| **Backup**    | Model    | **GPT-6 Astra**    | **GPT-6 Astra**    | **GPT-6 Astra**    |
+|               | Platform | Codex              | Codex              | Codex              |
+|               | Level    | Medium             | High               | XHigh              |
+|               | AA       | 49.6               | 50.9               | 52.4               |
+|               | Price    | $11.85/1M          | $13.01/1M          | $17.73/1M          |
 
-Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
-the output part scaled by the tokens the model writes at that level. ≈ estimated
-from the model's measured levels.
+Ranked for coding, high complexity, novel. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level. ≈
+estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
-**Model rationale:** Agentic is PRIMARY and coding SECONDARY: a release
-run across TestPyPI, PyPI, GitHub, the MCP Registry and production, with
-maintainer approvals at three gates, around a public-API inventory and its
-test. Complexity is High — every upload is permanent, and the inventory
-fixes what 2.0.0 alone may break — but the step is not novel: it repeats
-Phase 4's rehearse-then-release pattern with a second distribution. The
-ladder's Balanced column runs: Sonnet 5.5 on Claude Code at Effort XHigh
-(claude.ai Max; AA Intelligence Index 51.9), Runner-up GPT-6.1 Sol on
-Codex at Intelligence High, Backup Gemini 4 Argon on Antigravity at Effort
-Medium. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality
-Opus 5.5 at Effort XHigh (56.0). New conversation per phase-boundary
-hygiene.
+**Model rationale:** Coding is PRIMARY and multimodal SECONDARY: a design
+system and every page template rebuilt in Astro, React and Tailwind, judged
+by screenshots against a rubric, under a strict policy that rules out the
+usual shortcuts (inline styles, third-party fonts and scripts). Complexity
+is High and the step is novel for this project: no earlier step designed
+anything visual, and taste has to be argued from evidence. The ladder's
+Balanced column runs: Opus 5.5 on Claude Code at Effort High (claude.ai
+Max; AA Intelligence Index 53.6), Runner-up Gemini 4 Argon on Antigravity
+at Effort Medium, Backup GPT-6 Astra on Codex at Intelligence High. Cost
+runs Gemini 4 Argon at Effort High (52.6) and Quality Opus 5.5 at Effort
+XHigh (56.0). The evaluators run as fresh sessions or subagents, on another
+maker's model where the platform allows, so the implementer never grades
+its own work. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -9697,7 +9743,7 @@ hygiene.
     1. CREATE THE BRANCH. Before
        any Read / Edit / Bash, run
        `git checkout -b
-       feature/phase05-step17-release-candidate`
+       feature/phase05-step17-design-system`
        from a clean, up-to-date
        `main`. The exact branch
        name is in this step's
@@ -9898,108 +9944,103 @@ hygiene.
     that stops a security issue
     from reaching the branch, the
     PR, or `main`.
-
     THIS STEP ALSO:
-    - Every upload goes through Trusted Publishing with PEP
-      740 attestations for both distributions; no token is
-      created; each published file's SHA-256 equals a local
-      `uv build --no-config` of the same commit, or the
-      difference is explained.
-    - The production deploy promotes the image staging
-      verified for the tagged commit; nothing is rebuilt for
-      production; the site stays behind Access and refuses
-      indexing (a pre-release build).
-    - During the soak only security fixes merge (Dependabot
-      security updates and `hotfix/` branches); every other
-      change waits for Step 19, so the candidate soaked is
-      the candidate released.
+    - No page gains a `style` attribute, an inline style or
+      script the policy does not hash, a third-party origin,
+      'unsafe-inline' or 'unsafe-eval'; motion is CSS classes
+      and keyframes in the site's stylesheets, and
+      cross-document view transitions, if used, are CSS
+      (`@view-transition`), which needs no script.
+    - Fonts are served from our own origin only (`font-src
+      'self'`, added to csp.config.ts through its ALLOWED
+      table if the policy lacks it); no font CDN and no
+      Google Fonts. Each font file's licence is checked:
+      OFL-1.1 is admitted for font files only, by a named
+      rule in scripts/checks/web_licences.py with its test.
+    - The harness and the evaluators read the local build or
+      staging through Access with the CI service token as
+      headers, which they never print, log or write into a
+      screenshot, a record or a prompt; screenshots show no
+      secret and no personal data (the sign-up forms are
+      shown empty).
+    - No URL, canonical bytes, API answer or analytics event
+      changes; the released-page ledger stays whole.
   </security>
 
   <context>
-    pyeconomics. Phase 5. Step 17: the public-API freeze,
-    the release candidate and the production soak.
+    pyeconomics. Phase 5. Step 17: design direction and
+    design system. Inserted on 2026-11-13, before the
+    release candidate; the steps after it were renumbered
+    (old 17 to 20 are now 19 to 22).
 
     Current state (post-Phase-5 Step 16):
 
-    - Step 13 note: deploy-production.yml copies the image
-      tagged with the commit from staging's registry, which
-      keeps its two newest images and deletes the others
-      after a day, so tag main's newest commit once its
-      deploy-staging run has passed. A `.devN` tag deploys
-      nothing. Each of its four jobs waits for the maintainer,
-      beside `pypi`'s own approval.
-    - main reads 1.0.0rc1.dev1; staging and production
-      (behind Access) run the complete site, API, snapshot
-      jobs, observability and growth signals; the legal
-      pages are live behind Access; the alarm proofs are
-      recorded.
-    - release.yml publishes both distributions (`.devN` to
-      TestPyPI, other tags to PyPI behind the `pypi`
-      approval); the pending publishers for pyeconomics-app
-      exist on TestPyPI and PyPI; release-smoke.yml installs
-      pyeconomics[app] and smokes serve; mcp-registry.yml
-      publishes server.json on a published release.
-      deploy-production.yml deploys a non-`.dev` `v*` tag
-      after the maintainer's approval.
-    - Step 12 note: docs/wasm/'s notebooks pin the published
-      wheel, 1.0.0b1, in the lockfile that fixes everything
-      the in-browser examples load. Once 1.0.0rc1 is on PyPI,
-      move the three notebooks' `pyeconomics==` pin, run
-      `uv run --no-config --group docs python
-      scripts/docs/pin_wasm.py`, and commit the lockfile; a
-      pin to a version PyPI does not hold fails in a browser,
-      and neither the version bump nor the tests can move it
-      for you.
-    - Step 10 note: release.yml's build job builds the site
-      once (SITE_FLAVOUR=app) and uploads three files, the
-      pyeconomics wheel and sdist and the pyeconomics-app
-      wheel, which each publish job sends through one OIDC
-      exchange. The TestPyPI rehearsal is pyeconomics-app's
-      first upload, which creates the project from its
-      pending publisher; a pending publisher does not
-      reserve the name, so check that
-      https://test.pypi.org/pypi/pyeconomics-app/json and
-      https://pypi.org/pypi/pyeconomics-app/json answer 404
-      (or belong to the maintainer) before tagging. A version
-      bump moves pyproject.toml, packages/pyeconomics-app/
-      pyproject.toml, [app]'s pin, CITATION.cff, server.json
-      and uv.lock together (tests/unit/test_app_version.py).
-    - Step 5 note: web/released-pages.json is
-      {"format": 1, "pages": [...]}, each a page path with a
-      trailing slash, sorted and unique
-      (scripts/indexing.ts parseLedger); its first entries are
-      every index.html path the candidate's production build
-      wrote (the sitemap's paths). A production build reads
-      SITE_FLAVOUR=production and indexes only a final
-      release's version: 1.0.0rc1 builds refuse indexing.
-    - ADR-0003: from 1.0.0 a breaking change needs 2.0.0;
-      removals follow one minor release of warnings; model
-      ids are permanent. The Public-API rule in this roadmap
-      says this step freezes the surfaces.
-    - #197 (the MCP tool list costs about 69k tokens of
-      context) is open; decision 17 says how it is disposed
-      of.
+    - Every page is built and generated (Steps 3 to 16) and
+      runs on production behind Access. The theme is
+      shadcn/ui's stock neutral tokens in
+      web/src/styles/global.css, every colour a grey
+      (`oklch(L 0 0)`) but the destructive red and the brand
+      blue, which marks accents only because it fails text
+      contrast on white (--link carries text). The font is
+      the system stack; formulas are KaTeX MathML in the
+      visitor's own math font, so they look different on
+      each system and often cramped. The home page is 77
+      lines of Astro.
+    - Issue #319 (fixed 2026-11-13, PR #323): display
+      formulas scrolled vertically where scrollbars are
+      always drawn; pages.spec.ts now fails on any box that
+      scrolls vertically without a maximum height. Keep that
+      check passing on every new layout.
+    - Issue #320 is this step's: the notice a library-only
+      model shows under "Live data" uses jargon
+      ("hosted-safe"), raw field names, gives no reason,
+      offers an option that cannot work and skips the
+      install line. 7 of 18 bound models show it (Ken
+      French's five, Shiller's CAPE, the Philadelphia Fed's
+      Phillips curve). Shiller declined (#310: S&P owns the
+      data), so CAPE's notice is permanent; write it for a
+      visitor.
+    - Decisions made 2026-11-13 (the maintainer delegated
+      them to best practice): the design steps run before
+      the release candidate; an evaluator panel, not the
+      maintainer, picks the direction, and the maintainer's
+      acceptance of the design is one question at Step 20's
+      gate, beside the GO; one self-hosted text typeface and
+      one math font are allowed from our own origin while
+      Lighthouse stays at 90 or above, which replaces the
+      "No web font" rule in AGENTS.md (Step 3's) and is
+      recorded as a dated amendment to ADR-0013.
+    - Constraints that stay: Astro static output with React
+      islands, Tailwind 4 and shadcn/ui copied into
+      src/components/ui/; the calculator's own constructed
+      stylesheet (calculator.css, `?inline`); no page loads
+      a script until a visitor needs it (client:visible,
+      client:interaction); Plotly's basic bundle for charts;
+      decision 19's thirteen-page Lighthouse sample at 90 in
+      four categories; axe at WCAG 2.2 AA in light and dark.
 
-    Files to read (every file before drafting):
-    - docs/adr/0013-web-app-and-launch.md (decisions 16–18),
-      ADR-0003 and ADR-0012.
-    - src/pyeconomics/__init__.py and every public
-      package's `__all__`; cli/app.py; server/openapi.py and
-      the OpenAPI snapshot; mcp/tools.py and the tools/list
-      snapshot; surfaces/problems.py; data/config.py.
-    - docs/releases/1.0.0b1.md and 1.0.0b1-readiness.md
-      (the shapes), CHANGELOG.md, CITATION.cff, server.json.
-    - .github/workflows/release.yml, release-smoke.yml,
-      mcp-registry.yml and deploy-production.yml.
-    - web/released-pages.json and its test (Step 5).
+    Files to read (every file before changing anything):
+    - AGENTS.md "Web rules" (all of it) and
+      docs/adr/0013-web-app-and-launch.md decisions 2, 9,
+      13 and 19.
+    - web/src/styles/global.css, tokens.css, calculator.css;
+      web/src/layouts/ and web/src/components/ (Header,
+      Footer, ModelPage, Calculator, SeriesExplorer, the ui/
+      components); web/src/pages/index.astro.
+    - web/csp.config.ts, web/scripts/headers.ts,
+      web/scripts/lighthouse.ts, web/tests/e2e/pages.spec.ts,
+      scripts/checks/web_licences.py.
+    - Issues #319 and #320; docs/operations/permissions.md
+      (which sources stay library-only).
   </context>
 
   <goal>
-    The public API is inventoried and pinned by a test;
-    1.0.0rc1 of both distributions is on PyPI with
-    attestations after a clean TestPyPI rehearsal; production
-    runs it behind Access; the seven-day soak has begun and
-    only security fixes may merge until Step 19.
+    The site has a recorded design direction, chosen on
+    evidence, built across every page type from one set of
+    tokens with self-hosted fonts, a home page that works
+    as a demonstration, and #320 fixed; every existing gate
+    still passes, and Step 18 inherits a harness, personas
+    and a rubric it can run unchanged.
   </goal>
 
   <requirements>
@@ -10009,87 +10050,131 @@ hygiene.
     </requirement>
 
     <requirement>
-      Kickoff, ONE batched request to the maintainer with
-      each action and its effect: push the rehearsal tag
-      `v1.0.0rc1.dev1` on main's head; approve the
-      `testpypi` deployment; after the PR merges, push
-      `v1.0.0rc1`; approve the `pypi`, `production` and
-      `mcp-registry` deployments; publish the GitHub
-      pre-release; hold Dependabot's non-security PRs until
-      Step 19. Record the approvals in the PR.
+      The protocol, written first in
+      docs/design/dogfooding.md, which Steps 18 and 20 run
+      unchanged:
+      - Personas (five), each with three to five tasks in
+        visitor words: a CFA® Program candidate checking a
+        formula and computing it; a Python developer after
+        the code, CLI or MCP snippet; an economics student
+        exploring a data series and downloading it; a
+        first-time visitor deciding in thirty seconds whether
+        the project is credible; a phone visitor on a slow
+        connection.
+      - Rubric: eight dimensions scored 1 to 10 against
+        written anchors — first impression and identity;
+        hierarchy and layout; typography and formulas;
+        colour, contrast and theming; interaction, feedback
+        and motion; navigation and findability; content and
+        microcopy; trust and polish. Severity: Blocker (a
+        task fails or a page is broken), High (a task is hard
+        or a page looks broken or unfinished), Medium
+        (friction or inconsistency), Low (polish).
+      - Evaluators: each is a fresh session or subagent that
+        has seen nothing of the implementation, the diff or
+        an earlier round's findings before its own pass,
+        given only its persona, tasks, the rubric, the
+        harness output and the site. Each returns findings as
+        JSON (page, viewport, theme, severity, rubric
+        dimension, evidence, suggested fix) and its scores.
+        Use another maker's model than the implementer's
+        where the platform allows.
     </requirement>
 
     <requirement>
-      Rehearsal first (a failed rehearsal is a NO-GO: the
-      fix lands on a `fix/` branch that moves main to the
-      next `.devN`, and the rehearsal repeats): on the
-      `v1.0.0rc1.dev1` tag, release.yml publishes both
-      distributions to TestPyPI; verify each file's
-      provenance and SHA-256 against a local build, then in
-      clean venvs install from TestPyPI (`uv venv
-      --no-config`; `uv pip install --no-config`) the core,
-      `[econometrics,plot]`, `[server]`, `[app]` (and
-      `pyeconomics serve` serving `/` and a model page) and
-      `[mcp]` through uvx with the Inspector.
+      The harness, web/tests/dogfood/ (its own Playwright
+      config, not in the e2e run): every page type (home,
+      /models/, a domain, a model page of each kind —
+      instant, bound, with a chart, a family —, /data/, a
+      concept, /coverage/, /search/, a problem page,
+      /newsletter/, /pro/, a legal page, /sources/, the 404)
+      at 390x844, 820x1180 and 1440x900, light and dark,
+      with Chromium launched without `--hide-scrollbars`;
+      full-page screenshots, the accessibility tree and load
+      timings into the git-ignored web/dogfood-out/; against
+      the local build (`wrangler dev` with
+      tests/web/e2e_api.py) or a deployed site through
+      Access. It runs on Windows as well as Linux, because
+      classic scrollbars showed #319 where overlay ones hid
+      it.
     </requirement>
 
     <requirement>
-      docs/public-api.md and tests/repo/test_public_api.py:
-      the inventory in sections, and a test that derives each
-      section from the code (the `__all__` lists, the Cyclopts
-      command tree and options, the OpenAPI paths and
-      operation ids, the MCP tool names, problems.ROWS'
-      slugs, registry.json's format number, the export
-      formats, the settings keys and environment variables,
-      the extras, and web/released-pages.json) and fails on
-      a difference the inventory does not record. A later
-      change updates the inventory and the changelog, and
-      after 1.0.0 follows ADR-0003.
+      Round 0: run the five evaluators on the current site;
+      deduplicate their findings; write
+      docs/design/audit-round-0.md (scores per dimension and
+      persona, the median, findings by severity, and at most
+      twelve key screenshots as WebP under 200 KB each in
+      docs/design/img/).
     </requirement>
 
     <requirement>
-      #197 per decision 17: by default it stays open as a
-      compatible 1.x change (slimmer schemas keep every tool
-      name and its validation), relabelled to its owner with
-      the reason; if the maintainer chose to fix it before
-      the freeze, the fix lands here with the agent
-      evaluation rerun and docs/mcp-evaluations.md
-      committed.
+      Directions: two or three distinct directions, each a
+      name, a one-paragraph rationale tied to round 0's
+      findings, its tokens, and the home page and one model
+      page built on the local build. A panel of three fresh
+      evaluators scores each with the rubric; record the
+      scores, the choice and why in
+      docs/design/direction.md, with the directions'
+      screenshots in the pull request body.
     </requirement>
 
     <requirement>
-      The candidate: `uv version 1.0.0rc1 --no-config` with
-      CITATION.cff, server.json (stdio entry only; no remote
-      until production is public) and the app's version to
-      match; CHANGELOG.md `[1.0.0rc1] - <date>`;
-      docs/releases/1.0.0rc1.md (what 1.0 contains, the
-      counts — models, providers, concepts, pages — install
-      commands with `--pre`, known limitations and their
-      issues); web/released-pages.json filled with the
-      candidate's page URLs. Then merge, tag, approve, and
-      read back: both files on PyPI with provenances, the
-      GitHub pre-release (`--prerelease --latest=false`), the
-      registry entry at 1.0.0rc1, and production's deploy.
+      Fonts: one variable text family and one math font,
+      subset to the scripts the site uses, woff2, served
+      from the site's own origin, `font-display: swap`,
+      preloading only what the first paint needs; the math
+      font set on `math` so formulas typeset alike on every
+      system. Admit OFL-1.1 for font files only in
+      scripts/checks/web_licences.py (a named rule and its
+      test), list each font on /legal/licence/, add the
+      dated amendment to ADR-0013 and a dated note to
+      ADR-0004, and replace AGENTS.md's "No web font" rule.
     </requirement>
 
     <requirement>
-      The soak (decision 18): seven days from production's
-      deploy of the candidate, with the start time recorded
-      in the PR and in docs/releases/1.0.0-readiness.md's
-      first section (created here as a skeleton); its
-      criteria, which Step 18 evaluates: no unexplained 5xx;
-      uptime on the status page of at least 99.5%; every
-      scheduled snapshot run green; every Sentry issue
-      triaged; production-health green; spend inside the
-      budget; no Critical or High security finding open.
-      Monitors and the synthetic check run through Access
-      throughout.
+      Build the chosen direction across every page type from
+      one token set (global.css and tokens.css, both themes;
+      shadcn/ui components restyled through tokens, not
+      one-off classes): layout, header and navigation, the
+      footer; a home page with a working example (a live
+      calculator or an interactive chart, loaded only when
+      visible) and a clear path to models, data and the
+      library; model pages laid out around the formula, the
+      explanation and the calculator; the explorer, coverage,
+      search, problem, legal, sign-up and Pro pages; states
+      for loading, empty and error. Motion: transitions and
+      keyframes with a purpose (feedback, orientation),
+      off under `prefers-reduced-motion: reduce`. Fix #320.
+      Change no URL, no canonical bytes and no generated-page
+      rule.
     </requirement>
 
     <requirement>
-      Filepath comment: every new Python file gets the
-      three-line header; Markdown follows the sibling
-      conventions.
+      Tests: a contrast test computed from the tokens in
+      both themes (4.5:1 for text, 3:1 for interface
+      boundaries and focus); a reduced-motion test
+      (Playwright with `reducedMotion: "reduce"` finds no
+      running animation or transition longer than 0.01 s); the
+      stray-scroll and formula checks from #319; unit, dist,
+      e2e, Lighthouse (decision 19's sample, at 90 in four
+      categories) and axe in both themes, all passing.
+    </requirement>
+
+    <requirement>
+      AGENTS.md gains "Design rules": tokens in one place;
+      the fonts and their licence rule; motion classes and
+      reduced motion; the harness and docs/design/; the
+      stray-scroll check. CHANGELOG.md records the design
+      under Changed.
+    </requirement>
+
+    <requirement>
+      After the merge, check staging through Access with
+      the harness: every page type at three widths in both
+      themes renders with the new tokens and fonts, with no
+      CSP violation or console error. Put the screenshots'
+      summary in the pull request.
     </requirement>
   </requirements>
 </task>
@@ -10097,103 +10182,99 @@ hygiene.
 
 ### Step 17 acceptance criteria
 
-- `docs/public-api.md` inventories every public surface, and
-  `tests/repo/test_public_api.py` derives the inventory from the code and
-  passes; #197 is disposed of as decision 17 says.
-- The `v1.0.0rc1.dev1` rehearsal put both distributions on TestPyPI with
-  provenances matching local builds, and the clean installs (core, extras,
-  `[app]` with `serve`, `[mcp]` through uvx with the Inspector) passed.
-- `pyproject.toml`, `CITATION.cff`, `server.json` and the app read
-  `1.0.0rc1`; `CHANGELOG.md` has its dated section;
-  `docs/releases/1.0.0rc1.md` exists; `web/released-pages.json` holds the
-  candidate's pages.
-- **Deployed & verified:** PyPI lists `1.0.0rc1` of `pyeconomics` and
-  `pyeconomics-app`, each wheel and sdist with a provenance; a clean
-  `pip install --pre "pyeconomics[app]==1.0.0rc1"` runs `pyeconomics
-  --version`, `scripts/smoke.py` and `pyeconomics serve`; plain `pip
-  install pyeconomics` still resolves 0.2.6; the GitHub pre-release and the
-  MCP Registry entry at `1.0.0rc1` exist; `deploy-production.yml` on the tag
-  succeeded and production `/version` (service token) reports the tagged
-  SHA; the soak's start is recorded.
+- `docs/design/dogfooding.md` holds the personas, the rubric, the severity
+  scale and the evaluator rules; `web/tests/dogfood/` captures every page
+  type at three widths in both themes with scrollbars drawn.
+- `docs/design/audit-round-0.md` records round 0's five evaluators, and
+  `docs/design/direction.md` records the directions, the panel's scores
+  and the choice.
+- One token set drives every page type in both themes; the text and math
+  fonts are self-hosted, licence-checked under the OFL-1.1 font rule and
+  listed on `/legal/licence/`; ADR-0013, ADR-0004 and AGENTS.md record the
+  font decision; the home page carries a working example; #320 is fixed.
+- No URL, canonical bytes or generated-page rule changed; the contrast,
+  reduced-motion, stray-scroll and formula checks pass; Lighthouse scores
+  at least 90 in four categories on decision 19's sample; axe finds no WCAG
+  2.2 AA violation in either theme; no CSP violation occurs.
+- **Deployed & verified:** the staging deploy on this step's merge commit
+  succeeded, and the harness through Access shows every page type with the
+  new design at three widths in both themes, with no CSP violation or
+  console error.
 - **Security gate clean** (always the final criterion): the pre-commit
   security gate passed on this step's diff — secret/PII scan clean, SAST
-  clean, dependency audit clean — every upload carries attestations with
-  no token created, production runs the staging-verified digest, and only
-  security fixes are admitted during the soak.
+  clean, dependency audit clean, the web licence check clean with the font
+  rule — the policy is unchanged but for a same-origin `font-src`, and no
+  screenshot or record holds a secret or personal data.
 
 ---
 
-## Step 18 — Launch Readiness Gate
+## Step 18 — AI Dogfooding Loop
 
 **Status:** Not started
 
-> **Goal:** Decide, on evidence, whether 1.0.0 may launch (ROADMAP §4 5.9;
-> §5 "Readiness gate before an irreversible cutover"; ADR-0013 decisions
-> 18–20). After the seven-day soak ends, complete
-> `docs/releases/1.0.0-readiness.md` in sixteen sections, each with its
-> evidence and a PASS, FAIL or WAIVED verdict (a waiver names the
-> maintainer's reason): the candidate and its digests; the soak record;
-> scope against ROADMAP §4 5; CI at the candidate; web quality (the
-> Lighthouse sample, axe, the CSP-violation run, web parity through the
-> deployed API, MCP Inspector over Streamable HTTP against production);
-> legal pages and attributions; counsel's review; the trademark clearance
-> search; the permissions programme's status; indexing (robots, sitemap
-> and the indexable final build); monitoring and every alarm's proof;
-> rollback rehearsed in production for the API, the site and the data;
-> the load test and its cost projection; security (the OWASP ZAP baseline
-> with no High finding, the header check, the image scan, `npm audit`, the
-> uploads network-log test, the privacy policy against the data flows,
-> waitlist access); the growth instruments and the Gate G3 window and
-> thresholds; and the decision — the known limitations with their owners,
-> then a `Decision: GO` or `Decision: NO-GO` line in the maintainer's
-> words. A FAIL forces NO-GO; a NO-GO's fixes land on
-> `fix/` branches, the next candidate is `1.0.0rc2` with a soak the
-> maintainer sets, and this step runs again. Parent: ROADMAP §4 5.9; §5
-> "Release & deployment strategy" and "Operations & observability
-> strategy" ("Acceptance"); ADR-0013 decisions 18–20.
+> **Goal:** Iterate the site with independent AI evaluators until another
+> round stops paying for itself, then lock the result in. *Added
+> 2026-11-13 at the maintainer's request.* Each round runs Step 17's
+> protocol (`docs/design/dogfooding.md`) unchanged: five fresh evaluators,
+> one per persona, use the site in real browsers through the harness and
+> score it against the rubric, without having seen the implementation or
+> any earlier round's findings before their own pass; their findings are
+> deduplicated and triaged into `docs/design/rounds/round-<n>.md`; a
+> separate implementer fixes every Blocker and High finding and the
+> Medium ones worth their cost, with every gate green; and the next round
+> starts with new evaluators, who see the previous list only after scoring,
+> to confirm fixes and catch regressions. **The stopping rule decides the
+> number of rounds:** stop after the first round, from round 2 on, that
+> finds no Blocker or High issue and raises the median score by less than
+> 0.5 over the round before; stop at round 6 regardless, filing any High
+> finding left as an issue that Step 20's gate must clear. Then lock it in:
+> visual baselines for decision 19's sample at two widths in both themes,
+> and a check in CI for each bug class the rounds found (as #319's
+> stray-scroll check guards its class). Parent: ROADMAP §4 5.11 (added
+> 2026-11-13); §5 "Design & UX quality".
 
-**Branch:** `feature/phase05-step18-launch-gate`
+**Branch:** `feature/phase05-step18-dogfooding`
 
-**Deploys:** nothing beyond merge — a readiness record. The rollback
-rehearsals touch production (behind Access) and restore it, and the load
-test runs against staging; neither changes what is released.
+**Deploys:** the staging site through `deploy-staging.yml` when the pull
+request merges, where one confirmation round runs. Rounds before it run on
+the local production build (`wrangler dev` with the e2e API), which serves
+the same `_headers` as Cloudflare. No production deploy.
 
-|               |          | Cost               | Balanced           | Quality            |
-| ------------- | -------- | ------------------ | ------------------ | ------------------ |
-| **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
-|               | Platform | Codex              | Claude Code        | Claude Code        |
-|               | Level    | Medium             | XHigh              | XHigh              |
-|               | AA       | 47.8               | 51.9               | 56                 |
-|               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
-| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-|               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
-|               | Platform | Antigravity        | Antigravity        | Codex              |
-|               | Level    | Low                | Medium             | XHigh              |
-|               | AA       | ≈45.2              | ≈49.8              | 52.4               |
-|               | Price    | $2.31/1M           | $2.37/1M           | $17.73/1M          |
+|               |          | Cost                 | Balanced             | Quality              |
+| ------------- | -------- | -------------------- | -------------------- | -------------------- |
+| **Pick**      | Model    | **GPT-6.1 Sol**      | **GPT-6.1 Sol**      | **Fable 5.1**        |
+|               | Platform | Codex                | Codex                | Claude Code          |
+|               | Level    | Medium               | High                 | XHigh                |
+|               | AA       | 47.8                 | 50.2                 | 53.2                 |
+|               | Price    | $2.50/1M             | $2.86/1M             | $21.38/1M            |
+| **Runner‑up** | Model    | **Sonnet 5.5**       | **Sonnet 5.5**       | **GPT-6.1 Sol**      |
+|               | Platform | Claude Code          | Claude Code          | Codex                |
+|               | Level    | High                 | XHigh                | XHigh                |
+|               | AA       | 46.8                 | 51.9                 | 51                   |
+|               | Price    | $3.40/1M             | $3.72/1M             | $4.00/1M             |
+| **Backup**    | Model    | **Gemini 3.8 Flash** | **Gemini 3.8 Flash** | **Gemini 3.8 Flash** |
+|               | Platform | Antigravity          | Antigravity          | Antigravity          |
+|               | Level    | Low                  | Medium               | High                 |
+|               | AA       | 33.5                 | 39.8                 | 40.9                 |
+|               | Price    | $0.98/1M             | $1.99/1M             | $3.16/1M             |
 
-Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
-the output part scaled by the tokens the model writes at that level. ≈ estimated
-from the model's measured levels.
+Ranked for multimodal, high complexity. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level.
 
 **Conversation:** New
 
-**Model rationale:** Agentic is PRIMARY and knowledge SECONDARY: a long
-evidence-gathering run across production, staging, PyPI, the registries,
-the vendors' dashboards and the scanners, three deliberate production
-rollbacks, a load test, and a record that must hold the maintainer's
-decision up to scrutiny. Complexity is High — the gate guards an
-irreversible public launch — and it is not novel: it repeats Phase 4's
-readiness pattern with launch-specific sections. The ladder's Balanced
-column runs: Sonnet 5.5 on Claude Code at Effort XHigh (claude.ai Max; AA
-Intelligence Index 51.9), Runner-up GPT-6.1 Sol on Codex at Intelligence
-High, Backup Gemini 4 Argon on Antigravity at Effort Medium. Cost runs
-GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus 5.5 at Effort
-XHigh (56.0). New conversation per phase-boundary hygiene.
+**Model rationale:** Multimodal is PRIMARY and agentic SECONDARY: the work
+is reading screenshots and pages against a rubric, round after round, and
+orchestrating evaluators, fixes and builds around them. Complexity is High
+— judgement has to be consistent across rounds and the stopping rule
+depends on it — but the step is not novel: Step 17 built the protocol and
+the harness. The ladder's Balanced column runs: GPT-6.1 Sol on Codex at
+Intelligence High (ChatGPT Pro; AA Intelligence Index 50.2), Runner-up
+Sonnet 5.5 on Claude Code at Effort XHigh, Backup Gemini 3.8 Flash on
+Antigravity at Effort Medium. Cost runs GPT-6.1 Sol at Intelligence Medium
+(47.8) and Quality Fable 5.1 on Claude Code at Effort XHigh (53.2). The
+evaluators run on another maker's model than the implementer where the
+platform allows. New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -10210,7 +10291,7 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
     1. CREATE THE BRANCH. Before
        any Read / Edit / Bash, run
        `git checkout -b
-       feature/phase05-step18-launch-gate`
+       feature/phase05-step18-dogfooding`
        from a clean, up-to-date
        `main`. The exact branch
        name is in this step's
@@ -10411,92 +10492,55 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
     that stops a security issue
     from reaching the branch, the
     PR, or `main`.
-
     THIS STEP ALSO:
-    - The ZAP baseline runs against production and staging
-      through Access (the service token's headers added by
-      ZAP's replacer), with `fail_action` on and
-      `allow_issue_writing` off; a High finding is a FAIL; a
-      Medium is fixed or recorded with its issue.
-    - The load test stays inside the budget: Locust against
-      staging through the edge with the service token, for a
-      bounded time and rate decided in advance, with its
-      cost measured from billing, never against an upstream
-      source (the API reads snapshots).
-    - The rollback rehearsals restore production exactly:
-      latest traffic restored after the API's, the newest
-      Worker version after the site's, and the newest
-      `current.json` after the data's; production-health is
-      green afterwards.
-    - The record holds no secret, no token and no personal
-      data; evidence links point to runs, dashboards and
-      issues, never to values.
+    - Step 17's rules hold for every fix: no `style`
+      attribute, no unhashed inline script or style, no
+      third-party origin, fonts from our origin only, no
+      'unsafe-inline' or 'unsafe-eval'.
+    - Evaluators read the local build, or staging through
+      Access with the CI service token as headers, which no
+      evaluator prompt, record, screenshot or log ever
+      holds. Round records and baselines hold no secret and
+      no personal data; the sign-up forms are shown empty.
+    - No URL, canonical bytes, API answer or analytics event
+      changes; the released-page ledger stays whole.
   </security>
 
   <context>
-    pyeconomics. Phase 5. Step 18: the launch readiness gate.
+    pyeconomics. Phase 5. Step 18: the AI dogfooding loop.
+    Inserted on 2026-11-13, before the release candidate.
 
     Current state (post-Phase-5 Step 17):
 
-    - 1.0.0rc1 of both distributions is on PyPI; production
-      runs it behind Access since the recorded soak start;
-      staging runs main; only security fixes have merged
-      since the tag.
-    - docs/releases/1.0.0-readiness.md exists as Step 17's
-      skeleton; docs/releases/1.0.0b1-readiness.md is the
-      shape (fourteen sections ending in the decision).
-    - The alarm proofs are in docs/operations/production.md;
-      the legal pages are live behind Access; the G3 ledger
-      has its baseline.
-    - Step 16 note (2026-11-12): the letters' sent dates and
-      answers are in docs/operations/permissions.md, one issue
-      each (#308 to #315, label `permissions`). Counsel was not
-      yet engaged at Step 16: the packet,
-      docs/operations/counsel-review.md, is ready, the
-      maintainer engages counsel and sends it, and this step
-      fills its outcome table. Each open question shows on its
-      page through CounselNote.astro in words the packet
-      repeats (web/tests/site/ holds them equal): when counsel
-      answers one, change the page's text, remove its note and
-      the packet's "The page's note", and record the answer.
-      The clearance search is expected by 2026-12-15, ordered
-      through counsel (ADR-0009's dated entry). The operator is
-      the maintainer as an individual (src/lib/legal.ts
-      OPERATOR) until Pyeconomics LLC exists. Grafana Labs'
-      DPA needs a signature, so none is in force: the telemetry
-      holds no personal data, and data-flows.json says so;
-      sign it before any personal data could reach Grafana.
-      Also open from Step 16: Buttondown's hard deletion
-      (#306).
-      security.txt expires 2027-11-01 (renewal:
-      docs/operations/production.md section 13.1).
-    - Facts read on 2026-10-29 (re-check at kickoff): the
-      ZAP baseline action is zaproxy/action-baseline v0.15.0
-      (commit de8ad967d3548d44ef623df22cf95c3b0baf8b25), with
-      `rules_file_name`, `fail_action` and
-      `allow_issue_writing`; Locust 2.47.0 is MIT (k6 is
-      AGPL-3.0, so it is not used); the MDN HTTP Observatory
-      scans only public hosts, so its scan runs in Step 19
-      right after the Access application is removed.
+    - The chosen design direction is built across every
+      page type (docs/design/direction.md); round 0's audit
+      is docs/design/audit-round-0.md, with its median
+      score per dimension.
+    - docs/design/dogfooding.md holds the personas, tasks,
+      rubric, severity scale and evaluator rules;
+      web/tests/dogfood/ captures every page type at three
+      widths in both themes with scrollbars drawn.
+    - Every gate passes: Lighthouse at 90 on decision 19's
+      sample, axe in both themes, the policy, the contrast,
+      reduced-motion, stray-scroll and formula checks.
+    - Step 20's gate (added 2026-11-13) runs one more round
+      on production and asks for the maintainer's acceptance
+      of the design; this step's last round is its baseline.
 
-    Files to read (every file before drafting):
-    - docs/adr/0013-web-app-and-launch.md (decisions 15,
-      18, 19 and 20).
-    - docs/releases/1.0.0b1-readiness.md and the skeleton of
-      1.0.0-readiness.md.
-    - docs/operations/production.md (the alarm table, the
-      rollback runbooks) and staging.md.
-    - docs/phase04-qa-findings.md "Pre-ship items and
-      owners" and every open issue (`gh issue list`).
-    - ROADMAP §4 Phase 5's acceptance criteria and §5 Gate
-      G2 and G3.
+    Files to read (every file before changing anything):
+    - docs/design/dogfooding.md, direction.md and
+      audit-round-0.md; web/tests/dogfood/.
+    - AGENTS.md "Web rules" and "Design rules".
+    - web/tests/e2e/pages.spec.ts and web/scripts/
+      lighthouse.ts.
   </context>
 
   <goal>
-    docs/releases/1.0.0-readiness.md holds every section's
-    evidence and verdict and ends in the maintainer's
-    decision; a GO lets Step 19 release and open the site, a
-    NO-GO names what must change and the next candidate.
+    The loop ran until its stopping rule held, each round is
+    recorded with its evaluators' scores and findings and
+    what was fixed, no Blocker or High finding is open, and
+    visual baselines and a check for each bug class keep the
+    result from quietly regressing.
   </goal>
 
   <requirements>
@@ -10506,111 +10550,60 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
     </requirement>
 
     <requirement>
-      Start only after the soak's seventh day; summarise it
-      from the status page, Sentry, Grafana, the snapshot
-      runs, production-health and billing against Step 17's
-      criteria.
+      A round, n from 1: build the site; run the harness;
+      start five fresh evaluators, one per persona, under
+      docs/design/dogfooding.md's rules (none has seen the
+      implementation, the diff or an earlier round's list
+      before scoring); merge and deduplicate their JSON
+      findings; write docs/design/rounds/round-<n>.md (the
+      scores per dimension and persona, the median, the
+      change from round n-1, findings by severity, and
+      after scoring each evaluator's check of round n-1's
+      list: fixed, still open or regressed). Record each
+      round's wall-clock time and token use.
     </requirement>
 
     <requirement>
-      Web quality at production (through Access): Lighthouse
-      on decision 19's page sample (median of three mobile
-      runs, at least 90 in performance, accessibility, best
-      practices and SEO on every page); axe with the WCAG 2.2
-      AA tags on the same pages with no violation; the
-      Playwright CSP-violation run on every sampled page;
-      scripts/parity/check_deployed.py for one golden case
-      per domain; MCP Inspector over Streamable HTTP at /mcp.
+      Fixes, by an implementer that is not an evaluator:
+      every Blocker and High finding, and the Medium ones
+      the round record names as worth their cost; each fix
+      keeps every gate green (unit, dist, e2e, Lighthouse,
+      axe, policy) and is committed on this step's branch
+      with the finding it closes. A finding the implementer
+      disputes stays in the record with the reason, for the
+      next round's evaluators to judge.
     </requirement>
 
     <requirement>
-      Rollback rehearsed in production, each timed: deploy a
-      label-only revision, route traffic back to the previous
-      revision, then restore latest; deploy the same site
-      build as a new Worker version, roll back to the
-      previous version, then forward again; restore the
-      previous `current.json` from object versioning, then
-      the newest. Record each command, its duration and the
-      green check after it.
+      The stopping rule: after round n (n of at least 2),
+      stop if the round found no Blocker or High issue and
+      its median score is less than 0.5 above round n-1's;
+      otherwise fix and run round n+1. Stop after round 6
+      regardless, and file each High finding still open as
+      an issue that Step 20's gate must clear. The record
+      ends with docs/design/rounds/summary.md: every round's
+      median, the trend, why the loop stopped, and its cost.
     </requirement>
 
     <requirement>
-      Load test (decision 19): scripts/load/locustfile.py (a
-      `load` dependency group with Locust) weights requests
-      by cost class and includes series reads; run it against
-      staging through the edge for the agreed duration and
-      rate, record p50 and p95 per cost class, 429s, any 5xx
-      (none expected but budget-exceeded), the instance count
-      and the billed vCPU-seconds, and project a month at
-      decision 19's planning traffic against production's
-      budget.
+      Lock it in: Playwright visual baselines
+      (`toHaveScreenshot`) for decision 19's sample at
+      390 and 1440 wide in both themes, run in one CI cell
+      (Linux, in the web job) with a small pixel threshold
+      and updated only on purpose (`--update-snapshots`,
+      reviewed in the pull request); and a check for each
+      bug class the rounds found, in the style of #319's
+      stray-scroll check, so the class, not just the
+      instance, fails CI. AGENTS.md "Design rules" names the
+      baselines and how to update them.
     </requirement>
 
     <requirement>
-      Security: the ZAP baseline (a workflow,
-      zap-baseline.yml, dispatched against production and
-      staging with the Access headers, the rules file
-      .zap/rules.tsv for recorded false positives); the
-      headers check against production's live responses; the
-      image scan of the candidate digest; `npm audit` for
-      web/ and tools/node/; the uploads network-log test; the
-      data-flows completeness test; the processor account's
-      two-factor authentication and single owner, confirmed by
-      the maintainer.
-    </requirement>
-
-    <requirement>
-      Legal and outside parties: counsel's review recorded
-      (date, scope, outcome, and every change it asked for
-      made); the clearance search's result (or WAIVED with
-      the maintainer's reason and the expected date); each
-      permission letter's sent date and any answer; a grant
-      that arrived handled as its own reclassification PR.
-    </requirement>
-
-    <requirement>
-      Indexing: a final-version production build (built
-      locally from the candidate with the version set to
-      1.0.0) writes an indexable robots.txt and sitemap, and
-      the pre-release build refuses indexing; the canonical
-      links and the redirect rules (still disabled) are
-      ready.
-    </requirement>
-
-    <requirement>
-      Growth: each Gate G2 signal shows its test events
-      (analytics, sign-ups by tier, API and MCP counts,
-      downloads, stars); the maintainer confirms or adjusts
-      the Gate G3 window and thresholds, and the parent
-      roadmap's G3 row is amended in this PR if they change.
-      Before the cutover makes /pro/ public (Step 15 left it
-      behind Access), the maintainer confirms that any outside
-      approval a priced preview of a future paid tier needs
-      is in hand, and records that it is, never what it is.
-    </requirement>
-
-    <requirement>
-      Known limitations: every open issue and every Phase 4
-      pre-ship item listed with its owner and whether it
-      blocks the launch (none may, or the decision is
-      NO-GO). The decision section ends with the
-      maintainer's line, `Decision: GO — <date> — Nathan
-      Ramos, CFA` or `Decision: NO-GO — <date> — <reason>`,
-      asked in one question with the evidence summary and
-      relayed into the record.
-    </requirement>
-
-    <requirement>
-      Cross-phase verification rule: narrow Phase 3 check 78
-      and Phase 4 check 64 for zap-baseline.yml, which reads
-      the Access service tokens from `staging` and
-      `production` only, with addendum lines.
-    </requirement>
-
-    <requirement>
-      Filepath comment: YAML starts with `# <path>`; a new
-      Python file gets the three-line header; the rules file
-      carries a comment line where ZAP allows one.
+      After the merge, run one confirmation round on staging
+      through Access with fresh evaluators: no Blocker or
+      High finding, and a median no lower than the last
+      round's. A High finding here is fixed on a `fix/`
+      branch before Step 19 starts.
     </requirement>
   </requirements>
 </task>
@@ -10618,66 +10611,59 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
 
 ### Step 18 acceptance criteria
 
-- `docs/releases/1.0.0-readiness.md` holds all sixteen sections, each with
-  evidence and a verdict, no unresolved FAIL, every WAIVED item's reason,
-  and the maintainer's `Decision:` line.
-- The soak met Step 17's criteria; Lighthouse scored at least 90 in all
-  four categories on every sampled page; axe found no WCAG 2.2 AA
-  violation; no CSP violation occurred; web parity and MCP Inspector
-  passed against production.
-- The API, site and data rollbacks were rehearsed in production, timed and
-  restored; the load test's projection fits the budget.
-- The ZAP baseline found no High issue on production or staging; the
-  header, image, npm and uploads checks passed; the privacy policy matches
-  the data flows.
-- Counsel's review, the clearance search and the permissions programme are
-  recorded; the Gate G3 window and thresholds are confirmed.
-- On a NO-GO, the record names each blocking item, its `fix/` branch or
-  issue, and the next candidate; this step's completion line waits for a
-  GO.
+- `docs/design/rounds/` holds a record for every round, each with five
+  fresh evaluators' scores and findings, the median and its change, and
+  the checks of the previous round's list; `summary.md` shows the stopping
+  rule met (no Blocker or High issue and a gain under 0.5 after at least
+  two rounds) or round 6 reached with each High finding filed as an issue.
+- Every Blocker and High finding is fixed or filed; every disputed finding
+  carries its reason.
+- Visual baselines for decision 19's sample at two widths in both themes
+  run in the web job, and each bug class the rounds found has its check.
+- Every existing gate still passes: Lighthouse at least 90 in four
+  categories on decision 19's sample, axe in both themes, the policy, and
+  Step 17's contrast, reduced-motion, stray-scroll and formula checks.
+- **Deployed & verified:** the staging deploy on this step's merge commit
+  succeeded, and the confirmation round there found no Blocker or High
+  issue and scored no lower than the last round.
 - **Security gate clean** (always the final criterion): the pre-commit
   security gate passed on this step's diff — secret/PII scan clean, SAST
-  clean, dependency audit clean, actionlint and zizmor clean on
-  `zap-baseline.yml` — the ZAP baseline found no High issue, production
-  was restored after every rehearsal, and the record holds no secret or
-  personal data.
+  clean, dependency audit clean — the policy is unchanged, and no round
+  record, screenshot or baseline holds a secret or personal data.
 
 ---
 
-## Step 19 — Cutover and the 1.0.0 Release
+## Step 19 — Public-API Freeze, Release Candidate and Production Soak
 
 **Status:** Not started
 
-> **Goal:** Release pyeconomics 1.0.0 and open the site, only after the
-> maintainer's GO (ROADMAP §4 5.10; ADR-0013 decision 18). Set `1.0.0` —
-> the stable classifier, `CITATION.cff`, `server.json` with its remote
-> entry for `https://pyeconomics.dev/mcp`, the app's version, the README
-> and PyPI description, `docs/index.md`, the documentation's title and
-> banner, `SECURITY.md`'s supported versions with 0.2.x at end of life, the
-> changelog, the release notes and the announcement draft; narrow the
-> earlier phases' checks that pin 0.2.6 as the stable release or the README
-> as a beta; merge, tag `v1.0.0`, compare both distributions with the
-> candidate's (only version metadata may differ), and approve the PyPI,
-> production and registry deployments; then cut over — remove production's
-> Access application, enable the `www`, `.com`, `.org` and `.io`
-> redirects, confirm the indexable build is live, point Read the Docs'
-> default branch at `main` and its default version at `stable` (now 1.0),
-> set the repository's homepage, lock `legacy/0.2.x`, publish the GitHub
-> release as the latest, lift the Dependabot hold — and run the
-> post-launch verification, including the MDN HTTP Observatory scan the
-> public host now allows. The maintainer posts the announcement; its date
-> opens the Gate G3 window in the ledger. Parent: ROADMAP §4 5.10; §5
-> "Release & tagging", "Rollback" and Gate G3; ADR-0002; ADR-0003;
-> ADR-0007; ADR-0009; ADR-0012 decision 16; ADR-0013 decision 18.
+> **Goal:** Freeze what 1.0.0 promises and put the exact candidate into
+> production for its soak (ADR-0013 decisions 17 and 18). Write
+> `docs/public-api.md`, the inventory of everything ADR-0003 makes public
+> at 1.0.0 — the Python API's `__all__`s, the command tree and options, the
+> REST paths and schemas, the MCP tool names and schemas, the problem slugs
+> and type URIs, `registry.json`'s format, the export formats, the settings
+> and environment variables, the extras and the site's page URLs — with a
+> test that derives the inventory from the code and fails on any change the
+> inventory and the changelog do not record; dispose of #197 as decision 17
+> says; rehearse the exact candidate on TestPyPI by tagging `main`'s head
+> `v1.0.0rc1.dev1`, both distributions' first joint upload, with clean
+> installs; then set `1.0.0rc1`, write its release notes and the first
+> released-page ledger, merge, tag `v1.0.0rc1`, approve the PyPI and
+> production deployments, publish the GitHub pre-release and the MCP
+> Registry entry (stdio only), freeze Dependabot to security fixes, and
+> start the seven-day production soak behind Access, with its start
+> recorded. Parent: ROADMAP §4 5.9 ("`1.0.0rc1` soaked in production-like
+> conditions"); §5 "Release & tagging" and "Readiness gate before an
+> irreversible cutover"; ADR-0003; ADR-0013 decisions 17 and 18.
 
-**Branch:** `feature/phase05-step19-launch`
+**Branch:** `feature/phase05-step19-release-candidate`
 
-**Deploys:** PyPI (`v1.0.0`, both distributions, stable), the GitHub
-release, the MCP Registry with its remote entry, production through
-`deploy-production.yml` on the tag, the public cutover on
-`pyeconomics.dev` and its redirects, and Read the Docs' `stable` and
-defaults; the post-launch checks run against the public site with no
-token.
+**Deploys:** TestPyPI (`v1.0.0rc1.dev1`, before the PR merges), then PyPI
+(`v1.0.0rc1`, both distributions, a pre-release that plain `pip install`
+ignores), the GitHub pre-release, the MCP Registry entry at `1.0.0rc1`,
+and production through `deploy-production.yml` on the tag, behind Access;
+the soak runs for seven days from that deploy.
 
 |               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
@@ -10703,19 +10689,18 @@ from the model's measured levels.
 
 **Conversation:** New
 
-**Model rationale:** Agentic is PRIMARY and knowledge SECONDARY: the
-release and cutover run — version files, cross-phase narrowings, a tag,
-four approved deployments, edge, documentation-host and repository
-settings — then a post-launch verification of every public surface.
-Complexity is High: the stable upload, the end of 0.2.x and the opening
-of the site cannot be undone, only rolled back around. It is not novel:
-Step 18's GO rests on a rehearsed candidate, and every action has a
-runbook. The ladder's Balanced column runs: Sonnet 5.5 on Claude Code at
-Effort XHigh (claude.ai Max; AA Intelligence Index 51.9), Runner-up
-GPT-6.1 Sol on Codex at Intelligence High, Backup Gemini 4 Argon on
-Antigravity at Effort Medium. Cost runs GPT-6.1 Sol at Intelligence Medium
-(47.8) and Quality Opus 5.5 at Effort XHigh (56.0). New conversation per
-phase-boundary hygiene.
+**Model rationale:** Agentic is PRIMARY and coding SECONDARY: a release
+run across TestPyPI, PyPI, GitHub, the MCP Registry and production, with
+maintainer approvals at three gates, around a public-API inventory and its
+test. Complexity is High — every upload is permanent, and the inventory
+fixes what 2.0.0 alone may break — but the step is not novel: it repeats
+Phase 4's rehearse-then-release pattern with a second distribution. The
+ladder's Balanced column runs: Sonnet 5.5 on Claude Code at Effort XHigh
+(claude.ai Max; AA Intelligence Index 51.9), Runner-up GPT-6.1 Sol on
+Codex at Intelligence High, Backup Gemini 4 Argon on Antigravity at Effort
+Medium. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality
+Opus 5.5 at Effort XHigh (56.0). New conversation per phase-boundary
+hygiene.
 
 ```xml
 <task>
@@ -10732,7 +10717,7 @@ phase-boundary hygiene.
     1. CREATE THE BRANCH. Before
        any Read / Edit / Bash, run
        `git checkout -b
-       feature/phase05-step19-launch`
+       feature/phase05-step19-release-candidate`
        from a clean, up-to-date
        `main`. The exact branch
        name is in this step's
@@ -10935,119 +10920,113 @@ phase-boundary hygiene.
     PR, or `main`.
 
     THIS STEP ALSO:
-    - Nothing ships without the GO: the step reads
-      `Decision: GO` in docs/releases/1.0.0-readiness.md
-      before any version file changes, and stops otherwise.
-    - The release is the soaked candidate: both
-      distributions' archives differ from 1.0.0rc1's only
-      in version metadata, and production promotes the
-      digest staging verified; anything else is explained in
-      the PR before the tag.
-    - Opening the site removes Access and nothing else: the
-      origin still refuses requests without the edge
-      credential, the rate rule and the managed WAF stay on,
-      and the rollback is to restore the Access application
-      (minutes), recorded in the runbook.
-    - The remote MCP entry names only the public endpoint;
-      no header, token or secret is declared in server.json.
+    - Every upload goes through Trusted Publishing with PEP
+      740 attestations for both distributions; no token is
+      created; each published file's SHA-256 equals a local
+      `uv build --no-config` of the same commit, or the
+      difference is explained.
+    - The production deploy promotes the image staging
+      verified for the tagged commit; nothing is rebuilt for
+      production; the site stays behind Access and refuses
+      indexing (a pre-release build).
+    - During the soak only security fixes merge (Dependabot
+      security updates and `hotfix/` branches); every other
+      change waits for Step 21, so the candidate soaked is
+      the candidate released.
   </security>
 
   <context>
-    pyeconomics. Phase 5. Step 19: the cutover and the
-    1.0.0 release.
+    pyeconomics. Phase 5. Step 19: the public-API freeze,
+    the release candidate and the production soak.
 
-    Current state (post-Phase-5 Step 18):
+    Current state (post-Phase-5 Step 18; this step was Step
+    17 until 2026-11-13, when the design steps were inserted
+    before it):
 
-    - Step 13 note: until the `production` environment's
-      PRODUCTION_PUBLIC variable is `true`, deploy-production.yml
-      checks that Access refuses a request without the token:
-      set it as Access goes, or the next deploy fails that
-      check and rolls back. The redirect hosts' proxied
-      `AAAA 100::` records already exist, so enabling the rules
-      is all they need. The edge's cache of GET runs answered
-      HIT behind Access on 2026-11-10, which Cloudflare does not
-      document, so check it again once Access is gone
-      (docs/operations/production.md section 5).
-    - Step 14 note: Better Stack's five production monitors send
-      the Access headers of the service token
-      `pyeconomics-production-uptime`, and production-health.yml
-      reads `pyeconomics-production-health` from the
-      `production-health` environment's two secrets. Once Access
-      is gone, delete those headers from the monitors, the two
-      secrets and both tokens (and the keyring's
-      UPTIME_CF_ACCESS_CLIENT_*), then dispatch
-      production-health.yml and check the monitors stay up
-      (docs/operations/production.md section 5, step 5). The
-      status page at status.pyeconomics.dev is public already.
-    - Step 12 note: once 1.0.0 is on PyPI, move docs/wasm/'s
-      three notebooks' `pyeconomics==` pin to it, run
+    - Steps 17 and 18 note: the site's design, its fonts and
+      the dogfooding loop's visual baselines are in `main`
+      and on staging (docs/design/); the release candidate
+      carries them to production. The page URLs this step
+      freezes are unchanged by them.
+    - Step 13 note: deploy-production.yml copies the image
+      tagged with the commit from staging's registry, which
+      keeps its two newest images and deletes the others
+      after a day, so tag main's newest commit once its
+      deploy-staging run has passed. A `.devN` tag deploys
+      nothing. Each of its four jobs waits for the maintainer,
+      beside `pypi`'s own approval.
+    - main reads 1.0.0rc1.dev1; staging and production
+      (behind Access) run the complete site, API, snapshot
+      jobs, observability and growth signals; the legal
+      pages are live behind Access; the alarm proofs are
+      recorded.
+    - release.yml publishes both distributions (`.devN` to
+      TestPyPI, other tags to PyPI behind the `pypi`
+      approval); the pending publishers for pyeconomics-app
+      exist on TestPyPI and PyPI; release-smoke.yml installs
+      pyeconomics[app] and smokes serve; mcp-registry.yml
+      publishes server.json on a published release.
+      deploy-production.yml deploys a non-`.dev` `v*` tag
+      after the maintainer's approval.
+    - Step 12 note: docs/wasm/'s notebooks pin the published
+      wheel, 1.0.0b1, in the lockfile that fixes everything
+      the in-browser examples load. Once 1.0.0rc1 is on PyPI,
+      move the three notebooks' `pyeconomics==` pin, run
       `uv run --no-config --group docs python
-      scripts/docs/pin_wasm.py`, and commit the lockfile, so
-      `stable`'s in-browser examples run the release they
-      document. `npm run e2e:wasm` with WASM_BASE_URL checks
-      the deployed pages.
-    - Step 11 note: the guides speak of the pre-release.
-      Once plain `pip install pyeconomics` gives 1.0.0, drop
-      `--pre` and `--prerelease allow` from docs/tutorials/,
-      docs/how-to/ and docs/installation.md (keep
-      explorer.ts LOCAL_APP equal to local-app.md's
-      command); tutorials/install.md's note; migration.md's
-      "Before you start"; tutorials/mcp.md's "It is not open
-      yet" and its client configuration (with docs/mcp.md's,
-      which tests/docs/test_guides.py holds equal); and
-      xlwings-lite.md's range, which can become
-      `pyeconomics>=1.0,<2` (that test pins the line). Every
-      docs model page and study path links pyeconomics.dev,
-      which answers only from this cutover: click through a
-      sample of them as part of the Deployed & verified
-      check.
-    - docs/releases/1.0.0-readiness.md ends in the
-      maintainer's decision. Production runs 1.0.0rc1 behind
-      Access; its redirect rules exist, disabled; staging
-      runs main; only security fixes merged during the soak.
-    - Read the Docs: default branch legacy/0.2.x, default
-      version stable (0.2.6); `stable` tracks the greatest
-      stable release, so a v1.0.0 tag makes it 1.0.0; the
-      defaults change in Admin or through API v3
-      (`default_version`, `default_branch`). The legacy
-      branch builds from its own .readthedocs.yml.
-    - Earlier checks that pin the pre-launch world: Read
-      the Docs stable serving 0.2.6 and main titled "1.0
-      preview" (Phase 1 V4.4, Phase 2 V7.3, Phase 3 V11.3,
-      Phase 4 V15.2); a plain `pip install pyeconomics`
-      resolving 0.2.6 (Phase 2 V14.3, Phase 3 V19.3, Phase 4
-      V15.3); the README naming `1.0.0b1` (Phase 4 check 58,
-      a static check every pull request runs).
-    - server.json's remote entry: `"remotes": [{"type":
-      "streamable-http", "url": ".../mcp"}]`; a remote must
-      be publicly reachable (registry docs, read
-      2026-10-29); mcp-registry.yml runs on a published
-      release.
-    - ADR-0003: 0.2.x reaches end of life at 1.0.0;
-      SECURITY.md promises 0.2.x security fixes until then.
+      scripts/docs/pin_wasm.py`, and commit the lockfile; a
+      pin to a version PyPI does not hold fails in a browser,
+      and neither the version bump nor the tests can move it
+      for you.
+    - Step 10 note: release.yml's build job builds the site
+      once (SITE_FLAVOUR=app) and uploads three files, the
+      pyeconomics wheel and sdist and the pyeconomics-app
+      wheel, which each publish job sends through one OIDC
+      exchange. The TestPyPI rehearsal is pyeconomics-app's
+      first upload, which creates the project from its
+      pending publisher; a pending publisher does not
+      reserve the name, so check that
+      https://test.pypi.org/pypi/pyeconomics-app/json and
+      https://pypi.org/pypi/pyeconomics-app/json answer 404
+      (or belong to the maintainer) before tagging. A version
+      bump moves pyproject.toml, packages/pyeconomics-app/
+      pyproject.toml, [app]'s pin, CITATION.cff, server.json
+      and uv.lock together (tests/unit/test_app_version.py).
+    - Step 5 note: web/released-pages.json is
+      {"format": 1, "pages": [...]}, each a page path with a
+      trailing slash, sorted and unique
+      (scripts/indexing.ts parseLedger); its first entries are
+      every index.html path the candidate's production build
+      wrote (the sitemap's paths). A production build reads
+      SITE_FLAVOUR=production and indexes only a final
+      release's version: 1.0.0rc1 builds refuse indexing.
+    - ADR-0003: from 1.0.0 a breaking change needs 2.0.0;
+      removals follow one minor release of warnings; model
+      ids are permanent. The Public-API rule in this roadmap
+      says this step freezes the surfaces.
+    - #197 (the MCP tool list costs about 69k tokens of
+      context) is open; decision 17 says how it is disposed
+      of.
 
     Files to read (every file before drafting):
-    - docs/releases/1.0.0-readiness.md (the decision) and
-      1.0.0rc1.md.
-    - pyproject.toml, packages/pyeconomics-app/pyproject.toml,
-      CITATION.cff, server.json, README.md, docs/index.md,
-      docs/conf.py, SECURITY.md and CHANGELOG.md.
-    - scripts/verify-phase01.sh (V4.4), verify-phase02.sh
-      (V7.3, V14.3), verify-phase03.sh (V11.3, V19.3) and
-      verify-phase04.sh (check 58, V15.2, V15.3), and the
-      end of each earlier phase roadmap.
-    - docs/operations/production.md (the cutover runbook)
-      and docs/releases/1.0.0b1.md (the notes' shape).
+    - docs/adr/0013-web-app-and-launch.md (decisions 16–18),
+      ADR-0003 and ADR-0012.
+    - src/pyeconomics/__init__.py and every public
+      package's `__all__`; cli/app.py; server/openapi.py and
+      the OpenAPI snapshot; mcp/tools.py and the tools/list
+      snapshot; surfaces/problems.py; data/config.py.
+    - docs/releases/1.0.0b1.md and 1.0.0b1-readiness.md
+      (the shapes), CHANGELOG.md, CITATION.cff, server.json.
+    - .github/workflows/release.yml, release-smoke.yml,
+      mcp-registry.yml and deploy-production.yml.
+    - web/released-pages.json and its test (Step 5).
   </context>
 
   <goal>
-    1.0.0 of both distributions is on PyPI and is what a
-    plain `pip install pyeconomics` gives; pyeconomics.dev
-    serves the indexable site and the API to everyone, with
-    the other domains redirecting; Read the Docs' default is
-    1.0; the MCP Registry lists the remote endpoint; 0.2.x
-    is at end of life; the earlier ledgers still hold; the
-    G3 window is open.
+    The public API is inventoried and pinned by a test;
+    1.0.0rc1 of both distributions is on PyPI with
+    attestations after a clean TestPyPI rehearsal; production
+    runs it behind Access; the seven-day soak has begun and
+    only security fixes may merge until Step 21.
   </goal>
 
   <requirements>
@@ -11058,90 +11037,86 @@ phase-boundary hygiene.
 
     <requirement>
       Kickoff, ONE batched request to the maintainer with
-      each action and its effect, in order: push `v1.0.0`
-      after the merge; approve `pypi`, `production` and
-      `mcp-registry`; remove the Access application for
-      pyeconomics.dev and enable the redirect rules (or let
-      the step run the API calls); change Read the Docs'
-      defaults; set the repository homepage; lock
-      `legacy/0.2.x`; publish the GitHub release; lift the
-      Dependabot hold; post the announcement. Record the
-      approvals in the PR.
+      each action and its effect: push the rehearsal tag
+      `v1.0.0rc1.dev1` on main's head; approve the
+      `testpypi` deployment; after the PR merges, push
+      `v1.0.0rc1`; approve the `pypi`, `production` and
+      `mcp-registry` deployments; publish the GitHub
+      pre-release; hold Dependabot's non-security PRs until
+      Step 21. Record the approvals in the PR.
     </requirement>
 
     <requirement>
-      Release files: `uv version 1.0.0 --no-config`; the
-      classifier `Development Status :: 5 -
-      Production/Stable`; CITATION.cff's version and
-      `date-released`; server.json's versions and its remote
-      entry; the app's version; CHANGELOG.md `[1.0.0] -
-      <date>`; docs/releases/1.0.0.md; docs/releases/
-      1.0.0-announcement.md (the text the maintainer posts);
-      README.md and docs/index.md describing 1.0.0 (plain
-      `pip install pyeconomics`, the site, the docs, the
-      local app, MCP), keeping the CFA® notice verbatim and
-      the `mcp-name:` marker; docs/conf.py's title
-      "pyeconomics" with no preview banner; SECURITY.md's
-      table (1.0.x supported; 0.2.x end of life on the
-      release date).
+      Rehearsal first (a failed rehearsal is a NO-GO: the
+      fix lands on a `fix/` branch that moves main to the
+      next `.devN`, and the rehearsal repeats): on the
+      `v1.0.0rc1.dev1` tag, release.yml publishes both
+      distributions to TestPyPI; verify each file's
+      provenance and SHA-256 against a local build, then in
+      clean venvs install from TestPyPI (`uv venv
+      --no-config`; `uv pip install --no-config`) the core,
+      `[econometrics,plot]`, `[server]`, `[app]` (and
+      `pyeconomics serve` serving `/` and a model page) and
+      `[mcp]` through uvx with the Inspector.
     </requirement>
 
     <requirement>
-      Cross-phase verification rule, in this PR, each with
-      an addendum line in that phase's roadmap: Phase 4
-      check 58 narrows to "the README describes the current
-      release's install command and the shipped surfaces";
-      the documentation checks (Phase 1 V4.4, Phase 2 V7.3,
-      Phase 3 V11.3, Phase 4 V15.2) narrow to "`stable`
-      serves the greatest stable release (0.2.6 until
-      1.0.0) and `main` builds main"; the plain-install
-      checks (Phase 2 V14.3, Phase 3 V19.3, Phase 4 V15.3)
-      narrow to "a plain install resolves the newest final
-      release, never a pre-release". `verify-phase01.sh` to
-      `verify-phase04.sh --fast` pass on the PR.
+      docs/public-api.md and tests/repo/test_public_api.py:
+      the inventory in sections, and a test that derives each
+      section from the code (the `__all__` lists, the Cyclopts
+      command tree and options, the OpenAPI paths and
+      operation ids, the MCP tool names, problems.ROWS'
+      slugs, registry.json's format number, the export
+      formats, the settings keys and environment variables,
+      the extras, and web/released-pages.json) and fails on
+      a difference the inventory does not record. A later
+      change updates the inventory and the changelog, and
+      after 1.0.0 follows ADR-0003.
     </requirement>
 
     <requirement>
-      Release: after the merge, the tag; release.yml
-      publishes both distributions with attestations;
-      compare each archive with 1.0.0rc1's (only METADATA,
-      RECORD, PKG-INFO and the version fields differ, or the
-      PR explains why); deploy-production.yml promotes the
-      tagged commit's digest (data, API, site; the site
-      build is indexable now); the GitHub release from
-      docs/releases/1.0.0.md as the latest; mcp-registry.yml
-      publishes 1.0.0 with the remote.
+      #197 per decision 17: by default it stays open as a
+      compatible 1.x change (slimmer schemas keep every tool
+      name and its validation), relabelled to its owner with
+      the reason; if the maintainer chose to fix it before
+      the freeze, the fix lands here with the agent
+      evaluation rerun and docs/mcp-evaluations.md
+      committed.
     </requirement>
 
     <requirement>
-      Cutover (docs/operations/production.md's runbook):
-      remove the Access application on pyeconomics.dev
-      (keep staging's); enable the `www` and `.com`, `.org`
-      and `.io` redirects; set Read the Docs' default branch
-      to main and default version to stable, keeping the
-      0.2.6 version active and visible; set the repository's
-      homepage to https://pyeconomics.dev; lock
-      `legacy/0.2.x` with branch protection; lift the
-      Dependabot hold; production-health.yml now runs
-      without the token. The maintainer posts the
-      announcement on Discussions, the newsletter and the
-      channels they choose; growth-metrics.yml's next run
-      (or a dispatch) records the announcement date as day 1
-      of the Gate G3 window.
+      The candidate: `uv version 1.0.0rc1 --no-config` with
+      CITATION.cff, server.json (stdio entry only; no remote
+      until production is public) and the app's version to
+      match; CHANGELOG.md `[1.0.0rc1] - <date>`;
+      docs/releases/1.0.0rc1.md (what 1.0 contains, the
+      counts — models, providers, concepts, pages — install
+      commands with `--pre`, known limitations and their
+      issues); web/released-pages.json filled with the
+      candidate's page URLs. Then merge, tag, approve, and
+      read back: both files on PyPI with provenances, the
+      GitHub pre-release (`--prerelease --latest=false`), the
+      registry entry at 1.0.0rc1, and production's deploy.
     </requirement>
 
     <requirement>
-      Post-launch verification (a script,
-      scripts/verify_launch.py, reused by Step 20's --live):
-      the public checks in this step's Deployed & verified
-      bullet, each printed as PASS or FAIL; a FAIL in a
-      security header or the Observatory grade restores
-      Access while it is fixed.
+      The soak (decision 18): seven days from production's
+      deploy of the candidate, with the start time recorded
+      in the PR and in docs/releases/1.0.0-readiness.md's
+      first section (created here as a skeleton); its
+      criteria, which Step 20 evaluates: no unexplained 5xx;
+      uptime on the status page of at least 99.5%; every
+      scheduled snapshot run green; every Sentry issue
+      triaged; production-health green; spend inside the
+      budget; no Critical or High security finding open.
+      Monitors and the synthetic check run through Access
+      throughout.
     </requirement>
 
     <requirement>
       Filepath comment: every new Python file gets the
-      three-line header; TOML and YAML start with `# <path>`.
+      three-line header; Markdown follows the sibling
+      conventions.
     </requirement>
   </requirements>
 </task>
@@ -11149,112 +11124,106 @@ phase-boundary hygiene.
 
 ### Step 19 acceptance criteria
 
-- The version files read `1.0.0` with the stable classifier; the README,
-  `docs/index.md`, the documentation title, `SECURITY.md`, the changelog,
-  the release notes and the announcement describe the release; the earlier
-  checks are narrowed with their addendum lines, and every earlier phase's
-  `--fast` passes.
-- Both distributions' 1.0.0 archives differ from 1.0.0rc1's only in
-  version metadata, or the PR explains each difference.
-- The Access application on `pyeconomics.dev` is gone, the `production`
-  environment's `PRODUCTION_PUBLIC` is `true`, the redirects are
-  on, Read the Docs' defaults are `main` and `stable`, the homepage is set,
-  `legacy/0.2.x` is locked, the Dependabot hold is lifted, and the
-  announcement date is in the ledger.
-- The edge caches GET runs: the second of two identical data-free `GET` runs
-  shows `cf-cache-status: HIT` or an `age`, and a `POST` run and a problem
-  show neither, as it did behind Access in Step 13.
-- **Deployed & verified:** without any token, `https://pyeconomics.dev/
-  version` and `/version.json` report the `v1.0.0` SHA; a synthetic check
-  runs one model per domain and downloads a CSV carrying its attribution;
-  the snapshot heartbeat is green; `https://pyeconomics.com/models/` (and
-  `.org`, `.io`, `www`) answers 301 to `https://pyeconomics.dev/models/`;
-  robots.txt allows indexing and the sitemap lists every model page; the
-  MDN HTTP Observatory grades `pyeconomics.dev` A or better with the CSP,
-  HSTS and frame-ancestors present; the ZAP baseline against the public
-  site finds no High issue; `https://docs.pyeconomics.dev/en/stable/` serves
-  1.0.0; a clean
-  `pip install pyeconomics` on Python 3.12 and 3.15 installs 1.0.0 and
-  passes `scripts/smoke.py`; `pip install "pyeconomics[app]"` then
-  `pyeconomics serve` serves the pages locally with a library-only source
-  live; `uvx --from "pyeconomics[mcp]==1.0.0" pyeconomics mcp` and the
-  hosted `https://pyeconomics.dev/mcp` both pass MCP Inspector; the MCP
-  Registry lists 1.0.0 with the remote; `scripts/parity/check_deployed.py`
-  passes against production.
+- `docs/public-api.md` inventories every public surface, and
+  `tests/repo/test_public_api.py` derives the inventory from the code and
+  passes; #197 is disposed of as decision 17 says.
+- The `v1.0.0rc1.dev1` rehearsal put both distributions on TestPyPI with
+  provenances matching local builds, and the clean installs (core, extras,
+  `[app]` with `serve`, `[mcp]` through uvx with the Inspector) passed.
+- `pyproject.toml`, `CITATION.cff`, `server.json` and the app read
+  `1.0.0rc1`; `CHANGELOG.md` has its dated section;
+  `docs/releases/1.0.0rc1.md` exists; `web/released-pages.json` holds the
+  candidate's pages.
+- **Deployed & verified:** PyPI lists `1.0.0rc1` of `pyeconomics` and
+  `pyeconomics-app`, each wheel and sdist with a provenance; a clean
+  `pip install --pre "pyeconomics[app]==1.0.0rc1"` runs `pyeconomics
+  --version`, `scripts/smoke.py` and `pyeconomics serve`; plain `pip
+  install pyeconomics` still resolves 0.2.6; the GitHub pre-release and the
+  MCP Registry entry at `1.0.0rc1` exist; `deploy-production.yml` on the tag
+  succeeded and production `/version` (service token) reports the tagged
+  SHA; the soak's start is recorded.
 - **Security gate clean** (always the final criterion): the pre-commit
   security gate passed on this step's diff — secret/PII scan clean, SAST
-  clean, dependency audit clean — the release is the soaked candidate, the
-  origin still requires the edge credential, and the public site passes
-  the Observatory and ZAP checks.
+  clean, dependency audit clean — every upload carries attestations with
+  no token created, production runs the staging-verified digest, and only
+  security fixes are admitted during the soak.
 
 ---
 
-## Step 20 — QA and Verification Script
+## Step 20 — Launch Readiness Gate
 
 **Status:** Not started
 
-> **Goal:** Package the phase's verification matrix into
-> `scripts/verify-phase05.sh` — Phase 4's `--fast`, `--python`, `--node`,
-> `--container`, `--security`, `--live`, `--all` and `--post` modes, with
-> `--node` now covering the web project (build, tests, axe, Lighthouse,
-> audits) beside `tools/node`, and `--live` covering production, the
-> monitors and both registries — with independent static checks for every
-> Step 1–19 deliverable, Step 20 self-checks and the V1–V20 matrix, plus its
-> pytest twin `tests/repo/test_phase05.py` and its live helper
-> `scripts/verify_phase05_live.py` (which reuses `scripts/verify_launch.py`);
-> produce `docs/phase05-qa-findings.md`, the rollup of every finding, its
-> class, its destination and its guard, with the alarm evidence and the
-> pre-ship owners for Phases 6 and 7; add `"05"` to
-> `.github/workflows/phase-verify.yml`'s matrix and make both `phase-verify`
-> jobs for `05` required; re-fire production-health's alarm once on the
-> public path; run `verify-phase04.sh --post` (which runs Phases 3, 2 and
-> 1's) to show the earlier ledgers still hold; and mark Phase 5 complete
-> here and in the parent roadmap. Parent: ROADMAP §5 "Operations &
-> observability strategy" ("Acceptance") and this roadmap's
-> Post-Implementation Verification.
+> **Goal:** Decide, on evidence, whether 1.0.0 may launch (ROADMAP §4 5.9;
+> §5 "Readiness gate before an irreversible cutover"; ADR-0013 decisions
+> 18–20). After the seven-day soak ends, complete
+> `docs/releases/1.0.0-readiness.md` in seventeen sections, each with its
+> evidence and a PASS, FAIL or WAIVED verdict (a waiver names the
+> maintainer's reason): the candidate and its digests; the soak record;
+> scope against ROADMAP §4 5; CI at the candidate; web quality (the
+> Lighthouse sample, axe, the CSP-violation run, web parity through the
+> deployed API, MCP Inspector over Streamable HTTP against production);
+> design and UX (Step 18's loop record, its final round's scores and no
+> open Blocker or High finding, and the maintainer's acceptance of the
+> design, given with the decision); legal pages and attributions;
+> counsel's review; the trademark clearance
+> search; the permissions programme's status; indexing (robots, sitemap
+> and the indexable final build); monitoring and every alarm's proof;
+> rollback rehearsed in production for the API, the site and the data;
+> the load test and its cost projection; security (the OWASP ZAP baseline
+> with no High finding, the header check, the image scan, `npm audit`, the
+> uploads network-log test, the privacy policy against the data flows,
+> waitlist access); the growth instruments and the Gate G3 window and
+> thresholds; and the decision — the known limitations with their owners,
+> then a `Decision: GO` or `Decision: NO-GO` line in the maintainer's
+> words. A FAIL forces NO-GO; a NO-GO's fixes land on
+> `fix/` branches, the next candidate is `1.0.0rc2` with a soak the
+> maintainer sets, and this step runs again. Parent: ROADMAP §4 5.9; §5
+> "Release & deployment strategy" and "Operations & observability
+> strategy" ("Acceptance"); ADR-0013 decisions 18–20.
 
-**Branch:** `feature/phase05-step20-verify`
+**Branch:** `feature/phase05-step20-launch-gate`
 
-**Deploys:** nothing beyond merge — the CI matrix entry is live on merge;
-the required-check update and the alarm re-fire are part of the step, and
-staging redeploys on the merge as on every merge.
+**Deploys:** nothing beyond merge — a readiness record. The rollback
+rehearsals touch production (behind Access) and restore it, and the load
+test runs against staging; neither changes what is released.
 
-|               |          | Cost                 | Balanced             | Quality            |
-| ------------- | -------- | -------------------- | -------------------- | ------------------ |
-| **Pick**      | Model    | **Gemini 3.8 Flash** | **GPT-6.1 Sol**      | **Gemini 4 Argon** |
-|               | Platform | Antigravity          | Codex                | Antigravity        |
-|               | Level    | Medium               | High                 | High               |
-|               | AA       | 39.8                 | 50.2                 | 52.6               |
-|               | Price    | $1.90/1M             | $2.86/1M             | $6.13/1M           |
-| **Runner‑up** | Model    | **GPT-6.1 Sol**      | **Sonnet 5.5**       | **Opus 5.5**       |
-|               | Platform | Codex                | Claude Code          | Claude Code        |
-|               | Level    | Low                  | High                 | High               |
-|               | AA       | 42.1                 | 46.8                 | 53.6               |
-|               | Price    | $2.35/1M             | $3.40/1M             | $6.76/1M           |
-| **Backup**    | Model    | **Sonnet 5.5**       | **Gemini 3.8 Flash** | **GPT-6.1 Sol**    |
-|               | Platform | Claude Code          | Antigravity          | Codex              |
-|               | Level    | Medium               | High                 | High               |
-|               | AA       | 40.8                 | 40.9                 | 50.2               |
-|               | Price    | $3.18/1M             | $2.98/1M             | $2.86/1M           |
+|               |          | Cost               | Balanced           | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | XHigh              | XHigh              |
+|               | AA       | 47.8               | 51.9               | 56                 |
+|               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | XHigh              | High               |
+|               | AA       | 46.8               | 51                 | 52.6               |
+|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | XHigh              |
+|               | AA       | ≈45.2              | ≈49.8              | 52.4               |
+|               | Price    | $2.31/1M           | $2.37/1M           | $17.73/1M          |
 
-Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
-out), the output part scaled by the tokens the model writes at that level.
+Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
+the output part scaled by the tokens the model writes at that level. ≈ estimated
+from the model's measured levels.
 
 **Conversation:** New
 
-> Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
-
-**Model rationale:** Coding is PRIMARY and agentic SECONDARY: the
-mechanical translation of `verify-phase04.sh` into this phase's
-deliverables, a wider `--node` and `--live`, a QA rollup, one alarm re-fire
-and a required-check update. Complexity is Medium — the template, the
-check list and the V-matrix are fixed here — and it is not novel. The
-ladder's Balanced column runs: GPT-6.1 Sol on Codex at Intelligence High
-(ChatGPT Pro; AA Intelligence Index 50.2), Runner-up Sonnet 5.5 on Claude
-Code at Effort High, Backup Gemini 3.8 Flash on Antigravity. Cost runs
-GPT-6.1 Sol at Intelligence Low (42.1) and Quality Gemini 4 Argon on
-Antigravity at Effort High (52.6). New conversation per phase-boundary
-hygiene.
+**Model rationale:** Agentic is PRIMARY and knowledge SECONDARY: a long
+evidence-gathering run across production, staging, PyPI, the registries,
+the vendors' dashboards and the scanners, three deliberate production
+rollbacks, a load test, and a record that must hold the maintainer's
+decision up to scrutiny. Complexity is High — the gate guards an
+irreversible public launch — and it is not novel: it repeats Phase 4's
+readiness pattern with launch-specific sections. The ladder's Balanced
+column runs: Sonnet 5.5 on Claude Code at Effort XHigh (claude.ai Max; AA
+Intelligence Index 51.9), Runner-up GPT-6.1 Sol on Codex at Intelligence
+High, Backup Gemini 4 Argon on Antigravity at Effort Medium. Cost runs
+GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus 5.5 at Effort
+XHigh (56.0). New conversation per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -11271,7 +11240,7 @@ hygiene.
     1. CREATE THE BRANCH. Before
        any Read / Edit / Bash, run
        `git checkout -b
-       feature/phase05-step20-verify`
+       feature/phase05-step20-launch-gate`
        from a clean, up-to-date
        `main`. The exact branch
        name is in this step's
@@ -11389,6 +11358,1081 @@ hygiene.
        explicit, unhedged
        completion line — verbatim
        shape "Step 20 is
+       complete. You can now move
+       on to Step 21." That
+       line is the LAST line of
+       the response. NOTHING
+       follows it — no "Follow-ups
+       (non-blocking)", "Notes",
+       "Next", "worth a glance",
+       or suggested improvements.
+       A short ledger may PRECEDE
+       it, one entry per finding
+       naming its destination
+       (issue #, file edited, PR
+       body) — never an open item.
+       If any criterion is unmet
+       or any finding has no
+       destination, state plainly
+       that the step is NOT
+       complete, name what is
+       outstanding, and omit the
+       completion line. "Done"
+       means done. Then, for
+       phase-boundary hygiene, the
+       operator closes this
+       session and opens a fresh
+       one before Step 21.
+  </lifecycle>
+
+  <security>
+    Security is a gate on THIS
+    step, not a later phase. It is
+    AS BINDING as any
+    `<requirement>` below. Before
+    the Stage-2 commit, this
+    step's work MUST pass the
+    local, fail-closed security
+    gate — the SAME gate wired
+    into the pre-commit hook and
+    re-run in CI:
+
+    1. SECRET / PII SCAN. No
+       credentials, API keys,
+       tokens, or real PII in the
+       diff (gitleaks /
+       detect-secrets or the
+       project's equivalent).
+       Secrets go in the secrets
+       manager, never in source or
+       committed env files.
+
+    2. SAST. No new injection,
+       unsafe deserialization,
+       weak crypto, path
+       traversal, or unsafe-eval
+       pattern (bandit / semgrep /
+       eslint-plugin-security per
+       the stack). Suppress a
+       finding ONLY with an inline
+       justification comment.
+
+    3. DEPENDENCY AUDIT. Any new
+       or bumped dependency passes
+       the audit (pip-audit / npm
+       audit / osv-scanner); no
+       known-vulnerable, yanked,
+       or typo-squatted package.
+
+    4. SENSITIVE-DATA REVIEW.
+       Whatever this step touches
+       stays least-privilege,
+       encrypted in transit + at
+       rest, and out of logs and
+       client bundles. If the step
+       adds a data path, name how
+       PII/secrets are protected.
+
+    A finding blocks the commit —
+    fix it in this step, do not
+    defer. Do not declare the step
+    complete until the gate is
+    clean. This is the safety net
+    that stops a security issue
+    from reaching the branch, the
+    PR, or `main`.
+
+    THIS STEP ALSO:
+    - The ZAP baseline runs against production and staging
+      through Access (the service token's headers added by
+      ZAP's replacer), with `fail_action` on and
+      `allow_issue_writing` off; a High finding is a FAIL; a
+      Medium is fixed or recorded with its issue.
+    - The load test stays inside the budget: Locust against
+      staging through the edge with the service token, for a
+      bounded time and rate decided in advance, with its
+      cost measured from billing, never against an upstream
+      source (the API reads snapshots).
+    - The rollback rehearsals restore production exactly:
+      latest traffic restored after the API's, the newest
+      Worker version after the site's, and the newest
+      `current.json` after the data's; production-health is
+      green afterwards.
+    - The record holds no secret, no token and no personal
+      data; evidence links point to runs, dashboards and
+      issues, never to values.
+  </security>
+
+  <context>
+    pyeconomics. Phase 5. Step 20: the launch readiness gate.
+
+    Current state (post-Phase-5 Step 19):
+
+    - 1.0.0rc1 of both distributions is on PyPI; production
+      runs it behind Access since the recorded soak start;
+      staging runs main; only security fixes have merged
+      since the tag.
+    - docs/releases/1.0.0-readiness.md exists as Step 19's
+      skeleton; docs/releases/1.0.0b1-readiness.md is the
+      shape (fourteen sections ending in the decision).
+    - The alarm proofs are in docs/operations/production.md;
+      the legal pages are live behind Access; the G3 ledger
+      has its baseline.
+    - Step 16 note (2026-11-12): the letters' sent dates and
+      answers are in docs/operations/permissions.md, one issue
+      each (#308 to #315, label `permissions`). Counsel was not
+      yet engaged at Step 16: the packet,
+      docs/operations/counsel-review.md, is ready, the
+      maintainer engages counsel and sends it, and this step
+      fills its outcome table. Each open question shows on its
+      page through CounselNote.astro in words the packet
+      repeats (web/tests/site/ holds them equal): when counsel
+      answers one, change the page's text, remove its note and
+      the packet's "The page's note", and record the answer.
+      The clearance search is expected by 2026-12-15, ordered
+      through counsel (ADR-0009's dated entry). The operator is
+      the maintainer as an individual (src/lib/legal.ts
+      OPERATOR) until Pyeconomics LLC exists. Grafana Labs'
+      DPA needs a signature, so none is in force: the telemetry
+      holds no personal data, and data-flows.json says so;
+      sign it before any personal data could reach Grafana.
+      Also open from Step 16: Buttondown's hard deletion
+      (#306).
+      security.txt expires 2027-11-01 (renewal:
+      docs/operations/production.md section 13.1).
+    - Facts read on 2026-10-29 (re-check at kickoff): the
+      ZAP baseline action is zaproxy/action-baseline v0.15.0
+      (commit de8ad967d3548d44ef623df22cf95c3b0baf8b25), with
+      `rules_file_name`, `fail_action` and
+      `allow_issue_writing`; Locust 2.47.0 is MIT (k6 is
+      AGPL-3.0, so it is not used); the MDN HTTP Observatory
+      scans only public hosts, so its scan runs in Step 21
+      right after the Access application is removed.
+
+    Files to read (every file before drafting):
+    - docs/adr/0013-web-app-and-launch.md (decisions 15,
+      18, 19 and 20).
+    - docs/releases/1.0.0b1-readiness.md and the skeleton of
+      1.0.0-readiness.md.
+    - docs/operations/production.md (the alarm table, the
+      rollback runbooks) and staging.md.
+    - docs/phase04-qa-findings.md "Pre-ship items and
+      owners" and every open issue (`gh issue list`).
+    - ROADMAP §4 Phase 5's acceptance criteria and §5 Gate
+      G2 and G3.
+  </context>
+
+  <goal>
+    docs/releases/1.0.0-readiness.md holds every section's
+    evidence and verdict and ends in the maintainer's
+    decision; a GO lets Step 21 release and open the site, a
+    NO-GO names what must change and the next candidate.
+  </goal>
+
+  <requirements>
+    <requirement>
+      Read all files listed in context before making any
+      changes.
+    </requirement>
+
+    <requirement>
+      Start only after the soak's seventh day; summarise it
+      from the status page, Sentry, Grafana, the snapshot
+      runs, production-health and billing against Step 19's
+      criteria.
+    </requirement>
+
+    <requirement>
+      Web quality at production (through Access): Lighthouse
+      on decision 19's page sample (median of three mobile
+      runs, at least 90 in performance, accessibility, best
+      practices and SEO on every page); axe with the WCAG 2.2
+      AA tags on the same pages with no violation; the
+      Playwright CSP-violation run on every sampled page;
+      scripts/parity/check_deployed.py for one golden case
+      per domain; MCP Inspector over Streamable HTTP at /mcp.
+    </requirement>
+
+    <requirement>
+      Design and UX (added 2026-11-13): run one more
+      dogfooding round on production through Access, with
+      Step 18's personas, rubric and harness
+      (docs/design/dogfooding.md) and fresh evaluators. PASS
+      needs no Blocker or High finding and a median score no
+      lower than Step 18's last round; record the round, then
+      ask the maintainer to accept the design with the
+      decision (one question, beside the GO).
+    </requirement>
+
+    <requirement>
+      Rollback rehearsed in production, each timed: deploy a
+      label-only revision, route traffic back to the previous
+      revision, then restore latest; deploy the same site
+      build as a new Worker version, roll back to the
+      previous version, then forward again; restore the
+      previous `current.json` from object versioning, then
+      the newest. Record each command, its duration and the
+      green check after it.
+    </requirement>
+
+    <requirement>
+      Load test (decision 19): scripts/load/locustfile.py (a
+      `load` dependency group with Locust) weights requests
+      by cost class and includes series reads; run it against
+      staging through the edge for the agreed duration and
+      rate, record p50 and p95 per cost class, 429s, any 5xx
+      (none expected but budget-exceeded), the instance count
+      and the billed vCPU-seconds, and project a month at
+      decision 19's planning traffic against production's
+      budget.
+    </requirement>
+
+    <requirement>
+      Security: the ZAP baseline (a workflow,
+      zap-baseline.yml, dispatched against production and
+      staging with the Access headers, the rules file
+      .zap/rules.tsv for recorded false positives); the
+      headers check against production's live responses; the
+      image scan of the candidate digest; `npm audit` for
+      web/ and tools/node/; the uploads network-log test; the
+      data-flows completeness test; the processor account's
+      two-factor authentication and single owner, confirmed by
+      the maintainer.
+    </requirement>
+
+    <requirement>
+      Legal and outside parties: counsel's review recorded
+      (date, scope, outcome, and every change it asked for
+      made); the clearance search's result (or WAIVED with
+      the maintainer's reason and the expected date); each
+      permission letter's sent date and any answer; a grant
+      that arrived handled as its own reclassification PR.
+    </requirement>
+
+    <requirement>
+      Indexing: a final-version production build (built
+      locally from the candidate with the version set to
+      1.0.0) writes an indexable robots.txt and sitemap, and
+      the pre-release build refuses indexing; the canonical
+      links and the redirect rules (still disabled) are
+      ready.
+    </requirement>
+
+    <requirement>
+      Growth: each Gate G2 signal shows its test events
+      (analytics, sign-ups by tier, API and MCP counts,
+      downloads, stars); the maintainer confirms or adjusts
+      the Gate G3 window and thresholds, and the parent
+      roadmap's G3 row is amended in this PR if they change.
+      Before the cutover makes /pro/ public (Step 15 left it
+      behind Access), the maintainer confirms that any outside
+      approval a priced preview of a future paid tier needs
+      is in hand, and records that it is, never what it is.
+    </requirement>
+
+    <requirement>
+      Known limitations: every open issue and every Phase 4
+      pre-ship item listed with its owner and whether it
+      blocks the launch (none may, or the decision is
+      NO-GO). The decision section ends with the
+      maintainer's line, `Decision: GO — <date> — Nathan
+      Ramos, CFA` or `Decision: NO-GO — <date> — <reason>`,
+      asked in one question with the evidence summary and
+      relayed into the record.
+    </requirement>
+
+    <requirement>
+      Cross-phase verification rule: narrow Phase 3 check 78
+      and Phase 4 check 64 for zap-baseline.yml, which reads
+      the Access service tokens from `staging` and
+      `production` only, with addendum lines.
+    </requirement>
+
+    <requirement>
+      Filepath comment: YAML starts with `# <path>`; a new
+      Python file gets the three-line header; the rules file
+      carries a comment line where ZAP allows one.
+    </requirement>
+  </requirements>
+</task>
+```
+
+### Step 20 acceptance criteria
+
+- `docs/releases/1.0.0-readiness.md` holds all seventeen sections, each with
+  evidence and a verdict, no unresolved FAIL, every WAIVED item's reason,
+  and the maintainer's `Decision:` line.
+- The soak met Step 19's criteria; Lighthouse scored at least 90 in all
+  four categories on every sampled page; axe found no WCAG 2.2 AA
+  violation; no CSP violation occurred; web parity and MCP Inspector
+  passed against production.
+- The design-and-UX round on production found no Blocker or High issue and
+  scored no lower than Step 18's last round, and the maintainer accepted
+  the design.
+- The API, site and data rollbacks were rehearsed in production, timed and
+  restored; the load test's projection fits the budget.
+- The ZAP baseline found no High issue on production or staging; the
+  header, image, npm and uploads checks passed; the privacy policy matches
+  the data flows.
+- Counsel's review, the clearance search and the permissions programme are
+  recorded; the Gate G3 window and thresholds are confirmed.
+- On a NO-GO, the record names each blocking item, its `fix/` branch or
+  issue, and the next candidate; this step's completion line waits for a
+  GO.
+- **Security gate clean** (always the final criterion): the pre-commit
+  security gate passed on this step's diff — secret/PII scan clean, SAST
+  clean, dependency audit clean, actionlint and zizmor clean on
+  `zap-baseline.yml` — the ZAP baseline found no High issue, production
+  was restored after every rehearsal, and the record holds no secret or
+  personal data.
+
+---
+
+## Step 21 — Cutover and the 1.0.0 Release
+
+**Status:** Not started
+
+> **Goal:** Release pyeconomics 1.0.0 and open the site, only after the
+> maintainer's GO (ROADMAP §4 5.10; ADR-0013 decision 18). Set `1.0.0` —
+> the stable classifier, `CITATION.cff`, `server.json` with its remote
+> entry for `https://pyeconomics.dev/mcp`, the app's version, the README
+> and PyPI description, `docs/index.md`, the documentation's title and
+> banner, `SECURITY.md`'s supported versions with 0.2.x at end of life, the
+> changelog, the release notes and the announcement draft; narrow the
+> earlier phases' checks that pin 0.2.6 as the stable release or the README
+> as a beta; merge, tag `v1.0.0`, compare both distributions with the
+> candidate's (only version metadata may differ), and approve the PyPI,
+> production and registry deployments; then cut over — remove production's
+> Access application, enable the `www`, `.com`, `.org` and `.io`
+> redirects, confirm the indexable build is live, point Read the Docs'
+> default branch at `main` and its default version at `stable` (now 1.0),
+> set the repository's homepage, lock `legacy/0.2.x`, publish the GitHub
+> release as the latest, lift the Dependabot hold — and run the
+> post-launch verification, including the MDN HTTP Observatory scan the
+> public host now allows. The maintainer posts the announcement; its date
+> opens the Gate G3 window in the ledger. Parent: ROADMAP §4 5.10; §5
+> "Release & tagging", "Rollback" and Gate G3; ADR-0002; ADR-0003;
+> ADR-0007; ADR-0009; ADR-0012 decision 16; ADR-0013 decision 18.
+
+**Branch:** `feature/phase05-step21-launch`
+
+**Deploys:** PyPI (`v1.0.0`, both distributions, stable), the GitHub
+release, the MCP Registry with its remote entry, production through
+`deploy-production.yml` on the tag, the public cutover on
+`pyeconomics.dev` and its redirects, and Read the Docs' `stable` and
+defaults; the post-launch checks run against the public site with no
+token.
+
+|               |          | Cost               | Balanced           | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Sonnet 5.5**     | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | XHigh              | XHigh              |
+|               | AA       | 47.8               | 51.9               | 56                 |
+|               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | XHigh              | High               |
+|               | AA       | 46.8               | 51                 | 52.6               |
+|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | XHigh              |
+|               | AA       | ≈45.2              | ≈49.8              | 52.4               |
+|               | Price    | $2.31/1M           | $2.37/1M           | $17.73/1M          |
+
+Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
+the output part scaled by the tokens the model writes at that level. ≈ estimated
+from the model's measured levels.
+
+**Conversation:** New
+
+**Model rationale:** Agentic is PRIMARY and knowledge SECONDARY: the
+release and cutover run — version files, cross-phase narrowings, a tag,
+four approved deployments, edge, documentation-host and repository
+settings — then a post-launch verification of every public surface.
+Complexity is High: the stable upload, the end of 0.2.x and the opening
+of the site cannot be undone, only rolled back around. It is not novel:
+Step 20's GO rests on a rehearsed candidate, and every action has a
+runbook. The ladder's Balanced column runs: Sonnet 5.5 on Claude Code at
+Effort XHigh (claude.ai Max; AA Intelligence Index 51.9), Runner-up
+GPT-6.1 Sol on Codex at Intelligence High, Backup Gemini 4 Argon on
+Antigravity at Effort Medium. Cost runs GPT-6.1 Sol at Intelligence Medium
+(47.8) and Quality Opus 5.5 at Effort XHigh (56.0). New conversation per
+phase-boundary hygiene.
+
+```xml
+<task>
+  <lifecycle>
+    This step MUST follow all six
+    stages, in order. Stages 1, 3,
+    4, 5, 6 are AS BINDING as any
+    `<requirement>` below. Do not
+    emit the Stage 6 completion
+    line until the PR is merged and
+    every acceptance criterion for
+    this step is affirmatively met.
+
+    1. CREATE THE BRANCH. Before
+       any Read / Edit / Bash, run
+       `git checkout -b
+       feature/phase05-step21-launch`
+       from a clean, up-to-date
+       `main`. The exact branch
+       name is in this step's
+       `**Branch:**` line above.
+       If the Worktree rule
+       applies, use `git fetch
+       origin && git worktree add
+       -b <branch> <path>
+       origin/main` instead, then
+       bootstrap the worktree.
+
+    2. WORK ON THE BRANCH. All
+       commits land here. `main`
+       is protected with
+       `enforce_admins: true` —
+       direct pushes will be
+       rejected.
+
+    3. OPEN THE PR, THEN MARK THE
+       STEP. `gh pr create --base
+       main --head <branch>` with a
+       Conventional Commits title
+       and a body that references
+       this roadmap step and its
+       acceptance criteria. One PR
+       per step. Then, in this
+       roadmap file: set this
+       step's `**Status:**` line
+       (directly under its heading)
+       to `Complete — PR #<n>
+       (<YYYY-MM-DD>)`, append ` ✅`
+       to the step's `## Step`
+       heading, and set its
+       Summary Table Status cell to
+       `Complete — PR #<n>`. Commit
+       that edit on the step
+       branch and push — the PR
+       carries its own completion
+       mark, so the roadmap on
+       `main` marks this step
+       complete exactly when the PR
+       merges (Status rule). Same
+       commit: on the phase's first
+       step, set this roadmap's
+       phase-level `**Status:**`
+       (under its title) and the
+       parent project roadmap's
+       Phase 5 `**Status:**` to
+       `In progress`; on the final
+       step, both to `Complete`,
+       with ` ✅` appended to this
+       roadmap's `# ` title and to
+       the parent's `### Phase 5`
+       heading.
+
+    4. WAIT FOR GREEN CHECKS, THEN
+       SQUASH-MERGE. Every required
+       check must pass. If the PR
+       falls behind main, refresh
+       with `gh pr update-branch
+       --rebase` — never merge main
+       into the branch
+       (`required_linear_history:
+       true`). Once green:
+       `gh pr merge <PR> --squash
+       --delete-branch`. If this
+       step's `**Deploys:**` line
+       names a surface, the merge
+       is not the finish line: run
+       the Deployed & verified
+       check against the target
+       environment before
+       declaring the step complete.
+
+    5. RETIRE THE BRANCH. Sync
+       local: `git switch main &&
+       git pull --ff-only origin
+       main && git fetch --prune
+       origin`. Prune any local
+       `[gone]` branches. If the
+       step ran in a worktree,
+       `git worktree remove <path>`
+       FIRST — the branch prune
+       fails while the branch is
+       checked out there.
+
+    6. DISPOSE OF EVERY FINDING,
+       DECLARE COMPLETION, THEN
+       NEW CONVERSATION. First
+       send every finding this
+       step surfaced to its
+       destination (Triage rule):
+       a note for a later step →
+       edit that step's <task>
+       block now; spec rot → edit
+       this roadmap now; a bug →
+       fixed in-step or an issue
+       number; a judgement call in
+       the diff → the PR body; a
+       process lesson → written
+       where the next conversation
+       reads it. A finding you can
+       only describe is NOT
+       disposed of, and counts as
+       an unmet criterion. Only
+       once the PR is merged — and
+       `main` therefore carries
+       this step's `Complete`
+       Status line — every
+       acceptance criterion is
+       affirmatively met, and every
+       finding has a destination,
+       say so plainly: end your
+       final response with an
+       explicit, unhedged
+       completion line — verbatim
+       shape "Step 21 is
+       complete. You can now move
+       on to Step 22." That
+       line is the LAST line of
+       the response. NOTHING
+       follows it — no "Follow-ups
+       (non-blocking)", "Notes",
+       "Next", "worth a glance",
+       or suggested improvements.
+       A short ledger may PRECEDE
+       it, one entry per finding
+       naming its destination
+       (issue #, file edited, PR
+       body) — never an open item.
+       If any criterion is unmet
+       or any finding has no
+       destination, state plainly
+       that the step is NOT
+       complete, name what is
+       outstanding, and omit the
+       completion line. "Done"
+       means done. Then, for
+       phase-boundary hygiene, the
+       operator closes this
+       session and opens a fresh
+       one before Step 22.
+  </lifecycle>
+
+  <security>
+    Security is a gate on THIS
+    step, not a later phase. It is
+    AS BINDING as any
+    `<requirement>` below. Before
+    the Stage-2 commit, this
+    step's work MUST pass the
+    local, fail-closed security
+    gate — the SAME gate wired
+    into the pre-commit hook and
+    re-run in CI:
+
+    1. SECRET / PII SCAN. No
+       credentials, API keys,
+       tokens, or real PII in the
+       diff (gitleaks /
+       detect-secrets or the
+       project's equivalent).
+       Secrets go in the secrets
+       manager, never in source or
+       committed env files.
+
+    2. SAST. No new injection,
+       unsafe deserialization,
+       weak crypto, path
+       traversal, or unsafe-eval
+       pattern (bandit / semgrep /
+       eslint-plugin-security per
+       the stack). Suppress a
+       finding ONLY with an inline
+       justification comment.
+
+    3. DEPENDENCY AUDIT. Any new
+       or bumped dependency passes
+       the audit (pip-audit / npm
+       audit / osv-scanner); no
+       known-vulnerable, yanked,
+       or typo-squatted package.
+
+    4. SENSITIVE-DATA REVIEW.
+       Whatever this step touches
+       stays least-privilege,
+       encrypted in transit + at
+       rest, and out of logs and
+       client bundles. If the step
+       adds a data path, name how
+       PII/secrets are protected.
+
+    A finding blocks the commit —
+    fix it in this step, do not
+    defer. Do not declare the step
+    complete until the gate is
+    clean. This is the safety net
+    that stops a security issue
+    from reaching the branch, the
+    PR, or `main`.
+
+    THIS STEP ALSO:
+    - Nothing ships without the GO: the step reads
+      `Decision: GO` in docs/releases/1.0.0-readiness.md
+      before any version file changes, and stops otherwise.
+    - The release is the soaked candidate: both
+      distributions' archives differ from 1.0.0rc1's only
+      in version metadata, and production promotes the
+      digest staging verified; anything else is explained in
+      the PR before the tag.
+    - Opening the site removes Access and nothing else: the
+      origin still refuses requests without the edge
+      credential, the rate rule and the managed WAF stay on,
+      and the rollback is to restore the Access application
+      (minutes), recorded in the runbook.
+    - The remote MCP entry names only the public endpoint;
+      no header, token or secret is declared in server.json.
+  </security>
+
+  <context>
+    pyeconomics. Phase 5. Step 21: the cutover and the
+    1.0.0 release.
+
+    Current state (post-Phase-5 Step 20):
+
+    - Step 13 note: until the `production` environment's
+      PRODUCTION_PUBLIC variable is `true`, deploy-production.yml
+      checks that Access refuses a request without the token:
+      set it as Access goes, or the next deploy fails that
+      check and rolls back. The redirect hosts' proxied
+      `AAAA 100::` records already exist, so enabling the rules
+      is all they need. The edge's cache of GET runs answered
+      HIT behind Access on 2026-11-10, which Cloudflare does not
+      document, so check it again once Access is gone
+      (docs/operations/production.md section 5).
+    - Step 14 note: Better Stack's five production monitors send
+      the Access headers of the service token
+      `pyeconomics-production-uptime`, and production-health.yml
+      reads `pyeconomics-production-health` from the
+      `production-health` environment's two secrets. Once Access
+      is gone, delete those headers from the monitors, the two
+      secrets and both tokens (and the keyring's
+      UPTIME_CF_ACCESS_CLIENT_*), then dispatch
+      production-health.yml and check the monitors stay up
+      (docs/operations/production.md section 5, step 5). The
+      status page at status.pyeconomics.dev is public already.
+    - Step 12 note: once 1.0.0 is on PyPI, move docs/wasm/'s
+      three notebooks' `pyeconomics==` pin to it, run
+      `uv run --no-config --group docs python
+      scripts/docs/pin_wasm.py`, and commit the lockfile, so
+      `stable`'s in-browser examples run the release they
+      document. `npm run e2e:wasm` with WASM_BASE_URL checks
+      the deployed pages.
+    - Step 11 note: the guides speak of the pre-release.
+      Once plain `pip install pyeconomics` gives 1.0.0, drop
+      `--pre` and `--prerelease allow` from docs/tutorials/,
+      docs/how-to/ and docs/installation.md (keep
+      explorer.ts LOCAL_APP equal to local-app.md's
+      command); tutorials/install.md's note; migration.md's
+      "Before you start"; tutorials/mcp.md's "It is not open
+      yet" and its client configuration (with docs/mcp.md's,
+      which tests/docs/test_guides.py holds equal); and
+      xlwings-lite.md's range, which can become
+      `pyeconomics>=1.0,<2` (that test pins the line). Every
+      docs model page and study path links pyeconomics.dev,
+      which answers only from this cutover: click through a
+      sample of them as part of the Deployed & verified
+      check.
+    - docs/releases/1.0.0-readiness.md ends in the
+      maintainer's decision. Production runs 1.0.0rc1 behind
+      Access; its redirect rules exist, disabled; staging
+      runs main; only security fixes merged during the soak.
+    - Read the Docs: default branch legacy/0.2.x, default
+      version stable (0.2.6); `stable` tracks the greatest
+      stable release, so a v1.0.0 tag makes it 1.0.0; the
+      defaults change in Admin or through API v3
+      (`default_version`, `default_branch`). The legacy
+      branch builds from its own .readthedocs.yml.
+    - Earlier checks that pin the pre-launch world: Read
+      the Docs stable serving 0.2.6 and main titled "1.0
+      preview" (Phase 1 V4.4, Phase 2 V7.3, Phase 3 V11.3,
+      Phase 4 V15.2); a plain `pip install pyeconomics`
+      resolving 0.2.6 (Phase 2 V14.3, Phase 3 V21.3, Phase 4
+      V15.3); the README naming `1.0.0b1` (Phase 4 check 58,
+      a static check every pull request runs).
+    - server.json's remote entry: `"remotes": [{"type":
+      "streamable-http", "url": ".../mcp"}]`; a remote must
+      be publicly reachable (registry docs, read
+      2026-10-29); mcp-registry.yml runs on a published
+      release.
+    - ADR-0003: 0.2.x reaches end of life at 1.0.0;
+      SECURITY.md promises 0.2.x security fixes until then.
+
+    Files to read (every file before drafting):
+    - docs/releases/1.0.0-readiness.md (the decision) and
+      1.0.0rc1.md.
+    - pyproject.toml, packages/pyeconomics-app/pyproject.toml,
+      CITATION.cff, server.json, README.md, docs/index.md,
+      docs/conf.py, SECURITY.md and CHANGELOG.md.
+    - scripts/verify-phase01.sh (V4.4), verify-phase02.sh
+      (V7.3, V14.3), verify-phase03.sh (V11.3, V21.3) and
+      verify-phase04.sh (check 58, V15.2, V15.3), and the
+      end of each earlier phase roadmap.
+    - docs/operations/production.md (the cutover runbook)
+      and docs/releases/1.0.0b1.md (the notes' shape).
+  </context>
+
+  <goal>
+    1.0.0 of both distributions is on PyPI and is what a
+    plain `pip install pyeconomics` gives; pyeconomics.dev
+    serves the indexable site and the API to everyone, with
+    the other domains redirecting; Read the Docs' default is
+    1.0; the MCP Registry lists the remote endpoint; 0.2.x
+    is at end of life; the earlier ledgers still hold; the
+    G3 window is open.
+  </goal>
+
+  <requirements>
+    <requirement>
+      Read all files listed in context before making any
+      changes.
+    </requirement>
+
+    <requirement>
+      Kickoff, ONE batched request to the maintainer with
+      each action and its effect, in order: push `v1.0.0`
+      after the merge; approve `pypi`, `production` and
+      `mcp-registry`; remove the Access application for
+      pyeconomics.dev and enable the redirect rules (or let
+      the step run the API calls); change Read the Docs'
+      defaults; set the repository homepage; lock
+      `legacy/0.2.x`; publish the GitHub release; lift the
+      Dependabot hold; post the announcement. Record the
+      approvals in the PR.
+    </requirement>
+
+    <requirement>
+      Release files: `uv version 1.0.0 --no-config`; the
+      classifier `Development Status :: 5 -
+      Production/Stable`; CITATION.cff's version and
+      `date-released`; server.json's versions and its remote
+      entry; the app's version; CHANGELOG.md `[1.0.0] -
+      <date>`; docs/releases/1.0.0.md; docs/releases/
+      1.0.0-announcement.md (the text the maintainer posts);
+      README.md and docs/index.md describing 1.0.0 (plain
+      `pip install pyeconomics`, the site, the docs, the
+      local app, MCP), keeping the CFA® notice verbatim and
+      the `mcp-name:` marker; docs/conf.py's title
+      "pyeconomics" with no preview banner; SECURITY.md's
+      table (1.0.x supported; 0.2.x end of life on the
+      release date).
+    </requirement>
+
+    <requirement>
+      Cross-phase verification rule, in this PR, each with
+      an addendum line in that phase's roadmap: Phase 4
+      check 58 narrows to "the README describes the current
+      release's install command and the shipped surfaces";
+      the documentation checks (Phase 1 V4.4, Phase 2 V7.3,
+      Phase 3 V11.3, Phase 4 V15.2) narrow to "`stable`
+      serves the greatest stable release (0.2.6 until
+      1.0.0) and `main` builds main"; the plain-install
+      checks (Phase 2 V14.3, Phase 3 V21.3, Phase 4 V15.3)
+      narrow to "a plain install resolves the newest final
+      release, never a pre-release". `verify-phase01.sh` to
+      `verify-phase04.sh --fast` pass on the PR.
+    </requirement>
+
+    <requirement>
+      Release: after the merge, the tag; release.yml
+      publishes both distributions with attestations;
+      compare each archive with 1.0.0rc1's (only METADATA,
+      RECORD, PKG-INFO and the version fields differ, or the
+      PR explains why); deploy-production.yml promotes the
+      tagged commit's digest (data, API, site; the site
+      build is indexable now); the GitHub release from
+      docs/releases/1.0.0.md as the latest; mcp-registry.yml
+      publishes 1.0.0 with the remote.
+    </requirement>
+
+    <requirement>
+      Cutover (docs/operations/production.md's runbook):
+      remove the Access application on pyeconomics.dev
+      (keep staging's); enable the `www` and `.com`, `.org`
+      and `.io` redirects; set Read the Docs' default branch
+      to main and default version to stable, keeping the
+      0.2.6 version active and visible; set the repository's
+      homepage to https://pyeconomics.dev; lock
+      `legacy/0.2.x` with branch protection; lift the
+      Dependabot hold; production-health.yml now runs
+      without the token. The maintainer posts the
+      announcement on Discussions, the newsletter and the
+      channels they choose; growth-metrics.yml's next run
+      (or a dispatch) records the announcement date as day 1
+      of the Gate G3 window.
+    </requirement>
+
+    <requirement>
+      Post-launch verification (a script,
+      scripts/verify_launch.py, reused by Step 22's --live):
+      the public checks in this step's Deployed & verified
+      bullet, each printed as PASS or FAIL; a FAIL in a
+      security header or the Observatory grade restores
+      Access while it is fixed.
+    </requirement>
+
+    <requirement>
+      Filepath comment: every new Python file gets the
+      three-line header; TOML and YAML start with `# <path>`.
+    </requirement>
+  </requirements>
+</task>
+```
+
+### Step 21 acceptance criteria
+
+- The version files read `1.0.0` with the stable classifier; the README,
+  `docs/index.md`, the documentation title, `SECURITY.md`, the changelog,
+  the release notes and the announcement describe the release; the earlier
+  checks are narrowed with their addendum lines, and every earlier phase's
+  `--fast` passes.
+- Both distributions' 1.0.0 archives differ from 1.0.0rc1's only in
+  version metadata, or the PR explains each difference.
+- The Access application on `pyeconomics.dev` is gone, the `production`
+  environment's `PRODUCTION_PUBLIC` is `true`, the redirects are
+  on, Read the Docs' defaults are `main` and `stable`, the homepage is set,
+  `legacy/0.2.x` is locked, the Dependabot hold is lifted, and the
+  announcement date is in the ledger.
+- The edge caches GET runs: the second of two identical data-free `GET` runs
+  shows `cf-cache-status: HIT` or an `age`, and a `POST` run and a problem
+  show neither, as it did behind Access in Step 13.
+- **Deployed & verified:** without any token, `https://pyeconomics.dev/
+  version` and `/version.json` report the `v1.0.0` SHA; a synthetic check
+  runs one model per domain and downloads a CSV carrying its attribution;
+  the snapshot heartbeat is green; `https://pyeconomics.com/models/` (and
+  `.org`, `.io`, `www`) answers 301 to `https://pyeconomics.dev/models/`;
+  robots.txt allows indexing and the sitemap lists every model page; the
+  MDN HTTP Observatory grades `pyeconomics.dev` A or better with the CSP,
+  HSTS and frame-ancestors present; the ZAP baseline against the public
+  site finds no High issue; `https://docs.pyeconomics.dev/en/stable/` serves
+  1.0.0; a clean
+  `pip install pyeconomics` on Python 3.12 and 3.15 installs 1.0.0 and
+  passes `scripts/smoke.py`; `pip install "pyeconomics[app]"` then
+  `pyeconomics serve` serves the pages locally with a library-only source
+  live; `uvx --from "pyeconomics[mcp]==1.0.0" pyeconomics mcp` and the
+  hosted `https://pyeconomics.dev/mcp` both pass MCP Inspector; the MCP
+  Registry lists 1.0.0 with the remote; `scripts/parity/check_deployed.py`
+  passes against production.
+- **Security gate clean** (always the final criterion): the pre-commit
+  security gate passed on this step's diff — secret/PII scan clean, SAST
+  clean, dependency audit clean — the release is the soaked candidate, the
+  origin still requires the edge credential, and the public site passes
+  the Observatory and ZAP checks.
+
+---
+
+## Step 22 — QA and Verification Script
+
+**Status:** Not started
+
+> **Goal:** Package the phase's verification matrix into
+> `scripts/verify-phase05.sh` — Phase 4's `--fast`, `--python`, `--node`,
+> `--container`, `--security`, `--live`, `--all` and `--post` modes, with
+> `--node` now covering the web project (build, tests, axe, Lighthouse,
+> audits) beside `tools/node`, and `--live` covering production, the
+> monitors and both registries — with independent static checks for every
+> Step 1–21 deliverable, Step 22 self-checks and the V1–V22 matrix, plus its
+> pytest twin `tests/repo/test_phase05.py` and its live helper
+> `scripts/verify_phase05_live.py` (which reuses `scripts/verify_launch.py`);
+> produce `docs/phase05-qa-findings.md`, the rollup of every finding, its
+> class, its destination and its guard, with the alarm evidence and the
+> pre-ship owners for Phases 6 and 7; add `"05"` to
+> `.github/workflows/phase-verify.yml`'s matrix and make both `phase-verify`
+> jobs for `05` required; re-fire production-health's alarm once on the
+> public path; run `verify-phase04.sh --post` (which runs Phases 3, 2 and
+> 1's) to show the earlier ledgers still hold; and mark Phase 5 complete
+> here and in the parent roadmap. Parent: ROADMAP §5 "Operations &
+> observability strategy" ("Acceptance") and this roadmap's
+> Post-Implementation Verification.
+
+**Branch:** `feature/phase05-step22-verify`
+
+**Deploys:** nothing beyond merge — the CI matrix entry is live on merge;
+the required-check update and the alarm re-fire are part of the step, and
+staging redeploys on the merge as on every merge.
+
+|               |          | Cost                 | Balanced             | Quality            |
+| ------------- | -------- | -------------------- | -------------------- | ------------------ |
+| **Pick**      | Model    | **Gemini 3.8 Flash** | **GPT-6.1 Sol**      | **Gemini 4 Argon** |
+|               | Platform | Antigravity          | Codex                | Antigravity        |
+|               | Level    | Medium               | High                 | High               |
+|               | AA       | 39.8                 | 50.2                 | 52.6               |
+|               | Price    | $1.90/1M             | $2.86/1M             | $6.13/1M           |
+| **Runner‑up** | Model    | **GPT-6.1 Sol**      | **Sonnet 5.5**       | **Opus 5.5**       |
+|               | Platform | Codex                | Claude Code          | Claude Code        |
+|               | Level    | Low                  | High                 | High               |
+|               | AA       | 42.1                 | 46.8                 | 53.6               |
+|               | Price    | $2.35/1M             | $3.40/1M             | $6.76/1M           |
+| **Backup**    | Model    | **Sonnet 5.5**       | **Gemini 3.8 Flash** | **GPT-6.1 Sol**    |
+|               | Platform | Claude Code          | Antigravity          | Codex              |
+|               | Level    | Medium               | High                 | High               |
+|               | AA       | 40.8                 | 40.9                 | 50.2               |
+|               | Price    | $3.18/1M             | $2.98/1M             | $2.86/1M           |
+
+Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level.
+
+**Conversation:** New
+
+> Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
+
+**Model rationale:** Coding is PRIMARY and agentic SECONDARY: the
+mechanical translation of `verify-phase04.sh` into this phase's
+deliverables, a wider `--node` and `--live`, a QA rollup, one alarm re-fire
+and a required-check update. Complexity is Medium — the template, the
+check list and the V-matrix are fixed here — and it is not novel. The
+ladder's Balanced column runs: GPT-6.1 Sol on Codex at Intelligence High
+(ChatGPT Pro; AA Intelligence Index 50.2), Runner-up Sonnet 5.5 on Claude
+Code at Effort High, Backup Gemini 3.8 Flash on Antigravity. Cost runs
+GPT-6.1 Sol at Intelligence Low (42.1) and Quality Gemini 4 Argon on
+Antigravity at Effort High (52.6). New conversation per phase-boundary
+hygiene.
+
+```xml
+<task>
+  <lifecycle>
+    This step MUST follow all six
+    stages, in order. Stages 1, 3,
+    4, 5, 6 are AS BINDING as any
+    `<requirement>` below. Do not
+    emit the Stage 6 completion
+    line until the PR is merged and
+    every acceptance criterion for
+    this step is affirmatively met.
+
+    1. CREATE THE BRANCH. Before
+       any Read / Edit / Bash, run
+       `git checkout -b
+       feature/phase05-step22-verify`
+       from a clean, up-to-date
+       `main`. The exact branch
+       name is in this step's
+       `**Branch:**` line above.
+       If the Worktree rule
+       applies, use `git fetch
+       origin && git worktree add
+       -b <branch> <path>
+       origin/main` instead, then
+       bootstrap the worktree.
+
+    2. WORK ON THE BRANCH. All
+       commits land here. `main`
+       is protected with
+       `enforce_admins: true` —
+       direct pushes will be
+       rejected.
+
+    3. OPEN THE PR, THEN MARK THE
+       STEP. `gh pr create --base
+       main --head <branch>` with a
+       Conventional Commits title
+       and a body that references
+       this roadmap step and its
+       acceptance criteria. One PR
+       per step. Then, in this
+       roadmap file: set this
+       step's `**Status:**` line
+       (directly under its heading)
+       to `Complete — PR #<n>
+       (<YYYY-MM-DD>)`, append ` ✅`
+       to the step's `## Step`
+       heading, and set its
+       Summary Table Status cell to
+       `Complete — PR #<n>`. Commit
+       that edit on the step
+       branch and push — the PR
+       carries its own completion
+       mark, so the roadmap on
+       `main` marks this step
+       complete exactly when the PR
+       merges (Status rule). Same
+       commit: on the phase's first
+       step, set this roadmap's
+       phase-level `**Status:**`
+       (under its title) and the
+       parent project roadmap's
+       Phase 5 `**Status:**` to
+       `In progress`; on the final
+       step, both to `Complete`,
+       with ` ✅` appended to this
+       roadmap's `# ` title and to
+       the parent's `### Phase 5`
+       heading.
+
+    4. WAIT FOR GREEN CHECKS, THEN
+       SQUASH-MERGE. Every required
+       check must pass. If the PR
+       falls behind main, refresh
+       with `gh pr update-branch
+       --rebase` — never merge main
+       into the branch
+       (`required_linear_history:
+       true`). Once green:
+       `gh pr merge <PR> --squash
+       --delete-branch`. If this
+       step's `**Deploys:**` line
+       names a surface, the merge
+       is not the finish line: run
+       the Deployed & verified
+       check against the target
+       environment before
+       declaring the step complete.
+
+    5. RETIRE THE BRANCH. Sync
+       local: `git switch main &&
+       git pull --ff-only origin
+       main && git fetch --prune
+       origin`. Prune any local
+       `[gone]` branches. If the
+       step ran in a worktree,
+       `git worktree remove <path>`
+       FIRST — the branch prune
+       fails while the branch is
+       checked out there.
+
+    6. DISPOSE OF EVERY FINDING,
+       DECLARE COMPLETION, THEN
+       NEW CONVERSATION. First
+       send every finding this
+       step surfaced to its
+       destination (Triage rule):
+       a note for a later step →
+       edit that step's <task>
+       block now; spec rot → edit
+       this roadmap now; a bug →
+       fixed in-step or an issue
+       number; a judgement call in
+       the diff → the PR body; a
+       process lesson → written
+       where the next conversation
+       reads it. A finding you can
+       only describe is NOT
+       disposed of, and counts as
+       an unmet criterion. Only
+       once the PR is merged — and
+       `main` therefore carries
+       this step's `Complete`
+       Status line — every
+       acceptance criterion is
+       affirmatively met, and every
+       finding has a destination,
+       say so plainly: end your
+       final response with an
+       explicit, unhedged
+       completion line — verbatim
+       shape "Step 22 is
        complete. Phase 5 is
        complete. You can now move
        on to Phase 6." That
@@ -11484,7 +12528,7 @@ hygiene.
   </security>
 
   <context>
-    pyeconomics. Phase 5. Step 20: QA and the verification
+    pyeconomics. Phase 5. Step 22: QA and the verification
     script.
 
     Steps 1 through 19 have been implemented: 1.0.0 is on
@@ -11500,8 +12544,8 @@ hygiene.
       tests/repo/test_phase04.py.
     - scripts/verify-phase03.sh (secondary reference).
 
-    Phase 5 deliverables to verify (about 74 static checks
-    across Steps 1 to 19, plus 5 self-checks):
+    Phase 5 deliverables to verify (about 80 static checks
+    across Steps 1 to 21, plus 5 self-checks):
 
     Step 1 (baseline) — the roadmap and kit tracked; the
     bash guard and the status-keeping trap in all four
@@ -11559,17 +12603,24 @@ hygiene.
     Step 16 (legal) — the legal pages; the data-flows test;
     security.txt; permissions.md and counsel-review.md;
     ADR-0009's dated record.
-    Step 17 (candidate) — public-api.md and its test;
+    Step 17 (design) — the design tokens and type scale in
+    one place; the self-hosted fonts under the web licence
+    check; docs/design/ (the round-0 audit, the directions,
+    the chosen one); the reduced-motion and contrast tests.
+    Step 18 (dogfooding) — docs/design/dogfooding.md and its
+    round records; the harness's personas and rubric; the
+    visual baselines and each bug-class check in CI.
+    Step 19 (candidate) — public-api.md and its test;
     `v1.0.0rc1` on main; the rc release notes.
-    Step 18 (gate) — the readiness record's sixteen
+    Step 20 (gate) — the readiness record's seventeen
     sections and its GO; zap-baseline.yml and the rules
     file; the locustfile.
-    Step 19 (release) — `v1.0.0` on main; the dated
+    Step 21 (release) — `v1.0.0` on main; the dated
     changelog; server.json's remote; the README and index
     for 1.0.0; SECURITY.md's end of life; the earlier
     phases' addendum lines; the permanent ledgers
     unchanged.
-    Step 20 self-checks — verify-phase05.sh executable and
+    Step 22 self-checks — verify-phase05.sh executable and
     indexed; docs/phase05-qa-findings.md; this roadmap;
     both matrices include 05; the credential backstop,
     hooks and workflow secret boundary.
@@ -11580,12 +12631,12 @@ hygiene.
       scripts/verify_launch.py.
     - docs/phase04-qa-findings.md (the rollup's shape) and
       every Phase 5 PR body (the findings to roll up).
-    - All Phase 5 implementation files from Steps 1–19.
+    - All Phase 5 implementation files from Steps 1–21.
   </context>
 
   <goal>
-    Create scripts/verify-phase05.sh with about 74 static
-    deliverable checks, 5 self-checks and the V1-V20 matrix
+    Create scripts/verify-phase05.sh with about 80 static
+    deliverable checks, 5 self-checks and the V1-V22 matrix
     in eight modes; its twin and live helper; the QA
     findings document; matrix entry 05, required; and the
     phase marked complete.
@@ -11632,10 +12683,10 @@ hygiene.
     </requirement>
 
     <requirement>
-      The V1–V20 checks as this roadmap's Post-Implementation
-      Verification lists them, each reported by id; V20.1 to
-      V20.4 are the CI and security checks, V20.5 the alarm
-      evidence, V20.6 the earlier phases' `--post`.
+      The V1–V22 checks as this roadmap's Post-Implementation
+      Verification lists them, each reported by id; V22.1 to
+      V22.4 are the CI and security checks, V22.5 the alarm
+      evidence, V22.6 the earlier phases' `--post`.
     </requirement>
 
     <requirement>
@@ -11668,7 +12719,7 @@ hygiene.
 
     <requirement>
       docs/phase05-qa-findings.md: a rollup section per step
-      (finding, class, destination, guard), the Step 20
+      (finding, class, destination, guard), the Step 22
       rollup, the alarm evidence (Step 14's table and this
       step's re-fire), the Phase 5 acceptance audit against
       ROADMAP §4 5's criteria, the pre-ship items and owners
@@ -11703,7 +12754,7 @@ hygiene.
         shipped (with `v1.0.0` on PyPI) and Phases 6 and 7
         as next, in parallel.
       - Consistency audit: the Phase 5 "Acceptance criteria"
-        there match this roadmap's V1-V20 checks.
+        there match this roadmap's V1-V22 checks.
       And in THIS roadmap, same commit: its phase-level
       `**Status:**` line (under the title) reads `Complete —
       <YYYY-MM-DD>`, the title and every step heading end in
@@ -11730,11 +12781,11 @@ hygiene.
 </task>
 ```
 
-### Step 20 acceptance criteria
+### Step 22 acceptance criteria
 
 - `scripts/verify-phase05.sh` exists, is executable, and passes on a clean
-  tree post-implementation, with about 74 static checks, 5 self-checks and
-  the V1–V20 matrix in all eight modes.
+  tree post-implementation, with about 80 static checks, 5 self-checks and
+  the V1–V22 matrix in all eight modes.
 - `--fast` runs in under 30 seconds on Ubuntu CI, and `--post` passes on the
   maintainer's machine with every live check and published install green.
 - `docs/phase05-qa-findings.md` is complete with every rollup section, the
@@ -11744,7 +12795,7 @@ hygiene.
 - `--security` exists and exits 0 (secret/PII scan, SAST, dependency audit
   for Python and both Node projects, licences for Python and the bundle,
   the cassette scan and the headers check clean over the phase's surface);
-  V20.4 is green.
+  V22.4 is green.
 - Branch protection still passes on the resulting PR, and
   `verify-phase04.sh --post` passes, including its nested Phase 3, 2 and 1
   runs.
@@ -11768,7 +12819,7 @@ hygiene.
   Status line say `Complete` under a ✅ title, and the parent project
   roadmap's Phase 5 entry (under a ✅ heading), its summary-table row, and
   its header status line say `Complete` — all landed in this step's PR. This
-  step's final response ends with two lines and nothing after them: "Step 20
+  step's final response ends with two lines and nothing after them: "Step 22
   is complete. Phase 5 is complete. You can now move on to Phase 6." — same
   Stage 6 rule: no "Follow-ups", no trailer.
 
@@ -11776,7 +12827,7 @@ hygiene.
 
 ## Post-Implementation Verification
 
-Every V1–V20 check below runs **automatically in CI** on every push and
+Every V1–V22 check below runs **automatically in CI** on every push and
 pull request — no manual invocation required — except four kinds. The
 `--live` and `--post` checks read state that needs the maintainer's
 authenticated `gh` session, gcloud and keyring (branch protection, the
@@ -11786,19 +12837,19 @@ through their Access service tokens while they are private, PyPI and
 TestPyPI, the MCP Registry, Read the Docs, the status page and the
 Observatory), plus clean-venv installs from PyPI; they run on the
 maintainer's machine with `./scripts/verify-phase05.sh --post` before
-Phase 5 is declared complete. The seven-day soak (Step 17) is wall-clock
+Phase 5 is declared complete. The seven-day soak (Step 19) is wall-clock
 time. Counsel's review, the trademark clearance search and the permission
-letters are outside parties' work that Steps 16 and 18 record. The alarm
+letters are outside parties' work that Steps 16 and 20 record. The alarm
 notifications are confirmed by the maintainer and recorded in
 `docs/operations/production.md` and `docs/phase05-qa-findings.md`.
 
 | Mode | Runs in | Covers |
 | --- | --- | --- |
-| `--fast` | `phase-verify.yml`, matrix `05` | static checks; V*.1; V20.1–3 |
+| `--fast` | `phase-verify.yml`, matrix `05` | static checks; V*.1; V22.1–3 |
 | `--python` | `ci.yml` jobs; local | suite, parity, docs, builds |
 | `--node` | `ci.yml` web, clients, inspector | the site and tools/node |
 | `--container` | `ci.yml` container job; local | image, scan, smoke |
-| `--security` | `phase-verify.yml` security job | V3.3, V20.4 |
+| `--security` | `phase-verify.yml` security job | V3.3, V22.4 |
 | `--live` | the maintainer's machine | GitHub, edges, registries |
 | `--all` | local | fast to security |
 | `--post` | the maintainer's machine | all, live, installs, nested |
@@ -11807,7 +12858,7 @@ Local invocations remain available for ad-hoc runs and pre-release
 sweeps:
 
 ```bash
-./scripts/verify-phase05.sh --post   # static + V1-V20 + live + post checks
+./scripts/verify-phase05.sh --post   # static + V1-V22 + live + post checks
 ```
 
 `--post` is the canonical command to run before declaring Phase 5
@@ -12002,53 +13053,74 @@ workflow above maps directly to the corresponding row below.
 | V16.2 | Data-flows, security.txt, attribution tests | `--node` |
 | V16.3 | The legal pages answer on production | `--live` |
 
-### V17 — Release candidate
+### V17 — Design direction and system
 
-> **Automated in CI.** `phase-verify.yml` → V17.1; `ci.yml` → V17.2;
-> `--live` → V17.3.
+> **Automated in CI.** `phase-verify.yml` → V17.1; `ci.yml` web job →
+> V17.2; `--live` → V17.3.
 
 | ID | Check | Run by |
 | --- | --- | --- |
 | V17.1 | Step 17's static checks pass | `--fast` |
-| V17.2 | The public-API test passes | `--python` |
-| V17.3 | rc1.dev1 and rc1 published with provenances | `--live` |
+| V17.2 | Contrast, reduced-motion and stray-scroll tests pass | `--node` |
+| V17.3 | Staging serves the design's fonts and tokens | `--live` |
 
-### V18 — Launch readiness gate
+### V18 — Dogfooding loop
 
-> **Automated in CI.** `phase-verify.yml` → V18.1; `--live` → V18.2.
+> **Automated in CI.** `phase-verify.yml` → V18.1; `ci.yml` web job →
+> V18.2.
 
 | ID | Check | Run by |
 | --- | --- | --- |
-| V18.1 | The record: sixteen sections and a GO | `--fast` |
-| V18.2 | The newest ZAP baseline found no High issue | `--live` |
+| V18.1 | The round records meet the stopping rule | `--fast` |
+| V18.2 | Visual baselines and bug-class checks pass | `--node` |
 
-### V19 — Cutover and 1.0.0
+### V19 — Release candidate
 
-> **Automated in CI.** `phase-verify.yml` → V19.1; `--live` → V19.2;
-> `--post` → V19.3.
+> **Automated in CI.** `phase-verify.yml` → V19.1; `ci.yml` → V19.2;
+> `--live` → V19.3.
 
 | ID | Check | Run by |
 | --- | --- | --- |
 | V19.1 | Step 19's static checks pass | `--fast` |
-| V19.2 | 1.0.0 on PyPI; registry remote; RTD stable 1.0 | `--live` |
-| V19.3 | Clean installs, serve, MCP and launch checks | `--post` |
+| V19.2 | The public-API test passes | `--python` |
+| V19.3 | rc1.dev1 and rc1 published with provenances | `--live` |
 
-### V20 — CI integration + security
+### V20 — Launch readiness gate
 
-> **Automated in CI.** `phase-verify.yml` → V20.1 through V20.4 and the
-> `01`–`04` entries behind V20.6 on every push/PR; `--post` → V20.5 and
-> V20.6; `--live` → V20.7 and V20.8.
+> **Automated in CI.** `phase-verify.yml` → V20.1; `--live` → V20.2.
 
 | ID | Check | Run by |
 | --- | --- | --- |
-| V20.1 | `verify-phase05.sh --fast` exits 0 on Ubuntu CI | `--fast` |
-| V20.2 | `phase-verify.yml` matrix includes `05` | `--fast` |
-| V20.3 | All static checks pass | `--fast` |
-| V20.4 | `--security` exits 0 | `--security` |
-| V20.5 | Alarm proofs and the public re-fire recorded | `--post` |
-| V20.6 | Phases 1–4 green; their `--post` passes | `--post` |
-| V20.7 | `main` requires 26 strict checks | `--live` |
-| V20.8 | Environments' refs and secrets; no repo secret | `--live` |
+| V20.1 | The record: seventeen sections and a GO | `--fast` |
+| V20.2 | The newest ZAP baseline found no High issue | `--live` |
+
+### V21 — Cutover and 1.0.0
+
+> **Automated in CI.** `phase-verify.yml` → V21.1; `--live` → V21.2;
+> `--post` → V21.3.
+
+| ID | Check | Run by |
+| --- | --- | --- |
+| V21.1 | Step 21's static checks pass | `--fast` |
+| V21.2 | 1.0.0 on PyPI; registry remote; RTD stable 1.0 | `--live` |
+| V21.3 | Clean installs, serve, MCP and launch checks | `--post` |
+
+### V22 — CI integration + security
+
+> **Automated in CI.** `phase-verify.yml` → V22.1 through V22.4 and the
+> `01`–`04` entries behind V22.6 on every push/PR; `--post` → V22.5 and
+> V22.6; `--live` → V22.7 and V22.8.
+
+| ID | Check | Run by |
+| --- | --- | --- |
+| V22.1 | `verify-phase05.sh --fast` exits 0 on Ubuntu CI | `--fast` |
+| V22.2 | `phase-verify.yml` matrix includes `05` | `--fast` |
+| V22.3 | All static checks pass | `--fast` |
+| V22.4 | `--security` exits 0 | `--security` |
+| V22.5 | Alarm proofs and the public re-fire recorded | `--post` |
+| V22.6 | Phases 1–4 green; their `--post` passes | `--post` |
+| V22.7 | `main` requires 26 strict checks | `--live` |
+| V22.8 | Environments' refs and secrets; no repo secret | `--live` |
 
 ---
 
@@ -12072,10 +13144,12 @@ workflow above maps directly to the corresponding row below.
 | 14   | Observability + operations     | Sonnet 5.5     | Complete — PR #290 |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
-| 17   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
-| 18   | Launch readiness gate          | Sonnet 5.5     | Not started        |
-| 19   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |
-| 20   | QA + verify-phase05.sh         | GPT-6.1 Sol    | Not started        |
+| 17   | Design direction + system      | Opus 5.5       | Not started        |
+| 18   | AI dogfooding loop             | GPT-6.1 Sol    | Not started        |
+| 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
+| 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |
+| 21   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |
+| 22   | QA + verify-phase05.sh         | GPT-6.1 Sol    | Not started        |
 | V1   | Baseline + carried fixes       | CI             | --                 |
 | V2   | ADR-0013                       | CI             | --                 |
 | V3   | Web foundation                 | CI             | --                 |
@@ -12092,10 +13166,12 @@ workflow above maps directly to the corresponding row below.
 | V14  | Observability                  | CI             | --                 |
 | V15  | Growth signals                 | CI             | --                 |
 | V16  | Legal + trust                  | CI             | --                 |
-| V17  | Release candidate              | CI             | --                 |
-| V18  | Readiness gate                 | CI             | --                 |
-| V19  | 1.0.0 + cutover                | CI             | --                 |
-| V20  | CI integration                 | CI             | --                 |
+| V17  | Design direction + system      | CI             | --                 |
+| V18  | Dogfooding loop                | CI             | --                 |
+| V19  | Release candidate              | CI             | --                 |
+| V20  | Readiness gate                 | CI             | --                 |
+| V21  | 1.0.0 + cutover                | CI             | --                 |
+| V22  | CI integration                 | CI             | --                 |
 
 ---
 
@@ -12302,7 +13378,32 @@ match the data flows and terms, letters and generated pages. PICK: the
 ladder's Balanced column for knowledge at High (AA Intelligence Index
 52.6). EFFORT: High with thinking on; counsel reviews the result.
 
-PROMPT: Step 17 — Public-API Freeze, Release Candidate and Production Soak
+PROMPT: Step 17 — Design Direction and Design System
+MODEL: Opus 5.5
+BACKUP: GPT-6 Astra
+PLATFORM: Claude Code
+EFFORT: High
+ORCHESTRATION: Fresh-context evaluator subagents
+CONVERSATION: New
+RATIONALE: TASK: coding, multimodal secondary — a design system and every
+page template, judged by screenshots against a rubric under a strict
+policy. PICK: the ladder's Balanced column for coding at High, novel (AA
+Intelligence Index 53.6). EFFORT: High; the evaluators run on another
+maker's model where the platform allows.
+
+PROMPT: Step 18 — AI Dogfooding Loop
+MODEL: GPT-6.1 Sol
+BACKUP: Gemini 3.8 Flash
+PLATFORM: Codex
+EFFORT: High
+ORCHESTRATION: Fresh-context evaluator sessions per round
+CONVERSATION: New
+RATIONALE: TASK: multimodal, agentic secondary — rounds of screenshot
+evaluation, triage and fixes until a recorded stopping rule. PICK: the
+ladder's Balanced column for multimodal at High (AA Intelligence Index
+50.2). EFFORT: High; evaluators never grade the implementer's own work.
+
+PROMPT: Step 19 — Public-API Freeze, Release Candidate and Production Soak
 MODEL: Sonnet 5.5
 BACKUP: Gemini 4 Argon
 PLATFORM: Claude Code
@@ -12314,7 +13415,7 @@ registries and production around an inventory test. PICK: the ladder's
 Balanced column for agentic at High (AA Intelligence Index 51.9). EFFORT:
 XHigh, the ladder's value, because every upload is permanent.
 
-PROMPT: Step 18 — Launch Readiness Gate
+PROMPT: Step 20 — Launch Readiness Gate
 MODEL: Sonnet 5.5
 BACKUP: Gemini 4 Argon
 PLATFORM: Claude Code
@@ -12326,7 +13427,7 @@ surface, three production rollbacks and a load test. PICK: the ladder's
 Balanced column for agentic at High (AA Intelligence Index 51.9). EFFORT:
 XHigh, the ladder's value, for a gate before an irreversible launch.
 
-PROMPT: Step 19 — Cutover and the 1.0.0 Release
+PROMPT: Step 21 — Cutover and the 1.0.0 Release
 MODEL: Sonnet 5.5
 BACKUP: Gemini 4 Argon
 PLATFORM: Claude Code
@@ -12338,7 +13439,7 @@ cutover and the post-launch verification. PICK: the ladder's Balanced
 column for agentic at High (AA Intelligence Index 51.9). EFFORT: XHigh,
 the ladder's value, for actions that cannot be undone.
 
-PROMPT: Step 20 — QA and Verification Script
+PROMPT: Step 22 — QA and Verification Script
 MODEL: GPT-6.1 Sol
 BACKUP: Gemini 3.8 Flash
 PLATFORM: Codex
@@ -12380,7 +13481,7 @@ Additionally not in scope for this phase:
   Lite guide use data-free models and the reader's own values; the issues
   keep a named owner in `docs/phase05-qa-findings.md`.
 - #197, the MCP tool list's size: a compatible 1.x change under decision 17
-  unless the maintainer pulls it into Step 17.
+  unless the maintainer pulls it into Step 19.
 - TypeScript 7 (Dependabot #187) in either Node project, until `astro check`
   supports it.
 - A shared Redis-backed result cache, per-PR preview deployments, a second
@@ -12412,7 +13513,7 @@ roadmaps carry forward whatever is still open here.
     and its remote MCP Registry entry (decision 16), Sentry,
     OpenTelemetry and uptime monitoring, the legal and trust pages, the
     permissions programme and resolvable problem-type URIs (decision 4) —
-    Steps 3 to 19;
+    Steps 3 to 21;
   - production caching, which Phase 4 left to this phase — decision 7;
   - the public-API freeze Phase 4's Public-API rule assigned here — Step
     17;
@@ -12426,7 +13527,7 @@ roadmaps carry forward whatever is still open here.
     pre-ship table — kept out, as the second list above says, with the
     limitation stated in Steps 11 and 12;
   - Phase 3's V6.3 needs a providers-live success within eight days of a
-    Phase 3 `--post` — Step 20 dispatches one before its canonical run.
+    Phase 3 `--post` — Step 22 dispatches one before its canonical run.
 - Contract additions under the contract-change rule:
   - Step 9: `data.get(..., transform=)` (ADR-0011's data API, Phase 3 Step
     11), additive. It takes one of `core.transforms.SERIES_TRANSFORMS`

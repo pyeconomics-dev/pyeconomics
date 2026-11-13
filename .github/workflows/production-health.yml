@@ -11,7 +11,7 @@
 # - The `probe` job runs in the `production-health` environment (`main` only).
 #   Every job in `production` waits for the maintainer's approval, so an hourly
 #   check cannot run there: this environment holds only the Access service token
-#   `pyeconomics-production-health`, which the cutover (Phase 5 Step 19) deletes,
+#   `pyeconomics-production-health`, which the cutover (Phase 5 Step 21) deletes,
 #   after which the probe sends no Access header. Checked out at the deployed
 #   commit, it checks through the edge that:
 #   1. `/version` (the API) and `/version.json` (the site) name the same commit,

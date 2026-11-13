@@ -1196,6 +1196,9 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
   Lighthouse, the median of three mobile runs, at least 90 for
   performance, accessibility, best practices and SEO, and no WCAG 2.2 AA
   violation under axe.
+- Design and UX (added 2026-11-13): one more dogfooding round, on
+  production, with no Blocker or High finding and no drop from 5.11's last
+  round, and the maintainer's acceptance of the design beside the GO.
 - Going live is a decision recorded in the PR, not a side effect of a
   merge.
 
@@ -1205,6 +1208,25 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
   Docs `stable` at 1.0, update the README and PyPI description, announce,
   and run the post-launch verification.
 
+#### 5.11 Design & UX quality (added 2026-11-13; runs before 5.9)
+
+- Every automated gate above passed while the site still read as a draft,
+  because no criterion looked at the pages as a visitor does. Two steps
+  before the release candidate fix that: a design direction chosen on
+  evidence and built across every page type from one set of tokens, with
+  a self-hosted text typeface and math font from our own origin; then an
+  AI dogfooding loop.
+- The loop: each round, five fresh AI evaluators, one per visitor
+  persona, use the site in real browsers at phone and desktop widths, in
+  light and dark, with scrollbars drawn, and score it on a fixed rubric
+  without having seen the implementation; a separate implementer fixes
+  what they find; the next round's evaluators are new. It stops at the
+  first round, from the second on, with no Blocker or High finding and a
+  median gain under half a point, and at round six regardless. Visual
+  baselines and a check per bug class then keep the result.
+- Every existing gate holds throughout: the one Content Security Policy,
+  WCAG 2.2 AA, Lighthouse at 90, no third-party script, generated pages.
+
 **Acceptance criteria**
 - Every registered model has a prerendered page listed in the sitemap;
   Lighthouse scores at least 90 for performance, accessibility, best
@@ -1212,6 +1234,8 @@ subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
   fixes.
 - Web calculator outputs equal the Python API's canonical outputs (the
   parity suite runs through the deployed API).
+- The dogfooding loop met its stopping rule with no open Blocker or High
+  finding, and the maintainer accepted the design at the readiness gate.
 - `pip install pyeconomics` installs 1.0.0, and `pyeconomics serve` serves
   the same pages locally with library-only sources available.
 - **Deployed & verified:** production `/version` reports the 1.0.0 SHA; a
@@ -2170,6 +2194,19 @@ step when a change must reach it — the bump is its deploy trigger, not
 pyeconomics' merge. Model versions are independent of the package
 version: a model's own version bumps whenever its outputs change, and the
 manifest records both.
+
+### Design & UX quality
+
+Added 2026-11-13. The site is judged as a visitor sees it, not only by
+automated scores. Phase 5 Steps 17 and 18 set the design and the protocol
+(`docs/design/dogfooding.md`: personas, tasks, rubric, severity, fresh
+evaluators who never grade their own work). Every later release that
+changes the site reruns the loop, at least one round, until its stopping
+rule holds, and ships with no open Blocker or High finding and no drop in
+the median score. A phase that adds page types (Phase 7's syllabi and
+learning layer, Phase 8's account pages) adds personas and tasks for them
+first. Visual baselines change only on purpose, reviewed in the pull
+request.
 
 ### Security & privacy strategy
 

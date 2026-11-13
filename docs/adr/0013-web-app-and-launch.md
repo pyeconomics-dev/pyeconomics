@@ -7,6 +7,11 @@
   "Security & privacy strategy", "Operations & observability strategy",
   "Data licensing policy", "Legal & brand guardrails" and "Monetization
   strategy & validation gates"
+- Amended 2026-11-13 (numbering only): the Phase 5 roadmap inserted Steps
+  17 and 18 (design and the AI dogfooding loop, ROADMAP §4 5.11) before the
+  release candidate, so the step numbers this record names after Step 16
+  moved by two: the release candidate is Step 19, the readiness gate Step
+  20, the cutover Step 21. No decision changed.
 
 ## Context and problem
 
@@ -192,7 +197,7 @@ later step that needs a different rule writes a superseding ADR.
 - `www.pyeconomics.dev`, `pyeconomics.com`, `pyeconomics.org` and
   `pyeconomics.io` (with their `www.` names) answer 301 to the same path
   and query on `https://pyeconomics.dev`, through each zone's Single
-  Redirects [S6], enabled at the cutover (Step 19). `.io` is never
+  Redirects [S6], enabled at the cutover (Step 21). `.io` is never
   canonical (ADR-0009).
 - The problem `type` URIs (`https://pyeconomics.dev/problems/<slug>`)
   become public API at 1.0.0 and resolve to the generated problem pages
@@ -254,7 +259,7 @@ later step that needs a different rule writes a superseding ADR.
   Access. Staging is ROADMAP §5's "preview".
   `staging-api.pyeconomics.dev` stays as staging's API-only edge.
 - A release tag, approved in the protected `production` environment,
-  deploys `pyeconomics.dev`. Production stays behind Access until Step 19
+  deploys `pyeconomics.dev`. Production stays behind Access until Step 21
   removes it.
 - Every Worker sets `workers_dev = false` and `preview_urls = false`,
   because version URLs on `workers.dev` are public [S11]. A site or Worker
@@ -557,7 +562,7 @@ later step that needs a different rule writes a superseding ADR.
 
 ### 17. Public-API freeze
 
-- Step 17 inventories the public surface in `docs/public-api.md` — every
+- Step 19 inventories the public surface in `docs/public-api.md` — every
   item ADR-0003 lists, plus the site's page URLs and the problem URIs —
   and pins it with a test derived from the code.
 - After 1.0.0, every change follows ADR-0003.
@@ -609,7 +614,7 @@ later step that needs a different rule writes a superseding ADR.
   sign-ups, or 1,000 activated users (a visitor who completes a run or a
   download); and at least 30 upgrade-intent clicks or pre-orders; and at
   least 10 interviews in which users confirm they would pay. The
-  maintainer confirms or adjusts them again at Step 18.
+  maintainer confirms or adjusts them again at Step 20.
 
 ### 20. Legal readiness
 
@@ -696,7 +701,7 @@ Bad:
 
 | Decision | Check | Built in |
 |----------|-------|----------|
-| 1 Canonical domain | The redirects and the problem pages answer through the edge; the Observatory and the preload status | Steps 5 and 19 |
+| 1 Canonical domain | The redirects and the problem pages answer through the edge; the Observatory and the preload status | Steps 5 and 21 |
 | 2 Site layout and URLs | A build check that every model id maps to its page and back; the `web/released-pages.json` ledger | Steps 3 and 5 |
 | 3 One host, one Worker | The Worker's tests (only the API's paths reach it); a request through the edge per path | Step 4 |
 | 4 Environments | `deploy-staging.yml`'s site job; a pull request deploys nothing; `workers_dev` and `preview_urls` off; production behind Access | Steps 4 and 13 |
@@ -712,10 +717,10 @@ Bad:
 | 14 Email processor | A double-opt-in sign-up with its list and tier recorded at the processor, then deleted; no address in a log | Step 15 |
 | 15 Errors, telemetry and uptime | Every alarm fired once; the SDK initialisation tests; no personal data in a sample event | Step 14 |
 | 16 Local app | `pyeconomics[app]` serves the site with the same headers | Step 10 |
-| 17 Public-API freeze | `tests/repo/test_public_api.py` | Step 17 |
+| 17 Public-API freeze | `tests/repo/test_public_api.py` | Step 19 |
 | 18 Release and soak | Both distributions published together; the soak record | Steps 10, 17 and 19 |
 | 19 Launch measures | Lighthouse and axe on the sample; ZAP; the load test; the ledger | Steps 3, 15 and 18 |
-| 20 Legal readiness | The data-flows test; `security.txt` valid; the readiness gate's legal sections | Steps 16 and 18 |
+| 20 Legal readiness | The data-flows test; `security.txt` valid; the readiness gate's legal sections | Steps 16 and 20 |
 
 ## More information
 
@@ -745,7 +750,7 @@ Bad:
     over Umami Pro, Plausible Business and GoatCounter;
   - Gate G3's window, the 90 days after the 1.0.0 announcement, and ROADMAP
     §5's thresholds as drafted (decision 19), to be confirmed again at
-    Step 18.
+    Step 20.
 - No decision was amended in place while the record read Proposed.
 - The re-read of 2026-10-29 changed these drafted defaults of the Phase 5
   roadmap, each accepted by the maintainer:
