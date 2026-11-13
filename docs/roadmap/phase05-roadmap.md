@@ -10440,9 +10440,28 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       skeleton; docs/releases/1.0.0b1-readiness.md is the
       shape (fourteen sections ending in the decision).
     - The alarm proofs are in docs/operations/production.md;
-      the legal pages are live behind Access; the letters
-      are sent; counsel and the clearance search were
-      engaged in Step 16; the G3 ledger has its baseline.
+      the legal pages are live behind Access; the G3 ledger
+      has its baseline.
+    - Step 16 note (2026-11-12): the letters' sent dates and
+      answers are in docs/operations/permissions.md, one issue
+      each (#308 to #315, label `permissions`). Counsel was not
+      yet engaged at Step 16: the packet,
+      docs/operations/counsel-review.md, is ready, the
+      maintainer engages counsel and sends it, and this step
+      fills its outcome table. Each open question shows on its
+      page through CounselNote.astro in words the packet
+      repeats (web/tests/site/ holds them equal): when counsel
+      answers one, change the page's text, remove its note and
+      the packet's "The page's note", and record the answer.
+      The clearance search is expected by 2026-12-15, ordered
+      through counsel (ADR-0009's dated entry). The operator is
+      the maintainer as an individual (src/lib/legal.ts
+      OPERATOR) until Pyeconomics LLC exists. Also open from
+      Step 16: Grafana Labs' DPA applies only once signed and
+      returned (data-flows.json says so until it is), and
+      Buttondown's hard deletion (#306).
+      security.txt expires 2027-11-01 (renewal:
+      docs/operations/production.md section 13.1).
     - Facts read on 2026-10-29 (re-check at kickoff): the
       ZAP baseline action is zaproxy/action-baseline v0.15.0
       (commit de8ad967d3548d44ef623df22cf95c3b0baf8b25), with

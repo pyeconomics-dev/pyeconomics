@@ -941,6 +941,46 @@ From Phase 5 Step 15, which instruments Gate G2 (ADR-0013 decisions 13, 14 and 1
   read a subscriber's address is ever stored in GitHub: the sign-up rows stay
   manual. The runbook is `docs/operations/production.md` section 12.
 
+## Legal and trust rules
+
+From Phase 5 Step 16, which builds the legal and trust pages (ADR-0013 decision 20;
+ROADMAP §4 5.7):
+
+- The privacy policy is generated from `web/src/content/legal/data-flows.json`
+  (validated in `web/src/lib/legal.ts`). A new processor, origin, host, log, region
+  or retention period is a change to that file in the same pull request:
+  `web/tests/unit/legal.test.ts` fails on a `connect-src` or `form-action` origin no
+  flow names, and `tests/web/test_legal_pages.py` on a row of ADR-0013's "Personal
+  data" table, a host the service sends to (Sentry, OTLP, the heartbeat, Upstash) or
+  a log it keeps that no flow describes. Never state a vendor's fact the vendor's
+  own page does not.
+- `/sources/` is generated from `sources.json`, whose `snapshot_series` comes from
+  `snapshot_set()`. FRED's notice appears on the built site only inside an element
+  marked `data-local-only` (`web/tests/site/`): the hosted site never serves FRED.
+- The hypothetical-results legend (FINRA Rule 2214(c)(4) as the template, CFTC Rule
+  4.41(b)(1) for futures) follows the registry's tags (`legal.ts SIMULATED_TAGS`,
+  `FUTURES_TAGS`), never a list of ids: a model that simulates declares a tag, and
+  `legal.test.ts` fails on a model whose title or summary names Monte Carlo, a
+  backtest or historical simulation without one. Adding a tag changes no output, so
+  no model version.
+- A quoted term (the New York Fed's, the OECD's, FINRA's, the CFTC's) is verbatim
+  from the source as read on a date the page or the code records; reread it before
+  changing it. Each New York Fed reference rate's notice is built in
+  `providers/nyfed.py` (`_reference_notice`, with `DTCC_NOTICE` on SOFR and BGCR).
+- An open question for counsel is shown on its page through `CounselNote.astro`, in
+  words `docs/operations/counsel-review.md` repeats (the dist test holds them equal);
+  it goes only when counsel has answered and Step 18 records the answer.
+- `security.txt` is written by `web/scripts/indexing.ts` from
+  `web/src/lib/security-txt.ts` into every build but the app wheel's; never put one
+  in `public/`. Its `Expires` stays under a year ahead and the unit test fails 30 days
+  before it passes: renew it as `docs/operations/production.md` section 13.1 says.
+- `/legal/licence/` reads `LICENSE`, `NOTICE` and the production tree of
+  `web/package-lock.json` at build time (`web/src/lib/licences.ts`); its
+  `BUILD_OUTPUT` is held equal to `scripts/checks/web_licences.py`'s.
+- A permission grant (`docs/operations/permissions.md`) becomes its own
+  reclassification pull request with tests (ADR-0005 rule 7); nothing else changes a
+  provider's licence class, and silence leaves a source library-only.
+
 ## Documentation rules
 
 From Phase 5 Step 11, which builds the tutorials, how-to guides, study paths and

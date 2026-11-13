@@ -941,3 +941,45 @@ Create a new token on the access policy `pyeconomics-growth-read` (Grafana Cloud
 Access Policies), store it with `gh secret set GRAFANA_READ_TOKEN --env growth`
 from its prompt, dispatch `growth-metrics.yml`, check its comment's API and MCP rows
 show counts, then delete the old token.
+
+## 13. Legal and Trust Pages
+
+The terms of use, privacy policy, disclaimers, data sources, licence page and
+`/.well-known/security.txt` (Phase 5 Step 16) are built with the site; nothing about
+them is configured by hand. What each is generated from, and what keeps it true:
+
+| Page | Generated from | Held by |
+|------|----------------|---------|
+| `/legal/privacy/` | `web/src/content/legal/data-flows.json` | `web/tests/unit/legal.test.ts` (every policy origin), `tests/web/test_legal_pages.py` (ADR-0013's table, the service's hosts and logs) |
+| `/sources/` | `sources.json` (provider metadata) | `web/tests/site/site.test.ts` (every provider, its class and notices; FRED's notice local only) |
+| `/legal/licence/` | `LICENSE`, `NOTICE` and the production tree of `web/package-lock.json` | `web/tests/unit/legal.test.ts` |
+| `/legal/terms/`, `/legal/disclaimers/` | `web/src/lib/legal.ts` and the registry's tags (the legend) | `web/tests/site/site.test.ts` |
+| `security.txt` | `web/src/lib/security-txt.ts`, written by `web/scripts/indexing.ts` | `web/tests/unit/legal.test.ts` |
+
+A change to a processor, a region, a retention period or a log is a change to
+`data-flows.json` in the same pull request, which moves the policy's date; an open
+counsel question stays marked on its page and listed in
+`docs/operations/counsel-review.md` until counsel answers (Step 18).
+
+### 13.1 Renewing security.txt
+
+`security.txt`'s `Expires` must stay under a year ahead (RFC 9116). The unit test
+fails 30 days before it passes, which fails the web job on every pull request:
+
+1. In `web/src/lib/security-txt.ts`, set `SECURITY_TXT_EXPIRES` to a date eleven
+   months ahead, in the same form (`YYYY-MM-DDT00:00:00.000Z`), and the renewal date
+   in its comment.
+2. Check that the Contact and Policy URLs still answer (GitHub's private vulnerability
+   reporting must stay enabled in the repository's security settings).
+3. Merge, let staging deploy, and dispatch `deploy-production.yml`; then read
+   `https://pyeconomics.dev/.well-known/security.txt` and check the new date.
+
+### 13.2 A data-rights request
+
+Someone who asks what pyeconomics holds about them, or asks for it to be deleted,
+writes to the address the privacy policy names. Answer within a month. Only Buttondown
+holds anything tied to a person (an email address); delete it there as section 12.3
+says, and, until Buttondown turns on hard deletion for the newsletter (issue #306),
+also erase it permanently through Buttondown's API (`DELETE` on the subscriber),
+because the dashboard's Delete only marks it. Nothing else holds a name or an address;
+say so in the answer.

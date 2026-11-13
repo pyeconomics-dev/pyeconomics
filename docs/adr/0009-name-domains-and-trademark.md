@@ -167,6 +167,17 @@ Executed:
 
 - The four domains are registered with Cloudflare Registrar, with
   auto-renew on, and renew each October (registered 2026-10-06).
+- 2026-11-12, Phase 5 Step 16: the clearance search is not yet done.
+  Counsel was not yet engaged; the maintainer engages counsel, who
+  orders the search, and the result is expected by 2026-12-15, before
+  the launch readiness gate (Step 18). No filing has been advised, so
+  none is made. A preliminary knockout check the same day is not the
+  clearance search: the USPTO's own search refused automated requests,
+  and third-party trademark aggregators showed no application or
+  registration for PYECONOMICS, the nearest marks in their results being
+  POPENOMICS (serial 99104869) and PIPONOMICS (serial 90127347), both
+  live. The search's result and any filing counsel advises are recorded
+  here when they arrive.
 
 Good:
 
