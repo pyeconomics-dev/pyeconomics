@@ -33,8 +33,8 @@ pages read that day.
 |-----------|-------------------|------|-------|--------|---------|
 | Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | | |
 | Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | | |
-| Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | | |
-| International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | | |
+| Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | 2026-11-13, by email: they cannot permit showing S&P data, which belongs to S&P; they named S&P's licensing contact | Declined: `shiller` stays library-only; no S&P licence sought (section 3) |
+| International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | 2026-11-13: an automatic reply only, pointing to the Copyright Clearance Center; no answer from a person yet | |
 | Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
 | Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | 2026-11-12, by web form | #313 | | |
 | Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | 2026-11-12, by email | #314 | | |
@@ -158,6 +158,20 @@ what the authors can grant.
 > Maintainer, pyeconomics
 > nathan.ramos.github@gmail.com · https://github.com/pyeconomics-dev/pyeconomics
 
+**Answer (2026-11-13).** Laurence Black, Index Advisor to Robert Shiller, replied
+that they cannot give permission to show S&P data, because it belongs to S&P. He
+named a licensing contact at S&P Dow Jones Indices, which answers the letter's
+question of whom to ask. He added that the data file's structure will change
+shortly (#324). A permission to publish covers its holder, not those who copy the
+file, so the hosted site needs S&P's licence, not the authors'.
+
+**Outcome.** Declined. `shiller` stays library-only with no change: the library
+still reads the file on a user's own computer, under that user's acceptance of the
+terms, and the hosted site never serves it, so `equity.cape`'s live data runs
+locally only. No S&P licence is sought. Redistributing licensed data is out of
+scope in every phase (ROADMAP §6), and an index-data licence would cost money a
+free site does not earn. Issue #310 is closed as declined.
+
 ### 4. International Monetary Fund
 
 Email copyright@imf.org. The IMF's terms let users distribute its statistical data
@@ -187,6 +201,11 @@ an automated download, so the letter asks for exactly that.
 > Nathan Ramos, CFA
 > Maintainer, pyeconomics
 > nathan.ramos.github@gmail.com · https://github.com/pyeconomics-dev/pyeconomics
+
+**Automatic reply (2026-11-13).** The copyright mailbox answered at once that
+permission to reuse IMF content is cleared through the Copyright Clearance Center
+(www.copyright.com). No person has answered. The source stays library-only, and the
+follow-up on 2026-12-12 stands.
 
 ### 5. Federal Reserve Bank of Philadelphia: the RTDSM and the SPF
 
