@@ -123,6 +123,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- Model pages on the site and in the documentation describe a model's syllabus
+  tags as the topic areas the model relates to. The old wording, topic areas
+  "whose formulas this model implements", could be read as saying the model
+  implements a curriculum's formulas.
 - Display formulas on the site no longer show a vertical scrollbar beside them
   in browsers that always draw scrollbars (Chrome and Edge on Windows). A
   formula's box scrolls sideways only, with room for tall glyphs (#319).
