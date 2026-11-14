@@ -38,7 +38,7 @@ pages read that day.
 | Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
 | Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | 2026-11-12, by web form | #313 | | |
 | Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | 2026-11-12, by email | #314 | | |
-| CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | 2026-11-13, by email: before answering, they asked for representative mapping pages and whether anything comes from CFA Institute curriculum or other CFA Institute materials | Open: they review our pages and our answer first (section 8) |
+| CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | 2026-11-13, by email: before answering, they asked for representative mapping pages and whether anything comes from CFA Institute curriculum or other CFA Institute materials | Open: our reply went 2026-11-14; they review our pages before answering (section 8) |
 
 All eight letters went out on 2026-11-12: seven by email from
 nathan.ramos.github@gmail.com, sent at the maintainer's request through the Gmail API
@@ -400,6 +400,7 @@ Program and what sources the mappings use:
   the documentation's model pages and the site's now say "topic areas this model
   relates to".
 
-The reply goes once that wording is live. It links the three study-path pages, two
-model pages and the crosswalk file. It offers screenshots of the site, which stays
-behind Access until the cutover.
+The reply went on 2026-11-14, in their thread, once PR #335 had put that wording live.
+It links the three study-path pages, two model pages and the crosswalk file. It
+offers screenshots of the site, which stays behind Access until the cutover. Until
+CFA Institute answers, URL paths and filter values stay neutral slugs.
