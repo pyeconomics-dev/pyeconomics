@@ -38,7 +38,7 @@ pages read that day.
 | Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
 | Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | 2026-11-12, by web form | #313 | | |
 | Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | 2026-11-12, by email | #314 | | |
-| CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | | |
+| CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | 2026-11-13, by email: before answering, they asked for representative mapping pages and whether anything comes from CFA Institute curriculum or other CFA Institute materials | Open: they review our pages and our answer first (section 8) |
 
 All eight letters went out on 2026-11-12: seven by email from
 nathan.ramos.github@gmail.com, sent at the maintainer's request through the Gmail API
@@ -369,3 +369,37 @@ decisions 2 and 12).
 > Nathan Ramos, CFA
 > Maintainer, pyeconomics
 > nathan.ramos.github@gmail.com · https://github.com/pyeconomics-dev/pyeconomics
+
+**Answer (2026-11-13).** CFA Institute's trademark team asked two things before
+answering, so that they can understand how pyeconomics maps its models to the CFA®
+Program and what sources the mappings use:
+- links to representative pages, with their topic-area references, formulas,
+  descriptions, tested values, citations and study paths; and
+- whether any formulas, descriptions, examples, test values, topic descriptions,
+  Learning Outcome Statements, curriculum structure or other material on the site or
+  in the repository is taken from, reproduced from or adapted from CFA Institute
+  curriculum or other CFA Institute materials.
+
+**Our reply.** An audit on 2026-11-14 found:
+- `syllabi/analyst-program-2027.toml` holds only the 28 topic-area names and the three
+  levels, from cfainstitute.org's public exam pages read on 2026-11-02, plus links to
+  those pages and model ids. The mapping was drafted from those names and the model
+  cards, and the maintainer approved it in full on 2026-11-02 (PR #240).
+- The golden cases cite 41 papers, 32 official documents, 16 textbooks from independent
+  publishers (none from the CFA Institute Investment Series), 4 NIST datasets and 96
+  identities. `tests/golden/_citations.py` refuses a CFA Program source.
+- Five models cite the *Financial Analysts Journal* article that first published their
+  method: Black and Litterman (1992); Brinson, Hood and Beebower (1986); Kalotay,
+  Williams and Fabozzi (1993), whose worked example the golden cases check; Beneish
+  (1999); and Fuller and Hsia (1984). CFA Institute publishes the journal, so the reply
+  names them.
+- The letter's example study-path address has no page. The pages are
+  `docs.pyeconomics.dev/en/main/study-paths/analyst-program-2027/level-<n>.html`.
+- The model pages described the tags as topic areas "whose formulas this model
+  implements", which could be read as implementing the curriculum's formulas. Both
+  the documentation's model pages and the site's now say "topic areas this model
+  relates to".
+
+The reply goes once that wording is live. It links the three study-path pages, two
+model pages and the crosswalk file. It offers screenshots of the site, which stays
+behind Access until the cutover.

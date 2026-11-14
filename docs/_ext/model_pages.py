@@ -122,7 +122,7 @@ def curriculum_section(model_id: str, syllabi: Sequence[Any]) -> str:
             for topic in topics
         ]
         blocks.append(
-            f"{syllabus.title} topic areas whose formulas this model implements, "
+            f"{syllabus.title} topic areas this model relates to, "
             f"as factual tags linking to {syllabus.issuer}:\n\n" + "\n".join(items)
         )
     if not blocks:

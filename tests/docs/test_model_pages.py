@@ -153,9 +153,8 @@ def test_a_page_lists_its_models_syllabus_tags(
 ) -> None:
     syllabi = generator.syllabus_loader().load()
     section = generator.curriculum_section("fixed_income.duration", syllabi)
-    assert section.startswith(
-        "2027 CFA® Program topic areas whose formulas this model implements"
-    )
+    assert section.startswith("2027 CFA® Program topic areas this model relates to")
+    assert "formulas" not in section.split(":\n", 1)[0]
     assert "- [Level I: Fixed Income](https://www.cfainstitute.org/" in section
     assert "- [Level II: Fixed Income](https://www.cfainstitute.org/" in section
     assert section.endswith("see {doc}`/notices`.")
