@@ -57,7 +57,7 @@
     "@types/papaparse": "5.5.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "astro": "7.4.4",
+    "astro": "7.4.12",
     "astro-og-canvas": "0.13.2",
     "chrome-launcher": "1.2.2",
     "eslint": "10.13.0",
@@ -70,11 +70,12 @@
     "plotly.js": "4.1.1",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
-    "vite": "8.3.5",
+    "vite": "8.3.8",
     "vitest": "5.0.5",
     "wrangler": "4.156.0"
   },
   "overrides": {
-    "js-yaml": "4.3.2"
+    "js-yaml": "4.3.2",
+    "minimatch": "11.0.5"
   }
 }
