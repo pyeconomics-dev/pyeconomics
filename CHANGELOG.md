@@ -132,6 +132,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   tags as the topic areas the model relates to. The old wording, topic areas
   "whose formulas this model implements", could be read as saying the model
   implements a curriculum's formulas.
+- The `shiller` provider reads each series by its column's label in the data file's
+  header row (P, D, E, CPI, Rate GS10, CAPE), not by its position. A file whose
+  header lacks a label, repeats one or is missing is refused with `ResponseError`, so
+  a column the source inserts or moves can no longer shift a series into
+  `equity.cape`'s data. The source has said the file's layout will change (#324).
 - Display formulas on the site no longer show a vertical scrollbar beside them
   in browsers that always draw scrollbars (Chrome and Edge on Windows). A
   formula's box scrolls sideways only, with room for tall glyphs (#319).

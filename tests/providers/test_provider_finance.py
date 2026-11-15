@@ -323,6 +323,93 @@ def test_aqr_returns_are_not_scaled_twice_and_shiller_dates_are_not_serials() ->
     assert result.data[5] == (None,)
 
 
+SHILLER_HEADER = ["Date", "P", "D", "E", "CPI", "Fraction", "Rate GS10", "CAPE"]
+
+
+def shiller(*rows: list[object]) -> Table:
+    return Shiller().parse(
+        [ok(files.legacy_workbook("Data", [list(row) for row in rows]))],
+        query("us_equity"),
+    )
+
+
+def test_shiller_reads_each_series_by_its_label_wherever_its_column_is() -> None:
+    # A column inserted and the columns reordered, labels and numbers together:
+    # every series still reads its own numbers (#324).
+    moved = shiller(
+        ["Stock Market Data"],
+        ["Date", "CAPE", "New", " E ", "D", "P", "Rate GS10", "CPI"],
+        [1990.01, 17.0, 99.0, 22.0, 11.0, 330.0, 5.0, 127.4],
+    )
+    assert moved.index == (dt.date(1990, 1, 31),)
+    assert [column.name for column in moved.columns] == [
+        "price",
+        "dividend",
+        "earnings",
+        "cpi",
+        "long_rate",
+        "cape",
+    ]
+    assert moved.data == ((330.0,), (11.0,), (22.0,), (127.4,), (0.05,), (17.0,))
+
+
+@pytest.mark.parametrize(
+    ("rows", "problem"),
+    [
+        # A label renamed: the series has no column.
+        (
+            [
+                ["Date", "P", "D", "E", "CPI", "Fraction", "GS10", "CAPE"],
+                [1990.01, 1, 2, 3, 4, 5, 6, 7],
+            ],
+            "0 columns labelled 'Rate GS10'",
+        ),
+        # A label repeated: which column is meant is unknown.
+        (
+            [[*SHILLER_HEADER, "CAPE"], [1990.01, 1, 2, 3, 4, 5, 6, 7, 8]],
+            "2 columns labelled 'CAPE'",
+        ),
+        # No header: numbers only.
+        ([[1990.01, 1, 2, 3, 4, 5, 6, 7]], "0 header rows"),
+        # Two headers: which one names the columns is unknown.
+        (
+            [SHILLER_HEADER, SHILLER_HEADER, [1990.01, 1, 2, 3, 4, 5, 6, 7]],
+            "2 header rows",
+        ),
+        # A header after the first date belongs to nothing read.
+        ([[1990.01, 1, 2, 3, 4, 5, 6, 7], SHILLER_HEADER], "0 header rows"),
+    ],
+)
+def test_shiller_refuses_a_header_it_cannot_map(
+    rows: list[list[object]], problem: str
+) -> None:
+    with pytest.raises(ResponseError, match=problem):
+        shiller(*rows)
+
+
+def test_shiller_synthesizes_with_the_files_own_header() -> None:
+    header = [*SHILLER_HEADER, "", "TR CAPE"]
+    source = ok(
+        files.legacy_workbook(
+            "Data", [["Robert J. Shiller"], header, [1990.01, *range(1, 10)]]
+        )
+    )
+    request = Shiller().build_requests(query("us_equity"))[0]
+    changed = Shiller().synthesize(request, source, seed="a_seed")
+    cells = files.legacy_spreadsheet(changed.body, "Data", "shiller")
+    assert list(cells[0]) == header
+    assert len(cells) == 2
+    assert len(cells[1]) == len(header)
+    assert cells[1][0] == 1990.01
+    renamed = ok(
+        files.legacy_workbook(
+            "Data", [[*SHILLER_HEADER[:-1], "Shiller PE"], [1990.01, *range(1, 8)]]
+        )
+    )
+    with pytest.raises(ResponseError, match="'CAPE'"):
+        Shiller().synthesize(request, renamed, seed="a_seed")
+
+
 def test_yahoo_requires_installation_and_explicit_opt_in(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
