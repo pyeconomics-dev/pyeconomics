@@ -123,6 +123,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- In hosted mode, a request no longer fails with `503 limits-unavailable` when the
+  rate limits' Redis connection was dropped while idle. Each attempt to reach the
+  store is now repeated once on a new connection, and a real outage still refuses
+  runs and series. The `server`, `app` and `all` extras now require redis 6.0 or
+  later, the first whose connections take that setting (#333).
 - Model pages on the site and in the documentation describe a model's syllabus
   tags as the topic areas the model relates to. The old wording, topic areas
   "whose formulas this model implements", could be read as saying the model

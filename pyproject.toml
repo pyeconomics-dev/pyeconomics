@@ -120,10 +120,12 @@ fred = "pyeconomics.data.providers.fred"
 [project.optional-dependencies]
 # The REST API (ADR-0012 decisions 9-12): FastAPI and uvicorn without its
 # [standard] extra, so the closure stays pure Python, and limits with its Redis
-# storage for hosted mode's per-client rate limits.
+# storage for hosted mode's per-client rate limits. redis 6.0 is the first whose
+# connections retry on a connection error with `retry=` alone (issue #333).
 server = [
     "fastapi>=0.162",
     "limits[redis]>=5.8",
+    "redis>=6.0",
     "uvicorn>=0.54",
 ]
 # The MCP server (ADR-0012 decisions 13 and 14): the official SDK, whose
@@ -153,11 +155,13 @@ app = [
     "pyeconomics-app==1.0.0rc1.dev1",
     "fastapi>=0.162",
     "limits[redis]>=5.8",
+    "redis>=6.0",
     "uvicorn>=0.54",
 ]
 all = [
     "fastapi>=0.162",
     "limits[redis]>=5.8",
+    "redis>=6.0",
     "uvicorn>=0.54",
     "mcp>=2.3",
     "yfinance>=1.7",
@@ -197,6 +201,7 @@ test = [
     "sdmx1>=2.27",
     "fastapi>=0.162",
     "limits[redis]>=5.8",
+    "redis>=6.0",
     "uvicorn>=0.54",
     "mcp>=2.3",
     # httpx2: Starlette's TestClient (tests/server); Starlette 1.10 deprecates
