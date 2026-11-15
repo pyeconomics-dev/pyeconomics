@@ -8,7 +8,9 @@ the limit is served, and every other request is ``429 too-many-requests`` with
 ``Retry-After``. Runs, series and metadata count separately, and the health
 probes never count. A storage outage refuses runs and series (``503
 limits-unavailable``) and still serves metadata, logged once by the error's type
-name and never with the storage's URL. The Redis URL must be TLS for a remote
+name and never with the storage's URL. A pooled connection the store dropped
+while idle costs no request: the attempt is repeated once on a new connection
+(#333). The Redis URL must be TLS for a remote
 host, and its password is registered with redaction. Hosted mode limits by
 default; local mode does not.
 """
@@ -18,8 +20,10 @@ from __future__ import annotations
 import logging
 import math
 import secrets
+import socket
+import threading
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, Self
 
 import pytest
 from leakcheck import LeakCheck
@@ -35,6 +39,7 @@ from pyeconomics.server import ServerSettings, create_app
 from pyeconomics.server import limits as limits_module
 from pyeconomics.server.limits import (
     HOSTED_LIMITS,
+    STORAGE_RETRIES,
     STORAGE_VARIABLE,
     RateLimits,
     open_storage,
@@ -241,6 +246,103 @@ def test_a_tls_url_opens_redis_without_connecting_and_registers_its_secrets() ->
     assert password not in redaction.scrub_text(url)
     assert isinstance(open_storage("redis://127.0.0.1:6379/0"), RedisStorage)
     assert isinstance(open_storage(None), MemoryStorage)
+
+
+class _ForgetfulRedis:
+    """A loopback Redis stand-in that drops its first connection on second use.
+
+    It answers RESP commands (PING with PONG, anything else with OK). Its first
+    connection answers one PING, then closes without answering the next
+    command: a pooled connection that the store, or the network between, dropped
+    while it sat idle, which the client learns of only when it sends (#333).
+    Every later connection answers everything.
+    """
+
+    def __init__(self) -> None:
+        self.listener = socket.create_server(("127.0.0.1", 0))
+        self.listener.settimeout(0.05)
+        self.port: int = self.listener.getsockname()[1]
+        self.accepted = 0
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._serve, daemon=True)
+
+    def __enter__(self) -> Self:
+        self._thread.start()
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        self._stop.set()
+        self._thread.join(timeout=5)
+        self.listener.close()
+
+    def _serve(self) -> None:
+        while not self._stop.is_set():
+            try:
+                conn, _ = self.listener.accept()
+            except TimeoutError:
+                continue
+            self.accepted += 1
+            with conn:
+                conn.settimeout(5)
+                self._answer(conn, forget_after_ping=self.accepted == 1)
+
+    @staticmethod
+    def _answer(conn: socket.socket, *, forget_after_ping: bool) -> None:
+        buffer = b""
+        pinged = False
+        while True:
+            try:
+                data = conn.recv(65536)
+            except OSError:
+                return
+            if not data:
+                return
+            buffer += data
+            while (command := _take_command(buffer)) is not None:
+                name, buffer = command
+                if pinged and forget_after_ping:
+                    return
+                if name == b"PING":
+                    pinged = True
+                    conn.sendall(b"+PONG\r\n")
+                else:
+                    conn.sendall(b"+OK\r\n")
+
+
+def _take_command(buffer: bytes) -> tuple[bytes, bytes] | None:
+    """Split one RESP array off ``buffer``: its upper-cased name and the rest."""
+    head, sep, rest = buffer.partition(b"\r\n")
+    if not sep or not head.startswith(b"*"):
+        return None
+    parts: list[bytes] = []
+    for _ in range(int(head[1:])):
+        size, sep, rest = rest.partition(b"\r\n")
+        if not sep or len(rest) < int(size[1:]) + 2:
+            return None
+        parts.append(rest[: int(size[1:])])
+        rest = rest[int(size[1:]) + 2 :]
+    return parts[0].upper(), rest
+
+
+def test_a_redis_connection_repeats_a_failed_attempt_once_on_a_new_connection() -> None:
+    storage = open_storage("rediss://cache.example.org:6379")
+    assert isinstance(storage, RedisStorage)
+    connection = storage.storage.connection_pool.make_connection()
+    assert connection.retry.get_retries() == STORAGE_RETRIES == 1
+    assert connection.socket_timeout == connection.socket_connect_timeout == 2.0
+
+
+def test_a_connection_dropped_while_idle_costs_no_request() -> None:
+    with _ForgetfulRedis() as store:
+        storage = open_storage(f"redis://127.0.0.1:{store.port}/0")
+        assert isinstance(storage, RedisStorage)
+        try:
+            assert storage.check()
+            # The pooled connection is dead; one repeat on a new one answers.
+            assert storage.check()
+        finally:
+            storage.storage.connection_pool.disconnect()
+    assert store.accepted == 2
 
 
 def test_hosted_mode_reads_the_storage_url_from_the_environment(

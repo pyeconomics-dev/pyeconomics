@@ -3086,6 +3086,7 @@ all = [
     { name = "limits", extra = ["redis"] },
     { name = "mcp" },
     { name = "plotly" },
+    { name = "redis" },
     { name = "sdmx1" },
     { name = "statsmodels" },
     { name = "uvicorn" },
@@ -3095,6 +3096,7 @@ app = [
     { name = "fastapi" },
     { name = "limits", extra = ["redis"] },
     { name = "pyeconomics-app" },
+    { name = "redis" },
     { name = "uvicorn" },
 ]
 econometrics = [
@@ -3116,6 +3118,7 @@ sdmx = [
 server = [
     { name = "fastapi" },
     { name = "limits", extra = ["redis"] },
+    { name = "redis" },
     { name = "uvicorn" },
 ]
 yfinance = [
@@ -3155,6 +3158,7 @@ dev = [
     { name = "pytest-socket" },
     { name = "quantecon" },
     { name = "quantlib" },
+    { name = "redis" },
     { name = "rfc8785" },
     { name = "ruff" },
     { name = "scipy-stubs" },
@@ -3212,6 +3216,7 @@ test = [
     { name = "pytest-socket" },
     { name = "quantecon" },
     { name = "quantlib" },
+    { name = "redis" },
     { name = "rfc8785" },
     { name = "sdmx1" },
     { name = "sentry-sdk" },
@@ -3248,6 +3253,9 @@ requires-dist = [
     { name = "plotly", marker = "extra == 'plot'", specifier = ">=7.1.0" },
     { name = "pydantic", specifier = ">=2.12" },
     { name = "pyeconomics-app", marker = "extra == 'app'", editable = "packages/pyeconomics-app" },
+    { name = "redis", marker = "extra == 'all'", specifier = ">=6.0" },
+    { name = "redis", marker = "extra == 'app'", specifier = ">=6.0" },
+    { name = "redis", marker = "extra == 'server'", specifier = ">=6.0" },
     { name = "scipy", specifier = ">=1.18" },
     { name = "sdmx1", marker = "extra == 'all'", specifier = ">=2.27" },
     { name = "sdmx1", marker = "extra == 'sdmx'", specifier = ">=2.27" },
@@ -3294,6 +3302,7 @@ dev = [
     { name = "pytest-socket", specifier = ">=0.8.1" },
     { name = "quantecon", specifier = ">=0.13.0" },
     { name = "quantlib", specifier = ">=1.43" },
+    { name = "redis", specifier = ">=6.0" },
     { name = "rfc8785", specifier = ">=0.1.4" },
     { name = "ruff", specifier = ">=0.16.10" },
     { name = "scipy-stubs", specifier = ">=1.18.1.1" },
@@ -3348,6 +3357,7 @@ test = [
     { name = "pytest-socket", specifier = ">=0.8.1" },
     { name = "quantecon", specifier = ">=0.13.0" },
     { name = "quantlib", specifier = ">=1.43" },
+    { name = "redis", specifier = ">=6.0" },
     { name = "rfc8785", specifier = ">=0.1.4" },
     { name = "sdmx1", specifier = ">=2.27" },
     { name = "sentry-sdk", specifier = ">=2.74.0" },

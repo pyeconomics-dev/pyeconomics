@@ -786,7 +786,7 @@ failure, which was then undone.
 | Heartbeat `pyeconomics staging snapshot job` (24 h, 2 h grace) | as above, for staging | email | 11.4 snapshot job silent | 2026-11-11: its first ping, from staging snapshot run `20261111T042908Z-9c848723` (`"heartbeat": "sent"`); its alert path is production's, proven above. |
 | Sentry `pyeconomics-api` new high-priority issue (every event pyeconomics sends is error level) | a new server error or snapshot failure | email | 11.4 by the issue's slug | 2026-11-11: `python -m pyeconomics.server.observability test-event` run in the production job (execution `pyeconomics-snapshots-4fgmq`) sent event `540ed8195f3d4eb68c11fed38e651935` at 16:05:22Z. The maintainer confirmed the email. |
 | Sentry `pyeconomics-web` new high-priority issue | a new browser error | email | 11.4 deploy regressed | 2026-11-11: production's duration calculator, driven in headless Chromium with the CI service token, was handed a run answer that does not parse; the island showed "The server's answer could not be read." and Sentry's ingest answered 200 at 16:06:20Z. The maintainer confirmed the email. |
-| `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down | 2026-11-11: run 43057148476, dispatched with `simulate_failure`, failed and opened issue #295, closed after; runs 43056971358 and 43057821091 passed on `c8f7bc3`. |
+| `production-health` issue | the hourly check fails or times out | GitHub issue and failed-run notification | 11.4 deploy regressed, upstream down, rate-limit storage unavailable | 2026-11-11: run 43057148476, dispatched with `simulate_failure`, failed and opened issue #295, closed after; runs 43056971358 and 43057821091 passed on `c8f7bc3`. |
 | Budget `pyeconomics-production-monthly-budget` | spend passes 50, 90 or 100% of `$10` | email; Pub/Sub `production-budget-alerts` | section 8 | 2026-11-11: an unacknowledged pull of `production-budget-alerts-sub` returned the budget's notification of 2026-11-06T13:18:33Z (cost `$0.00` of `$10`). The threshold email cannot be triggered without real spend; Google sends it to the billing account's administrators. |
 
 Step 14's Deployed & verified check, 2026-11-11: `deploy-production.yml` run
@@ -850,6 +850,31 @@ Each names the alarm that leads to it.
   keeps serving the last snapshot; open an issue, and if the source changed its
   format, update its provider and contract cassettes. Disable it on the job (section
   7) if it keeps failing.
+- **Rate-limit storage unavailable** (a Sentry `limits-unavailable` issue, or
+  `production-health`'s CSV check answering 503 while `/version` answers 200): every
+  run and series answers `503 limits-unavailable` until Upstash answers again, and
+  metadata is still served. That is the design: the limits fail closed (ADR-0012
+  decision 12). Read the two log lines that bracket it, which give the error's type
+  and how long it lasted:
+
+  ```bash
+  gcloud logging read \
+    'resource.type="cloud_run_revision" AND resource.labels.service_name="pyeconomics-api" AND "rate-limit storage"' \
+    --project=pyeconomics-production --freshness=1d --limit=20 \
+    --format='value(timestamp,textPayload)'
+  ```
+
+  Then check Upstash's status page and the `pyeconomics-production` database in its
+  console.
+  - **One request, recovered within a second:** a pooled connection that was dropped
+    while idle. Each attempt is now repeated once on a new connection
+    (`STORAGE_RETRIES`, issue #333), so a recurrence of this kind is a new bug: open
+    an issue with the two log lines.
+  - **A longer outage:** wait for Upstash, or fix what its console shows (the
+    database's limits, a rotated password: section 6.2).
+  - Never unset `PYECONOMICS_RATELIMIT_URL` to get runs answering: each instance
+    would then keep its own counts, and the limits would multiply by the number of
+    instances.
 - **Data terms changed** (a terms review, a notice from the source): reclassify the
   source in its provider's `Terms` in a pull request and purge its hosted snapshots
   (`docs/operations/staging.md` section 7, "Purging a source's snapshots"), then

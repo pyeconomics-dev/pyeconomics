@@ -83,8 +83,13 @@ __all__ = [
 Kind = Literal["runs", "series", "metadata"]
 #: The environment variable that holds the Redis URL of hosted mode's limits.
 STORAGE_VARIABLE: Final = "PYECONOMICS_RATELIMIT_URL"
-#: How long a request waits for Redis, in seconds, before it counts as an outage.
+#: How long one attempt waits for Redis, in seconds, before it fails.
 STORAGE_TIMEOUT: Final = 2.0
+#: How often a failed attempt is repeated on a new connection before a request
+#: counts as an outage. One repeat replaces a pooled connection that the store
+#: (or the network between) dropped while it sat idle, which the client learns of
+#: only when it sends (issue #333); a real outage refuses within two attempts.
+STORAGE_RETRIES: Final = 1
 
 _LOGGER: Final = logging.getLogger(logs.LOGGER)
 _REDIS_SCHEMES: Final = frozenset({"redis", "rediss"})
@@ -235,12 +240,21 @@ def open_storage(url: str | None) -> Storage:
 
     if url is None:
         return MemoryStorage()
-    return RedisStorage(
-        _redis_url(url),
-        wrap_exceptions=True,
+    from redis import ConnectionPool  # noqa: PLC0415
+    from redis.backoff import EqualJitterBackoff  # noqa: PLC0415
+    from redis.retry import Retry  # noqa: PLC0415
+
+    checked = _redis_url(url)
+    # Left to limits, the pool's connections would carry Retry(NoBackoff(), 0): no
+    # repeat at all (#333). Retry's default errors are ConnectionError and
+    # TimeoutError, so an answer the store refused is never repeated.
+    pool = ConnectionPool.from_url(
+        checked,
         socket_timeout=STORAGE_TIMEOUT,
         socket_connect_timeout=STORAGE_TIMEOUT,
+        retry=Retry(EqualJitterBackoff(cap=0.25, base=0.05), STORAGE_RETRIES),
     )
+    return RedisStorage(checked, connection_pool=pool, wrap_exceptions=True)
 
 
 class Limiter:
