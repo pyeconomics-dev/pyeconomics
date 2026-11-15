@@ -199,9 +199,12 @@ file, so the hosted site needs S&P's licence, not the authors'.
 
 **Follow-up (2026-11-13).** We asked when the new file will be published, so that the
 library's reader can follow it. He answered: "I would expect it to be in the next 2
-months". That means by mid-January 2027. #324 makes the provider read its columns by
-header and refuse a layout it does not know. It must land before the release
-candidate (Step 19), so that no frozen release reads a changed file without noticing.
+months". That means by mid-January 2027. The fix for #324 (2026-11-15, before the
+release candidate, Step 19) makes the provider read its columns by their header labels
+and refuse a layout it does not know, so no frozen release reads a changed file
+without noticing. When the new file appears, record a new cassette with
+`scripts/record_cassettes.py` and update the labels in `providers/shiller.py` if they
+were renamed.
 
 **Outcome.** Declined. `shiller` stays library-only with no change: the library
 still reads the file on a user's own computer, under that user's acceptance of the

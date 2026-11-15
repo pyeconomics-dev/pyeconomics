@@ -11,7 +11,7 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from pyeconomics.core import UnitKind
-from pyeconomics.data.errors import SeriesNotFoundError
+from pyeconomics.data.errors import ResponseError, SeriesNotFoundError
 from pyeconomics.data.providers import _finance as f
 from pyeconomics.data.providers import _shared as s
 from pyeconomics.data.providers.base import DataProvider
@@ -29,14 +29,20 @@ if TYPE_CHECKING:
     from pyeconomics.data.types import Table
 
 __all__ = ["Shiller"]
-_COLUMNS = {
-    "price": 1,
-    "dividend": 2,
-    "earnings": 3,
-    "cpi": 4,
-    "long_rate": 6,
-    "cape": 12,
+#: Each series by its label in the Data sheet's header row, as the file names them
+#: (read 2026-11-15). The header is the one row before the first date whose first
+#: cell is "Date"; each label must appear in it exactly once, matched after trimming.
+#: A file that breaks any of this is refused, never read by position, so a column
+#: the source inserts or moves cannot shift a series (issue #324).
+_LABELS = {
+    "price": "P",
+    "dividend": "D",
+    "earnings": "E",
+    "cpi": "CPI",
+    "long_rate": "Rate GS10",
+    "cape": "CAPE",
 }
+_DATE_LABEL = "Date"
 _PATH = (
     "/blobby/go/e5e77e0b-59d1-44d9-ab25-4763ac982e53/downloads/"
     "1449043e-a1ed-4e2e-8e9c-7b9a2a064493/ie_data.xls"
@@ -69,15 +75,20 @@ class Shiller(DataProvider):
     def parse(self, responses: Sequence[Response], query: Query) -> Table:
         """Interpret YYYY.MM as a calendar label, never as an Excel serial date."""
         cells = legacy_spreadsheet(responses[0].body, "Data", self.info.id)
+        columns = _columns(_header(cells, self.info.id), self.info.id)
         rows = {}
         for row in cells:
-            if not row or not isinstance(row[0], int | float) or row[0] < 1700:
+            if not _dated(row):
                 continue
             year, month = f"{row[0]:.2f}".split(".")
             observed = s.month_end(int(year), int(month))
             rows[observed] = {
-                n: f.value(row[i], self.info.id, percent=n == "long_rate")
-                for n, i in _COLUMNS.items()
+                n: f.value(
+                    row[i] if i < len(row) else None,
+                    self.info.id,
+                    percent=n == "long_rate",
+                )
+                for n, i in columns.items()
             }
         units = {
             n: UnitRecord(text="Percent", kind=UnitKind.RATE)
@@ -90,7 +101,7 @@ class Shiller(DataProvider):
                 else "USD",
                 currency="USD" if n in {"price", "dividend", "earnings"} else None,
             )
-            for n in _COLUMNS
+            for n in _LABELS
         }
         return f.table(
             rows,
@@ -105,33 +116,58 @@ class Shiller(DataProvider):
     def synthesize(
         self, request: Request, response: Response, *, seed: str
     ) -> Response:
-        """Preserve the XLS layout with invented prices, ratios and rates."""
+        """Keep the file's own header row, with invented prices, ratios and rates."""
         del request
         cells = legacy_spreadsheet(response.body, "Data", self.info.id)
-        dated = [
-            row
-            for row in cells
-            if row and isinstance(row[0], int | float) and row[0] >= 1700
-        ]
-        rows: list[list[object]] = [
-            [
-                "Date",
-                "P",
-                "D",
-                "E",
-                "CPI",
-                "Fraction",
-                "Rate GS10",
-                "Price",
-                "Dividend",
-                "Price",
-                "Earnings",
-                "Earnings",
-                "CAPE",
-            ]
-        ]
+        header = _header(cells, self.info.id)
+        _columns(header, self.info.id)
+        values = len(header) - 1
+        dated = [row for row in cells if _dated(row)]
+        rows: list[list[object]] = [list(header)]
         rows += [
-            [row[0], *(synthetic_value(seed, i * 12 + j) for j in range(12))]
+            [row[0], *(synthetic_value(seed, i * values + j) for j in range(values))]
             for i, row in enumerate(dated[-3:])
         ]
         return replace(response, body=legacy_workbook("Data", rows))
+
+
+def _dated(row: Sequence[object]) -> bool:
+    """Whether a row holds an observation: a YYYY.MM label from 1700 first."""
+    return bool(row) and isinstance(row[0], int | float) and row[0] >= 1700
+
+
+def _label(cell: object) -> str:
+    return cell.strip() if isinstance(cell, str) else ""
+
+
+def _header(cells: Sequence[Sequence[object]], provider: str) -> Sequence[object]:
+    """Return the one row before the first date whose first cell is ``Date``."""
+    found = []
+    for row in cells:
+        if _dated(row):
+            break
+        if row and _label(row[0]) == _DATE_LABEL:
+            found.append(row)
+    if len(found) != 1:
+        msg = (
+            f"{provider}: the Data sheet has {len(found)} header rows starting "
+            f"{_DATE_LABEL!r} before its first date, not one; its layout changed"
+        )
+        raise ResponseError(msg, provider=provider)
+    return found[0]
+
+
+def _columns(header: Sequence[object], provider: str) -> dict[str, int]:
+    """Map each series to its column by label, refusing a missing or repeated one."""
+    labels = [_label(cell) for cell in header]
+    columns = {}
+    for name, label in _LABELS.items():
+        where = [i for i, text in enumerate(labels) if text == label]
+        if len(where) != 1:
+            msg = (
+                f"{provider}: the Data sheet's header has {len(where)} columns "
+                f"labelled {label!r}, not one; its layout changed"
+            )
+            raise ResponseError(msg, provider=provider)
+        columns[name] = where[0]
+    return columns
