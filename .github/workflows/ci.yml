@@ -816,6 +816,31 @@ jobs:
       - name: Playwright with axe and the CSP-violation listener
         working-directory: web
         run: npm run e2e
+      # The first screen of decision 19's sample at two widths in both themes,
+      # compared with web/tests/visual/baselines/ (Phase 5 Step 18). The
+      # baselines are this runner's pictures, so this is their one cell. When
+      # the comparison fails, the next two steps draw the pictures this commit
+      # would need and upload them: a baseline changes only on purpose, taken
+      # from that artifact and reviewed in the pull request (AGENTS.md "Design
+      # rules").
+      - name: Visual baselines of decision 19's sample
+        id: visual
+        working-directory: web
+        run: npm run e2e:visual
+      - name: Draw the baselines this commit would need
+        if: ${{ failure() && steps.visual.conclusion == 'failure' }}
+        working-directory: web
+        env:
+          VISUAL_BASELINES: ${{ runner.temp }}/visual-baselines
+        run: npx --no-install playwright test --config playwright.visual.config.ts --update-snapshots
+      - name: Upload them for review
+        if: ${{ failure() && steps.visual.conclusion == 'failure' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-baselines
+          path: ${{ runner.temp }}/visual-baselines
+          if-no-files-found: error
+          retention-days: 14
       # The local app (Phase 5 Step 10; ADR-0013 decision 16): the build is
       # copied into the pyeconomics-app package, which the locked environment
       # holds as an editable workspace member, and served as `pyeconomics serve`
@@ -836,6 +861,7 @@ jobs:
           name: web-reports
           path: |
             web/playwright-report
+            web/test-results/visual
             web/.lighthouse
           # .lighthouse is a hidden directory, which upload-artifact skips
           # unless asked (found in Phase 5 Step 6: no report had been uploaded).
