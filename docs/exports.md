@@ -66,7 +66,7 @@ then every attribution, notice and terms page of the data:
 # data: fred:UNRATE
 # title: Unemployment Rate
 # frame_sha256: 6f1c…
-# attribution: Source: Federal Reserve Bank of St. Louis, FRED®.
+# attribution: Source: Bureau of Labor Statistics, retrieved from FRED®, Federal Reserve Bank of St. Louis.
 # notice: This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.
 # terms: https://fred.stlouisfed.org/legal/
 "date","value"

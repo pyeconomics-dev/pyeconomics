@@ -33,6 +33,13 @@ vintages, which are the same API with real-time parameters.
   pre-approval required`` series, and every series sourced from Moody's
   whatever its tag, needs its owner's written permission beyond personal use
   (ROADMAP section 5, "Data terms").
+- **Citation.** The terms ask to "cite the source of the data and note that it
+  was accessed via FRED" (read 2026-11-16; issue #346). So a series'
+  attribution names the originating sources first, then FRED. A v1 series
+  takes them from its ``src`` tags, a v2 release from the release's
+  ``sources``, and a table from all of its series. A series whose source FRED
+  does not name keeps the provider's attribution (ADR-0011 decision 7,
+  amended 2026-11-16).
 
 Examples
 --------
@@ -89,7 +96,7 @@ from pyeconomics.data.types import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterable, Sequence
 
 __all__ = ["Fred"]
 
@@ -173,6 +180,15 @@ _CITATION_NOTICE: Final = (
     f"{FRED_NOTICE} This series is copyrighted by a third party: cite the "
     "copyright holder its notes name (FRED's copyrighted: citation required)."
 )
+#: What follows the originating sources in a series' attribution (issue #346).
+_RETRIEVED: Final = "retrieved from FRED®, Federal Reserve Bank of St. Louis."
+#: The longest source name an attribution carries.
+_MAX_SOURCE_NAME: Final = 120
+#: An attribution's limit (``core._fields.MAX_TEXT_LENGTH``; a test holds them
+#: equal). Names that would pass it give way to "and others".
+_MAX_ATTRIBUTION: Final = 1_000
+_OTHERS: Final = "and others"
+_SPACES: Final = re.compile(r"\s+")
 
 
 def _unit(units: str) -> tuple[UnitRecord, bool]:
@@ -298,6 +314,91 @@ def copyright_terms(
     if PUBLIC_DOMAIN in names:
         return FRED_TERMS, ("copyright: public domain, citation requested",)
     return FRED_TERMS, ()
+
+
+def source_name(raw: object) -> str | None:
+    r"""Return a source's name as an attribution may carry it, or ``None``.
+
+    FRED sends the name, so it is untrusted: anything unprintable becomes a
+    space, runs of spaces collapse, and a name that is empty, holds a URL or is
+    longer than ``_MAX_SOURCE_NAME`` is dropped rather than cut.
+
+    Examples
+    --------
+    >>> source_name(" Bureau of\nLabor Statistics ")
+    'Bureau of Labor Statistics'
+    >>> source_name("https://www.bls.gov") is None, source_name("") is None
+    (True, True)
+
+    """
+    if not isinstance(raw, str):
+        return None
+    name = _SPACES.sub(
+        " ", "".join(ch if ch.isprintable() else " " for ch in raw)
+    ).strip()
+    if not name or "://" in name or len(name) > _MAX_SOURCE_NAME:
+        return None
+    return name
+
+
+def originators(tags: Sequence[object]) -> tuple[str, ...]:
+    """Return the originating sources a series' ``src`` tags name, sorted.
+
+    A source tag carries the source's name in its notes (``bls``: "Bureau of
+    Labor Statistics"); a tag with empty notes is named by the tag itself.
+
+    Examples
+    --------
+    >>> originators([
+    ...     {"name": "bls", "group_id": "src", "notes": "Bureau of Labor Statistics"},
+    ...     {"name": "sa", "group_id": "seas", "notes": "Seasonally Adjusted"},
+    ... ])
+    ('Bureau of Labor Statistics',)
+
+    """
+    found = (
+        source_name(tag.get("notes")) or source_name(tag.get("name"))
+        for tag in tags
+        if isinstance(tag, dict) and tag.get("group_id") == "src"
+    )
+    return _sorted_names(name for name in found if name is not None)
+
+
+def attribution(names: Iterable[str]) -> str:
+    """Return FRED's citation: the originating sources, then FRED.
+
+    The names are kept once each, sorted, as many as an attribution holds; if
+    any must be left out, the list ends "and others" so the citation says so.
+    With no name, the provider's own attribution stands.
+
+    Examples
+    --------
+    >>> attribution(["Bureau of Labor Statistics"])[:52]
+    'Source: Bureau of Labor Statistics, retrieved from F'
+    >>> attribution([]) == FRED_TERMS.attribution
+    True
+
+    """
+    every = _sorted_names(names)
+    if not every:
+        return FRED_TERMS.attribution
+    kept: list[str] = []
+    for index, name in enumerate(every):
+        more = [_OTHERS] if index + 1 < len(every) else []
+        if len(_cite([*kept, name, *more])) > _MAX_ATTRIBUTION:
+            # The last name that fitted was checked with "and others" after it.
+            return _cite([*kept, _OTHERS])
+        kept.append(name)
+    return _cite(kept)
+
+
+def _cite(names: Sequence[str]) -> str:
+    return f"Source: {'; '.join(names)}, {_RETRIEVED}"
+
+
+def _sorted_names(names: Iterable[str]) -> tuple[str, ...]:
+    """Return each name once, in case-blind order."""
+    return tuple(sorted(set(names), key=lambda name: (name.casefold(), name)))
 
 
 class Fred(DataProvider):
@@ -504,17 +605,23 @@ class Fred(DataProvider):
         release = _RELEASE.fullmatch(query.series[0])
         if release is not None:
             return self._release_table(responses, query, release.group(1))
-        frames = [
+        parsed = [
             self._series(responses[i * _PER_SERIES : (i + 1) * _PER_SERIES], query)
             for i in range(len(query.series))
         ]
-        if len(frames) == 1:
-            return frames[0]
-        return _table(frames, "+".join(query.series)[:128], "FRED series")
+        if len(parsed) == 1:
+            return parsed[0][0]
+        return _table(
+            [frame for frame, _ in parsed],
+            "+".join(query.series)[:128],
+            "FRED series",
+            [name for _, names in parsed for name in names],
+        )
 
     def _meta(
         self, responses: Sequence[Response]
-    ) -> tuple[dict[str, Any], Terms, tuple[str, ...]]:
+    ) -> tuple[dict[str, Any], Terms, tuple[str, ...], tuple[str, ...]]:
+        """Return the series' entry, terms, notes and originating sources."""
         series = s.items(
             s.body_object(responses[0], "fred").get("seriess"), "fred", "series"
         )
@@ -525,10 +632,14 @@ class Fred(DataProvider):
         tags = s.items(s.body_object(responses[1], "fred").get("tags"), "fred", "tags")
         notes = entry.get("notes")
         terms, found = copyright_terms(tags, notes if isinstance(notes, str) else "")
-        return entry, terms, found
+        names = originators(tags)
+        return entry, terms.with_overrides(attribution=attribution(names)), found, names
 
-    def _series(self, responses: Sequence[Response], query: Query) -> Series:
-        entry, terms, notes = self._meta(responses)
+    def _series(
+        self, responses: Sequence[Response], query: Query
+    ) -> tuple[Series, tuple[str, ...]]:
+        """One v1 series, and the originating sources its tags name."""
+        entry, terms, notes, names = self._meta(responses)
         series_id = s.text(entry, "id", "fred")
         frequency, long = _frequency(entry)
         unit, percent = _unit(s.text(entry, "units", "fred"))
@@ -572,7 +683,8 @@ class Fred(DataProvider):
         realtime = (
             tuple(period for _, period, _ in kept if period) if vintages else None
         )
-        return Series(tuple(days), tuple(value for _, _, value in kept), meta, realtime)
+        values = tuple(value for _, _, value in kept)
+        return Series(tuple(days), values, meta, realtime), names
 
     def _release_table(
         self, responses: Sequence[Response], query: Query, release_id: str
@@ -580,11 +692,22 @@ class Fred(DataProvider):
         wanted = query.series[1:]
         found: dict[str, dict[str, Any]] = {}
         title = f"FRED release {release_id}"
+        names: list[str] = []
         for response in responses:
             body = s.body_object(response, "fred")
             release = body.get("release")
             if isinstance(release, dict) and isinstance(release.get("name"), str):
                 title = release["name"][:200]
+            sources = release.get("sources") if isinstance(release, dict) else None
+            if isinstance(sources, list):
+                # v2 names the release's originating sources; a release without
+                # them keeps the provider's attribution.
+                names.extend(
+                    name
+                    for source in sources
+                    if isinstance(source, dict)
+                    and (name := source_name(source.get("name"))) is not None
+                )
             for entry in s.items(body.get("series"), "fred", "series"):
                 if not isinstance(entry, dict):
                     continue
@@ -598,14 +721,16 @@ class Fred(DataProvider):
         missing = [series_id for series_id in wanted if series_id not in found]
         if missing:
             raise SeriesNotFoundError(Fred.info.id, missing[0])
-        frames = [self._bulk_series(entry, query) for entry in found.values()]
+        frames = [self._bulk_series(entry, query, names) for entry in found.values()]
         if not frames:
             msg = f"fred's release {release_id} holds no series"
             raise ResponseError(msg, provider="fred")
-        return _table(frames, f"{RELEASE_PREFIX}{release_id}", title)
+        return _table(frames, f"{RELEASE_PREFIX}{release_id}", title, names)
 
-    def _bulk_series(self, entry: dict[str, Any], query: Query) -> Series:
-        """One series of a v2 release, which carries no tags: FRED's own terms."""
+    def _bulk_series(
+        self, entry: dict[str, Any], query: Query, names: Sequence[str]
+    ) -> Series:
+        """One series of a v2 release, cited to the release's sources."""
         frequency, long = _frequency(entry)
         unit, percent = _unit(s.text(entry, "units", "fred"))
         pairs = sorted(
@@ -635,6 +760,7 @@ class Fred(DataProvider):
         if "moody" in text.casefold():
             tags.append({"group_id": "src", "name": "moody's"})
         terms, found = copyright_terms(tags, text)
+        terms = terms.with_overrides(attribution=attribution(names))
         meta = SeriesMeta(
             provider="fred",
             series_id=s.text(entry, "series_id", "fred"),
@@ -712,7 +838,7 @@ class Fred(DataProvider):
         series_id: str,  # noqa: ARG002 - the hook's signature
     ) -> SeriesMeta:
         """Return the series' metadata, with its copyright terms."""
-        entry, terms, notes = self._meta(responses)
+        entry, terms, notes, _ = self._meta(responses)
         frequency, long = _frequency(entry)
         unit, _ = _unit(s.text(entry, "units", "fred"))
         return SeriesMeta(
@@ -831,8 +957,13 @@ def _dating(frequency: ObservationFrequency) -> DateConvention:
     return DateConvention.POINT_IN_TIME
 
 
-def _table(frames: Sequence[Series], table_id: str, title: str) -> Table:
-    """Columns that share one index: every date any series has, ``None`` elsewhere."""
+def _table(
+    frames: Sequence[Series], table_id: str, title: str, names: Iterable[str]
+) -> Table:
+    """Columns that share one index: every date any series has, ``None`` elsewhere.
+
+    The table cites every originating source its series name (``names``).
+    """
     first = frames[0].meta
     if any(
         (frame.meta.frequency, frame.meta.week_ends_on)
@@ -846,12 +977,13 @@ def _table(frames: Sequence[Series], table_id: str, title: str) -> Table:
     for frame in frames:
         by_day = dict(zip(frame.index, frame.values, strict=True))
         data.append(tuple(by_day.get(day) for day in index))
-    # The table carries the most restrictive of its series' terms.
+    # The table carries the most restrictive of its series' terms, cited to
+    # every source its series name.
     notices = [frame.meta.terms for frame in frames]
     terms = next(
         (t for t in notices if t.notice == _PRE_APPROVAL_NOTICE),
         next((t for t in notices if t.notice != FRED_NOTICE), FRED_TERMS),
-    )
+    ).with_overrides(attribution=attribution(names))
     notes = tuple(
         dict.fromkeys(
             f"{code}: {frame.meta.series_id}, {detail}"

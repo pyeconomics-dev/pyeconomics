@@ -106,7 +106,7 @@ def test_the_horizon_clamps_to_a_shorter_month(
 # --- series overrides ---------------------------------------------------------
 
 
-def test_a_series_overrides_only_class_llm_use_cache_and_notice() -> None:
+def test_a_series_overrides_class_llm_use_cache_notice_and_attribution() -> None:
     marked = TERMS.with_overrides(
         licence=LicenceClass.LIBRARY_ONLY,
         llm_use=LlmUse.FORBIDDEN,
@@ -123,6 +123,22 @@ def test_a_series_overrides_only_class_llm_use_cache_and_notice() -> None:
         TERMS.checked,
         TERMS.attribution,
     )
+    # An aggregator's series may name its originating source (ADR-0011
+    # decision 7, amended 2026-11-16); the page and the date stay the provider's.
+    cited = TERMS.with_overrides(attribution="Source: An Originator, via Example.")
+    assert cited.attribution == "Source: An Originator, via Example."
+    assert (cited.terms_url, cited.checked, cited.notice) == (
+        TERMS.terms_url,
+        TERMS.checked,
+        TERMS.notice,
+    )
+
+
+def test_an_attribution_override_is_checked_like_the_providers() -> None:
+    with pytest.raises(InputError, match="must not contain a URL"):
+        TERMS.with_overrides(attribution="Source: https://www.example.org/")
+    with pytest.raises(InputError, match="control characters"):
+        TERMS.with_overrides(attribution="Source: one\nline too many.")
 
 
 def test_no_override_leaves_the_terms_unchanged() -> None:

@@ -31,7 +31,7 @@ pages read that day.
 
 | Recipient | Published contact | Sent | Issue | Answer | Outcome |
 |-----------|-------------------|------|-------|--------|---------|
-| Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | 2026-11-16, by email from the FRED team, summarised in section 1 because its emails ask not to be quoted: the terms permit no storage, and a web application should give its users only public-domain series, each through the user's own FRED API key | Declined for the hosted site: `fred` stays library-only and pyeconomics.dev never serves it; the citation must name the originating source (#346) (section 1) |
+| Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | 2026-11-16, by email from the FRED team, summarised in section 1 because its emails ask not to be quoted: the terms permit no storage, and a web application should give its users only public-domain series, each through the user's own FRED API key | Declined for the hosted site: `fred` stays library-only and pyeconomics.dev never serves it; since #346 the citation names the originating source (section 1) |
 | Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | 2026-11-13, by email from Professor French: we may not include the data in software we distribute. Told the same day that the library downloads his files at a user's request, he wrote that this is fine, and that he may rescind the permission | Declined: `ken_french` stays library-only; nothing we distribute holds the data; the run-time download continues with his consent, which he may rescind (section 2) |
 | Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | 2026-11-13, by email: they cannot permit showing S&P data, which belongs to S&P; they named S&P's licensing contact. The file's new layout is expected within two months (#324) | Declined: `shiller` stays library-only; no S&P licence sought (section 3) |
 | International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | 2026-11-13: an automatic reply only, pointing to the Copyright Clearance Center; no answer from a person yet | |
@@ -133,11 +133,13 @@ The library already follows the rest:
 - The rate limits are 2 requests a second and 120 a minute.
 - Every record keeps the retrieval time, which is the access date.
 
-One gap remains. The attribution names FRED as the source, where FRED's terms say to
+One gap remained. The attribution named FRED as the source, where FRED's terms say to
 "cite the source of the data and note that it was accessed via FRED" (the
-[legal page](https://fred.stlouisfed.org/legal/), read 2026-11-16). Issue #346 makes
-each series' attribution name its originating source, before the release candidate
-(Step 19). Issue #308 is closed as declined.
+[legal page](https://fred.stlouisfed.org/legal/), read 2026-11-16). The fix for #346
+(2026-11-16) makes each series' attribution name its originating source, then FRED.
+For example: "Source: Bureau of Labor Statistics, retrieved from FRED®, Federal
+Reserve Bank of St. Louis." The names come from FRED's own metadata (ADR-0011
+decision 7, amended 2026-11-16). Issue #308 is closed as declined.
 
 ### 2. Kenneth R. French: the Data Library
 

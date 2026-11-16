@@ -164,7 +164,10 @@ decisions 2 to 6); the contract suite checks them.
   `None` ends a period that is still current.
 - **A series may carry its own terms.** Where one source mixes classes, `parse`
   gives the series `terms.with_overrides(...)` from the source's own marker; hosted
-  mode checks that class too, after the response arrives.
+  mode checks that class too, after the response arrives. An aggregator whose
+  terms ask that the originating source be cited also overrides the attribution,
+  with names from the source's own metadata only (FRED's `src` tags; ADR-0011
+  decision 7, amended 2026-11-16).
 - **Size.** A query names at most 1,000 series and 100,000 observations;
   `max_observations` keeps the most recent rows.
 - **Notes.** What the source says about the data travels in the metadata's

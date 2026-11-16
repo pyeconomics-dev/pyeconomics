@@ -137,11 +137,14 @@ class Terms:
         llm_use: LlmUse | None = None,
         cache: CachePolicy | None = None,
         notice: str | None = None,
+        attribution: str | None = None,
     ) -> Terms:
         """Return the terms a series carries when its source's markers differ.
 
-        Only the class, ``llm_use``, the cache policy and the notice may differ
-        per series; the page, date and attribution are the provider's.
+        The class, ``llm_use``, the cache policy and the notice may differ per
+        series. So may the attribution, where the provider's terms ask that a
+        series cite its originating source (FRED: ADR-0011 decision 7, amended
+        2026-11-16). The terms page and the date read are always the provider's.
         """
         changes: dict[str, Any] = {
             name: value
@@ -150,6 +153,7 @@ class Terms:
                 ("llm_use", llm_use),
                 ("cache", cache),
                 ("notice", notice),
+                ("attribution", attribution),
             )
             if value is not None
         }
