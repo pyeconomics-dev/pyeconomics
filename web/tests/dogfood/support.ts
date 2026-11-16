@@ -113,6 +113,30 @@ export async function scrollThrough(page: Page): Promise<void> {
   await page.waitForTimeout(250);
 }
 
+/**
+ * Wait until every animation and transition that ends has ended, so a
+ * screenshot shows a state a visitor sees, not a frame of the way there
+ * (Phase 5 Step 18's round 1: the phone menu was captured mid-fade, once
+ * half-transparent and once not at all). A looping animation is not waited
+ * for, and the wait gives up after two seconds.
+ */
+export async function settled(page: Page): Promise<void> {
+  await page
+    .evaluate(
+      () =>
+        Promise.race([
+          Promise.all(
+            document
+              .getAnimations()
+              .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+              .map((animation) => animation.finished.catch(() => undefined)),
+          ),
+          new Promise((resolve) => setTimeout(resolve, 2000)),
+        ]).then(() => undefined),
+    )
+    .catch(() => undefined);
+}
+
 /** Load timings, fonts and layout problems, read from the page. */
 export interface Measures {
   timings: { ttfb: number; domContentLoaded: number; load: number; fcp: number | null; lcp: number | null; cls: number };
