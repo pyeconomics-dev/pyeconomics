@@ -1003,7 +1003,8 @@ From Phase 5 Step 17, which gave the site its design (ADR-0013 decisions 2, 9 an
   `PRELOAD_FONTS`); the math font loads only where a formula renders. No font
   service and no Google Fonts. OFL-1.1 is admitted for these packages only, by the
   font rule in `scripts/checks/web_licences.py` (`FONTS`, held equal to `fonts.ts`
-  `FONTS` and listed on `/legal/licence/`). Never serve a font whose file declares a
+  `FONTS` and listed on `/legal/licence/`) and by name in `security.yml`'s
+  dependency-review exceptions; a new font moves all three. Never serve a font whose file declares a
   Reserved Font Name: a package's subset is a Modified Version under the licence.
 - Motion is CSS: transitions and keyframes in `global.css` (`.motion-rise`, the
   menu panel, a card's or a control's hover), smooth scrolling for jump links only under
