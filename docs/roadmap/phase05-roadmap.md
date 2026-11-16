@@ -10515,7 +10515,21 @@ platform allows. New conversation per phase-boundary hygiene.
     - The chosen design direction is built across every
       page type (docs/design/direction.md); round 0's audit
       is docs/design/audit-round-0.md, with its median
-      score per dimension.
+      score per dimension (5.75 overall). Its findings
+      marked "Open for Step 18" (M6's option names, M8's
+      draw-on-load, M9, M10, M12's remaining layout shift,
+      L1 to L3 and L8 to L10) are this step's starting
+      backlog: fix them, or file each one, before round 1's
+      implementer pass closes. #343 (formula symbols in the
+      model cards) stays an issue for a later phase.
+    - Step 17's evaluators ran as Claude Code subagents,
+      which offer Claude models only (Sonnet 5.5 beside the
+      implementer's Opus 5.5). Where this step's platform
+      offers another maker's model, its evaluators use it,
+      as the protocol says; record the model either way.
+    - The harness's visit tool needs MSYS_NO_PATHCONV=1
+      under Git Bash, or "--path /..." becomes a Windows
+      path (it says so and stops).
     - docs/design/dogfooding.md holds the personas, tasks,
       rubric, severity scale and evaluator rules;
       web/tests/dogfood/ captures every page type at three

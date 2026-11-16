@@ -20,6 +20,7 @@ export default defineConfig(
     ".astro/",
     ".wrangler/",
     ".lighthouse/",
+    "dogfood-out/",
     "node_modules/",
     "playwright-report/",
     "test-results/",
