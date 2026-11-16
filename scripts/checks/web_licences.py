@@ -20,6 +20,13 @@ the tools under ``devDependencies``. This check:
    records them, and fails on one that is neither in the production tree nor
    in :data:`BUILD_OUTPUT`: a development dependency an island imported.
 
+The font rule (Phase 5 Step 17; ADR-0004's note and ADR-0013's amendment of
+2026-11-16) admits the SIL Open Font License 1.1 for font files only: a package
+named in :data:`FONTS` passes under exactly ``OFL-1.1``, because the site serves
+its woff2 files from its own origin and no code of it reaches a page. OFL-1.1
+stays outside :data:`ALLOWED`, so any other package under it fails, and a font
+package found in the client bundle fails too.
+
 A licence is an SPDX expression: ``A OR B`` passes if either side does,
 ``A AND B`` only if both do, and ``A WITH B`` never without review. A missing
 licence, or one such as ``SEE LICENSE IN ...``, fails.
@@ -53,6 +60,15 @@ BUILD_OUTPUT: Final = {
     "astro": "the island runtime Astro inlines into pages",
     "@astrojs/react": "the React client renderer in the client bundle",
     "plotly.js": "its prebuilt dist/plotly-basic.min.js and dist/plotly.css",
+}
+
+#: The font rule: font packages whose woff2 files the site serves, admitted
+#: under :data:`FONT_LICENCE` alone, and what of each ships. Each is listed on
+#: /legal/licence/ with its licence text.
+FONT_LICENCE: Final = "OFL-1.1"
+FONTS: Final = {
+    "@fontsource-variable/literata": "the text face's latin variable woff2 files",
+    "@fontsource/stix-two-math": "the math font's latin woff2 file, set on MathML",
 }
 
 ROOT: Final = Path(__file__).resolve().parents[2]
@@ -140,6 +156,17 @@ def package_name(path: str) -> str:
     return path.rpartition("node_modules/")[2]
 
 
+def font_admitted(name: str, entry: Mapping[str, Any]) -> bool:
+    """Whether the font rule admits a package: named in :data:`FONTS`, OFL-1.1 exactly.
+
+    >>> font_admitted("@fontsource/stix-two-math", {"license": "OFL-1.1"})
+    True
+    >>> font_admitted("some-font", {"license": "OFL-1.1"})
+    False
+    """
+    return name in FONTS and entry.get("license") == FONT_LICENCE
+
+
 def licence_problem(entry: Mapping[str, Any]) -> str | None:
     """Return why a lockfile entry's licence fails, or None if it passes."""
     licence = entry.get("license")
@@ -166,22 +193,29 @@ def production(lock: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     }
 
 
-def check(
-    lock: Mapping[str, Any], shipped: Sequence[str] | None = None
-) -> tuple[list[str], list[str]]:
-    """Return (report lines, failures) for the production tree and what ships."""
-    tree = production(lock)
-    report = [f"web licences: {len(tree)} production packages in web/package-lock.json"]
-    failures: list[str] = []
+def _tree_lines(
+    tree: Mapping[str, Mapping[str, Any]], report: list[str], failures: list[str]
+) -> None:
+    """Check each production package, the font rule's packages included."""
     for path, entry in sorted(tree.items()):
-        label = f"{package_name(path)} {entry.get('version', '?')}"
+        name = package_name(path)
+        label = f"{name} {entry.get('version', '?')}"
+        if font_admitted(name, entry):
+            report.append(
+                f"  {label}: {FONT_LICENCE} ok under the font rule ({FONTS[name]})"
+            )
+            continue
         problem = licence_problem(entry)
         if problem:
             failures.append(f"{label}: {problem}")
         else:
             report.append(f"  {label}: {entry['license']} ok")
 
-    packages: Mapping[str, Mapping[str, Any]] = lock.get("packages", {})
+
+def _build_output_lines(
+    packages: Mapping[str, Mapping[str, Any]], report: list[str], failures: list[str]
+) -> None:
+    """Check the own licence of each build tool whose code reaches pages."""
     for name, reason in BUILD_OUTPUT.items():
         tool = packages.get(f"node_modules/{name}")
         if tool is None:
@@ -194,18 +228,40 @@ def check(
         else:
             report.append(f"  {label}: {tool['license']} ok ({reason})")
 
+
+def _shipped_lines(
+    shipped: Sequence[str], names: set[str], report: list[str], failures: list[str]
+) -> None:
+    """Check each package the client bundle holds against the production tree."""
+    for name in sorted(set(shipped)):
+        if name in FONTS:
+            failures.append(
+                f"{name} ships in the client bundle, but the font rule admits "
+                "its font files only"
+            )
+        elif name in names:
+            report.append(f"  shipped {name}: in the production tree")
+        elif name in BUILD_OUTPUT:
+            report.append(f"  shipped {name}: build output, its licence checked")
+        else:
+            failures.append(
+                f"{name} ships in the client bundle but is a development "
+                "dependency: move it to dependencies in web/package.json"
+            )
+
+
+def check(
+    lock: Mapping[str, Any], shipped: Sequence[str] | None = None
+) -> tuple[list[str], list[str]]:
+    """Return (report lines, failures) for the production tree and what ships."""
+    tree = production(lock)
+    report = [f"web licences: {len(tree)} production packages in web/package-lock.json"]
+    failures: list[str] = []
+    _tree_lines(tree, report, failures)
+    _build_output_lines(lock.get("packages", {}), report, failures)
     if shipped is not None:
         names = {package_name(path) for path in tree}
-        for name in sorted(set(shipped)):
-            if name in names:
-                report.append(f"  shipped {name}: in the production tree")
-            elif name in BUILD_OUTPUT:
-                report.append(f"  shipped {name}: build output, its licence checked")
-            else:
-                failures.append(
-                    f"{name} ships in the client bundle but is a development "
-                    "dependency: move it to dependencies in web/package.json"
-                )
+        _shipped_lines(shipped, names, report, failures)
     return report, failures
 
 
@@ -237,8 +293,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         for failure in failures:
             print(f"  {failure}", file=sys.stderr)
         print(
-            f"Allowed for what ships to browsers: {', '.join(ALLOWED)}. Replace the "
-            "package, or keep a build or test tool in devDependencies.",
+            f"Allowed for what ships to browsers: {', '.join(ALLOWED)}, and "
+            f"{FONT_LICENCE} for the font files of the packages in FONTS. Replace "
+            "the package, or keep a build or test tool in devDependencies.",
             file=sys.stderr,
         )
         return 1

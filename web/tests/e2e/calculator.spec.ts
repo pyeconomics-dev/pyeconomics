@@ -78,7 +78,7 @@ test("a field the model refuses is announced, and the server is not asked", asyn
   await coupon.fill("7");
   await page.locator("#calculator").getByRole("button", { name: "Run", exact: true }).click();
   const status = page.locator("#calculator").getByRole("status");
-  await expect(status).toContainText("1 input needs fixing before the run: 'Coupon Rate' must be <= 1");
+  await expect(status).toContainText("1 input needs fixing before the run: Coupon rate must be 1 or less");
   // Only the chosen calculation's requirements, not every member's of the oneOf.
   await expect(status).not.toContainText("Curve Tenors");
   expect(api.requests).toEqual([]);

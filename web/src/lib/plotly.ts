@@ -9,6 +9,7 @@
 // <style> element and the policy needs no 'unsafe-inline'.
 import stylesheet from "plotly.js/dist/plotly.css?url";
 
+import { parseColour } from "@/lib/contrast";
 import type { Figure } from "@/lib/figure";
 
 /** The id and class Plotly reads before it would inject a style element. */
@@ -42,4 +43,60 @@ export function loadPlotly(): Promise<Plotly> {
     return (module.default ?? module) as Plotly;
   })();
   return loading;
+}
+
+/** The tokens a chart reads, with any they refer to. */
+const CHART_TOKENS = ["foreground", "muted-foreground", "border", "border-strong", "link", "primary", "eyebrow", "font-text"];
+
+/**
+ * A figure's layout in the site's theme (Phase 5 Step 17): a transparent
+ * background, so the chart sits on its card in light and dark (round 0 found a
+ * white box on the dark theme), and the text, grid and line colours read from
+ * the design tokens. Plotly takes rgb(), not oklch(), so each token is
+ * converted (src/lib/contrast.ts). Only colours change: the data, the titles
+ * and the annotations' text stay the figure's own.
+ */
+export function themed(layout: Record<string, unknown>, root: Element = document.documentElement): Record<string, unknown> {
+  const style = getComputedStyle(root);
+  const tokens = new Map(CHART_TOKENS.map((name) => [name, style.getPropertyValue(`--${name}`).trim()]));
+  const colour = (name: string): string => {
+    try {
+      const { r, g, b, a } = parseColour(tokens.get(name) ?? "", tokens);
+      return `rgba(${String(Math.round(r * 255))}, ${String(Math.round(g * 255))}, ${String(Math.round(b * 255))}, ${String(a)})`;
+    } catch {
+      return "";
+    }
+  };
+  const foreground = colour("foreground");
+  const muted = colour("muted-foreground");
+  const axis = (value: unknown) => {
+    const given = (value ?? {}) as Record<string, unknown>;
+    const title = (given.title ?? {}) as Record<string, unknown>;
+    return {
+      ...given,
+      gridcolor: colour("border"),
+      linecolor: colour("border-strong"),
+      zerolinecolor: colour("border-strong"),
+      tickfont: { ...((given.tickfont ?? {}) as object), color: muted },
+      title: { ...title, font: { ...((title.font ?? {}) as object), color: foreground } },
+    };
+  };
+  const annotations = Array.isArray(layout.annotations)
+    ? (layout.annotations as Record<string, unknown>[]).map((note) => ({
+        ...note,
+        font: { ...((note.font ?? {}) as object), color: muted },
+      }))
+    : layout.annotations;
+  const title = (layout.title ?? {}) as Record<string, unknown>;
+  return {
+    ...layout,
+    paper_bgcolor: "rgba(0, 0, 0, 0)",
+    plot_bgcolor: "rgba(0, 0, 0, 0)",
+    font: { ...((layout.font ?? {}) as object), family: tokens.get("font-text") ?? "", color: foreground },
+    title: { ...title, font: { ...((title.font ?? {}) as object), color: foreground } },
+    colorway: [colour("link"), colour("primary"), colour("eyebrow"), muted].filter(Boolean),
+    xaxis: axis(layout.xaxis),
+    yaxis: axis(layout.yaxis),
+    ...(annotations === undefined ? {} : { annotations }),
+  };
 }

@@ -102,6 +102,23 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- The site's design (Phase 5 Step 17; `docs/design/direction.md`): five AI evaluators,
+  one per visitor persona, audited every page type in round 0 of a dogfooding
+  protocol (`docs/design/dogfooding.md`, `docs/design/audit-round-0.md`), and a panel
+  of three chose the "Textbook" direction over two others. One set of tokens in both
+  themes (warm paper and ink with an oxblood accent, real chroma in dark mode), the
+  Literata text face and STIX Two Math for formulas, served from the site's own
+  origin under the SIL Open Font License 1.1, and new layouts: a home page that
+  says who the site is for and shows a live calculator, the same model from Python
+  and the command line, the REST and MCP surfaces and how each model is checked; a
+  one-row phone header with a menu; model pages with jump links, a formula plate,
+  collapsible variable tables per calculation, a calculator card and an "On this
+  page" list; the worked example as Python and command-line code; charts in the
+  site's colours in both themes; plain-language form hints and errors; results shown
+  to ten significant digits with a decimal's percent (the bytes and downloads stay
+  exact); and CSS motion that stops under reduced motion. No URL, canonical bytes
+  or API answer changes.
+
 - The documentation moved to `https://docs.pyeconomics.dev`, still on Read the
   Docs (issue #259). Links in earlier releases keep working: `readthedocs.io`
   redirects there, and a problem's detail may name either host.
@@ -122,6 +139,16 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   now that the `pyeconomics-dev` listing is live.
 
 ### Fixed
+
+- On a model page, once a calculator loaded, the header's navigation and domain row
+  vanished on wide screens: the calculator's stylesheet repeated utilities the page
+  had and overrode its responsive rules. The island now adopts only the rules the
+  page lacks (Phase 5 Step 17).
+- The live-data notice of a model whose data the site may not serve (#320) names the
+  source and why, uses the data's names, says "on your own computer only" before
+  "Live data" is chosen, and gives the local app's two commands with copy buttons.
+- No page scrolls sideways at a phone's width: long formulas, code, tables and links
+  scroll or wrap in their own boxes (Phase 5 Step 17's round 0).
 
 - In hosted mode, a request no longer fails with `503 limits-unavailable` when the
   rate limits' Redis connection was dropped while idle. Each attempt to reach the

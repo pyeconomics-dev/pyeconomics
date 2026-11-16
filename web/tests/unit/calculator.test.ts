@@ -13,11 +13,13 @@ import {
   problemSlug,
   propertiesFor,
   runInputs,
+  boundsInWords,
+  plainErrors,
   tidyErrors,
   uiSchemaFor,
 } from "@/lib/calculator";
 import { formatList, listShape, parseList } from "@/lib/lists";
-import { asOfText, formatValue, pageCount, pageOf, parseResult, sourceRecords } from "@/lib/results";
+import { asOfText, displayValue, formatValue, pageCount, pageOf, parseResult, sourceRecords } from "@/lib/results";
 import type { Model } from "@/lib/registry-schema";
 import { conceptData, problemData, registryData, sourceData, surfaceData } from "@/lib/site-data";
 
@@ -37,7 +39,7 @@ describe("the form's uiSchema", () => {
     const ui = uiSchemaFor(family) as { oneOf: Record<string, Record<string, unknown>>[] };
     expect(ui.oneOf[0]?.["ui:title"]).toBe("Macaulay and modified duration (macaulay_modified)");
     expect(ui.oneOf[0]?.calculation).toEqual({ "ui:widget": "hidden" });
-    expect(ui.oneOf[0]?.coupon_rate).toEqual({ "ui:help": "Unit: rate; [0, 1]" });
+    expect(ui.oneOf[0]?.coupon_rate).toEqual({ "ui:help": "Rate, as a decimal (0.05 is 5%); from 0 to 1" });
     expect(ui.oneOf[0]?.day_count).toMatchObject({ "ui:title": "Day count" });
     expect(ui.oneOf[1]?.curve_tenors).toMatchObject({ "ui:widget": "list" });
   });
@@ -45,7 +47,7 @@ describe("the form's uiSchema", () => {
   it("names a nullable field's two options and keeps its help beside it", () => {
     const ui = uiSchemaFor(family) as { oneOf: Record<string, Record<string, unknown>>[] };
     expect(ui.oneOf[0]?.issue_date).toEqual({
-      anyOf: [{ "ui:title": "A value" }, { "ui:title": "None (null)" }],
+      anyOf: [{ "ui:title": "Enter a value" }, { "ui:title": "Leave it out" }],
       "ui:help": "Unit: date",
     });
   });
@@ -60,7 +62,7 @@ describe("the form's uiSchema", () => {
   it("shows no unit for a choice or a flag", () => {
     expect(fieldHelp({ type: "boolean" })).toBe("");
     expect(fieldHelp({ type: "string", enum: ["a"] })).toBe("");
-    expect(fieldHelp({ type: "number", "x-unit": "money", minimum: 0 })).toBe("Unit: money; [0, inf]");
+    expect(fieldHelp({ type: "number", "x-unit": "money", minimum: 0 })).toBe("Unit: money; 0 or more");
   });
 });
 
@@ -168,5 +170,45 @@ describe("results", () => {
     expect(pageCount(51)).toBe(3);
     expect(pageOf([...Array(51).keys()], 2)).toEqual({ start: 50, items: [50] });
     expect(pageOf([1, 2], 9).start).toBe(0);
+  });
+});
+
+describe("plain words for the form (Phase 5 Step 17)", () => {
+  it("writes bounds as a reader would", () => {
+    expect(boundsInWords("[0, 1]")).toBe("from 0 to 1");
+    expect(boundsInWords("[0.01, 1e+09]")).toBe("from 0.01 to 1,000,000,000");
+    expect(boundsInWords("[0, inf]")).toBe("0 or more");
+    expect(boundsInWords("(0, inf]")).toBe("more than 0");
+    expect(boundsInWords("[-inf, 1]")).toBe("1 or less");
+    expect(boundsInWords("(0, 1)")).toBe("more than 0 and less than 1");
+    expect(boundsInWords("[-inf, inf]")).toBe("");
+    expect(boundsInWords("odd")).toBe("odd");
+  });
+
+  it("puts the field's label first and the limit in words", () => {
+    const label = (name: string) => (name === "fixed_costs" ? "Fixed costs" : name === "periods" ? "Periods" : name);
+    const [missing, low, kind] = plainErrors(
+      [
+        { name: "required", property: ".fixed_costs", message: "must have required property 'Fixed Costs'", stack: "x", params: { missingProperty: "fixed_costs" } },
+        { name: "minimum", property: ".periods", message: "must be >= 0", stack: ".periods must be >= 0", params: { limit: 0 } },
+        { name: "type", property: ".periods", message: "must be number", stack: "y", params: { type: "number" } },
+      ],
+      label,
+    );
+    expect(missing?.stack).toBe("Fixed costs is required");
+    expect(low?.stack).toBe("Periods must be 0 or more");
+    expect(low?.message).toBe("must be 0 or more");
+    expect(kind?.stack).toBe("Periods must be a number");
+  });
+});
+
+describe("the outputs table's values (Phase 5 Step 17)", () => {
+  it("drops binary rounding's digits and shows a decimal's percent", () => {
+    expect(displayValue(0.10014999999999999, "rate")).toBe("0.10015 (10.015%)");
+    expect(displayValue(8.161447949150189, "years")).toBe("8.161447949");
+    expect(displayValue(95.67052332936917, "money")).toBe("95.67052333");
+    expect(displayValue(1.5, "ratio")).toBe("1.5");
+    expect(displayValue(null)).toBe(formatValue(null));
+    expect(displayValue("text")).toBe("text");
   });
 });

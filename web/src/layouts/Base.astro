@@ -1,8 +1,10 @@
 ---
 // web/src/layouts/Base.astro
 // The layout every page uses: one stylesheet, the header, a main landmark the
-// skip link targets, and the footer with the notices. It loads no script and
-// no web font; Astro adds each page's Content Security Policy as a <meta>
+// skip link targets, and the footer with the notices. It loads no script; the
+// site's text face is preloaded from our own origin, because the first paint
+// needs it, and the math font loads only where a formula renders (Phase 5
+// Step 17; src/lib/fonts.ts). Astro adds each page's Content Security Policy as a <meta>
 // element, and dist/_headers sends the same policy as a header. Each page gets
 // a canonical link on the production origin, Open Graph and Twitter card tags
 // with the social image drawn for it at build time (src/pages/og/), and the
@@ -21,6 +23,7 @@ import Header from "@/components/Header.astro";
 import { trackerAttributes } from "@/lib/analytics";
 import { ORIGIN } from "@/lib/models";
 import { ogImagePath } from "@/lib/pages";
+import { PRELOAD_FONTS } from "@/lib/fonts";
 import { jsonLdText } from "@/lib/structured-data";
 import "@/styles/global.css";
 
@@ -54,6 +57,7 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
     {noindex && <meta name="robots" content="noindex" />}
     {!noindex && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {PRELOAD_FONTS.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin="anonymous" />)}
     <meta name="color-scheme" content="light dark" />
     {
       !noindex && (
@@ -80,7 +84,7 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
   <body class="flex min-h-screen flex-col">
     <a
       href="#main"
-      class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2"
+      class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-10"
     >
       Skip to content
     </a>
@@ -88,7 +92,7 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
     <main
       id="main"
       tabindex="-1"
-      class="mx-auto w-full max-w-5xl flex-1 px-4 py-10"
+      class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-10"
       data-pagefind-body={searchable ? "" : undefined}
     >
       <slot />

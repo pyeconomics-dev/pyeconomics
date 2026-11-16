@@ -22,6 +22,7 @@ import type { ErrorSchema, RJSFValidationError } from "@rjsf/utils";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import ChartPanel from "@/components/calculator/ChartPanel";
+import CopyCommand from "@/components/calculator/CopyCommand";
 import ListWidget from "@/components/calculator/ListWidget";
 import ProblemPanel, { fieldProblems, type FieldProblem, type ProblemDocument } from "@/components/calculator/ProblemPanel";
 import ResultPanel from "@/components/calculator/ResultPanel";
@@ -31,15 +32,19 @@ import UserDataPanel from "@/components/calculator/UserDataPanel";
 import { buttonVariants } from "@/components/ui/button";
 import {
   boundFields,
+  fieldTitle,
   outputTable,
+  plainErrors,
   propertiesFor,
   runInputs,
   tidyErrors,
   uiSchemaFor,
   type CalculatorProps,
 } from "@/lib/calculator";
+import { adoptStyles } from "@/lib/adopt-styles";
 import { report } from "@/lib/error-reporting";
 import { track } from "@/lib/events";
+import { LOCAL_APP } from "@/lib/explorer";
 import { applicable } from "@/lib/figure";
 import { decode, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
@@ -49,12 +54,10 @@ import stylesheet from "@/styles/calculator.css?inline";
 
 // The form's styles arrive with its code, as a constructed stylesheet: a
 // stylesheet the page links would load before anyone uses a calculator, and
-// the policy allows a sheet built through the CSS object model.
-if (typeof document !== "undefined") {
-  const sheet = new CSSStyleSheet();
-  sheet.replaceSync(stylesheet);
-  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
-}
+// the policy allows a sheet built through the CSS object model. Rules the page
+// already has are left out, so the page's responsive rules keep winning
+// (src/lib/adopt-styles.ts).
+if (typeof document !== "undefined") adoptStyles(stylesheet);
 
 const WIDGETS = { list: ListWidget, SelectWidget };
 
@@ -121,6 +124,15 @@ function problemOf(answer: RunAnswer): ProblemDocument {
   }
 }
 
+/** Names as a sentence lists them: "A", "A and B", "A, B and C". */
+function sentence(names: readonly string[]): string {
+  if (names.length < 2) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names.at(-1) ?? ""}`;
+}
+
+/** The local app's two commands: the install, then the server. */
+const [INSTALL_APP = LOCAL_APP, SERVE_APP = ""] = LOCAL_APP.split(" then ");
+
 function fieldList(names: readonly string[]): ReactNode {
   return names.map((name, index) => (
     <span key={name}>
@@ -152,6 +164,17 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   // The local app reads every source; the hosted site only hosted-safe ones.
   const unserved = mode === "local" ? [] : bound.filter((field) => !field.hosted).map((field) => field.field);
   const live = source === "data" && bound.length > 0 && unserved.length === 0;
+  // Issue #320: which of a profile's fields of this calculation the hosted
+  // site may not serve, known at build time, so "Live data" says so before it
+  // is chosen. The local app (mode "local") serves every source.
+  const offSite = (name: string) => {
+    if (mode === "local") return [];
+    const names = new Set(fields);
+    return props.liveNotes.find((note) => note.profile === name)?.fields.filter((entry) => names.has(entry.field)) ?? [];
+  };
+  const nowhereHere = props.profiles.length > 0 && props.profiles.every((entry) => offSite(entry.profile).length > 0);
+  const chosenNote = props.liveNotes.find((note) => note.profile === profile);
+  const missing = offSite(profile);
   const filled = live ? bound.map((field) => field.field) : [];
   const filledKey = filled.join(",");
   const uiSchema = useMemo(() => uiSchemaFor(schema, filledKey ? filledKey.split(",") : []), [schema, filledKey]);
@@ -161,8 +184,13 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
     filled,
   );
 
+  // The result comes into view with its heading focused, so a visitor who
+  // pressed Run at the foot of a long form sees it (round 0: it stayed below
+  // the fold).
   useEffect(() => {
-    if (outcome) resultHeading.current?.focus();
+    if (!outcome) return;
+    resultHeading.current?.scrollIntoView({ block: "start" });
+    resultHeading.current?.focus({ preventScroll: true });
   }, [outcome]);
 
   // The server's mode is asked only once live data is chosen, so a page view
@@ -270,9 +298,25 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
             <input type="radio" name={`${props.modelId}-source`} value="values" checked={source === "values"} onChange={() => setSource("values")} />
             My own values: every input from the form
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name={`${props.modelId}-source`} value="data" checked={source === "data"} onChange={() => setSource("data")} />
-            Live data: bind the model's data first, then the form's other values
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="radio"
+              className="mt-1"
+              name={`${props.modelId}-source`}
+              value="data"
+              checked={source === "data"}
+              onChange={() => setSource("data")}
+            />
+            {nowhereHere ? (
+              <span>
+                Live data: on your own computer only
+                <span className="block text-muted-foreground">
+                  This website may not serve this model's data. Choose it to see how to run this page on your computer.
+                </span>
+              </span>
+            ) : (
+              <span>Live data: fill the model's data from its sources, then the form's other values</span>
+            )}
           </label>
           {source === "data" && (
             <div className="flex flex-col gap-2 pl-6 text-sm">
@@ -283,6 +327,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                     {props.profiles.map((entry) => (
                       <option key={entry.profile} value={entry.profile}>
                         {entry.profile}
+                        {offSite(entry.profile).length > 0 ? " (your own computer only)" : ""}
                       </option>
                     ))}
                   </select>
@@ -295,11 +340,33 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
               {bound.length === 0 ? (
                 <p data-live="none">This profile binds none of this calculation's inputs: every input comes from the form.</p>
               ) : unserved.length > 0 ? (
-                <p data-live="unserved">
-                  The hosted site may not serve the data for {fieldList(unserved)}: their sources are not hosted-safe. Enter
-                  your own values with "My own values", or run pyeconomics on your own computer, where every source is
-                  available: <code>{`pyeconomics models run ${props.modelId} --profile ${profile}`}</code>
-                </p>
+                <div data-live="unserved" className="flex flex-col gap-2 rounded-md border border-dashed p-3">
+                  <p>
+                    <strong>This website may not serve these data.</strong>{" "}
+                    {chosenNote && chosenNote.sources.length > 0
+                      ? `The terms of ${sentence(chosenNote.sources)} let pyeconomics read them on your own computer, but not serve them from this site. `
+                      : "Their sources' terms let pyeconomics read them on your own computer, but not serve them from this site. "}
+                    The data:{" "}
+                    {missing.length > 0
+                      ? missing.map((entry, index) => (
+                          <span key={entry.field}>
+                            {index > 0 && ", "}
+                            {entry.label} (<code>{entry.field}</code>)
+                          </span>
+                        ))
+                      : fieldList(unserved)}
+                    .
+                  </p>
+                  <p>To run this page on your computer with live data, install the local app and start it:</p>
+                  <CopyCommand command={INSTALL_APP} />
+                  {SERVE_APP && <CopyCommand command={SERVE_APP} />}
+                  <p>Or run the model from the command line, once pyeconomics is installed:</p>
+                  <CopyCommand command={`pyeconomics models run ${props.modelId} --profile ${profile}`} />
+                  <p>
+                    On this site, choose "My own values" and enter the numbers yourself, or bring them as a file with "Use
+                    my own data".
+                  </p>
+                </div>
               ) : mode === "local" ? (
                 <p data-live="local">
                   Filled from data on this computer: {fieldList(filled)}, read from every source your installation
@@ -337,14 +404,22 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
         formData={formData}
         widgets={WIDGETS}
         extraErrors={extraErrors}
-        showErrorList="top"
+        showErrorList={false}
         noHtml5Validate
         focusOnFirstError
         disabled={running}
         idPrefix={`calculator-${props.modelId.replace(".", "-")}`}
         transformErrors={(errors) =>
-          tidyErrors(errors).filter(
-            (error) => !filled.some((field) => error.property === `.${field}` || error.property?.startsWith(`.${field}.`)),
+          plainErrors(
+            tidyErrors(errors).filter(
+              (error) => !filled.some((field) => error.property === `.${field}` || error.property?.startsWith(`.${field}.`)),
+            ),
+            (name) => {
+              const field = name.split(".")[0] ?? name;
+              const properties = new Map(Object.entries((schema as { properties?: Record<string, { title?: unknown }> }).properties ?? {}));
+              const title = properties.get(field)?.title;
+              return typeof title === "string" ? title : fieldTitle(field);
+            },
           )
         }
         onChange={(event) => setFormData((event.formData ?? {}) as Record<string, unknown>)}
@@ -363,7 +438,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
       </p>
 
       {outcome && (
-        <section className={SECTION} aria-labelledby="calculator-result">
+        <section className={`${SECTION} motion-rise`} aria-labelledby="calculator-result" data-outcome={outcome.kind}>
           <h3 id="calculator-result" ref={resultHeading} tabIndex={-1} className={HEADING}>
             {outcome.kind === "result" ? "Result" : "The run failed"}
           </h3>
@@ -394,7 +469,10 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Every file carries the result's attributions, notices and manifest. Formats: {RUN_FORMATS.join(", ")}.
+                  Every file carries the result's attributions, notices and manifest: the model's version, the hashes of
+                  its inputs and result, and where each value came from. The bundle adds a script that runs it again.
+                  Formats: {RUN_FORMATS.join(", ")}.{" "}
+                  <a href="https://docs.pyeconomics.dev/en/main/results.html">What a result holds</a>
                 </p>
               </div>
             </>

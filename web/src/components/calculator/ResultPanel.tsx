@@ -12,6 +12,7 @@ import {
   DATA_WARNINGS,
   PAGE_SIZE,
   asOfText,
+  displayValue,
   formatValue,
   pageCount,
   pageOf,
@@ -64,7 +65,12 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
   return (
     <div className="overflow-x-auto" role="region" aria-label="Outputs of this run" tabIndex={0}>
       <table className="w-full border-collapse text-left text-sm">
-        <caption className="mb-2 text-left font-medium">Outputs of this run</caption>
+        <caption className="mb-2 text-left">
+          <span className="font-medium">Outputs of this run</span>
+          <span className="block text-xs text-muted-foreground">
+            Shown to ten significant digits; the JSON and every download hold the exact values.
+          </span>
+        </caption>
         <thead>
           <tr className="border-b">
             <th scope="col" className={CELL}>
@@ -88,7 +94,7 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
                   {row.description && <span className="block text-muted-foreground">{row.description}</span>}
                 </th>
                 <td className={`${CELL} font-mono`}>
-                  {Array.isArray(value) ? <ArrayValue name={row.name} values={value} /> : formatValue(value)}
+                  {Array.isArray(value) ? <ArrayValue name={row.name} values={value} /> : displayValue(value, row.unit)}
                 </td>
                 <td className={CELL}>{row.unit}</td>
               </tr>

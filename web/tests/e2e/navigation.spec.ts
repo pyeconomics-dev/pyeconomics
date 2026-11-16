@@ -142,3 +142,19 @@ test("the filters read the query string as data only", async ({ page, watch }) =
   expect(watch.violations).toEqual([]);
   expect(watch.errors).toEqual([]);
 });
+
+// Phase 5 Step 17: the calculator's own stylesheet, adopted after the page's,
+// repeated utilities the page had (`.hidden`) and overrode its responsive
+// rules (`lg:block`), so the header lost its navigation once a calculator
+// loaded. src/lib/adopt-styles.ts leaves those rules out.
+test("a calculator's styles leave the header's navigation as it was on a wide screen", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/models/fixed-income/duration/");
+  await page.locator("#calculator").scrollIntoViewIfNeeded();
+  await expect(page.locator("[data-calculator][data-ready=true]")).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(page.getByRole("navigation", { name: "Main", exact: true })).toBeVisible();
+  await expect(page.locator("[data-domains-row]")).toBeVisible();
+  await expect(page.locator('[data-slot="search"]')).toBeVisible();
+  await expect(page.locator("[data-domains-menu]")).toBeHidden();
+});

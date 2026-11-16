@@ -9651,9 +9651,9 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
 
 ---
 
-## Step 17 — Design Direction and Design System
+## Step 17 — Design Direction and Design System ✅
 
-**Status:** Not started
+**Status:** Complete — PR #344 (2026-11-16)
 
 > **Goal:** Give the site a deliberate visual and interaction design before
 > the release candidate freezes its pages. *Added 2026-11-13 at the
@@ -9711,6 +9711,9 @@ candidate; this step dispatches no production deploy.
 Ranked for coding, high complexity, novel. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels or its previous version's.
+
+> Ran 2026-11-15: Cost Runner-up, Balanced Pick or Quality Pick — Opus 5.5 ·
+> Medium, High or XHigh (the session could not read its own level).
 
 **Conversation:** New
 
@@ -10515,7 +10518,21 @@ platform allows. New conversation per phase-boundary hygiene.
     - The chosen design direction is built across every
       page type (docs/design/direction.md); round 0's audit
       is docs/design/audit-round-0.md, with its median
-      score per dimension.
+      score per dimension (5.75 overall). Its findings
+      marked "Open for Step 18" (M6's option names, M8's
+      draw-on-load, M9, M10, M12's remaining layout shift,
+      L1 to L3 and L8 to L10) are this step's starting
+      backlog: fix them, or file each one, before round 1's
+      implementer pass closes. #343 (formula symbols in the
+      model cards) stays an issue for a later phase.
+    - Step 17's evaluators ran as Claude Code subagents,
+      which offer Claude models only (Sonnet 5.5 beside the
+      implementer's Opus 5.5). Where this step's platform
+      offers another maker's model, its evaluators use it,
+      as the protocol says; record the model either way.
+    - The harness's visit tool needs MSYS_NO_PATHCONV=1
+      under Git Bash, or "--path /..." becomes a Windows
+      path (it says so and stops).
     - docs/design/dogfooding.md holds the personas, tasks,
       rubric, severity scale and evaluator rules;
       web/tests/dogfood/ captures every page type at three
@@ -13144,7 +13161,7 @@ workflow above maps directly to the corresponding row below.
 | 14   | Observability + operations     | Sonnet 5.5     | Complete — PR #290 |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
-| 17   | Design direction + system      | Opus 5.5       | Not started        |
+| 17   | Design direction + system      | Opus 5.5       | Complete — PR #344 |
 | 18   | AI dogfooding loop             | GPT-6.1 Sol    | Not started        |
 | 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |

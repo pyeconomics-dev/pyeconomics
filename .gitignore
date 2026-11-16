@@ -49,6 +49,8 @@ web/src/client/
 web/playwright-report/
 web/test-results/
 web/.lighthouse/
+# The dogfooding harness's screenshots and records (Phase 5 Step 17).
+web/dogfood-out/
 # The built site scripts/web/package_site.py copies into the app wheel's package
 # (Phase 5 Step 10); never committed.
 packages/pyeconomics-app/src/pyeconomics_app/site/

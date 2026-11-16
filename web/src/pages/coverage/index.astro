@@ -32,7 +32,7 @@ const planned = matrix.domains.filter((entry) => entry.count === 0);
   jsonLd={webPage("/coverage/", COVERAGE.title, COVERAGE.description, trail)}
 >
   <Breadcrumbs trail={trail} />
-  <h1 class="text-4xl font-bold tracking-tight">Coverage</h1>
+  <h1 class="page-title">Coverage</h1>
   <p class="mt-4 max-w-3xl text-lg">
     What the catalog covers today: {matrix.models} models in {populated} of {matrix.domains.length} domains. Every model
     meets the definition of done (a model card, citations, cited golden cases, property tests, units and bounds), so
@@ -43,7 +43,7 @@ const planned = matrix.domains.filter((entry) => entry.count === 0);
   {
     matrix.syllabi.map((entry) => (
       <section class="mt-12 flex flex-col gap-4" aria-labelledby={`syllabus-${entry.syllabus.id}`} data-syllabus={entry.syllabus.id}>
-        <h2 id={`syllabus-${entry.syllabus.id}`} class="text-2xl font-semibold">
+        <h2 id={`syllabus-${entry.syllabus.id}`} class="section-title">
           By topic area: {entry.syllabus.title}
         </h2>
         <p class="max-w-3xl">
@@ -107,7 +107,7 @@ const planned = matrix.domains.filter((entry) => entry.count === 0);
   }
 
   <section class="mt-12 flex flex-col gap-4" aria-labelledby="by-domain">
-    <h2 id="by-domain" class="text-2xl font-semibold">By domain</h2>
+    <h2 id="by-domain" class="section-title">By domain</h2>
     <p class="max-w-3xl">
       The fifteen domain sections. {planned.length > 0 && `${planned.map((entry) => entry.domain.title).join(" and ")} ${planned.length === 1 ? "is" : "are"} planned.`}
     </p>

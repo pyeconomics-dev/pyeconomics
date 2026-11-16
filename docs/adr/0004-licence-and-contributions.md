@@ -137,6 +137,17 @@ contributors for one line per commit.
   (conflicting licence metadata).
 - `blpapi` is proprietary and is never a dependency (ADR-0002).
 
+**Note of 2026-11-16 (fonts, Phase 5 Step 17).** The web app's licence
+check, `scripts/checks/web_licences.py`, which applies this decision's
+permissive posture to what the site ships to browsers, admits the SIL Open
+Font License 1.1 (`OFL-1.1`) for font files only, by a named rule: the two
+font packages ADR-0013's amendment of the same date lists, and no other
+package. The fonts are served as files, never linked into code. The OFL lets
+fonts be bundled and redistributed with software, provided each copy keeps its
+copyright notice and licence, and forbids selling a font by itself and a
+Modified Version using a Reserved Font Name (neither chosen font declares one).
+The Python runtime allowlist above is unchanged.
+
 ### Consequences
 
 Good:

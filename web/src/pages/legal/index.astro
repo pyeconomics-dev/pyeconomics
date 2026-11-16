@@ -24,7 +24,7 @@ const trail: Crumb[] = [
 >
   <Breadcrumbs trail={trail} />
   <span hidden data-pagefind-meta="kind:Legal"></span>
-  <h1 class="text-4xl font-bold tracking-tight">{LEGAL_INDEX.title}</h1>
+  <h1 class="page-title">{LEGAL_INDEX.title}</h1>
   <p class="mt-4 max-w-3xl text-lg">
     pyeconomics.dev is operated by {OPERATOR}, the project's maintainer. Write to
     <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> about any of these pages.
@@ -43,7 +43,7 @@ const trail: Crumb[] = [
     }
   </ul>
   <section class="mt-10" aria-labelledby="security-heading">
-    <h2 id="security-heading" class="text-2xl font-semibold">Reporting a vulnerability</h2>
+    <h2 id="security-heading" class="section-title">Reporting a vulnerability</h2>
     <p class="mt-2 max-w-3xl">
       Report it privately through <a href={VULNERABILITY_REPORTING}>GitHub's private vulnerability reporting</a>, never
       in a public issue. The <a href={SECURITY_POLICY}>security policy</a> says what happens next{

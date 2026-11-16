@@ -79,6 +79,8 @@ exclude_patterns = [
     "adr/**",
     "releases/**",
     "operations/**",
+    # The site's design record and dogfooding protocol (Phase 5 Step 17).
+    "design/**",
     "phase*-qa-findings.md",
     "conftest.py",
 ]

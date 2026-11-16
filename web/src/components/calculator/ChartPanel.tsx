@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { report } from "@/lib/error-reporting";
 import { figureOf, type ChartSpec, type ResultDocument } from "@/lib/figure";
-import { loadPlotly } from "@/lib/plotly";
+import { loadPlotly, themed } from "@/lib/plotly";
 
 function Chart({ chart, document }: { chart: ChartSpec; document: ResultDocument }) {
   const root = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ function Chart({ chart, document }: { chart: ChartSpec; document: ResultDocument
       .then(async (loaded) => {
         if (cancelled) return;
         plotly = loaded;
-        await loaded.newPlot(element, figure.data, { ...figure.layout, autosize: true }, {
+        await loaded.newPlot(element, figure.data, themed({ ...figure.layout, autosize: true }), {
           displayModeBar: false,
           responsive: true,
         });

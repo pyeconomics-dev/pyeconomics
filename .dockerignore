@@ -97,6 +97,7 @@ web/src/client/
 web/playwright-report/
 web/test-results/
 web/.lighthouse/
+web/dogfood-out/
 # The web app's wheel (Phase 5 Step 10): the service never serves the site
 # (Cloudflare does), so the workspace member stays out of the build context;
 # uv export --frozen and uv build at the root need only the root's files.

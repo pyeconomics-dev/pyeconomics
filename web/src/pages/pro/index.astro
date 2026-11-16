@@ -27,7 +27,7 @@ const trail: Crumb[] = [
 
 <Base title={PRO.title} description={PRO.description} jsonLd={webPage("/pro/", PRO.title, PRO.description, trail)} signup={false}>
   <Breadcrumbs trail={trail} />
-  <h1 class="text-4xl font-bold tracking-tight">pyeconomics Pro: a preview</h1>
+  <h1 class="page-title">pyeconomics Pro: a preview</h1>
   <div role="note" aria-label="Pro does not exist yet" class="mt-6 max-w-3xl rounded-lg border-2 border-foreground p-4" data-disclosure="pro">
     <p class="font-semibold text-foreground">{PRO_DISCLOSURE}</p>
     <p class="mt-2">{FREE_CORE}</p>
@@ -38,7 +38,7 @@ const trail: Crumb[] = [
   </p>
 
   <section class="mt-10" aria-labelledby="pro-features">
-    <h2 id="pro-features" class="text-2xl font-semibold">Planned features</h2>
+    <h2 id="pro-features" class="section-title">Planned features</h2>
     <ul class="mt-4 grid gap-4 sm:grid-cols-2">
       {
         PRO_FEATURES.map((feature) => (
@@ -52,15 +52,15 @@ const trail: Crumb[] = [
   </section>
 
   <section class="mt-10" aria-labelledby="pro-prices">
-    <h2 id="pro-prices" class="text-2xl font-semibold">Indicative prices</h2>
+    <h2 id="pro-prices" class="section-title">Indicative prices</h2>
     <p class="mt-2 text-sm text-muted-foreground">In US dollars a month. Not an offer: nothing can be bought.</p>
     <ul class="mt-4 grid gap-4 md:grid-cols-3">
       {
         PRO_TIERS.map((entry) => (
           <li class="flex flex-col gap-3 rounded-lg border p-4" data-tier-card={entry.tier}>
-            <h3 class="text-xl font-semibold">{tierLabel(entry.tier)}</h3>
+            <h3 class="subsection-title">{tierLabel(entry.tier)}</h3>
             <p>
-              <span class="text-3xl font-bold" data-price="">
+              <span class="page-title" data-price="">
                 ${entry.price}
               </span>
               <span class="text-sm text-muted-foreground"> a month, indicative</span>
@@ -86,7 +86,7 @@ const trail: Crumb[] = [
   </section>
 
   <section class="mt-10" aria-labelledby="pro-waitlist">
-    <h2 id="pro-waitlist" class="text-2xl font-semibold">The waitlist</h2>
+    <h2 id="pro-waitlist" class="section-title">The waitlist</h2>
     <p class="mt-2 mb-4 max-w-3xl">Optional. Leave your email address and the plan you would consider.</p>
     <SignupForm list="waitlist" source="pro-page" id="waitlist" />
   </section>
