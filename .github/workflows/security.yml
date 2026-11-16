@@ -283,6 +283,13 @@ jobs:
           #   - sentry (FSL-1.1-Apache-2.0, the Sentry CLI): reached through
           #     lighthouse -> @sentry/node, Lighthouse's own error reporting,
           #     which is off unless asked for; installed with --ignore-scripts.
+          # - The site's two fonts (Phase 5 Step 17; ADR-0013's amendment and
+          #   ADR-0004's note of 2026-11-16), @fontsource-variable/literata and
+          #   @fontsource/stix-two-math, under OFL-1.1, the SIL Open Font
+          #   License: their woff2 files ship to browsers, served from our own
+          #   origin, and no code of theirs does. scripts/checks/web_licences.py
+          #   admits OFL-1.1 for these two packages by name (its font rule) and
+          #   for nothing else.
           allow-dependencies-licenses: >-
             pkg:githubactions/trufflesecurity/trufflehog,
             pkg:npm/argparse,
@@ -330,6 +337,10 @@ jobs:
             pkg:npm/sax,
             pkg:npm/sentry,
             pkg:npm/tslib,
+            pkg:npm/%40fontsource-variable/literata,
+            pkg:npm/@fontsource-variable/literata,
+            pkg:npm/%40fontsource/stix-two-math,
+            pkg:npm/@fontsource/stix-two-math,
             pkg:npm/%40modelcontextprotocol/inspector,
             pkg:npm/@modelcontextprotocol/inspector,
             pkg:npm/lightningcss,
