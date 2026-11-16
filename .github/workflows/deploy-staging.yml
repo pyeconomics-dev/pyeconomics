@@ -516,7 +516,7 @@ jobs:
     environment:
       name: staging
       url: https://${{ vars.STAGING_SITE_HOST }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
     env:
@@ -773,6 +773,29 @@ jobs:
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: npx --no-install playwright test --config playwright.staging.config.ts
+
+      # Phase 5 Step 17: the dogfooding harness (docs/design/dogfooding.md
+      # section 5) captures every page type at three widths in both themes
+      # through Access, failing on a page that does not answer; its index
+      # records each capture's console errors, policy violations and sideways
+      # scroll. The screenshots show the site's pages with empty forms; the
+      # service token travels only as request headers and reaches no file.
+      - name: Capture every page type on staging with the dogfooding harness
+        working-directory: web
+        env:
+          DOGFOOD_BASE_URL: https://${{ vars.STAGING_SITE_HOST }}
+          DOGFOOD_RUN: staging-${{ github.sha }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: npx --no-install playwright test --config tests/dogfood/playwright.config.ts --grep capture
+
+      - name: Upload the harness's captures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dogfood-staging
+          path: web/dogfood-out
+          retention-days: 30
 
       - name: Return the Worker to the previous version on failure
         if: failure() && steps.previous.outputs.previous_version != '' && steps.release.outcome != 'skipped'

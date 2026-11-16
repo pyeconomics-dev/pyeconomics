@@ -191,6 +191,40 @@ def test_main_reads_the_lockfile_and_the_shipped_list(
         web_licences.main(["--lock", str(path), "--shipped", str(shipped)])
 
 
+def test_the_font_rule_admits_ofl_for_named_font_packages_only() -> None:
+    font = next(iter(web_licences.FONTS))
+    report, failures = web_licences.check(
+        lock(**{font: {"version": "5.3.0", "license": "OFL-1.1"}})
+    )
+    assert failures == []
+    assert any("font rule" in line for line in report)
+
+    _, failures = web_licences.check(
+        lock(**{"some-other-font": {"version": "1.0.0", "license": "OFL-1.1"}})
+    )
+    assert failures == ["some-other-font 1.0.0: OFL-1.1 is outside the allowlist"]
+
+    # A named font package under another licence is judged as any other.
+    _, failures = web_licences.check(
+        lock(**{font: {"version": "5.3.0", "license": "GPL-3.0-only"}})
+    )
+    assert failures == [f"{font} 5.3.0: GPL-3.0-only is outside the allowlist"]
+
+
+def test_ofl_stays_outside_the_allowlist() -> None:
+    assert "OFL-1.1" not in web_licences.ALLOWED
+    assert not web_licences.spdx_allowed("OFL-1.1")
+
+
+def test_a_font_package_in_the_client_bundle_fails() -> None:
+    font = next(iter(web_licences.FONTS))
+    _, failures = web_licences.check(
+        lock(**{font: {"version": "5.3.0", "license": "OFL-1.1"}}), shipped=[font]
+    )
+    expected = f"{font} ships in the client bundle, but the font rule admits its "
+    assert failures == [f"{expected}font files only"]
+
+
 def test_the_committed_lockfile_passes() -> None:
     report, failures = web_licences.check(
         json.loads(web_licences.LOCKFILE.read_text(encoding="utf-8"))

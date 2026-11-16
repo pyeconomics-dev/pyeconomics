@@ -274,7 +274,10 @@ describe("the chart", () => {
     const [note] = figure.layout.annotations;
     expect(note?.text).toBe("Source: U.S. Bureau of Labor Statistics &lt;BLS&gt; &amp; partners. Data as of 2026-11-02.");
     expect(note?.text).not.toMatch(/<(?!br>)/);
-    expect(figure.layout.yaxis.title.text).toBe("Decimal");
+    expect(figure.layout.yaxis.title.text).toBe("Decimal, shown as a percent");
+    expect(figure.layout.yaxis.tickformat).toBe(".1%");
+    // A phone's narrow chart wraps the note to its width.
+    expect(seriesFigure(DOCUMENT, 0, 300).layout.annotations[0]?.text.split("<br>").length).toBeGreaterThan(1);
   });
 
   it("charts a table's chosen column", () => {

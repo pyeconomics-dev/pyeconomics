@@ -297,22 +297,33 @@ export interface UnservedSource {
   name: string;
   licence: string;
   fields: string[];
+  /** Each field's concept title, in the order of `fields`: the words a visitor reads. */
+  labels: string[];
+  /** The profiles that bind those fields. */
+  profiles: string[];
 }
 
 /**
  * The sources of a model's bound fields that the hosted site may not serve:
  * for each field whose concept no hosted source answers, its candidates that
- * are not hosted-safe, by name, with the fields each would fill. Empty for a
- * model whose data the hosted site serves, or that reads none.
+ * are not hosted-safe, by name, with the fields each would fill (and their
+ * concepts' titles) and the profiles that bind them. Empty for a model whose
+ * data the hosted site serves, or that reads none (issue #320).
  */
 export function unservedSources(profiles: readonly DataProfile[]): UnservedSource[] {
   const found = new Map<string, UnservedSource>();
-  for (const row of profiles.flatMap((profile) => profile.rows)) {
-    if (row.hosted) continue;
-    for (const source of row.sources.filter((candidate) => !candidate.hosted)) {
-      const entry = found.get(source.name) ?? { name: source.name, licence: source.licence, fields: [] };
-      if (!entry.fields.includes(row.field)) entry.fields.push(row.field);
-      found.set(source.name, entry);
+  for (const profile of profiles) {
+    for (const row of profile.rows) {
+      if (row.hosted) continue;
+      for (const source of row.sources.filter((candidate) => !candidate.hosted)) {
+        const entry = found.get(source.name) ?? { name: source.name, licence: source.licence, fields: [], labels: [], profiles: [] };
+        if (!entry.fields.includes(row.field)) {
+          entry.fields.push(row.field);
+          entry.labels.push(row.conceptTitle);
+        }
+        if (!entry.profiles.includes(profile.profile)) entry.profiles.push(profile.profile);
+        found.set(source.name, entry);
+      }
     }
   }
   return [...found.values()];

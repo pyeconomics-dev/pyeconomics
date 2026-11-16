@@ -22,6 +22,13 @@ export const HOME = {
     "Open-source economics and finance models with cited formulas and tested values, and economic data from its originators.",
 };
 
+/**
+ * The model whose live calculator, formula and snippets the home page shows
+ * (Phase 5 Step 17): one every visitor understands. The build fails if the
+ * registry lacks it.
+ */
+export const FEATURED_MODEL = "foundations.time_value";
+
 /** The models index's title and description. */
 export const MODELS_INDEX = {
   title: "Models",

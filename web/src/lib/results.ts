@@ -75,6 +75,23 @@ export function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
+/** Units whose values are decimals, shown with their percent beside them. */
+const PERCENT_UNITS: ReadonlySet<string> = new Set(["rate", "return", "yield"]);
+
+/**
+ * A value as the outputs table shows it (Phase 5 Step 17's round 0: raw
+ * floats such as 0.10014999999999999 read as noise): a number to ten
+ * significant digits, which drops binary rounding's last digits, and a
+ * decimal rate, return or yield with its percent beside it. Display only: the
+ * result's bytes, "copy JSON" and every download keep the exact values.
+ */
+export function displayValue(value: unknown, unit = ""): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return formatValue(value);
+  const shown = String(Number(value.toPrecision(10)));
+  if (!PERCENT_UNITS.has(unit)) return shown;
+  return `${shown} (${String(Number((value * 100).toPrecision(8)))}%)`;
+}
+
 /** How many pages an array of this length needs. */
 export function pageCount(length: number, size = PAGE_SIZE): number {
   return Math.max(1, Math.ceil(length / size));

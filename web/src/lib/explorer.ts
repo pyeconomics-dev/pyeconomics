@@ -406,7 +406,7 @@ export interface SeriesFigure {
   layout: {
     title: { text: string };
     xaxis: { title: { text: string } };
-    yaxis: { title: { text: string } };
+    yaxis: { title: { text: string }; tickformat?: string };
     margin: { t: number; r: number; l: number; b: number };
     annotations: {
       text: string;
@@ -424,26 +424,38 @@ export interface SeriesFigure {
   };
 }
 
-/** The chart of one column of a series document, with its attribution and as-of date drawn on it. */
-export function seriesFigure(document: SeriesDocument, column = 0): SeriesFigure {
+/**
+ * The chart of one column of a series document, with its attribution and as-of
+ * date drawn on it, wrapped to the chart's width in pixels (a phone's chart is
+ * narrow: Phase 5 Step 17's round 0 found the note cut off at 390). A series
+ * in decimals shows its ticks as percents; the values stay the document's.
+ */
+export function seriesFigure(document: SeriesDocument, column = 0, width = 700): SeriesFigure {
   const frame = document.frame;
   const name = columnsOf(frame).at(column) ?? frame.meta.title;
   const unit = frame.type === "series" ? (frame.meta.unit?.text ?? "") : (frame.columns?.at(column)?.unit.text ?? "");
-  const lines = plotlyLines(chartNote(document));
+  const characters = Math.max(28, Math.floor(width / 7));
+  const lines = plotlyLines(chartNote(document), characters);
+  const decimal = /^decimal\b/i.test(unit);
   return {
     data: [{ type: "scatter", mode: "lines", x: frame.index, y: valuesOf(frame, column), name, connectgaps: false }],
     layout: {
-      title: { text: plotlyLines(frame.type === "series" ? frame.meta.title : `${frame.meta.title}: ${name}`, 70).join("<br>") },
-      xaxis: { title: { text: "Date" } },
-      yaxis: { title: { text: plotlyLines(unit, 40).join("<br>") } },
-      margin: { t: 60, r: 20, l: 70, b: 70 + 16 * lines.length },
+      title: {
+        text: plotlyLines(frame.type === "series" ? frame.meta.title : `${frame.meta.title}: ${name}`, Math.min(70, characters)).join("<br>"),
+      },
+      xaxis: { title: { text: "" } },
+      yaxis: {
+        title: { text: plotlyLines(decimal ? `${unit}, shown as a percent` : unit, 40).join("<br>") },
+        ...(decimal ? { tickformat: ".1%" } : {}),
+      },
+      margin: { t: 60, r: 20, l: 70, b: 48 + 15 * lines.length },
       annotations: [
         {
           text: lines.join("<br>"),
           xref: "paper",
           yref: "paper",
           x: 0,
-          y: -0.18,
+          y: -0.1,
           xanchor: "left",
           yanchor: "top",
           showarrow: false,

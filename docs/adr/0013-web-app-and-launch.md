@@ -12,6 +12,11 @@
   release candidate, so the step numbers this record names after Step 16
   moved by two: the release candidate is Step 19, the readiness gate Step
   20, the cutover Step 21. No decision changed.
+- Amended 2026-11-16 (fonts, Phase 5 Step 17): the site may serve one text
+  typeface and one math font from its own origin, which replaces the
+  "No web font" rule of Phase 5 Step 3. See "Amendment of 2026-11-16: fonts"
+  under decision 9. Decision 9's policy does not change: it already holds
+  `font-src 'self'`.
 
 ## Context and problem
 
@@ -414,6 +419,32 @@ later step that needs a different rule writes a superseding ADR.
   CSP violation, and, once the site is public, the MDN HTTP Observatory at
   grade A or better, which rewards a policy with no unsafe source and a
   preloaded HSTS [S39].
+
+#### Amendment of 2026-11-16: fonts
+
+- The maintainer delegated the choice to best practice on 2026-11-13, and the
+  Phase 5 roadmap's Step 17 records it: one self-hosted text typeface and one
+  math font are allowed, from our own origin only, while Lighthouse stays at
+  90 or above on decision 19's sample. No font service and no Google Fonts.
+- The text face is Literata and the math face STIX Two Math, each from its
+  Fontsource package (`@fontsource-variable/literata`,
+  `@fontsource/stix-two-math`), whose woff2 files the build copies under
+  hashed names. Each is under the SIL Open Font License 1.1 [S48], and
+  neither file declares a Reserved Font Name, so the subsets the packages
+  ship raise no question under the licence's third condition. (The design
+  panel chose a direction built on Source Serif 4, whose file reserves the
+  name "Source"; the face was changed to Literata for that reason:
+  `docs/design/direction.md`.)
+- Only the latin subset of each is declared for the browser to use, with
+  `font-display: swap`. Every page preloads only the text face's upright
+  file, which its first paint needs; the math font is fetched only by a page
+  with a formula, and the italic only where italic text appears.
+- `scripts/checks/web_licences.py` admits OFL-1.1 for these two packages by
+  name (its font rule, with tests), so OFL-1.1 stays outside the allowlist
+  for anything else, and a font package found in the client bundle fails.
+  `/legal/licence/` lists both fonts, and the licence each package ships,
+  with its copyright notice, as the licence's second condition asks.
+- Source: [S48], listed under "More information".
 
 ### 10. Search and navigation
 
@@ -968,3 +999,13 @@ Bad:
     Free services included), https://www.cloudflare.com/terms/; Customer
     DPA 6.4, https://www.cloudflare.com/cloudflare-customer-dpa/; privacy
     policy, https://www.cloudflare.com/privacypolicy/.
+  - [S48] SIL Open Font License 1.1, SPDX's copy,
+    https://spdx.org/licenses/OFL-1.1.html, read 2026-11-16 (added by the
+    amendment of that date): "Neither the Font Software nor any of its
+    individual components, in Original or Modified Versions, may be sold by
+    itself"; copies may be "bundled, redistributed and/or sold with any
+    software, provided that each copy contains the above copyright notice and
+    this license"; "No Modified Version of the Font Software may use the
+    Reserved Font Name(s) unless explicit written permission is granted"; "The
+    requirement for fonts to remain under this license does not apply to any
+    document created using the Font Software."

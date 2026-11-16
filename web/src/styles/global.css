@@ -1,11 +1,18 @@
 /* web/src/styles/global.css */
 /*
- * The site's one stylesheet: Tailwind 4 with shadcn/ui's neutral theme tokens
- * and the brand. Astro emits it as a file (inlineStylesheets 'never'), so no
- * page carries an inline style the Content Security Policy would have to hash.
- * The font is the system stack (Tailwind's default): no web font is loaded.
- * The brand blue fails text contrast on white, so it marks accents only; text
- * and links use the darker --link blue, which passes WCAG 2.2 AA.
+ * The site's one stylesheet (Phase 5 Step 17's design system): Tailwind 4,
+ * the design tokens and the components every page shares. Astro emits it as a
+ * file (inlineStylesheets 'never'), so no page carries an inline style the
+ * Content Security Policy would have to hash.
+ *
+ * Tokens live in one place, the :root blocks below (colour, type, radius,
+ * elevation, motion) for light and dark; tokens.css gives Tailwind their
+ * names. Components below read tokens only: no colour, font or
+ * duration is written twice. Motion is CSS transitions and keyframes with a
+ * purpose (feedback on a control, a result or the menu arriving, a jump
+ * link's glide), and the reduced-motion rule at the end turns every one off.
+ * Links carry no transition: one inside a closed <details>, which the browser
+ * does not render, never finishes, and the tests wait for every transition.
  */
 @import "tailwindcss";
 @import "./tokens.css";
@@ -16,79 +23,949 @@
  */
 @source not "../components/calculator";
 
+/*
+ * The design tokens (Phase 5 Step 17, direction "Textbook": docs/design/
+ * direction.md). The text face is Literata and the math face STIX Two Math,
+ * both under the SIL Open Font License 1.1 with no Reserved Font Name, served
+ * from our own origin
+ * (scripts/checks/web_licences.py's font rule; /legal/licence/ lists them):
+ * the latin file of each, with the italic file loaded only where a page uses
+ * it. Colours are OKLCH with real chroma in both themes;
+ * tests/unit/tokens.test.ts holds every text and surface pair to 4.5:1 and
+ * every boundary and the focus ring to 3:1.
+ */
+@font-face {
+  font-family: "Literata Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("../../node_modules/@fontsource-variable/literata/files/literata-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Literata Variable";
+  font-style: italic;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("../../node_modules/@fontsource-variable/literata/files/literata-latin-wght-italic.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "STIX Two Math";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("../../node_modules/@fontsource/stix-two-math/files/stix-two-math-latin-400-normal.woff2") format("woff2");
+}
+
 :root {
-  --radius: 0.625rem;
+  --font-text: "Literata Variable", Georgia, "Times New Roman", serif;
+  --font-heading: "Literata Variable", Georgia, "Times New Roman", serif;
+  --font-code: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  --font-math: "STIX Two Math", math;
+  --font-features: "kern", "liga";
+  --tracking-heading: -0.012em;
+  --radius: 0.375rem;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --shadow-sm: 0 1px 0 oklch(0.24 0.02 260 / 5%);
+  --shadow-md: 0 1px 2px oklch(0.24 0.02 260 / 6%), 0 6px 16px oklch(0.24 0.02 260 / 6%);
+
   --brand: #63c1ff;
   --brand-ink: #1e1e1e;
-  --link: #0a5aa8;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.48 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: var(--link);
+  --background: oklch(0.985 0.008 85);
+  --foreground: oklch(0.24 0.02 260);
+  --lead: oklch(0.36 0.02 260);
+  --card: oklch(0.995 0.004 85);
+  --card-foreground: oklch(0.24 0.02 260);
+  --primary: oklch(0.43 0.13 25);
+  --primary-hover: oklch(0.37 0.12 25);
+  --primary-foreground: oklch(0.985 0.008 85);
+  --secondary: oklch(0.955 0.012 85);
+  --secondary-foreground: oklch(0.24 0.02 260);
+  --muted: oklch(0.955 0.012 85);
+  --muted-foreground: oklch(0.46 0.02 260);
+  --accent: oklch(0.94 0.016 85);
+  --accent-foreground: oklch(0.24 0.02 260);
+  --destructive: oklch(0.5 0.19 27);
+  --success: oklch(0.5 0.12 150);
+  --link: oklch(0.45 0.1 235);
+  --border: oklch(0.88 0.016 85);
+  --border-strong: oklch(0.7 0.02 85);
+  --input: oklch(0.58 0.02 260);
+  --ring: oklch(0.45 0.1 235);
+  --highlight: oklch(0.92 0.07 90);
+  --highlight-foreground: oklch(0.24 0.02 260);
+  --plate: oklch(0.965 0.02 85);
+  --plate-border: oklch(0.84 0.035 80);
+  --plate-foreground: oklch(0.2 0.02 260);
+  --scroll-shadow: oklch(0.24 0.02 260 / 28%);
+  --code-bg: oklch(0.25 0.02 260);
+  --code-fg: oklch(0.95 0.01 85);
+  --eyebrow: oklch(0.45 0.13 25);
+  --header-bg: oklch(0.985 0.008 85);
+  --header-fg: oklch(0.24 0.02 260);
+  --header-muted: oklch(0.42 0.02 260);
+  --header-hover: oklch(0.94 0.016 85);
+  --header-border: oklch(0.86 0.02 85);
+  --header-border-strong: oklch(0.7 0.02 85);
+  --header-input-bg: oklch(0.995 0.004 85);
+  --footer-bg: oklch(0.96 0.012 85);
+  --notice-bg: oklch(0.965 0.03 80);
+  --notice-border: oklch(0.72 0.12 70);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --link: var(--brand);
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.75 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
+    --shadow-sm: 0 1px 0 oklch(0 0 0 / 30%);
+    --shadow-md: 0 1px 2px oklch(0 0 0 / 30%), 0 6px 16px oklch(0 0 0 / 30%);
+    --background: oklch(0.2 0.015 260);
+    --foreground: oklch(0.93 0.012 85);
+    --lead: oklch(0.85 0.012 85);
+    --card: oklch(0.235 0.016 260);
+    --card-foreground: oklch(0.93 0.012 85);
+    --primary: oklch(0.78 0.1 32);
+    --primary-hover: oklch(0.84 0.09 32);
+    --primary-foreground: oklch(0.2 0.02 260);
+    --secondary: oklch(0.27 0.016 260);
+    --secondary-foreground: oklch(0.93 0.012 85);
+    --muted: oklch(0.26 0.016 260);
+    --muted-foreground: oklch(0.76 0.015 85);
+    --accent: oklch(0.28 0.016 260);
+    --accent-foreground: oklch(0.93 0.012 85);
+    --destructive: oklch(0.72 0.16 25);
+    --success: oklch(0.78 0.13 150);
+    --link: oklch(0.8 0.09 230);
+    --border: oklch(0.34 0.016 260);
+    --border-strong: oklch(0.5 0.016 260);
+    --input: oklch(0.6 0.02 260);
+    --ring: oklch(0.8 0.09 230);
+    --highlight: oklch(0.45 0.08 90);
+    --highlight-foreground: oklch(0.98 0.01 85);
+    --plate: oklch(0.235 0.02 260);
+    --plate-border: oklch(0.38 0.03 80);
+    --plate-foreground: oklch(0.95 0.012 85);
+    --scroll-shadow: oklch(0 0 0 / 55%);
+    --code-bg: oklch(0.15 0.015 260);
+    --code-fg: oklch(0.92 0.01 85);
+    --eyebrow: oklch(0.8 0.09 35);
+    --header-bg: oklch(0.2 0.015 260);
+    --header-fg: oklch(0.93 0.012 85);
+    --header-muted: oklch(0.78 0.015 85);
+    --header-hover: oklch(0.28 0.016 260);
+    --header-border: oklch(0.32 0.016 260);
+    --header-border-strong: oklch(0.5 0.016 260);
+    --header-input-bg: oklch(0.235 0.016 260);
+    --footer-bg: oklch(0.18 0.015 260);
+    --notice-bg: oklch(0.26 0.03 75);
+    --notice-border: oklch(0.7 0.12 75);
   }
 }
+
 
 @layer base {
   * {
     @apply border-border;
   }
 
+  html {
+    scroll-padding-top: 1.5rem;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-text);
+    font-feature-settings: var(--font-features);
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    letter-spacing: var(--tracking-heading);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
   }
 
   a {
-    @apply text-link underline underline-offset-4;
+    color: var(--link);
+    /* A long URL or DOI wraps rather than widening a phone's page. */
+    overflow-wrap: break-word;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
   }
 
-  /* Visible focus on every focusable element (WCAG 2.2 SC 2.4.7). */
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  code,
+  kbd,
+  pre {
+    font-family: var(--font-code);
+  }
+
+  /*
+   * Inline code wraps only when a word cannot fit its line: break-word, not
+   * anywhere, which shrank table columns until identifiers split mid-word on
+   * phones (the direction panel: "fre/qu/ency").
+   */
+  :not(pre) > code {
+    font-size: 0.875em;
+    overflow-wrap: break-word;
+  }
+
+  /* Visible focus on every focusable element (WCAG 2.2 SC 2.4.7 and 2.4.13). */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
 
+  ::selection {
+    background: var(--highlight);
+    color: var(--highlight-foreground);
+  }
+
   /*
-   * MathML from KaTeX: a display formula (math display="block", inside its
-   * span.katex) sits on its own line and scrolls sideways rather than
-   * overflowing. overflow-x alone would make overflow-y auto too (CSS turns the
-   * other axis's visible into auto), and MathML boxes reach a few pixels past
-   * the line, so every formula showed a vertical scrollbar where scrollbars
-   * are always drawn (Windows; issue #319). The padding keeps tall glyphs from
+   * Formulas: KaTeX's MathML in the site's math font, so they typeset alike on
+   * every system (Step 17). A display formula (math display="block", inside
+   * its span.katex) sits on its own line and scrolls sideways rather than
+   * overflowing, with a shadow at an edge that has more formula beyond it
+   * (backgrounds that scroll with the content cover the shadows at the ends).
+   * overflow-x alone would make overflow-y auto too (CSS turns the other
+   * axis's visible into auto), and MathML boxes reach a few pixels past the
+   * line, so every formula showed a vertical scrollbar where scrollbars are
+   * always drawn (Windows; issue #319). The padding keeps tall glyphs from
    * being clipped.
    */
+  math {
+    font-family: var(--font-math);
+  }
+
   .katex:has(> math[display="block"]) {
-    @apply my-4 block max-w-full overflow-x-auto overflow-y-hidden py-1;
+    @apply my-2 block max-w-full overflow-x-auto overflow-y-hidden py-2;
+  }
+
+  .formula-plate .katex:has(> math[display="block"]) {
+    background:
+      linear-gradient(to right, var(--plate), var(--plate)) left / 1.5rem 100% no-repeat local,
+      linear-gradient(to left, var(--plate), var(--plate)) right / 1.5rem 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, var(--scroll-shadow), transparent) left / 0.75rem 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow), transparent) right / 0.75rem 100% no-repeat scroll;
+  }
+
+  math[display="block"] {
+    font-size: 1.2em;
+  }
+}
+
+@layer components {
+  /*
+   * Every grid's single column may shrink below its content's widest line (a
+   * code sample, a long option), so a phone's page never scrolls sideways;
+   * wide content scrolls inside its own box instead.
+   */
+  .model-layout,
+  .hero,
+  .try,
+  .paths,
+  .checks,
+  .code-grid,
+  .surfaces,
+  .domain-grid,
+  .related-grid,
+  .elsewhere {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calculator-card select,
+  .calculator-card input,
+  .calculator-card textarea {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Layout */
+  .measure {
+    max-width: 68ch;
+  }
+
+  .eyebrow {
+    color: var(--eyebrow);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .eyebrow a:hover {
+    text-decoration: underline;
+  }
+
+  .page-title {
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+    font-weight: 700;
+  }
+
+  .lead {
+    color: var(--lead);
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+    font-weight: 650;
+  }
+
+  .subsection-title {
+    font-size: 1.1875rem;
+    font-weight: 600;
+  }
+
+  .note {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+  }
+
+  /* Header */
+  .site-header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    color: var(--header-fg);
+  }
+
+  .brand {
+    color: var(--header-fg);
+  }
+
+  .brand-name {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: var(--tracking-heading);
+  }
+
+  .nav-link,
+  .domain-link {
+    border-radius: var(--radius-sm);
+    color: var(--header-fg);
+    display: inline-flex;
+    padding: 0.375rem 0.625rem;
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .domain-link {
+    color: var(--header-muted);
+    font-size: 0.875rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  .nav-link:hover,
+  .domain-link:hover {
+    background: var(--header-hover);
+    color: var(--header-fg);
+  }
+
+  .nav-link[aria-current="page"],
+  .domain-link[aria-current="page"] {
+    color: var(--header-fg);
+    font-weight: 650;
+    text-decoration: underline;
+    text-decoration-color: var(--brand);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+  }
+
+  .icon-link {
+    align-items: center;
+    border-radius: var(--radius-sm);
+    color: var(--header-fg);
+    display: inline-flex;
+    height: 2.75rem;
+    justify-content: center;
+    width: 2.75rem;
+  }
+
+  .icon-link:hover {
+    background: var(--header-hover);
+  }
+
+  .site-menu {
+    position: static;
+  }
+
+  .menu-toggle {
+    align-items: center;
+    border: 1px solid var(--header-border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--header-fg);
+    cursor: pointer;
+    display: inline-flex;
+    font-weight: 600;
+    gap: 0.5rem;
+    list-style: none;
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+  }
+
+  .menu-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu-toggle::before {
+    content: "";
+    border-bottom: 2px solid currentcolor;
+    border-top: 2px solid currentcolor;
+    height: 0.625rem;
+    width: 1rem;
+  }
+
+  .site-menu[open] > .menu-toggle {
+    background: var(--header-hover);
+  }
+
+  .menu-panel {
+    animation: rise var(--duration-base) var(--ease-out);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    box-shadow: var(--shadow-md);
+    left: 0;
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
+    padding: 0.25rem 1rem 1rem;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+  }
+
+  .menu-heading {
+    color: var(--header-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-top: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .menu-link {
+    color: var(--header-fg);
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .menu-link[aria-current="page"] {
+    font-weight: 650;
+    text-decoration: underline;
+    text-decoration-color: var(--brand);
+  }
+
+  /* Cards and notices */
+  .card,
+  .home-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    color: var(--card-foreground);
+    padding: 1rem 1.25rem;
+    transition:
+      box-shadow var(--duration-base) var(--ease-out),
+      border-color var(--duration-base) var(--ease-out);
+  }
+
+  .card:has(a:hover),
+  .home-card:has(.card-title a:hover) {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-title {
+    font-size: 1.125rem;
+    font-weight: 650;
+    margin-bottom: 0.375rem;
+  }
+
+  .card-title a {
+    color: var(--foreground);
+    text-decoration-color: var(--brand);
+  }
+
+  .notice {
+    background: var(--notice-bg);
+    border: 1px solid var(--notice-border);
+    border-left-width: 4px;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+  }
+
+  /* Formulas */
+  .formula-plate {
+    background: var(--plate);
+    border: 1px solid var(--plate-border);
+    border-radius: var(--radius-lg);
+    color: var(--plate-foreground);
+    padding: 0.5rem 1rem;
+  }
+
+  .plate-label {
+    color: var(--eyebrow);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding-top: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .plate-caption {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Model page */
+  .model-layout {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (width >= 80rem) {
+    .model-layout {
+      grid-template-columns: minmax(0, 1fr) 13rem;
+    }
+  }
+
+  .model-article {
+    min-width: 0;
+  }
+
+  .model-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .model-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 3.5rem;
+  }
+
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .jump a {
+    align-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--foreground);
+    display: inline-flex;
+    font-size: 0.875rem;
+    min-height: 2.25rem;
+    padding: 0 0.875rem;
+    text-decoration: none;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .jump a:hover {
+    background: var(--accent);
+  }
+
+  .jump .jump-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 600;
+  }
+
+  .jump .jump-primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .facts {
+    display: grid;
+    font-size: 0.875rem;
+    gap: 0.25rem 1.5rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    max-width: 68ch;
+  }
+
+  .facts dt {
+    color: var(--muted-foreground);
+  }
+
+  .variables-group {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 1rem;
+  }
+
+  .variables-group > summary {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 2.75rem;
+    padding: 0.625rem 0;
+  }
+
+  .variables-group[open] > summary {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.75rem;
+  }
+
+  .calculator-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    color: var(--card-foreground);
+    /* Room for the form before it loads, so the page does not jump when it does. */
+    min-height: 24rem;
+    padding: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .calculator-card {
+      padding: 1.5rem;
+    }
+  }
+
+  .related-grid {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 68ch;
+  }
+
+  @media (width >= 40rem) {
+    .related-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .elsewhere {
+    display: grid;
+    gap: 0.5rem 1.5rem;
+    max-width: 68ch;
+  }
+
+  @media (width >= 40rem) {
+    .elsewhere {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+  }
+
+  .elsewhere dt {
+    font-weight: 600;
+  }
+
+  .toc {
+    display: none;
+  }
+
+  @media (width >= 80rem) {
+    .toc {
+      align-self: start;
+      display: block;
+      font-size: 0.875rem;
+      position: sticky;
+      top: 1.5rem;
+    }
+  }
+
+  .toc-heading {
+    color: var(--eyebrow);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .toc ul {
+    border-left: 1px solid var(--border);
+  }
+
+  .toc a {
+    color: var(--muted-foreground);
+    display: block;
+    margin-left: -1px;
+    padding: 0.25rem 0 0.25rem 0.875rem;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+  }
+
+  .toc a:hover {
+    border-left-color: var(--brand);
+    color: var(--foreground);
+  }
+
+  /* Home page */
+  .hero {
+    align-items: center;
+    display: grid;
+    gap: 2.5rem;
+    padding-block: 1rem 2rem;
+  }
+
+  @media (width >= 64rem) {
+    .hero {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);
+    font-weight: 750;
+    line-height: 1.08;
+  }
+
+  .hero-lead {
+    color: var(--lead);
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    max-width: 60ch;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .hero-install code {
+    background: var(--code-bg);
+    border-radius: var(--radius-md);
+    color: var(--code-fg);
+    display: inline-block;
+    font-size: 0.9375rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .hero-figure {
+    padding: 0.75rem 1.25rem;
+  }
+
+  .home-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 4.5rem;
+  }
+
+  .try {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (width >= 64rem) {
+    .try {
+      align-items: start;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    }
+  }
+
+  .try-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .paths,
+  .checks {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (width >= 48rem) {
+    .paths {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .checks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (width >= 80rem) {
+    .checks {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .code-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (width >= 64rem) {
+    .code-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .code-block figcaption {
+    color: var(--eyebrow);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.375rem;
+    text-transform: uppercase;
+  }
+
+  .code-block pre {
+    background: var(--code-bg);
+    border-radius: var(--radius-lg);
+    color: var(--code-fg);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    max-height: 26rem;
+    overflow: auto;
+    padding: 1rem 1.25rem;
+  }
+
+  .surfaces {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (width >= 64rem) {
+    .surfaces {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .surfaces dt {
+    font-weight: 650;
+  }
+
+  .domain-grid {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  @media (width >= 40rem) {
+    .domain-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (width >= 64rem) {
+    .domain-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .domain-tile {
+    align-items: baseline;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+  }
+
+  .domain-tile a {
+    font-weight: 600;
+  }
+
+  .tile-count {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+  }
+
+  .domain-tile[data-planned] {
+    border-style: dashed;
+  }
+
+  /* Footer */
+  .site-footer {
+    background: var(--footer-bg);
+    border-top: 1px solid var(--border);
+    color: var(--muted-foreground);
+  }
+
+  /* A result or panel arriving: feedback that something happened. */
+  .motion-rise {
+    animation: rise var(--duration-base) var(--ease-out);
+  }
+}
+
+/*
+ * The header's search box takes the header's colours, over the box's own
+ * utilities (bg-background), so it reads on a header band of any colour.
+ */
+.site-header input[type="search"] {
+  background: var(--header-input-bg);
+  border-color: var(--header-border-strong);
+  color: var(--header-fg);
+}
+
+.site-header input[type="search"]::placeholder {
+  color: var(--header-muted);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A jump link glides to its section, unless the visitor asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/*
+ * Reduced motion (WCAG 2.2 SC 2.3.3): every transition and animation, the
+ * calculator's and Plotly's included, ends at once. tests/e2e/motion.spec.ts
+ * finds none longer than 0.01 s.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

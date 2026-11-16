@@ -49,6 +49,7 @@ import {
 } from "@/lib/models";
 import { LOCAL_APP } from "@/lib/explorer";
 import { simulates } from "@/lib/legal";
+import { cliSnippet, pythonSnippet } from "@/lib/snippets";
 import { conceptPath } from "@/lib/paths";
 import type { Model } from "@/lib/registry-schema";
 import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
@@ -73,6 +74,8 @@ const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
 const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
 const profiles = dataProfiles(model.bindings, conceptData, sourceData);
 const unserved = unservedSources(profiles);
+// Whether the hosted site serves every field of the default profile (issue #320).
+const defaultServed = profiles.find((profile) => profile.profile === "default")?.rows.every((row) => row.hosted) ?? false;
 const calculator = calculatorProps(model, surface, problemData, sourceData, conceptData);
 const topics = topicsOf(model.id, syllabusData);
 const syllabi = syllabusData.filter((syllabus) => topics.some((entry) => entry.syllabus.id === syllabus.id));
@@ -80,19 +83,46 @@ const related = relatedModels(model, models, syllabusData);
 const example = model.examples[0];
 const result = model.example_result;
 const hypothetical = simulates(model);
-const sectionClass = "mt-12 flex flex-col gap-4";
-const headingClass = "text-2xl font-semibold";
+// The worked example as code, beside the surfaces' names (Phase 5 Step 17's round 0).
+const exampleRun = { modelId: model.id, inputs: example?.inputs ?? {} };
+const sectionClass = "model-section";
+const headingClass = "section-title";
+// The page's own contents, for the "On this page" list.
+const contents = [
+  { id: "formula", label: "Formula" },
+  { id: "variables", label: "Variables" },
+  { id: "calculator", label: "Calculator" },
+  { id: "worked-example", label: "Worked example" },
+  { id: "assumptions", label: "Assumptions" },
+  { id: "limitations", label: "Limitations" },
+  { id: "evidence", label: "Evidence" },
+  { id: "syllabus", label: "Syllabus" },
+  ...(profiles.length > 0 ? [{ id: "data", label: "Data" }] : []),
+  { id: "citations", label: "Citations" },
+  { id: "changelog", label: "Changelog" },
+  ...(related.length > 0 ? [{ id: "related", label: "Related models" }] : []),
+  { id: "use-it-elsewhere", label: "Use it elsewhere" },
+];
 const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 ---
 
 <Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)} searchable>
   <Breadcrumbs trail={trail} />
-  <article>
-    <section id="summary" data-section="summary" class="flex flex-col gap-4" aria-labelledby="model-title">
-      <h1 id="model-title" class="text-4xl font-bold tracking-tight">{model.title}</h1>
-      <p class="max-w-3xl text-lg" data-pagefind-meta="summary">{model.summary}</p>
+  <div class="model-layout">
+  <article class="model-article">
+    <section id="summary" data-section="summary" class="model-head" aria-labelledby="model-title">
+      <p class="eyebrow"><a href={domainPath(model.domain)}>{domainTitle(model.domain)}</a></p>
+      <h1 id="model-title" class="page-title">{model.title}</h1>
+      <p class="lead measure" data-pagefind-meta="summary">{model.summary}</p>
       <span hidden data-pagefind-meta="kind:Model"></span>
-      <dl class="grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
+      <nav class="jump" aria-label="Jump to">
+        <a href="#calculator" class="jump-primary">Run the calculator</a>
+        <a href="#formula">Formula</a>
+        <a href="#variables">Variables</a>
+        <a href="#worked-example">Worked example</a>
+        <a href="#citations">Citations</a>
+      </nav>
+      <dl class="facts">
         <dt class="text-muted-foreground">Model id</dt>
         <dd><code>{model.id}</code>, version {model.version}</dd>
         <dt class="text-muted-foreground">Domain</dt>
@@ -116,32 +146,52 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 
     <section id="formula" data-section="formula" class={sectionClass} aria-labelledby="formula-heading">
       <h2 id="formula-heading" class={headingClass}>Formula</h2>
-      {model.formula.map((latex) => <Math latex={latex} display />)}
+      <div class="formula-plate">
+        {model.formula.map((latex) => <Math latex={latex} display />)}
+      </div>
+      <p class="note measure">
+        The inputs and outputs, with their units and bounds, are under <a href="#variables">Variables</a>; the
+        <a href="#citations">citations</a> give each formula's source.
+      </p>
     </section>
 
     <section id="variables" data-section="variables" class={sectionClass} aria-labelledby="variables-heading">
       <h2 id="variables-heading" class={headingClass}>Variables</h2>
-      <p class="max-w-3xl">
+      <p class="measure">
         Rates, returns and yields are decimals: 0.05 is five percent. Bounds in brackets include
         their end; in parentheses they exclude it.
       </p>
-      <h3 class="text-xl font-semibold">Inputs</h3>
+      <h3 class="subsection-title">Inputs</h3>
       {
-        inputs.map((table) => (
-          <VariablesTable
-            table={table}
-            caption={table.calculation ? `Inputs of the calculation ${table.calculation}` : "Inputs"}
-          />
-        ))
+        inputs.map((table, index) =>
+          table.calculation ? (
+            <details class="variables-group" open={index === 0}>
+              <summary>
+                The calculation <code>{table.calculation}</code>: {table.rows.length}{" "}
+                {table.rows.length === 1 ? "input" : "inputs"}
+              </summary>
+              <VariablesTable table={table} caption={`Inputs of the calculation ${table.calculation}`} />
+            </details>
+          ) : (
+            <VariablesTable table={table} caption="Inputs" />
+          ),
+        )
       }
-      <h3 class="text-xl font-semibold">Outputs</h3>
+      <h3 class="subsection-title">Outputs</h3>
       {
-        outputs.map((table) => (
-          <VariablesTable
-            table={table}
-            caption={table.calculation ? `Outputs of the calculation ${table.calculation}` : "Outputs"}
-          />
-        ))
+        outputs.map((table, index) =>
+          table.calculation ? (
+            <details class="variables-group" open={index === 0}>
+              <summary>
+                The calculation <code>{table.calculation}</code>: {table.rows.length}{" "}
+                {table.rows.length === 1 ? "output" : "outputs"}
+              </summary>
+              <VariablesTable table={table} caption={`Outputs of the calculation ${table.calculation}`} />
+            </details>
+          ) : (
+            <VariablesTable table={table} caption="Outputs" />
+          ),
+        )
       }
     </section>
 
@@ -153,32 +203,39 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
       data-pagefind-ignore="all"
     >
       <h2 id="calculator-heading" class={headingClass}>Calculator</h2>
-      <p class="max-w-3xl">
-        Run the model on your own inputs, starting from its example. Rates are decimals. The run goes to the
-        pyeconomics API on this site: your values travel only in the request, and nothing is stored.
+      <p class="measure">
+        Run the model on your own inputs, starting from its example. Rates are decimals: 0.05 is five percent. The run
+        goes to the pyeconomics API on this site: your values travel only in the request, and nothing is stored.
       </p>
       {
         unserved.length > 0 && (
-          <div class="max-w-3xl rounded-md border p-4" data-library-only>
-            <p>
-              The hosted site may not serve this model's data from{" "}
+          <div class="notice measure" data-library-only>
+            <p class="font-medium">{defaultServed ? "Some live data run on your own computer only" : "Live data run on your own computer only"}</p>
+            <p class="mt-2">
               {unserved.map((source, index) => (
                 <Fragment>
-                  {index > 0 && (index === unserved.length - 1 ? " or " : ", ")}
-                  {source.name} ({source.licence}, for {source.fields.join(", ")})
+                  {index > 0 && " "}
+                  This model reads {source.labels.join(", ")} from {source.name}
+                  {defaultServed && <Fragment> (in the profile{source.profiles.length > 1 ? "s" : ""} {source.profiles.join(", ")})</Fragment>}.
                 </Fragment>
-              ))}
-              : those sources' terms keep it to your own computer. Bring the values as your own file with "Use my own
-              data" below, or run pyeconomics locally, where every source is available:{" "}
-              <code>{LOCAL_APP}</code>.
+              ))}{" "}
+              {unserved.length > 1 ? "Their" : "Its"} terms let pyeconomics read the data on your own computer, but not
+              serve them from this website: {unserved.length > 1 ? "their licence class is" : "its licence class is"}{" "}
+              library-only.
+            </p>
+            <p class="mt-2">
+              Here you can enter your own values, or bring them as a file with "Use my own data". To run this page with
+              live data, install the local app and start it: <code>{LOCAL_APP}</code>.
             </p>
           </div>
         )
       }
-      <Calculator client:visible {...calculator} />
+      <div class="calculator-card">
+        <Calculator client:visible {...calculator} />
+      </div>
       {hypothetical && <HypotheticalLegend model={model} place="calculator" />}
       <noscript>
-        <p class="max-w-3xl">
+        <p class="measure">
           The calculator needs JavaScript. The worked example below shows the model's inputs and outputs, and the
           REST API, the command line and the Python package run it too.
         </p>
@@ -192,7 +249,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
       aria-labelledby="example-heading"
     >
       <h2 id="example-heading" class={headingClass}>Worked example</h2>
-      {example?.note && <p class="max-w-3xl">{example.note}</p>}
+      {example?.note && <p class="measure">{example.note}</p>}
       <p>
         Example <code>{example?.name}</code>. Inputs:
       </p>
@@ -229,7 +286,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
       <h2 id="assumptions-heading" class={headingClass}>Assumptions</h2>
       {
         model.assumptions.length > 0 ? (
-          <ul class="flex max-w-3xl list-disc flex-col gap-1 pl-6">
+          <ul class="measure list-disc space-y-1 pl-6">
             {model.assumptions.map((item) => (
               <li>{item}</li>
             ))}
@@ -244,7 +301,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
       <h2 id="limitations-heading" class={headingClass}>Limitations</h2>
       {
         model.limitations.length > 0 ? (
-          <ul class="flex max-w-3xl list-disc flex-col gap-1 pl-6">
+          <ul class="measure list-disc space-y-1 pl-6">
             {model.limitations.map((item) => (
               <li>{item}</li>
             ))}
@@ -257,11 +314,11 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 
     <section id="evidence" data-section="evidence" class={sectionClass} aria-labelledby="evidence-heading">
       <h2 id="evidence-heading" class={headingClass}>Evidence</h2>
-      <p class="max-w-3xl">
+      <p class="measure">
         Status: <strong>{model.evidence ?? "not declared"}</strong>.{" "}
         {model.evidence && EVIDENCE_MEANING[model.evidence]}
       </p>
-      <p class="max-w-3xl text-sm text-muted-foreground">
+      <p class="note measure">
         Every model declares one status: standard (textbook consensus), practitioner (a widely used
         convention), contested (under active debate), rejected (failed out of sample) or historical (a
         superseded methodology).
@@ -274,11 +331,11 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         syllabi.length > 0 ? (
           syllabi.map((syllabus) => (
             <Fragment>
-              <p class="max-w-3xl">
+              <p class="measure">
                 The {syllabus.title}'s topic areas this model relates to, as factual tags. Each links
                 to {syllabus.issuer}'s page for its level; pyeconomics holds none of the curriculum's text.
               </p>
-              <ul class="flex max-w-3xl flex-col gap-1">
+              <ul class="measure space-y-1">
                 {topics
                   .filter((entry) => entry.syllabus.id === syllabus.id)
                   .map(({ level, topic }) => (
@@ -295,7 +352,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
             </Fragment>
           ))
         ) : (
-          <p class="max-w-3xl">
+          <p class="measure">
             No syllabus topic is mapped to this model yet. The <a href="/coverage/">coverage matrix</a> shows what is
             mapped.
           </p>
@@ -309,10 +366,10 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           <h2 id="data-heading" class={headingClass}>
             Data
           </h2>
-          <p class="max-w-3xl">
-            This model reads data through bindings: each bound field names a catalog concept, and the
-            sources listed can fill it, in the order they are tried. The hosted service reads only
-            hosted-safe sources; every source is available when you run pyeconomics yourself.
+          <p class="measure">
+            This model can read its data for you: each bound field names a data series, and the sources listed can
+            fill it, in the order they are tried. This website reads only the sources whose terms let it serve their
+            data (marked "hosted"); every source is available when you run pyeconomics on your own computer.
           </p>
           {profiles.map((profile) => (
             <div class="overflow-x-auto" role="region" aria-label={`Profile ${profile.profile}`} tabindex="0">
@@ -378,7 +435,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 
     <section id="citations" data-section="citations" class={sectionClass} aria-labelledby="citations-heading">
       <h2 id="citations-heading" class={headingClass}>Citations</h2>
-      <ol class="flex max-w-3xl list-decimal flex-col gap-2 pl-6">
+      <ol class="measure list-decimal space-y-2 pl-6">
         {
           model.references.map((reference) => {
             const link = referenceLink(reference);
@@ -404,7 +461,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 
     <section id="changelog" data-section="changelog" class={sectionClass} aria-labelledby="changelog-heading">
       <h2 id="changelog-heading" class={headingClass}>Changelog</h2>
-      <ul class="flex max-w-3xl list-disc flex-col gap-1 pl-6">
+      <ul class="measure list-disc space-y-1 pl-6">
         {
           model.changelog.map((entry) => (
             <li>
@@ -421,9 +478,9 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           <h2 id="related-heading" class={headingClass}>
             Related models
           </h2>
-          <ul class="grid max-w-3xl gap-3 sm:grid-cols-2">
+          <ul class="related-grid">
             {related.map((other) => (
-              <li class="rounded-md border px-4 py-3" data-related={other.id}>
+              <li class="card" data-related={other.id}>
                 <a href={modelPath(other.id)} class="font-medium">
                   {other.title}
                 </a>
@@ -437,7 +494,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
 
     <section id="use-it-elsewhere" data-section="use-it-elsewhere" class={sectionClass} aria-labelledby="elsewhere-heading">
       <h2 id="elsewhere-heading" class={headingClass}>Use it elsewhere</h2>
-      <dl class="grid max-w-3xl grid-cols-1 gap-y-3 sm:grid-cols-[auto_1fr] sm:gap-x-6">
+      <dl class="elsewhere">
         <dt class="font-medium">Documentation</dt>
         <dd><a href={docsUrl(model.id)}>The model's reference page</a></dd>
         <dt class="font-medium">REST API</dt>
@@ -455,6 +512,26 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         <dt class="font-medium">Command line</dt>
         <dd><code>{surface.cli} --help</code></dd>
       </dl>
+      <p class="measure">The worked example, from Python and from the command line:</p>
+      <div class="code-grid">
+        <figure class="code-block">
+          <figcaption>Python</figcaption>
+          <pre role="region" tabindex="0" aria-label="The worked example in Python"><code>{pythonSnippet(exampleRun)}</code></pre>
+        </figure>
+        <figure class="code-block">
+          <figcaption>Command line</figcaption>
+          <pre role="region" tabindex="0" aria-label="The worked example on the command line"><code>{cliSnippet(exampleRun)}</code></pre>
+        </figure>
+      </div>
     </section>
   </article>
+  <aside class="toc" aria-labelledby="toc-heading" data-pagefind-ignore="all">
+    <nav aria-labelledby="toc-heading">
+      <p id="toc-heading" class="toc-heading">On this page</p>
+      <ul>
+        {contents.map((entry) => <li><a href={`#${entry.id}`}>{entry.label}</a></li>)}
+      </ul>
+    </nav>
+  </aside>
+  </div>
 </Base>

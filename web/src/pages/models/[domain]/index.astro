@@ -55,7 +55,7 @@ const words = (model: Model) =>
 
 <Base title={domain.title} description={description} jsonLd={webPage(path, domain.title, description, trail)} searchable>
   <Breadcrumbs trail={trail} />
-  <h1 class="text-4xl font-bold tracking-tight">{domain.title}</h1>
+  <h1 class="page-title">{domain.title}</h1>
   <span hidden data-pagefind-meta="kind:Domain"></span>
   {
     models.length === 0 ? (
@@ -78,7 +78,7 @@ const words = (model: Model) =>
         </p>
         {groups.map((group) => (
           <section class="mt-10" aria-labelledby={`evidence-${group.evidence ?? "none"}`}>
-            <h2 id={`evidence-${group.evidence ?? "none"}`} class="text-2xl font-semibold">
+            <h2 id={`evidence-${group.evidence ?? "none"}`} class="section-title">
               {group.evidence ? `${group.evidence.charAt(0).toUpperCase()}${group.evidence.slice(1)}` : "Not declared"}
             </h2>
             {group.evidence && <p class="mt-1 text-sm text-muted-foreground">{EVIDENCE_MEANING[group.evidence]}</p>}

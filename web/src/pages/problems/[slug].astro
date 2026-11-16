@@ -35,7 +35,7 @@ const trail: Crumb[] = [
   searchable
 >
   <Breadcrumbs trail={trail} />
-  <h1 class="text-4xl font-bold tracking-tight">{problem.title}</h1>
+  <h1 class="page-title">{problem.title}</h1>
   <span hidden data-pagefind-meta="kind:Problem"></span>
   <dl class="mt-6 grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
     <dt class="text-muted-foreground">Type</dt>
@@ -48,11 +48,11 @@ const trail: Crumb[] = [
     <dd><code>{problem.error}</code></dd>
   </dl>
   <section class="mt-10 flex flex-col gap-3" aria-labelledby="meaning">
-    <h2 id="meaning" class="text-2xl font-semibold">What it means</h2>
+    <h2 id="meaning" class="section-title">What it means</h2>
     <p class="max-w-3xl">{problem.meaning}</p>
   </section>
   <section class="mt-10 flex flex-col gap-3" aria-labelledby="action">
-    <h2 id="action" class="text-2xl font-semibold">What to do</h2>
+    <h2 id="action" class="section-title">What to do</h2>
     <p class="max-w-3xl">{problem.action}</p>
     {
       problem.local_command && (

@@ -12,6 +12,7 @@ import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Base from "@/layouts/Base.astro";
 import { ANALYTICS } from "../../../../csp.config.ts";
 import { LEGAL_INDEX, LICENCE_PAGE, REPOSITORY } from "@/lib/legal";
+import { FONTS } from "@/lib/fonts";
 import { licenceCounts, repositoryFile, shippedLicences } from "@/lib/licences";
 import { webPage, type Crumb } from "@/lib/structured-data";
 
@@ -35,7 +36,7 @@ const pre = "mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-muted
 >
   <Breadcrumbs trail={trail} />
   <span hidden data-pagefind-meta="kind:Legal"></span>
-  <h1 class="text-4xl font-bold tracking-tight">{LICENCE_PAGE.title}</h1>
+  <h1 class="page-title">{LICENCE_PAGE.title}</h1>
   <p class="mt-4 max-w-3xl text-lg">
     pyeconomics is free and open-source software, licensed under the
     <a href={`${REPOSITORY}/blob/main/LICENSE`}>Apache License, Version 2.0</a>. Releases up to and including the 0.2.x
@@ -48,22 +49,42 @@ const pre = "mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-muted
   </p>
 
   <section class="mt-10" aria-labelledby="notice-heading">
-    <h2 id="notice-heading" class="text-2xl font-semibold">NOTICE</h2>
+    <h2 id="notice-heading" class="section-title">NOTICE</h2>
     <pre class={pre} role="region" tabindex="0" aria-label="The NOTICE file" data-notice-file=""><code>{notice}</code></pre>
   </section>
 
   <section class="mt-10" aria-labelledby="apache-heading">
-    <h2 id="apache-heading" class="text-2xl font-semibold">The Apache License, Version 2.0</h2>
+    <h2 id="apache-heading" class="section-title">The Apache License, Version 2.0</h2>
     <details class="mt-2" data-pagefind-ignore="all">
       <summary class="cursor-pointer">The licence's full text</summary>
       <pre class={pre} role="region" tabindex="0" aria-label="The Apache License, Version 2.0" data-license-file=""><code>{license}</code></pre>
     </details>
   </section>
 
+  <section class="mt-10" aria-labelledby="fonts-heading" data-fonts="">
+    <h2 id="fonts-heading" class="section-title">Fonts</h2>
+    <p class="measure mt-2">
+      The site's two fonts are served from this site, never from a font service, under the SIL Open Font License,
+      Version 1.1, which lets anyone use, study, share and adapt them. Each one's licence, with its copyright notice, is
+      in the list below with its package.
+    </p>
+    <ul class="mt-4 flex flex-col gap-2">
+      {
+        FONTS.map((font) => (
+          <li data-font={font.package}>
+            <span class="font-semibold">{font.name}</span>, {font.use}: {font.files} of <code>{font.package}</code>,
+            under <code>OFL-1.1</code>.
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
   <section class="mt-10" aria-labelledby="third-party">
-    <h2 id="third-party" class="text-2xl font-semibold">Third-party code this site sends to browsers</h2>
+    <h2 id="third-party" class="section-title">Third-party code this site sends to browsers</h2>
     <p class="mt-2 max-w-3xl">
-      The pages and their scripts include code from {packages.length} packages, each under a permissive licence: {
+      The pages, their scripts and their fonts come from {packages.length} packages, each under a permissive or a free
+      font licence: {
         counts.map(([licence, count], index) => (
           <Fragment>
             {index > 0 && (index === counts.length - 1 ? " and " : ", ")}

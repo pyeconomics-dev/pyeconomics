@@ -122,6 +122,20 @@ for (const path of SAMPLE) {
       expect(api.requests).toEqual([]);
     });
 
+    // Phase 5 Step 17's round 0: pages scrolled sideways on a phone, where a
+    // long formula, code sample, table or link widened the page. Wide content
+    // scrolls or wraps in its own box; the islands load first.
+    test("does not scroll sideways at a phone's width", async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(path);
+      await page.waitForLoadState("load");
+      const height = await page.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y < height; y += 800) await page.evaluate((top) => window.scrollTo(0, top), y);
+      await page.waitForTimeout(300);
+      const widths = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+      expect(widths[0], path).toBeLessThanOrEqual(widths[1] ?? 0);
+    });
+
     // Issue #319's class: a box scrolls vertically only when it is given a
     // maximum height (a code panel). Any other box that overflows by a few
     // pixels shows a stray scrollbar where scrollbars are always drawn

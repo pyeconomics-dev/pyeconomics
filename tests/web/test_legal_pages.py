@@ -159,3 +159,16 @@ def test_the_licence_page_lists_the_build_tools_the_licence_check_does() -> None
     match = re.search(r"export const BUILD_OUTPUT = (\[[^\]]*\]) as const;", source)
     assert match is not None
     assert tuple(ast.literal_eval(match[1])) == tuple(module.BUILD_OUTPUT)
+
+
+def test_the_licence_page_lists_the_fonts_the_font_rule_admits() -> None:
+    """Every font package the licence check admits is named on /legal/licence/."""
+    path = ROOT / "scripts" / "checks" / "web_licences.py"
+    spec = importlib.util.spec_from_file_location("web_licence_fonts", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    source = (ROOT / "web" / "src" / "lib" / "fonts.ts").read_text(encoding="utf-8")
+    listed = re.findall(r'package: "([^"]+)"', source)
+    assert sorted(listed) == sorted(module.FONTS)

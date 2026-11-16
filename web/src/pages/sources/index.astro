@@ -48,7 +48,7 @@ const cell = "py-2 pr-4 align-top";
 >
   <Breadcrumbs trail={trail} />
   <span hidden data-pagefind-meta="kind:Source"></span>
-  <h1 class="text-4xl font-bold tracking-tight">{SOURCES_PAGE.title}</h1>
+  <h1 class="page-title">{SOURCES_PAGE.title}</h1>
   <p class="mt-4 max-w-3xl text-lg">
     pyeconomics reads economic and financial data from {sourceData.length} sources, each on its own terms. Every source
     has a licence class that decides where its data may go, and every chart, table and file carries its attribution and
@@ -61,7 +61,7 @@ const cell = "py-2 pr-4 align-top";
   </p>
 
   <section class="mt-10" aria-labelledby="classes">
-    <h2 id="classes" class="text-2xl font-semibold">Licence classes</h2>
+    <h2 id="classes" class="section-title">Licence classes</h2>
     <div class="mt-4 overflow-x-auto" role="region" aria-label="Licence classes" tabindex="0">
       <table class="w-full border-collapse text-left text-sm">
         <thead>
@@ -95,7 +95,7 @@ const cell = "py-2 pr-4 align-top";
   </section>
 
   <section class="mt-10" aria-labelledby="sources-list">
-    <h2 id="sources-list" class="text-2xl font-semibold">Sources</h2>
+    <h2 id="sources-list" class="section-title">Sources</h2>
     <div class="mt-4 overflow-x-auto" role="region" aria-label="Sources at a glance" tabindex="0">
       <table class="w-full border-collapse text-left text-sm">
         <thead>
@@ -140,7 +140,7 @@ const cell = "py-2 pr-4 align-top";
               data-source={source.id}
               data-licence={source.licence}
             >
-              <h3 class="text-xl font-semibold">{source.name}</h3>
+              <h3 class="subsection-title">{source.name}</h3>
               <p class="text-sm text-muted-foreground">
                 Provider id <code>{source.id}</code>
               </p>
@@ -225,7 +225,7 @@ const cell = "py-2 pr-4 align-top";
   </section>
 
   <section class="mt-10" aria-labelledby="required-notices">
-    <h2 id="required-notices" class="text-2xl font-semibold">Required notices</h2>
+    <h2 id="required-notices" class="section-title">Required notices</h2>
     <p class="mt-2 max-w-3xl">The notices the sources' terms require wherever their data appears.</p>
     <div class="mt-4 overflow-x-auto" role="region" aria-label="Required notices" tabindex="0">
       <table class="w-full border-collapse text-left text-sm">

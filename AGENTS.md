@@ -585,8 +585,8 @@ From Phase 5 Step 3, which builds the web foundation:
 - shadcn/ui components are copied into `src/components/ui/`
   (`components.json`, style `new-york`); a link styled as a button uses
   `buttonVariants()` on the `<a>`, because `asChild` does not cross from an
-  Astro page into a React component. No web font, and the brand blue never
-  carries text on white (`--link` does).
+  Astro page into a React component. Fonts and colours follow the Design rules
+  below.
 - Playwright (axe at WCAG 2.2 AA in light and dark, and a listener that fails
   on any CSP violation or console error) and `scripts/lighthouse.ts`
   (Lighthouse 13 directly: `@lhci/cli` fails `npm audit`) run against
@@ -983,6 +983,60 @@ ROADMAP §4 5.7):
 - A permission grant (`docs/operations/permissions.md`) becomes its own
   reclassification pull request with tests (ADR-0005 rule 7); nothing else changes a
   provider's licence class, and silence leaves a source library-only.
+
+## Design rules
+
+From Phase 5 Step 17, which gave the site its design (ADR-0013 decisions 2, 9 and
+19, and its amendment of 2026-11-16; `docs/design/direction.md`):
+
+- Tokens live in one place: the `:root` blocks of `web/src/styles/global.css`, light
+  and dark (colour in OKLCH, type, radius, elevation, motion), named for Tailwind in
+  `web/src/styles/tokens.css`. Components and pages read tokens only; a new colour is
+  a token in both themes and joins `TEXT` (4.5:1) or `BOUNDARIES` (3:1) in
+  `web/tests/unit/tokens.test.ts`, which computes every pair from the stylesheet.
+  shadcn/ui components are restyled through tokens, never one-off classes. The brand
+  blue never carries text on a light surface (`--link` does).
+- Fonts: Literata for text and STIX Two Math, set on `math`, for formulas; each
+  from its Fontsource package in `dependencies`, declared in `global.css` for its
+  latin subset with `font-display: swap`, and served from our own origin under a
+  hashed name. Only the text face's upright file is preloaded (`src/lib/fonts.ts`
+  `PRELOAD_FONTS`); the math font loads only where a formula renders. No font
+  service and no Google Fonts. OFL-1.1 is admitted for these packages only, by the
+  font rule in `scripts/checks/web_licences.py` (`FONTS`, held equal to `fonts.ts`
+  `FONTS` and listed on `/legal/licence/`). Never serve a font whose file declares a
+  Reserved Font Name: a package's subset is a Modified Version under the licence.
+- Motion is CSS: transitions and keyframes in `global.css` (`.motion-rise`, the
+  menu panel, a card's or a control's hover), smooth scrolling for jump links only under
+  `prefers-reduced-motion: no-preference`, and the reduced-motion rule that ends
+  every animation and transition, Plotly's and the calculator's included
+  (`web/tests/e2e/motion.spec.ts`). No script animates anything. No transition on a
+  link or on anything a closed `<details>` holds: the browser does not render that
+  content, so the transition never finishes and `useColorScheme` waits forever. No
+  cross-document view transition either.
+- An island's own stylesheet is adopted through `src/lib/adopt-styles.ts`, which
+  leaves out every rule the page already has: adopted after the page's sheets, a
+  duplicated utility (`.hidden`) beat the page's responsive rules (`lg:block`) and
+  hid the header on wide screens once a calculator loaded.
+- No page scrolls sideways at 390 pixels: a single-column grid uses
+  `minmax(0, 1fr)`, and wide content (a formula, a table, a code sample) scrolls in
+  its own box. A box that scrolls vertically has a maximum height (#319's
+  stray-scroll check in `pages.spec.ts`; the harness reports both).
+- Charts take their colours from the tokens through `src/lib/plotly.ts` `themed()`
+  (Plotly reads rgb(), which `src/lib/contrast.ts` converts), on a transparent
+  background in both themes.
+- The dogfooding protocol is `docs/design/dogfooding.md` and runs unchanged in
+  Steps 18 and 20: five personas, the eight-dimension rubric, the severity scale and
+  the evaluator rules. Its harness is `web/tests/dogfood/` (its own Playwright
+  configuration, Chromium without `--hide-scrollbars`, `npm run dogfood`), writing to
+  the git-ignored `web/dogfood-out/`; the evaluators' browser is
+  `node tests/dogfood/visit.ts` (from Git Bash with `MSYS_NO_PATHCONV=1`). Against a
+  deployed site behind Access it reads the service token from the environment and
+  sends it only as headers: never print it or let it reach a screenshot or record.
+  `deploy-staging.yml`'s site job runs the captures on staging after each deploy and
+  uploads them as the `dogfood-staging` artifact; a page that does not answer fails
+  the deploy, which rolls the Worker back.
+  A change to the personas, rubric, harness or page list is a change to the protocol,
+  dated in its change log. Round 0's record is `docs/design/audit-round-0.md`.
 
 ## Documentation rules
 

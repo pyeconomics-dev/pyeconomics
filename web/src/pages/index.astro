@@ -1,73 +1,201 @@
 ---
 // web/src/pages/index.astro
-// The home page. Its counts and domains come from the registry export, so a
-// new model shows here with no web code; the domain sections are listed in
-// ROADMAP §4 7.2's order, the planned ones marked.
+// The home page (Phase 5 Step 17's design, from round 0 of the dogfooding
+// protocol: docs/design/audit-round-0.md). It says what pyeconomics is, who
+// it is for and that it is free on the first screen, and shows it working: a
+// featured model's live calculator (the same island as its model page,
+// hydrated only when it scrolls into view), the code that runs the same model
+// from Python and the command line, how to reach every model over REST and
+// MCP, how the models are checked, and the domains. Its counts, the featured
+// model's formula, example and snippets all come from the site data, so the
+// page follows the registry with no web code; the domain sections are listed
+// in ROADMAP §4 7.2's order, the planned ones marked.
+import { getCollection } from "astro:content";
+
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Math from "@/components/Math.astro";
+import Calculator from "@/components/calculator/Calculator";
 import { buttonVariants } from "@/components/ui/button";
 import Base from "@/layouts/Base.astro";
+import { calculatorProps } from "@/lib/calculator";
 import { DOCUMENTATION, REPOSITORY } from "@/lib/links";
-import { DOMAINS, domainPath } from "@/lib/models";
-import { HOME } from "@/lib/pages";
-import { domains, registryData, version } from "@/lib/site-data";
+import { DOMAINS, domainPath, modelPath } from "@/lib/models";
+import { FEATURED_MODEL, HOME } from "@/lib/pages";
+import { cliSnippet, pythonSnippet } from "@/lib/snippets";
+import {
+  conceptData,
+  domains,
+  problemData,
+  registryData,
+  sourceData,
+  surfaceData,
+  version,
+} from "@/lib/site-data";
 
 const models = registryData.models.length;
 const counts = new Map(domains());
 const sections = DOMAINS.map((domain) => ({ domain, count: counts.get(domain.id) ?? 0 }));
-const populated = sections.filter((section) => section.count > 0).length;
 const prerelease = /(a|b|rc|dev)\d/.test(version);
 const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyeconomics";
+const mcpCommand = `uvx --from "pyeconomics[mcp]==${version}" pyeconomics mcp`;
+const featured = (await getCollection("models")).map(({ data }) => data).find((model) => model.id === FEATURED_MODEL);
+const surface = surfaceData.find((entry) => entry.id === FEATURED_MODEL);
+if (!featured || !surface) throw new Error(`the featured model ${FEATURED_MODEL} is not in the registry`);
+const calculator = calculatorProps(featured, surface, problemData, sourceData, conceptData);
+const example = featured.examples[0];
+const run = { modelId: featured.id, inputs: example?.inputs ?? {} };
+const publishers = new Set(conceptData.flatMap((concept) => concept.candidates.map((candidate) => candidate.provider))).size;
+const card = "home-card";
 ---
 
 <Base title={HOME.title} description={HOME.description}>
-  <Breadcrumbs trail={[{ name: "Home", path: "/" }]} />
-  <section class="flex flex-col gap-6">
-    <h1 class="text-4xl font-bold tracking-tight">pyeconomics</h1>
-    <p class="max-w-2xl text-lg">
-      Open-source economics and finance models: {models} models in {populated} domains, each
-      with cited formulas, tested values and units, and a catalog of economic data read from the
-      bodies that publish it.
-    </p>
-    <div class="flex flex-wrap gap-3">
-      <a href={DOCUMENTATION} class={buttonVariants({ className: "no-underline" })}>
-        Read the documentation
-      </a>
-      <a
-        href={REPOSITORY}
-        class={buttonVariants({ variant: "outline", className: "text-foreground no-underline" })}
-      >
-        View the source on GitHub
-      </a>
+  <div class="sr-only"><Breadcrumbs trail={[{ name: "Home", path: "/" }]} /></div>
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-text">
+      <p class="eyebrow">Free and open source · Apache-2.0</p>
+      <h1 id="hero-title" class="hero-title">Economics and finance models you can read, run and cite.</h1>
+      <p class="hero-lead">
+        {models} models with their formulas, sources and tested values, and {conceptData.length} data series, for
+        students, analysts and developers. Run them here, or from Python, the command line, a REST API or your AI
+        assistant.
+      </p>
+      <div class="hero-actions">
+        <a href="#try" class={buttonVariants({ size: "lg", className: "no-underline" })}>Try a model</a>
+        <a href="/models/" class={buttonVariants({ variant: "outline", size: "lg", className: "no-underline" })}>
+          Browse the models
+        </a>
+        <a href="/data/" class={buttonVariants({ variant: "ghost", size: "lg", className: "no-underline" })}>
+          Explore the data
+        </a>
+      </div>
+      <p class="hero-install"><span class="sr-only">Install the Python package: </span><code>{install}</code></p>
     </div>
-    <pre class="w-fit rounded-md border-l-4 border-brand bg-muted px-4 py-3"><code>{install}</code></pre>
+    <figure class="hero-figure formula-plate" aria-labelledby="hero-figure-caption">
+      <p class="plate-label">{featured.title}</p>
+      <Math latex={featured.formula[0] ?? ""} display />
+      <figcaption id="hero-figure-caption" class="plate-caption">
+        One of {models} formulas, each typeset from its model and linked to its sources.{" "}
+        <a href={modelPath(featured.id)}>See the model</a>
+      </figcaption>
+    </figure>
   </section>
 
-  <section class="mt-12 flex flex-col gap-4" aria-labelledby="formulas">
-    <h2 id="formulas" class="text-2xl font-semibold">Formulas you can read</h2>
-    <p class="max-w-2xl">
-      Every formula is rendered as MathML when the site is built, so it reads well in any browser
-      and with a screen reader. The present value of a future amount, for example:
+  <section id="try" class="home-section try" aria-labelledby="try-title">
+    <div class="try-intro">
+      <h2 id="try-title" class="section-title">Try it: {featured.title}</h2>
+      <p>{featured.summary}</p>
+      <p>
+        The calculator starts from the model's example. Change any value and press Run: the result comes from the same
+        API, with the same bytes, as Python and the command line give.
+      </p>
+      <p><a href={modelPath(featured.id)}>The model's page</a>: every formula, its variables, citations and tests.</p>
+    </div>
+    <div class="try-calculator calculator-card" data-pagefind-ignore="all">
+      <Calculator client:visible {...calculator} />
+      <noscript>
+        <p>The calculator needs JavaScript. The model's page shows its worked example.</p>
+      </noscript>
+    </div>
+  </section>
+
+  <section class="home-section" aria-labelledby="paths-title">
+    <h2 id="paths-title" class="section-title">Where to start</h2>
+    <ul class="paths">
+      <li class={card}>
+        <h3 class="card-title"><a href="/models/">Models</a></h3>
+        <p>{models} models, from bond duration to policy rules. Filter by domain, evidence or the data they read.</p>
+      </li>
+      <li class={card}>
+        <h3 class="card-title"><a href="/data/">Data</a></h3>
+        <p>
+          {conceptData.length} series from {publishers} sources, with each one's licence and attribution. Chart
+          them, and download them as CSV or Excel.
+        </p>
+      </li>
+      <li class={card}>
+        <h3 class="card-title"><a href={DOCUMENTATION}>Documentation</a></h3>
+        <p>Tutorials, how-to guides and the reference for the Python package, the command line and the API.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="home-section code-section" aria-labelledby="code-title">
+    <h2 id="code-title" class="section-title">The same model from code</h2>
+    <p class="measure">
+      Install the package, then run any model by its id. Every result carries its inputs, units, warnings and a
+      manifest: the model's version, the hashes of its inputs and result, and where each value came from.
     </p>
-    <Math latex={String.raw`PV = \frac{FV}{(1 + r)^{n}}`} display />
+    <div class="code-grid">
+      <figure class="code-block">
+        <figcaption>Python</figcaption>
+        <pre role="region" tabindex="0" aria-label="Python"><code>{`${install}\n\n${pythonSnippet(run)}`}</code></pre>
+      </figure>
+      <figure class="code-block">
+        <figcaption>Command line</figcaption>
+        <pre role="region" tabindex="0" aria-label="Command line"><code>{cliSnippet(run)}</code></pre>
+      </figure>
+    </div>
+    <dl class="surfaces">
+      <div>
+        <dt>REST API</dt>
+        <dd>Every model is an endpoint: <code>POST /v1/models/{featured.id}/run</code> with its inputs as JSON.</dd>
+      </div>
+      <div>
+        <dt>MCP server</dt>
+        <dd>
+          Give your AI assistant every model as a tool: <code>{mcpCommand}</code>.{" "}
+          <a href={`${DOCUMENTATION}mcp.html`}>Setting it up</a>
+        </dd>
+      </div>
+      <div>
+        <dt>Reproducibility</dt>
+        <dd>
+          Download any result with its manifest, or as a bundle that runs it again.{" "}
+          <a href={`${DOCUMENTATION}results.html`}>What a result holds</a>
+        </dd>
+      </div>
+    </dl>
   </section>
 
-  <section class="mt-12 flex flex-col gap-4" aria-labelledby="domains">
-    <h2 id="domains" class="text-2xl font-semibold">Domains</h2>
+  <section class="home-section" aria-labelledby="checked-title">
+    <h2 id="checked-title" class="section-title">How every model is checked</h2>
+    <ul class="checks">
+      <li class={card}>
+        <h3 class="card-title">Cited</h3>
+        <p>Each model cites the papers, textbooks or official documents its formulas follow, on its page.</p>
+      </li>
+      <li class={card}>
+        <h3 class="card-title">Tested</h3>
+        <p>
+          At least three cited reference values per model, property tests of what must always hold, and a check against
+          an independent library where one exists.
+        </p>
+      </li>
+      <li class={card}>
+        <h3 class="card-title">Open</h3>
+        <p>All the code, tests and history are public. <a href={REPOSITORY}>The repository on GitHub</a>.</p>
+      </li>
+      <li class={card}>
+        <h3 class="card-title">Clear about data</h3>
+        <p>Every series says who publishes it and on what terms. <a href="/sources/">The data sources</a>.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="home-section" aria-labelledby="domains">
+    <h2 id="domains" class="section-title">Domains</h2>
     <p>
       <a href="/models/">Every model, with filters</a> · <a href="/search/">Search</a> ·{" "}
       <a href="/coverage/">What the catalog covers</a>
     </p>
-    <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <ul class="domain-grid">
       {
         sections.map(({ domain, count }) => (
-          <li class="rounded-md border px-4 py-3">
-            <a href={domainPath(domain.id)} class="font-medium">
-              {domain.title}
-            </a>
-            <span class="text-muted-foreground">
-              {" "}
-              · {count > 0 ? `${String(count)} ${count === 1 ? "model" : "models"}` : `planned: ${domain.planned ?? "later"}`}
+          <li class="domain-tile" data-planned={count === 0 ? "" : undefined}>
+            <a href={domainPath(domain.id)}>{domain.title}</a>
+            <span class="tile-count">
+              {count > 0 ? `${String(count)} ${count === 1 ? "model" : "models"}` : "coming later"}
             </span>
           </li>
         ))

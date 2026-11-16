@@ -41,7 +41,7 @@ import {
 import IslandBoundary from "@/components/IslandBoundary";
 import { report } from "@/lib/error-reporting";
 import { track } from "@/lib/events";
-import { STYLE_MARKER, loadPlotly } from "@/lib/plotly";
+import { STYLE_MARKER, loadPlotly, themed } from "@/lib/plotly";
 import { decode } from "@/lib/results";
 import type { RunAnswer } from "@/lib/run-request";
 import { getSeries, serverMode } from "@/lib/series-request";
@@ -122,12 +122,12 @@ function SeriesChart({ document: series, column }: { document: SeriesDocument; c
     if (!element) return undefined;
     let cancelled = false;
     let plotly: Awaited<ReturnType<typeof loadPlotly>> | null = null;
-    const figure = seriesFigure(series, column);
+    const figure = seriesFigure(series, column, element.clientWidth || undefined);
     loadPlotly()
       .then(async (loaded) => {
         if (cancelled) return;
         plotly = loaded;
-        await loaded.newPlot(element, figure.data as never, { ...figure.layout, autosize: true }, {
+        await loaded.newPlot(element, figure.data as never, themed({ ...figure.layout, autosize: true }), {
           displayModeBar: false,
           responsive: true,
         });
