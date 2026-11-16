@@ -5,6 +5,11 @@
 - Deciders: Nathan Ramos, CFA (maintainer)
 - Parent: ROADMAP §3 Target Architecture and §4 3.1–3.8; §5 "Security &
   privacy strategy", "Data licensing policy" and "Legal & brand guardrails"
+- Amended 2026-11-16 (attribution, issue #346): a series may also override
+  its attribution, to name its originating source where its provider's terms
+  ask for that source to be cited, as FRED's do. See "Amendment of
+  2026-11-16: an aggregator's attribution" under decision 7. The maintainer
+  chose this amendment on 2026-11-16. No other decision changed.
 
 ## Context and problem
 
@@ -243,6 +248,24 @@ eighteen decisions below are rules a later step follows as written.
   `https`, name a DNS host, and carry no user information, port, query or
   fragment, so it can hold neither a credential nor a request. Every other
   text field refuses `://`.
+
+#### Amendment of 2026-11-16: an aggregator's attribution
+
+- FRED's terms ([legal page](https://fred.stlouisfed.org/legal/), read
+  2026-11-16) say to "cite the source of the data and note that it was
+  accessed via FRED". FRED's answer to the permission letter of 2026-11-12
+  gave the same guidance (`docs/operations/permissions.md` section 1). A
+  provider-wide attribution cannot name each series' agency, so a series may
+  now override its attribution as well as its class, `llm_use`, cache policy
+  and notice (`Terms.with_overrides(attribution=...)`).
+- The override names the originating source, then the provider. Its words
+  come only from the source's own metadata: a FRED series' `src` tags, or a
+  v2 release's `sources`. The override is held to every check the provider's
+  attribution meets: single-line text, no URL, at most 1,000 characters.
+- A series whose source the metadata does not name keeps the provider's
+  attribution. The terms page and the date read stay the provider's.
+- Only `fred` overrides its attribution today. Another aggregator does so only
+  when its terms ask for the originating source, and then with tests.
 
 ### 8. `llm_use`
 

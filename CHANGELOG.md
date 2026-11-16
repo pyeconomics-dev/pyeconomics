@@ -194,6 +194,17 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - The staging deploy identity holds `roles/run.developer` on the Cloud Run
   service alone, never a project-level Cloud Run role, and the deploy no longer
   rewrites the service's IAM policy (#211).
+- A FRED series now cites its originating source, then FRED, as FRED's terms ask:
+  for example "Source: Bureau of Labor Statistics, retrieved from FRED®, Federal
+  Reserve Bank of St. Louis." (#346).
+  - The names come from FRED's own metadata: a series' source tags, or a v2
+    release's sources. A table cites every source its series name.
+  - A series whose source FRED does not name keeps "Source: Federal Reserve Bank
+    of St. Louis, FRED®.".
+  - Every FRED-bound result, export and data-source record now carries the longer
+    attribution.
+  - `Terms.with_overrides` takes `attribution` (ADR-0011 decision 7, amended
+    2026-11-16).
 
 ### Security
 

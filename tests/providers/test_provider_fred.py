@@ -22,6 +22,7 @@ from canned import Canned, http, ok, param, rounded
 from fakes import FakePool, FakeRaw
 from leakcheck import LeakCheck, canary
 
+from pyeconomics.core._fields import MAX_TEXT_LENGTH
 from pyeconomics.data import (
     CredentialError,
     DataError,
@@ -32,11 +33,14 @@ from pyeconomics.data import (
     Vintage,
     config,
 )
+from pyeconomics.data.providers.fred import _MAX_ATTRIBUTION as MAX_ATTRIBUTION
 from pyeconomics.data.providers.fred import (
     FRED_NOTICE,
     FRED_TERMS,
     Fred,
+    attribution,
     copyright_terms,
+    originators,
 )
 from pyeconomics.data.transport.base import Request
 from pyeconomics.data.types import (
@@ -383,6 +387,107 @@ def test_a_moodys_series_says_pre_approval_on_its_frame() -> None:
     assert any(note.startswith("moodys:") for note in series.meta.notes)
 
 
+# --- citing the originating source (issue #346) ------------------------------------
+
+BLS = {"name": "bls", "group_id": "src", "notes": "Bureau of Labor Statistics"}
+BEA = {"name": "bea", "group_id": "src", "notes": "Bureau of Economic Analysis"}
+CITED_BLS = (
+    "Source: Bureau of Labor Statistics, retrieved from FRED®, "
+    "Federal Reserve Bank of St. Louis."
+)
+
+
+def test_a_series_cites_its_originating_source_then_fred() -> None:
+    """FRED's terms: cite the data's source and note it was accessed via FRED."""
+    transport = route(UNRATE, [row("2025-01-01", "4.0")], [*PUBLIC, BLS])
+    series = Fred().fetch(
+        Query(series=("UNRATE",), max_observations=1), transport=transport
+    )
+    terms = series.meta.terms
+    assert terms.attribution == CITED_BLS
+    # Only the attribution moves: the page, date, class, notice and policies hold.
+    assert terms == FRED_TERMS.with_overrides(attribution=CITED_BLS)
+
+    def answer(request: Request) -> Any:
+        if request.path == "/fred/series":
+            return ok({"seriess": [UNRATE]})
+        return ok({"tags": [*PUBLIC, BLS]})
+
+    meta = Fred().describe("UNRATE", transport=Canned(answer))
+    assert meta.terms.attribution == CITED_BLS
+
+
+def test_a_series_whose_source_fred_does_not_name_keeps_the_providers_attribution() -> (
+    None
+):
+    series = Fred().fetch(
+        Query(series=("UNRATE",), max_observations=1),
+        transport=route(UNRATE, [row("2025-01-01", "4.0")]),
+    )
+    assert series.meta.terms == FRED_TERMS
+    assert attribution([]) == FRED_TERMS.attribution
+
+
+def test_source_names_are_cleaned_sorted_and_bounded() -> None:
+    tags = [
+        BLS,
+        {**BLS},  # the same source twice
+        {"name": "frb stl", "group_id": "src", "notes": "  St. Louis\tFed\x00 "},
+        {"name": "census", "group_id": "src", "notes": ""},  # no notes: the tag
+        {"name": "x", "group_id": "src", "notes": "See https://example.org"},
+        {"name": "y" * 121, "group_id": "src", "notes": None},  # too long
+        {"name": "z", "group_id": "seas", "notes": "Not a source"},
+        "not a tag",
+    ]
+    assert originators(tags) == (
+        "Bureau of Labor Statistics",
+        "census",
+        "St. Louis Fed",
+        "x",
+    )
+    many = [f"Agency {letter}" for letter in "GFEDCBA"]
+    assert attribution([*many, "Agency A"]) == (
+        "Source: Agency A; Agency B; Agency C; Agency D; Agency E; Agency F; "
+        "Agency G, retrieved from FRED®, Federal Reserve Bank of St. Louis."
+    )
+
+
+def test_a_citation_too_long_for_one_attribution_ends_with_and_others() -> None:
+    assert MAX_ATTRIBUTION == MAX_TEXT_LENGTH
+    names = [f"{index:02d}" + "n" * 118 for index in range(12)]  # 120 each
+    cited = attribution(names)
+    assert len(cited) <= MAX_TEXT_LENGTH
+    listed = cited.removeprefix("Source: ").split("; ")
+    assert listed[:-1] == names[: len(listed) - 1]
+    assert (
+        listed[-1]
+        == "and others, retrieved from FRED®, Federal Reserve Bank of St. Louis."
+    )
+    assert 1 < len(listed) - 1 < len(names)
+    # It is a valid attribution: the terms accept it as they accept the provider's.
+    assert FRED_TERMS.with_overrides(attribution=cited).attribution == cited
+    # Every name that fits is kept: one name fewer would leave room for none.
+    fewer = attribution(names[: len(listed) - 1])
+    assert "and others" not in fewer
+
+
+def test_a_table_cites_every_source_its_series_name() -> None:
+    def answer(request: Request) -> Any:
+        series_id = param(request, "series_id")
+        if request.path == "/fred/series":
+            return ok({"seriess": [{**UNRATE, "id": series_id}]})
+        if request.path == "/fred/series/tags":
+            return ok({"tags": [*PUBLIC, BLS if series_id == "A1" else BEA]})
+        return ok({"observations": [row("2025-01-01", "1.0")]})
+
+    table = Fred().fetch(Query(series=("B2", "A1")), transport=Canned(answer))
+    assert isinstance(table, Table)
+    assert table.meta.terms.attribution == (
+        "Source: Bureau of Economic Analysis; Bureau of Labor Statistics, "
+        "retrieved from FRED®, Federal Reserve Bank of St. Louis."
+    )
+
+
 # --- search and describe --------------------------------------------------------
 
 
@@ -412,16 +517,24 @@ def test_search_and_describe_read_freds_series_objects() -> None:
 
 
 def release_page(
-    series: list[dict[str, Any]], *, more: Any = False, cursor: str | None = None
+    series: list[dict[str, Any]],
+    *,
+    more: Any = False,
+    cursor: str | None = None,
+    sources: Any = None,
 ) -> Any:
-    body: dict[str, Any] = {
-        "has_more": more,
-        "release": {"release_id": 53, "name": "Gross Domestic Product"},
-        "series": series,
-    }
+    release: dict[str, Any] = {"release_id": 53, "name": "Gross Domestic Product"}
+    if sources is not None:
+        release["sources"] = sources
+    body: dict[str, Any] = {"has_more": more, "release": release, "series": series}
     if cursor:
         body["next_cursor"] = cursor
     return ok(body)
+
+
+def answering(response: Any) -> Canned:
+    """A transport that answers every request with one response."""
+    return Canned(lambda _: response)
 
 
 def bulk_entry(series_id: str, dates: list[str]) -> dict[str, Any]:
@@ -477,6 +590,30 @@ def test_a_release_keeps_the_ids_named_after_it_and_names_a_missing_one() -> Non
         )
     with pytest.raises(DataError, match="comes first"):
         Fred().build_requests(Query(series=("GDP", "release:53")))
+
+
+def test_a_release_cites_the_sources_v2_names() -> None:
+    sources = [
+        {"name": "U.S. Bureau of Economic Analysis", "url": "https://www.bea.gov"},
+        {"name": "https://not-a-name.example.org"},
+        "not a source",
+    ]
+    page = release_page([bulk_entry("A1", ["2025-01-01"])], sources=sources)
+    table = Fred().fetch(
+        Query(series=("release:53",)), transport=Canned(lambda _: page)
+    )
+    assert isinstance(table, Table)
+    assert table.meta.terms.attribution == (
+        "Source: U.S. Bureau of Economic Analysis, retrieved from FRED®, "
+        "Federal Reserve Bank of St. Louis."
+    )
+    # A release that names no source, or sends something else, keeps FRED's.
+    missing: tuple[object, ...] = (None, "U.S. Bureau of Economic Analysis", [])
+    for sent in missing:
+        bare = release_page([bulk_entry("A1", ["2025-01-01"])], sources=sent)
+        table = Fred().fetch(Query(series=("release:53",)), transport=answering(bare))
+        assert isinstance(table, Table)
+        assert table.meta.terms.attribution == FRED_TERMS.attribution
 
 
 def test_a_page_that_says_more_without_a_cursor_is_refused() -> None:
@@ -702,3 +839,28 @@ def test_the_recorded_alfred_cassette_selects_each_vintage_from_its_rows() -> No
     latest = {day: value for day, _, value in rows}
     newest = fetch("as_of:2026-10-01")
     assert dict(zip(newest.index, newest.values, strict=True)) == latest
+
+
+@pytest.mark.parametrize(
+    ("case_name", "source"),
+    [
+        ("fetch_ok", "Bureau of Labor Statistics"),
+        ("fetch_vintages", "Bureau of Economic Analysis"),
+        ("fetch_copyrighted", "Moody's Investors Service"),
+        ("fetch_release", "Board of Governors of the Federal Reserve System (US)"),
+    ],
+)
+def test_the_recorded_responses_name_each_series_source(
+    case_name: str, source: str
+) -> None:
+    """FRED's own responses carry the names: a src tag's notes, a release's sources."""
+    from provider_contract import replay, replay_key  # noqa: PLC0415
+
+    (case,) = [c for c in Fred.cases if c.name == case_name]
+    assert isinstance(case.argument, Query)
+    found = Fred().fetch(
+        case.argument, key=replay_key(Fred, case), transport=replay("fred", case)
+    )
+    assert found.meta.terms.attribution == (
+        f"Source: {source}, retrieved from FRED®, Federal Reserve Bank of St. Louis."
+    )
