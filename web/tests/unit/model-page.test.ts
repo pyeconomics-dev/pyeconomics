@@ -149,7 +149,8 @@ describe("the model page", () => {
       "use-it-elsewhere",
     ]);
     expect(html).toContain("<math");
-    expect(html).not.toContain("MCP tool");
+    // A model without a tool of its own is still reached through run_model.
+    expect(html).toContain("<code>run_model</code> with the model");
   });
 
   it("fails on a formula that plants HTML rather than rendering it", async () => {

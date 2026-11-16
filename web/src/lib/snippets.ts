@@ -23,6 +23,9 @@ export interface SnippetRun {
 
 const INDENT = "    ";
 
+/** The longest list of plain values a Python snippet keeps on one line, in characters. */
+const MAX_LIST_LINE = 56;
+
 /** A JSON value as a Python literal: True, False and None for JSON's words. */
 export function pythonLiteral(value: unknown, depth = 0): string {
   const pad = INDENT.repeat(depth + 1);
@@ -39,7 +42,11 @@ export function pythonLiteral(value: unknown, depth = 0): string {
   if (Array.isArray(value)) {
     if (value.length === 0) return "[]";
     if (value.every((item) => typeof item !== "object" || item === null)) {
-      return `[${value.map((item) => pythonLiteral(item)).join(", ")}]`;
+      const line = `[${value.map((item) => pythonLiteral(item)).join(", ")}]`;
+      // A list too long for a phone's code box goes one value to a line, as
+      // the command line's JSON does (Phase 5 Step 18's round 1).
+      if (line.length <= MAX_LIST_LINE) return line;
+      return `[\n${value.map((item) => `${pad}${pythonLiteral(item)},`).join("\n")}\n${end}]`;
     }
     return `[\n${value.map((item) => `${pad}${pythonLiteral(item, depth + 1)},`).join("\n")}\n${end}]`;
   }

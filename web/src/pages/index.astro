@@ -17,11 +17,12 @@ import Math from "@/components/Math.astro";
 import Calculator from "@/components/calculator/Calculator";
 import { buttonVariants } from "@/components/ui/button";
 import Base from "@/layouts/Base.astro";
-import { calculatorProps } from "@/lib/calculator";
+import { calculatorProps, formRoom } from "@/lib/calculator";
 import { DOCUMENTATION, REPOSITORY } from "@/lib/links";
 import { DOMAINS, domainPath, modelPath } from "@/lib/models";
 import { FEATURED_MODEL, HOME } from "@/lib/pages";
 import { cliSnippet, pythonSnippet } from "@/lib/snippets";
+import golden from "@/data/generated/golden.json";
 import {
   conceptData,
   domains,
@@ -38,14 +39,23 @@ const sections = DOMAINS.map((domain) => ({ domain, count: counts.get(domain.id)
 const prerelease = /(a|b|rc|dev)\d/.test(version);
 const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyeconomics";
 const mcpCommand = `uvx --from "pyeconomics[mcp]==${version}" pyeconomics mcp`;
-const featured = (await getCollection("models")).map(({ data }) => data).find((model) => model.id === FEATURED_MODEL);
+const everyModel = (await getCollection("models")).map(({ data }) => data);
+const featured = everyModel.find((model) => model.id === FEATURED_MODEL);
 const surface = surfaceData.find((entry) => entry.id === FEATURED_MODEL);
 if (!featured || !surface) throw new Error(`the featured model ${FEATURED_MODEL} is not in the registry`);
-const calculator = calculatorProps(featured, surface, problemData, sourceData, conceptData);
+// The page's next section shows the same model from code, so the calculator leaves its own snippets out.
+const calculator = { ...calculatorProps(featured, surface, problemData, sourceData, conceptData), snippets: false };
+const room = formRoom(featured, surface.profiles.length, false);
 const example = featured.examples[0];
 const run = { modelId: featured.id, inputs: example?.inputs ?? {} };
 const publishers = new Set(conceptData.flatMap((concept) => concept.candidates.map((candidate) => candidate.provider))).size;
 const card = "home-card";
+// What "cited" and "tested" mean in numbers, counted from the registry and its golden cases.
+const citations = everyModel.reduce((total, model) => total + model.references.length, 0);
+const invariants = everyModel.reduce((total, model) => total + model.invariants.length, 0);
+const goldenCases = (golden as { cases: unknown[] }).cases.length;
+const ownTools = surfaceData.filter((entry) => entry.mcp_tool !== null);
+const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
 ---
 
 <Base title={HOME.title} description={HOME.description}>
@@ -56,20 +66,27 @@ const card = "home-card";
       <p class="eyebrow">Free and open source · Apache-2.0</p>
       <h1 id="hero-title" class="hero-title">Economics and finance models you can read, run and cite.</h1>
       <p class="hero-lead">
-        {models} models with their formulas, sources and tested values, and {conceptData.length} data series, for
-        students, analysts and developers. Run them here, or from Python, the command line, a REST API or your AI
-        assistant.
+        {models} free models with their formulas, sources and tested values, and {conceptData.length} data series, for
+        students, analysts and developers. Run them here, or from{" "}
+        <a href="#code">Python, the command line, a REST API or your AI assistant</a>.
       </p>
       <div class="hero-actions">
         <a href="#try" class={buttonVariants({ size: "lg", className: "no-underline" })}>Try a model</a>
         <a href="/models/" class={buttonVariants({ variant: "outline", size: "lg", className: "no-underline" })}>
           Browse the models
         </a>
-        <a href="/data/" class={buttonVariants({ variant: "ghost", size: "lg", className: "no-underline" })}>
+        <a href="/data/" class={buttonVariants({ variant: "outline", size: "lg", className: "no-underline" })}>
           Explore the data
         </a>
       </div>
       <p class="hero-install"><span class="sr-only">Install the Python package: </span><code>{install}</code></p>
+      {
+        prerelease && (
+          <p class="note" data-preview-note>
+            Version {version} is a preview of 1.0. <a href="/newsletter/">Get an email when 1.0 ships</a>.
+          </p>
+        )
+      }
     </div>
     <figure class="hero-figure formula-plate" aria-labelledby="hero-figure-caption">
       <p class="plate-label">{featured.title}</p>
@@ -92,7 +109,11 @@ const card = "home-card";
       <p><a href={modelPath(featured.id)}>The model's page</a>: every formula, its variables, citations and tests.</p>
     </div>
     <div class="try-calculator calculator-card" data-pagefind-ignore="all">
-      <Calculator client:visible {...calculator} />
+      <div class="calculator-slot">
+        <Calculator client:visible {...calculator} />
+      </div>
+      <svg class="calculator-room calculator-room-narrow" aria-hidden="true" focusable="false" width="0" height={room.narrow}></svg>
+      <svg class="calculator-room calculator-room-wide" aria-hidden="true" focusable="false" width="0" height={room.wide}></svg>
       <noscript>
         <p>The calculator needs JavaScript. The model's page shows its worked example.</p>
       </noscript>
@@ -120,7 +141,7 @@ const card = "home-card";
     </ul>
   </section>
 
-  <section class="home-section code-section" aria-labelledby="code-title">
+  <section id="code" class="home-section code-section" aria-labelledby="code-title">
     <h2 id="code-title" class="section-title">The same model from code</h2>
     <p class="measure">
       Install the package, then run any model by its id. Every result carries its inputs, units, warnings and a
@@ -144,7 +165,8 @@ const card = "home-card";
       <div>
         <dt>MCP server</dt>
         <dd>
-          Give your AI assistant every model as a tool: <code>{mcpCommand}</code>.{" "}
+          Give your AI assistant every model as a tool: <code>{mcpCommand}</code>. The tool <code>run_model</code> runs
+          any model by its id{featuredTool && <Fragment>, and {ownTools.length} models have a tool of their own, such as <code>{featuredTool}</code></Fragment>}.{" "}
           <a href={`${DOCUMENTATION}mcp.html`}>Setting it up</a>
         </dd>
       </div>
@@ -163,18 +185,25 @@ const card = "home-card";
     <ul class="checks">
       <li class={card}>
         <h3 class="card-title">Cited</h3>
-        <p>Each model cites the papers, textbooks or official documents its formulas follow, on its page.</p>
+        <p>
+          {citations} citations across the {models} models: the papers, textbooks and official documents each formula
+          follows, on its page. <a href={`${modelPath(featured.id)}#citations`}>See {featured.title}'s</a>.
+        </p>
       </li>
       <li class={card}>
         <h3 class="card-title">Tested</h3>
         <p>
-          At least three cited reference values per model, property tests of what must always hold, and a check against
-          an independent library where one exists.
+          {goldenCases} cited reference values, at least three per model, {invariants} properties that must always hold,
+          and a check against an independent library where one exists.{" "}
+          <a href={`${modelPath(featured.id)}#evidence`}>See a model's evidence</a>.
         </p>
       </li>
       <li class={card}>
         <h3 class="card-title">Open</h3>
-        <p>All the code, tests and history are public. <a href={REPOSITORY}>The repository on GitHub</a>.</p>
+        <p>
+          All the code, tests and history are public. <a href={REPOSITORY}>The repository on GitHub</a>.{" "}
+          <a href="/legal/">Who runs this site</a>.
+        </p>
       </li>
       <li class={card}>
         <h3 class="card-title">Clear about data</h3>

@@ -74,6 +74,37 @@ for (const path of SAMPLE) {
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForLoadState("networkidle").catch(() => undefined);
     expect(await motion(page)).toEqual([]);
-    expect(api.requests).toEqual([]);
+    // Only a concept's page asks the API anything unasked: its chart's series.
+    expect(api.requests.filter((request) => !request.url.startsWith("/v1/series/"))).toEqual([]);
   });
 }
+
+// Step 17's trap, made a check in Step 18: a transition on anything a closed
+// <details> holds never finishes, because the browser does not render it, so
+// whatever waits for transitions (the tests' useColorScheme among them) waits
+// forever. global.css turns every such transition off; this holds it, with
+// motion allowed, on pages whose islands have loaded their disclosures.
+test.describe("with motion allowed", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  for (const path of ["/", "/models/fixed-income/duration/", "/models/fixed-income/bond-pricing/", "/models/equity/cape/"]) {
+    test(`nothing a closed disclosure holds on ${path} declares a transition`, async ({ page }) => {
+      await page.goto(path);
+      const calculator = page.locator("[data-calculator]").first();
+      await calculator.scrollIntoViewIfNeeded();
+      await expect(page.locator('[data-calculator][data-ready="true"]').first()).toBeVisible();
+      const found = await page.evaluate(() =>
+        [...document.querySelectorAll("details:not([open])")].flatMap((details) =>
+          [...details.querySelectorAll(":scope > :not(summary), :scope > :not(summary) *")]
+            .filter((element) => {
+              const style = getComputedStyle(element);
+              return style.transitionProperty !== "none" && style.transitionDuration.split(",").some((part) => parseFloat(part) > 0);
+            })
+            .map((element) => `${element.tagName.toLowerCase()}.${[...element.classList].slice(0, 3).join(".")}`),
+        ),
+      );
+      expect(found).toEqual([]);
+      expect(await page.locator("details:not([open])").count()).toBeGreaterThan(0);
+    });
+  }
+});

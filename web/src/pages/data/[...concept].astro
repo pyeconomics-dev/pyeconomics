@@ -14,7 +14,7 @@ import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import SeriesExplorer from "@/components/explorer/SeriesExplorer";
 import Base from "@/layouts/Base.astro";
 import { LOCAL_APP, modelsReading } from "@/lib/explorer";
-import { domainTitle, modelPath } from "@/lib/models";
+import { ORIGIN, domainTitle, modelPath } from "@/lib/models";
 import { conceptDescription, DATA_INDEX } from "@/lib/pages";
 import { DATA_PATH, conceptPath } from "@/lib/paths";
 import { conceptData, problemData, registryData, sourceData, type ConceptEntry } from "@/lib/site-data";
@@ -81,7 +81,7 @@ const headingClass = "text-2xl font-semibold";
         <dd data-snapshot={concept.snapshot ? "served" : "local"}>
           {
             concept.snapshot
-              ? "Served from the daily snapshot of its originator."
+              ? "Charted and downloaded here, from this site's daily copy of its source."
               : "Not served here: read it on your own computer."
           }
         </dd>
@@ -93,6 +93,9 @@ const headingClass = "text-2xl font-semibold";
       <SeriesExplorer
         client:visible
         conceptId={concept.id}
+        title={concept.title}
+        unit={concept.unit ?? ""}
+        url={new URL(path, ORIGIN).href}
         frequency={concept.frequency}
         shape={concept.shape}
         snapshot={concept.snapshot}
@@ -104,7 +107,7 @@ const headingClass = "text-2xl font-semibold";
       />
       <noscript>
         <p class="max-w-3xl">
-          The chart needs JavaScript. Read the series with <code>{concept.local_command}</code>, or from the REST API at
+          The chart needs JavaScript. Read the series with <code>{concept.local_command}</code>, or from the REST API at{" "}
           <code>GET /v1/series/{concept.id}</code>.
         </p>
       </noscript>

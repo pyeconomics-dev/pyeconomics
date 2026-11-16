@@ -24,6 +24,23 @@ const trail: Crumb[] = [
   { name: SOURCES_PAGE.title, path: SOURCES_PAGE.path },
 ];
 const served = sourceData.filter((source) => source.snapshot_series > 0);
+const local = sourceData.filter((source) => source.snapshot_series === 0);
+// The two groups a reader compares: what this site serves, and what runs on their own computer.
+const groups = [
+  {
+    id: "served",
+    title: `Served on this site (${String(served.length)})`,
+    why: `This site keeps a copy of these sources' series, read ${SNAPSHOT_CADENCE} from the body that publishes each, and charts and downloads them.`,
+    sources: served,
+  },
+  {
+    id: "local",
+    title: `On your own computer only (${String(local.length)})`,
+    why: "Their terms keep their data to the person who reads it, or this site does not keep a copy of them yet. pyeconomics reads them on your computer, with your own key where a source needs one.",
+    sources: local,
+  },
+];
+const badge = "inline-block rounded-full border px-2 py-0.5 text-xs font-medium";
 const conceptsOf = (id: string) =>
   conceptData
     .filter((concept) => concept.candidates.some((candidate) => candidate.provider === id))
@@ -55,10 +72,49 @@ const cell = "py-2 pr-4 align-top";
     notices.
   </p>
   <p class="mt-2 max-w-3xl">
-    This site serves the data of {served.length} sources, read {SNAPSHOT_CADENCE} into a snapshot from the bodies that
-    publish them, never through an aggregator. The others run on your own computer, under your own acceptance of each
+    This site serves the data of {served.length} sources: it keeps a copy of their series, read {SNAPSHOT_CADENCE} from
+    the bodies that publish them, never through an aggregator. The others run on your own computer, under your own acceptance of each
     source's terms. Last reviewed {SOURCES_PAGE.updated}; each source's terms page was read on the date beside it.
   </p>
+  <nav class="jump mt-6" aria-label="On this page">
+    <a href="#served">Served on this site</a>
+    <a href="#local">On your own computer only</a>
+    <a href="#classes">Licence classes</a>
+    <a href="#sources-list">Every source's terms</a>
+    <a href="#required-notices">Required notices</a>
+  </nav>
+
+  <section class="mt-10" aria-labelledby="at-a-glance">
+    <h2 id="at-a-glance" class="section-title">Sources at a glance</h2>
+    {
+      groups.map((group) => (
+        <div class="mt-6" data-source-group={group.id}>
+          <h3 id={group.id} class="subsection-title scroll-mt-6">
+            {group.title}
+          </h3>
+          <p class="mt-1 max-w-3xl text-sm text-muted-foreground">{group.why}</p>
+          <ul class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {group.sources.map((source) => (
+              <li class="flex flex-col gap-1 rounded-md border px-3 py-2 text-sm">
+                <a href={`#${source.id}`} class="font-medium">
+                  {source.name}
+                </a>
+                <span>
+                  {source.snapshot_series > 0 ? (
+                    <span class={`${badge} border-success text-success`}>{String(source.snapshot_series)} series here</span>
+                  ) : source.hosted ? (
+                    <span class={`${badge} text-muted-foreground`}>Allowed here, no copy kept yet</span>
+                  ) : (
+                    <span class={`${badge} text-muted-foreground`}>Its terms keep it local</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </section>
 
   <section class="mt-10" aria-labelledby="classes">
     <h2 id="classes" class="section-title">Licence classes</h2>
@@ -95,41 +151,8 @@ const cell = "py-2 pr-4 align-top";
   </section>
 
   <section class="mt-10" aria-labelledby="sources-list">
-    <h2 id="sources-list" class="section-title">Sources</h2>
-    <div class="mt-4 overflow-x-auto" role="region" aria-label="Sources at a glance" tabindex="0">
-      <table class="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr class="border-b">
-            <th scope="col" class={cell}>Source</th>
-            <th scope="col" class={cell}>Class</th>
-            <th scope="col" class="py-2 align-top">On this site</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            sourceData.map((source) => (
-              <tr class="border-b">
-                <th scope="row" class={`${cell} font-normal`}>
-                  <a href={`#${source.id}`}>{source.name}</a>
-                </th>
-                <td class={cell}>
-                  <code>{source.licence}</code>
-                </td>
-                <td class="py-2 align-top">
-                  {source.snapshot_series > 0
-                    ? `Yes: ${String(source.snapshot_series)} series, ${SNAPSHOT_CADENCE}`
-                    : source.hosted
-                      ? "Allowed, not yet snapshotted: run it locally"
-                      : "No: run it locally"}
-                </td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <ul class="mt-8 flex flex-col gap-6">
+    <h2 id="sources-list" class="section-title">Every source's terms</h2>
+    <ul class="mt-4 flex flex-col gap-6">
       {
         sourceData.map((source) => {
           const concepts = conceptsOf(source.id);
@@ -152,9 +175,9 @@ const cell = "py-2 pr-4 align-top";
                 <dt class="font-medium">On this site</dt>
                 <dd>
                   {source.snapshot_series > 0
-                    ? `Served from the snapshot, ${SNAPSHOT_CADENCE}: ${String(source.snapshot_series)} series.`
+                    ? `Served from this site's copy, read ${SNAPSHOT_CADENCE}: ${String(source.snapshot_series)} series.`
                     : source.hosted
-                      ? "Its terms allow this site to serve it, but the snapshot keeps none of its series yet: run it with pyeconomics on your computer."
+                      ? "Its terms allow this site to serve it, but the site keeps no copy of its series yet: run it with pyeconomics on your computer."
                       : "Never: its terms keep its data to your own computer."}
                 </dd>
                 <dt class="font-medium">Terms</dt>

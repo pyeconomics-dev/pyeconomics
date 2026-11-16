@@ -61,7 +61,7 @@ test("a calculator runs end to end against the local server", async ({ page, wat
   await openCalculator(page, "/models/fixed-income/duration/");
   await run(page);
   const outputs = page.getByRole("table", { name: "Outputs of this run" });
-  await expect(outputs.getByRole("rowheader", { name: /^macaulay_duration/ })).toBeVisible();
+  await expect(outputs.getByRole("rowheader", { name: /macaulay_duration/ })).toBeVisible();
   await expect(page.locator("#calculator").getByRole("status")).toContainText("Done.");
   expect(watch.violations).toEqual([]);
   expect(watch.errors).toEqual([]);

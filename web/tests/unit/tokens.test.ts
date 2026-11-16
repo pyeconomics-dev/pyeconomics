@@ -26,6 +26,7 @@ const TEXT: readonly [string, readonly string[]][] = [
   ["accent-foreground", ["accent"]],
   ["link", ["background", "card", "muted"]],
   ["destructive", ["background", "card"]],
+  ["success", ["background", "card"]],
   ["highlight-foreground", ["highlight"]],
 ];
 

@@ -40,6 +40,8 @@ export const NAVIGATION: readonly Link[] = [
  * footer).
  */
 export const FOOTER_LINKS: readonly Link[] = [
+  // Who runs the site and how to write to them (Step 18's round 1: no page said).
+  { label: "About this site", href: "/legal/" },
   { label: "Terms of use", href: "/legal/terms/" },
   { label: "Privacy", href: "/legal/privacy/" },
   { label: "Disclaimers", href: "/legal/disclaimers/" },

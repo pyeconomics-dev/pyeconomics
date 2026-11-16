@@ -43,6 +43,15 @@ export interface CalculatorProps {
   /** The problems that point to local mode, and the command they give for this model. */
   localSlugs: string[];
   localCommand: string;
+  /** The model's own MCP tool, where the server gives it one beside run_model. */
+  mcpTool: string | null;
+  /** Each calculation's input fields in the order the model declares them (its card's). */
+  inputOrder: string[][];
+  /**
+   * Whether the calculator shows the run as code beneath the form. The home
+   * page, whose next section is the same model from code, turns it off.
+   */
+  snippets?: boolean;
 }
 
 /** One profile's fields the hosted site may not serve, and the sources that would fill them. */
@@ -97,7 +106,80 @@ export function calculatorProps(
       MODEL_PLACEHOLDER,
       model.id,
     ),
+    mcpTool: surface.mcp_tool,
+    inputOrder: cardOrder(model.card, "Inputs"),
   };
+}
+
+/**
+ * What each part of a loaded form adds to its card's height, in pixels, on a
+ * phone (one column of fields) and on a wide card (two): fitted in Phase 5
+ * Step 18 to all 50 models' measured cards (median error about 50 pixels).
+ * tests/e2e/layout-shift.spec.ts holds the result: a page must not shift as
+ * its calculator loads, so a form that outgrows these numbers fails there.
+ */
+const ROOM = {
+  narrow: { base: 480, row: 143, array: 240, openRow: 285, optional: 67, examples: 159, profiles: 252, family: 95, anyArray: 153 },
+  wide: { base: 478, row: 141, array: 202, openRow: 356, optional: 105, examples: 106, profiles: 146, family: 80, anyArray: 172 },
+} as const;
+
+/** What the run-as-code section adds to a card, in pixels: its heading, buttons and one snippet. */
+const CODE_ROOM = 380;
+
+/**
+ * The room a model's calculator takes once its form has loaded, in pixels, on
+ * a phone and on a wide card, estimated from its schema and first example at
+ * build time. The page holds that room before the form loads (round 0's M12
+ * and round 1: pages shifted as a calculator loaded), so what follows the
+ * calculator does not move when it arrives.
+ */
+export function formRoom(
+  model: Pick<Model, "input_schema" | "examples">,
+  profiles: number,
+  snippets = true,
+): { narrow: number; wide: number } {
+  const schema = model.input_schema as Node;
+  const definitions = isNode(schema.$defs) ? schema.$defs : {};
+  const example = new Map(Object.entries(model.examples.at(0)?.inputs ?? {}));
+  const found = members(schema).find(([calculation]) => calculation === null || calculation === example.get(CALCULATION));
+  const node = found?.[1] ?? {};
+  const fields = Object.entries(isNode(node.properties) ? node.properties : {}).filter(
+    (entry): entry is [string, Node] => entry[0] !== CALCULATION && isNode(entry[1]),
+  );
+  const list = (raw: Node): boolean => {
+    const resolved = resolve(raw, definitions);
+    return resolved.type === "array" || (Array.isArray(resolved.anyOf) && resolved.anyOf.some((option) => isNode(option) && option.type === "array"));
+  };
+  const needed = fields.filter(([, raw]) => !nullable(raw));
+  const optional = fields.filter(([, raw]) => nullable(raw));
+  const arrays = needed.filter(([, raw]) => list(raw)).length;
+  const scalars = needed.length - arrays;
+  const open = optional.some(([name]) => (example.get(name) ?? null) !== null);
+  const estimate = (size: "narrow" | "wide"): number => {
+    const part = size === "narrow" ? ROOM.narrow : ROOM.wide;
+    const perRow = size === "narrow" ? 1 : 2;
+    return Math.round(
+      part.base -
+        (snippets ? 0 : CODE_ROOM) +
+        part.row * Math.ceil(scalars / perRow) +
+        part.array * arrays +
+        (arrays > 0 ? part.anyArray : 0) +
+        (optional.length > 0 ? part.optional : 0) +
+        (open ? part.openRow * Math.ceil(optional.length / perRow) : 0) +
+        (model.examples.length > 1 ? part.examples : 0) +
+        (profiles > 0 ? part.profiles : 0) +
+        (Array.isArray(schema.oneOf) ? part.family : 0),
+    );
+  };
+  return { narrow: estimate("narrow"), wide: estimate("wide") };
+}
+
+/**
+ * An example as the form's picker names it: its name in words; its note, when
+ * it has one, is shown beneath the picker, where it can wrap.
+ */
+export function exampleLabel(example: Pick<Example, "name">): string {
+  return fieldTitle(example.name);
 }
 
 /** A family's calculations, in the schema's order: each const and its words. */
@@ -107,16 +189,20 @@ export function calculations(schema: Node): { value: string; label: string }[] {
     .map(([value, node]) => {
       const properties = isNode(node.properties) ? node.properties : {};
       const field = isNode(properties.calculation) ? properties.calculation : {};
-      const words = typeof field.description === "string" ? field.description : value;
-      return { value, label: `${words} (${value})` };
+      const words = typeof field.description === "string" ? field.description : fieldTitle(value);
+      return { value, label: words };
     });
 }
 
-/** The field help the form shows under a field: its unit and bounds; a choice or flag has no unit to show. */
+/** The field help the form shows under a field: its unit and bounds; a choice, a flag or a date has no unit to show. */
 export function fieldHelp(node: Node): string {
   const kind = unit(node);
   const parts =
-    kind === "text" || kind === "flag" ? [] : DECIMAL_UNITS.has(kind) ? [`${capitalise(kind)}, as a decimal (0.05 is 5%)`] : [`Unit: ${kind}`];
+    kind === "text" || kind === "flag" || kind === "date"
+      ? []
+      : DECIMAL_UNITS.has(kind)
+        ? [`${capitalise(kind)}, as a decimal (0.05 is 5%)`]
+        : [`Unit: ${kind}`];
   const range = boundsInWords(bounds(node));
   if (range) parts.push(range);
   return parts.join("; ");
@@ -154,10 +240,87 @@ export function boundsInWords(range: string): string {
   return `more than ${lowOpen ? "" : "or equal to "}${numberInWords(low)} and less than ${highOpen ? "" : "or equal to "}${numberInWords(high)}`;
 }
 
-/** A field's label when its schema has no title (a $ref to an enum): `day_count` is "Day count". */
+/**
+ * Abbreviations an identifier's words keep in capitals: `formula_capm` is
+ * "Formula CAPM", `ebit` is "EBIT". A word outside the set is written as it is.
+ */
+const ACRONYMS: ReadonlySet<string> = new Set([
+  "aic", "aqi", "ar1", "bic", "capm", "cfo", "cpi", "depi", "dfl", "dol", "dsri", "dtl", "dv01", "ebit", "eur",
+  "fcfe", "fcff", "ff3", "ff5", "ff6", "gjr", "gmi", "grs", "hac", "hlw", "hqic", "hrp", "irr", "kwf", "lvgi",
+  "mirr", "nist", "npv", "oas", "pnl", "ppp", "pvgo", "rmse", "roa", "roe", "sgai", "sgi", "tata", "tfp", "tips",
+  "usd", "vif", "wacc", "xirr", "xnpv",
+]);
+
+/**
+ * An identifier as a reader's words (Phase 5 Step 18's round 1: field, output
+ * and example names read as code): `yield_to_maturity` is "Yield to maturity",
+ * `day_count` is "Day count", `formula_capm` is "Formula CAPM".
+ */
 export function fieldTitle(name: string): string {
-  const words = name.replaceAll("_", " ");
+  const words = name
+    .split("_")
+    .filter((word) => word !== "")
+    .map((word) => (ACRONYMS.has(word) ? word.toUpperCase() : word))
+    .join(" ");
   return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** The title Pydantic writes for a field it was given none for: `end_of_month` is "End Of Month". */
+function automaticTitle(name: string): string {
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/**
+ * The names of options whose ids are abbreviations a reader may not know:
+ * day counts, covariance estimators, criteria and named rules. Every other
+ * option is its id written as words. tests/unit/calculator.test.ts fails on a
+ * name here that no model's schema offers.
+ */
+export const OPTION_NAMES: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    act_360: "Actual/360",
+    act_365_fixed: "Actual/365 Fixed",
+    act_act_icma: "Actual/Actual ICMA",
+    act_act_isda: "Actual/Actual ISDA",
+    adjusted_taylor_1993: "Adjusted Taylor (1993)",
+    aic: "AIC",
+    balanced_approach_shortfalls: "Balanced approach (shortfalls)",
+    bic: "BIC",
+    bond_equivalent: "Bond-equivalent",
+    hac: "HAC",
+    hc0: "HC0",
+    hc1: "HC1",
+    hc2: "HC2",
+    hc3: "HC3",
+    he_litterman: "He-Litterman",
+    hqic: "HQIC",
+    nelson_siegel: "Nelson-Siegel",
+    newey_west: "Newey-West",
+    nonrobust: "Non-robust",
+    student_t: "Student's t",
+    taylor_1993: "Taylor (1993)",
+    taylor_1999: "Taylor (1999)",
+    thirty_360_us: "30/360 US",
+    thirty_e_360: "30E/360",
+    two_sided: "Two-sided",
+  }),
+);
+
+/**
+ * An option as a select shows it: its name, with its id beside it where the
+ * name does not spell the id ("Actual/Actual ICMA (act_act_icma)"), so the
+ * value the API takes stays in view. A one- or two-letter code (a trend's
+ * `c` or `ct`) stays as it is: its field's description says what it means.
+ */
+export function optionLabel(value: unknown): string {
+  const id = String(value);
+  if (/^[a-z]{1,2}$/.test(id) || id === "ctt") return id;
+  const label = OPTION_NAMES.get(id) ?? fieldTitle(id);
+  const plain = (text: string) => text.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return plain(label) === plain(id) ? label : `${label} (${id})`;
 }
 
 function optionIndex(options: readonly unknown[], wantNull: boolean): number {
@@ -171,9 +334,19 @@ function resolve(node: Node, definitions: Node): Node {
   return isNode(target) ? { ...target, ...node } : node;
 }
 
+/** Whether a field may be left out: its schema takes a value or null. */
+export function nullable(node: unknown): boolean {
+  return isNode(node) && Array.isArray(node.anyOf) && optionIndex(node.anyOf, true) >= 0;
+}
+
 function fieldUi(raw: Node, definitions: Node, hidden: boolean, name?: string): Record<string, unknown> {
   if (hidden) return { "ui:widget": "hidden" };
-  const titled = name !== undefined && typeof raw.title !== "string" ? { "ui:title": fieldTitle(name) } : {};
+  // A title the model wrote stays; one Pydantic made from the name ("End Of
+  // Month") is written as words.
+  const titled =
+    name !== undefined && (typeof raw.title !== "string" || raw.title === automaticTitle(name))
+      ? { "ui:title": fieldTitle(name) }
+      : {};
   const options = raw.anyOf;
   if (Array.isArray(options)) {
     const value = optionIndex(options, false);
@@ -193,26 +366,49 @@ function fieldUi(raw: Node, definitions: Node, hidden: boolean, name?: string): 
   const ui: Record<string, unknown> = { ...titled, ...(help ? { "ui:help": help } : {}) };
   // An array is one text box (src/lib/lists.ts), RJSF's custom-widget path.
   if (node.type === "array") ui["ui:widget"] = "list";
+  // A choice shows each option's name, not its id alone.
+  if (Array.isArray(node.enum)) {
+    ui["ui:enumNames"] = Object.fromEntries(node.enum.map((value) => [String(value), optionLabel(value)]));
+  }
   return ui;
 }
 
-function objectUi(node: Node, definitions: Node, hide: ReadonlySet<string>): Record<string, unknown> {
+/**
+ * The order a form shows an object's fields in: the fields a run cannot do
+ * without first, then those with a default, each group in the order the model
+ * declares them (its card's), not the alphabetical order of the schema's
+ * canonical JSON (Phase 5 Step 18's round 1: a bond's settlement and maturity
+ * sat below its conventions).
+ */
+export function fieldOrder(node: Node, declared: readonly string[] = []): string[] {
+  const names = Object.keys(isNode(node.properties) ? node.properties : {});
+  const known = declared.filter((name) => names.includes(name));
+  const all = [...known, ...names.filter((name) => !known.includes(name))];
+  const required = new Set(Array.isArray(node.required) ? node.required : []);
+  return [...all.filter((name) => required.has(name)), ...all.filter((name) => !required.has(name))];
+}
+
+function objectUi(node: Node, definitions: Node, hide: ReadonlySet<string>, declared: readonly string[] = []): Record<string, unknown> {
   const properties = isNode(node.properties) ? node.properties : {};
-  return Object.fromEntries(
-    Object.entries(properties)
-      .filter((entry): entry is [string, Node] => isNode(entry[1]))
-      .map(([name, raw]) => [name, fieldUi(raw, definitions, name === CALCULATION || hide.has(name), name)]),
-  );
+  return {
+    "ui:order": fieldOrder(node, declared),
+    ...Object.fromEntries(
+      Object.entries(properties)
+        .filter((entry): entry is [string, Node] => isNode(entry[1]))
+        .map(([name, raw]) => [name, fieldUi(raw, definitions, name === CALCULATION || hide.has(name), name)]),
+    ),
+  };
 }
 
 /**
  * The form's uiSchema: no title or description for the form itself (the
  * page has both); for a family, a "Calculation" selector whose options carry
  * each calculation's words; each field's label and help; arrays as lists (the
- * `list` widget); a nullable field's two options named; and the fields in
- * `hide` (bound to data) hidden.
+ * `list` widget); a nullable field's two options named; the fields in `hide`
+ * (bound to data) hidden; and each calculation's fields in `order`, the
+ * model's own (fieldOrder).
  */
-export function uiSchemaFor(schema: Node, hide: readonly string[] = []): Record<string, unknown> {
+export function uiSchemaFor(schema: Node, hide: readonly string[] = [], order: readonly (readonly string[])[] = []): Record<string, unknown> {
   const definitions = isNode(schema.$defs) ? schema.$defs : {};
   const hidden = new Set(hide);
   const base = { "ui:submitButtonOptions": { norender: true } };
@@ -225,11 +421,11 @@ export function uiSchemaFor(schema: Node, hide: readonly string[] = []): Record<
       oneOf: members(schema).map(([, node], index) => ({
         "ui:title": labels.at(index)?.label,
         "ui:options": { label: false },
-        ...objectUi(node, definitions, hidden),
+        ...objectUi(node, definitions, hidden, order.at(index)),
       })),
     };
   }
-  return { ...base, "ui:options": { label: false }, ...objectUi(schema, definitions, hidden) };
+  return { ...base, "ui:options": { label: false }, ...objectUi(schema, definitions, hidden, order.at(0)) };
 }
 
 /** The properties of the calculation an input object names, or of the only one. */

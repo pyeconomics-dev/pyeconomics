@@ -119,7 +119,12 @@ for (const path of SAMPLE) {
       // Chromium logs the 404 page's own status as a resource error.
       const errors = watch.errors.filter((text) => !(path === NOT_FOUND && /404/.test(text)));
       expect(errors).toEqual([]);
-      expect(api.requests).toEqual([]);
+      // A page view sends the API nothing, but for a concept's page, whose
+      // chart reads its one series when it comes into view (Step 18).
+      for (const request of api.requests) {
+        expect(path, request.url).toMatch(/^\/data\/.+/);
+        expect(`${request.method} ${request.url}`).toMatch(/^GET \/v1\/series\/[a-z0-9_.]+\?/);
+      }
     });
 
     // Phase 5 Step 17's round 0: pages scrolled sideways on a phone, where a

@@ -10,7 +10,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { attributes, startTags } from "../../scripts/headers.ts";
-import ProblemPanel from "@/components/calculator/ProblemPanel";
+import ProblemPanel, { fieldPath, plainMessage } from "@/components/calculator/ProblemPanel";
 import ResultPanel from "@/components/calculator/ResultPanel";
 import type { Result } from "@/lib/results";
 
@@ -110,5 +110,38 @@ describe("the result panel", () => {
     expect(html).toContain("<td");
     // A terms page that is not https is not linked.
     expect(html).not.toContain("javascript:");
+  });
+});
+
+describe("a problem's field errors in a reader's words (Phase 5 Step 18)", () => {
+  it("drops the library's prefix and the calculation's name, and says each error once", () => {
+    expect(plainMessage("Value error, settlement must be before maturity")).toBe("Settlement must be before maturity");
+    expect(plainMessage("Input should be greater than or equal to 0")).toBe("Input should be greater than or equal to 0");
+    expect(fieldPath(["price_from_yield", "coupon_rate"], "price_from_yield")).toEqual(["coupon_rate"]);
+    expect(fieldPath(["price_from_yield"], "price_from_yield")).toEqual([]);
+    expect(fieldPath(["coupon_rate"], undefined)).toEqual(["coupon_rate"]);
+    const html = renderToString(
+      <ProblemPanel
+        problem={{
+          type: "https://pyeconomics.dev/problems/invalid-input",
+          title: "The inputs are not valid",
+          detail: "The inputs failed validation: price_from_yield: Value error, settlement must be before maturity.",
+          errors: [
+            { loc: ["price_from_yield"], msg: "Value error, settlement must be before maturity" },
+            { loc: ["price_from_yield", "coupon_rate"], msg: "Input should be greater than or equal to 0" },
+          ],
+        }}
+        status={422}
+        retryAfter={null}
+        localSlugs={[]}
+        localCommand="x"
+        calculation="price_from_yield"
+      />,
+    );
+    expect(html).toContain("Settlement must be before maturity");
+    expect(html).toContain("Coupon rate");
+    expect(html).not.toContain("Value error");
+    expect(html).not.toContain("The inputs failed validation");
+    expect(html.split("ettlement must be before maturity").length).toBe(2);
   });
 });

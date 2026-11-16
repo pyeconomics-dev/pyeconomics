@@ -176,6 +176,40 @@ export function cardOrder(card: string, heading: "Inputs" | "Outputs"): string[]
   return tables;
 }
 
+/** One symbol of a model's formulas, as its card's "Where" list defines it. */
+export interface FormulaSymbol {
+  /** The symbol, in LaTeX. */
+  symbol: string;
+  meaning: string;
+  /** The input or output field the symbol stands for, when it is one. */
+  field: string | null;
+}
+
+/**
+ * What a card says its formulas' symbols stand for (issue #343): each line of
+ * the "Where" list under its formulas, `- $<LaTeX>$: <meaning> (`<field>`)`,
+ * the field left out for a symbol that stands for none. core/cards.py writes
+ * the line, and tests/registry/test_formula_symbols.py pins its shape.
+ */
+export function symbolsOf(card: string): FormulaSymbol[] {
+  const start = card.indexOf("\n## Formula\n");
+  if (start < 0) return [];
+  const end = card.indexOf("\n## ", start + 1);
+  const found: FormulaSymbol[] = [];
+  for (const line of card.slice(start, end < 0 ? undefined : end).split("\n")) {
+    const close = line.indexOf("$: ", 3);
+    if (!line.startsWith("- $") || close < 0) continue;
+    const symbol = line.slice(3, close);
+    const rest = line.slice(close + 3);
+    // The field, when the line ends with one in backquotes and parentheses.
+    const open = rest.endsWith("`)") ? rest.lastIndexOf(" (`") : -1;
+    const name = open < 0 ? "" : rest.slice(open + 3, -2);
+    const field = /^[a-z0-9_]+$/.test(name) ? name : null;
+    found.push({ symbol, meaning: field === null ? rest : rest.slice(0, open), field });
+  }
+  return found;
+}
+
 /**
  * One variables table per calculation of a model's input or output schema,
  * each table's rows in `order` (cardOrder's), any field it does not name last.
@@ -327,6 +361,56 @@ export function unservedSources(profiles: readonly DataProfile[]): UnservedSourc
     }
   }
   return [...found.values()];
+}
+
+/** Names as a sentence lists them: "A", "A and B", "A, B and C". */
+export function sentenceList(names: readonly string[]): string {
+  if (names.length < 2) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names.at(-1) ?? ""}`;
+}
+
+/** The live-data notice of a model the hosted site cannot serve all the data of. */
+export interface LiveNotice {
+  title: string;
+  /** Which profiles run on this site with live data, or null when none does. */
+  served: string | null;
+  /** One sentence per source the site may not serve: what it holds and for which profiles. */
+  local: string[];
+}
+
+/**
+ * What a model page says when the hosted site may not serve some of the data
+ * its profiles read (issue #320). It names the profiles that run here before
+ * the ones that do not, so the notice never contradicts a live run that works
+ * (Phase 5 Step 18's round 1: it named only what the site could not serve,
+ * above a default profile that ran). Null for a model whose data the site
+ * serves, or that reads none.
+ */
+export function liveNotice(profiles: readonly DataProfile[]): LiveNotice | null {
+  const unserved = unservedSources(profiles);
+  if (unserved.length === 0) return null;
+  const here = profiles
+    .filter((profile) => profile.rows.length > 0 && profile.rows.every((row) => row.hosted))
+    .map((profile) => profile.profile);
+  const some = here.length > 0;
+  return {
+    title: some
+      ? "Live data: some profiles run here, the rest on your own computer"
+      : "Live data runs on your own computer only",
+    served: some
+      ? `On this site, "Live data" runs with ${here.length === 1 ? "the profile" : "the profiles"} ${sentenceList(here)}.`
+      : null,
+    local: unserved.map((source) => {
+      const one = source.profiles.length === 1;
+      const subject = some
+        ? `${one ? "The profile" : "The profiles"} ${sentenceList(source.profiles)} ${one ? "reads" : "read"}`
+        : "This model reads";
+      return (
+        `${subject} ${sentenceList(source.labels)}. ${source.labels.length === 1 ? "Its" : "Their"} source, ` +
+        `${source.name}, lets pyeconomics read the data on your own computer but not serve them from this website.`
+      );
+    }),
+  };
 }
 
 /** The page's description: the summary, cut at a word to fit a search snippet. */

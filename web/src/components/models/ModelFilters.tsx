@@ -6,6 +6,8 @@
 // hydrated, the island reads the filters from the query string (only values
 // the facets offer: src/lib/filters.ts parseFilters), applies them, and
 // writes each change back with replaceState, so a filtered view can be shared.
+// A choice a visitor made before the island hydrated is read from the selects
+// themselves, through the same check, and kept (Phase 5 Step 18).
 import { useEffect, useState } from "react";
 
 import {
@@ -29,14 +31,31 @@ export interface ModelFiltersProps {
   facets: Facet[];
 }
 
+/** What the selects held when the island began to hydrate: a visitor's early choices, as a query string. */
+function earlyChoices(facets: readonly Facet[]): string {
+  if (typeof document === "undefined") return "";
+  const params = new URLSearchParams();
+  for (const facet of facets) {
+    const element = document.getElementById(`filter-${facet.key}`);
+    if (element instanceof HTMLSelectElement && element.value !== "") params.set(facet.key, element.value);
+  }
+  return params.toString();
+}
+
 export default function ModelFilters({ models, facets }: ModelFiltersProps) {
   const [filters, setFilters] = useState<Filters>(new Map());
   const [ready, setReady] = useState(false);
+  // Read while hydrating, before React sets the selects to its own state.
+  const [early] = useState(() => earlyChoices(facets));
 
   useEffect(() => {
-    setFilters(parseFilters(window.location.search, facets));
+    const params = new URLSearchParams(window.location.search);
+    for (const [key, value] of new URLSearchParams(early)) params.set(key, value);
+    const found = parseFilters(`?${params.toString()}`, facets);
+    setFilters(found);
+    if (early !== "") window.history.replaceState(null, "", `${window.location.pathname}${filterQuery(found)}`);
     setReady(true);
-  }, [facets]);
+  }, [facets, early]);
 
   const choose = (key: FilterKey, value: string) => {
     const next = withFilter(filters, key, value);
@@ -50,14 +69,14 @@ export default function ModelFilters({ models, facets }: ModelFiltersProps) {
     <div className="flex flex-col gap-6" data-model-filters="" data-ready={ready ? "true" : "false"}>
       <form
         aria-label="Filter models"
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-x-3 gap-y-3 sm:gap-4 lg:grid-cols-4"
         onSubmit={(event) => event.preventDefault()}
       >
         {facets.map((facet) => {
           const counts = optionCounts(models, filters, facet.key);
           const selected = filters.get(facet.key) ?? "";
           return (
-            <div key={facet.key} className="flex flex-col gap-1">
+            <div key={facet.key} className="flex min-w-0 flex-col gap-1">
               <label htmlFor={`filter-${facet.key}`} className="text-sm font-medium">
                 {facet.label}
               </label>
@@ -103,16 +122,16 @@ export default function ModelFilters({ models, facets }: ModelFiltersProps) {
           </button>
         )}
       </div>
-      <ul className="flex flex-col gap-4" data-model-list="">
+      <ul className="grid gap-4 lg:grid-cols-2" data-model-list="">
         {shown.map((model) => (
-          <li key={model.id} className="rounded-md border px-4 py-3" data-model={model.id}>
-            <h2 className="text-lg font-semibold">
+          <li key={model.id} className="card flex flex-col gap-1" data-model={model.id}>
+            <p className="eyebrow">{model.domainTitle}</p>
+            <h2 className="card-title">
               <a href={model.path}>{model.title}</a>
             </h2>
-            <p className="mt-1">{model.summary}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {model.domainTitle} · Evidence: {model.evidenceLabel} · Cost class: {model.costLabel} ·{" "}
-              {model.dataLabel}
+            <p>{model.summary}</p>
+            <p className="mt-auto pt-2 text-sm text-muted-foreground">
+              <code>{model.id}</code> · Evidence: {model.evidenceLabel} · Cost class: {model.costLabel} · {model.dataLabel}
             </p>
           </li>
         ))}

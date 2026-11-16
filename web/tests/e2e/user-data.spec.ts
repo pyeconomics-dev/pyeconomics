@@ -47,7 +47,7 @@ for (const name of ["user-data.csv", "user-data.xlsx"]) {
     watch,
   }) => {
     await openCalculator(page);
-    await expect(page.locator("[data-library-only]")).toContainText("library-only");
+    await expect(page.locator("[data-library-only]")).toContainText("on your own computer");
     await expect(page.locator("[data-library-only]")).toContainText('pip install "pyeconomics[app]"');
     const start = network.requests.length;
     const panel = page.locator("[data-user-data]");

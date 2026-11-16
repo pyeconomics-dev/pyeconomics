@@ -23,6 +23,9 @@
 // York Fed's and the OECD's conditions passed through; the privacy policy
 // holding every data flow and processor; the licence page every shipped
 // package; and every open counsel question recorded in the counsel packet.
+// Step 18's round 1: no word glued to the link or code beside it, the notice
+// of a model the site cannot serve all the data of naming the profiles that
+// run here, and the room each calculator's card holds for its form.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,7 +34,7 @@ import { describe, expect, it } from "vitest";
 
 import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
 import { DOMAINS, ORIGIN, conceptPath, domainPath, modelPath } from "@/lib/paths";
-import { dataProfiles, docsUrl, unservedSources } from "@/lib/models";
+import { dataProfiles, docsUrl, symbolsOf, unservedSources } from "@/lib/models";
 import { TRACKER_PATH } from "@/lib/analytics";
 import { checkEvent } from "@/lib/events";
 import { ogImagePath } from "@/lib/pages";
@@ -656,5 +659,93 @@ describe("legal and trust (Phase 5 Step 16)", () => {
       }
     }
     expect(found).toBeGreaterThan(0);
+  });
+});
+
+describe("prose (Phase 5 Step 18)", () => {
+  // Astro drops a line break, and the indentation after it, between a word
+  // and an inline element: "the\n<a>citations</a>" was built as
+  // "the<a>citations</a>" on all fifty model pages and four legal pages. The
+  // source ends such a line with {" "}; this holds every built page to it.
+  const INLINE = "(?:a|code|strong|em|kbd|abbr)";
+  const BEFORE = new RegExp(`[A-Za-z0-9]<${INLINE}\\b[^>]*>`, "g");
+  const AFTER = new RegExp(`</${INLINE}>[A-Za-z0-9]`, "g");
+
+  /** A page's body without the elements whose text is not prose. */
+  function prose(page: string): string {
+    const body = page.slice(page.indexOf("<body"));
+    return body.replace(/<(script|style|pre|math|svg|select|textarea)\b[\s\S]*?<\/\1>/g, "");
+  }
+
+  it("keeps the space between a word and the link or code beside it", () => {
+    const glued: string[] = [];
+    for (const path of PAGES) {
+      const text = prose(html(path));
+      for (const pattern of [BEFORE, AFTER]) {
+        for (const match of text.matchAll(pattern)) {
+          const at = match.index;
+          glued.push(`${path}: ${text.slice(Math.max(0, at - 24), at + match[0].length + 16).replace(/\s+/g, " ")}`);
+        }
+      }
+    }
+    expect(glued.slice(0, 12)).toEqual([]);
+  });
+
+  it("finds a glued word when there is one", () => {
+    expect("read the<a href=\"/x/\">terms</a>".match(BEFORE)).not.toBeNull();
+    expect("the <code>id</code>s".match(AFTER)).not.toBeNull();
+    expect("read the <a href=\"/x/\">terms</a>, then".match(BEFORE)).toBeNull();
+    expect("read the <a href=\"/x/\">terms</a>, then".match(AFTER)).toBeNull();
+  });
+});
+
+describe("calculators (Phase 5 Step 18)", () => {
+  it("names the profiles that run here before those that do not, on a model the site serves in part", () => {
+    const page = html(modelPath("macro.policy_rule"));
+    const notice = /<div class="notice measure" data-library-only[^>]*>([\s\S]*?)<\/div>/.exec(page)?.[1] ?? "";
+    const text = notice.replace(/<[^>]+>/g, " ").replaceAll("&quot;", '"').replace(/\s+/g, " ");
+    expect(text).toContain("Live data: some profiles run here, the rest on your own computer");
+    expect(text).toMatch(/On this site, "Live data" runs with the profiles default,/);
+    expect(text).toContain("The profile us_spf reads");
+    expect(text.indexOf("On this site")).toBeLessThan(text.indexOf("The profile us_spf"));
+    // A model none of whose profiles the site serves says so plainly.
+    expect(html(modelPath("equity.cape"))).toContain("Live data runs on your own computer only");
+  });
+
+  it("holds room for every calculator's form, on a phone and on a wide card", () => {
+    for (const path of ["/", ...registryData.models.map((model) => modelPath(model.id))]) {
+      const page = html(path);
+      const rooms = [...page.matchAll(/<svg class="calculator-room calculator-room-(narrow|wide)"[^>]*height="(\d+)"/g)];
+      expect(rooms.map((room) => room[1]), path).toEqual(["narrow", "wide"]);
+      for (const room of rooms) expect(Number(room[2]), path).toBeGreaterThanOrEqual(600);
+      // The room is a height attribute, never an inline style.
+      expect(page, path).not.toMatch(/<svg class="calculator-room[^>]*style=/);
+    }
+  });
+});
+
+describe("formula symbols (issue #343)", () => {
+  it("lists what each symbol stands for under every model's formulas, typeset as the formulas are", () => {
+    for (const model of parseModels(registryData)) {
+      const page = html(modelPath(model.id));
+      const symbols = symbolsOf(model.card);
+      const from = page.indexOf('<dl class="symbols"');
+      const list = from < 0 ? "" : page.slice(from, page.indexOf("</dl>", from));
+      // One entry per symbol: <div data-symbol="field"><dt>MathML</dt><dd>meaning</dd></div>.
+      const entries = list.split("</dd></div>").filter((entry) => entry.includes("<dt"));
+      expect(entries.length, model.id).toBe(symbols.length);
+      entries.forEach((entry, index) => {
+        const symbol = symbols.at(index);
+        // A symbol that stands for no field has a bare attribute.
+        const field = /<div data-symbol="([a-z0-9_]+)"/.exec(entry)?.[1] ?? "";
+        expect(field, model.id).toBe(symbol?.field ?? "");
+        // The symbol is MathML, as the formulas are: no HTML fallback and no style.
+        const term = entry.slice(entry.indexOf("<dt"), entry.indexOf("</dt>"));
+        expect(term, model.id).toContain("<math");
+        expect(term, model.id).not.toMatch(/katex-html|style=/);
+      });
+      expect(page.indexOf('data-section="formula"'), model.id).toBeLessThan(page.indexOf("data-symbols"));
+      expect(page.indexOf("data-symbols"), model.id).toBeLessThan(page.indexOf('data-section="variables"'));
+    }
   });
 });

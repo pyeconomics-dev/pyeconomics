@@ -16,6 +16,16 @@ describe("pythonLiteral", () => {
     expect(pythonLiteral(1e-7)).toBe("1e-7");
     expect(pythonLiteral('a "b"\n')).toBe('"a \\"b\\"\\n"');
     expect(pythonLiteral([[1, 2], [3]])).toBe("[\n    [1, 2],\n    [3],\n]");
+    // A long list goes one value to a line, so a phone's code box shows each.
+    const long = Array.from({ length: 14 }, (_, index) => index / 100);
+    expect(pythonLiteral({ returns: long }).split("\n")).toEqual([
+      "{",
+      '    "returns": [',
+      ...long.map((value) => `        ${String(value)},`),
+      "    ],",
+      "}",
+    ]);
+    expect(pythonLiteral({ weights: [0.5, 0.5] })).toBe('{\n    "weights": [0.5, 0.5],\n}');
     expect(pythonLiteral({})).toBe("{}");
     expect(() => pythonLiteral(Number.NaN)).toThrow(/NaN/);
   });

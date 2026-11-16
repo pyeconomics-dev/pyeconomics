@@ -36,7 +36,8 @@ test("a calculator posts its first example's JSON to its run route and shows the
   expect(request?.contentType).toBe("application/json");
   expect(JSON.parse(request?.body ?? "{}")).toMatchObject({ calculation: "macaulay_modified" });
   const outputs = page.getByRole("table", { name: "Outputs of this run" });
-  await expect(outputs.getByRole("rowheader", { name: /^macaulay_duration/ })).toBeVisible();
+  // Each output under its name in words, with its id and its unit.
+  await expect(outputs.getByRole("rowheader", { name: /^Macaulay duration\s*macaulay_duration/ })).toBeVisible();
   await expect(outputs.getByRole("cell", { name: "years" }).first()).toBeVisible();
   await expect(page.locator("#calculator").getByRole("status")).toContainText("Done.");
   expect(watch.violations).toEqual([]);
@@ -187,7 +188,11 @@ test("a problem's text is rendered as text, links its page and is announced", as
   await page.locator("#calculator").getByRole("button", { name: "Run", exact: true }).click();
   const panel = page.locator("[data-problem=invalid-input]");
   await expect(panel).toBeVisible();
-  await expect(panel.getByText(`The inputs failed ${markup}`)).toBeVisible();
+  // The title and each field's error, as text; the detail, which repeats the
+  // field errors in the API's own words, is left out when there are any.
+  await expect(panel.getByText(`Invalid input ${markup}`)).toBeVisible();
+  await expect(panel.locator("li")).toHaveText([`Coupon rate: Too high ${markup}`]);
+  await expect(panel).not.toContainText("The inputs failed");
   expect(await panel.locator("img, b").count()).toBe(0);
   expect(await page.locator("body").getAttribute("data-owned")).toBeNull();
   await expect(panel.getByRole("link", { name: /What this problem means/ })).toHaveAttribute("href", "/problems/invalid-input/");
@@ -237,8 +242,14 @@ test("a bound model whose data the hosted site cannot serve says which fields, a
 
 test("the snippets name the public endpoint and the form's own inputs", async ({ page }) => {
   await openCalculator(page, DURATION);
-  await page.getByText("Copy as Python, command line, curl or MCP").click();
-  const text = async (kind: string) => (await page.locator(`[data-snippet=${kind}] pre`).textContent()) ?? "";
+  // The snippets are in view beside the form, one at a time, chosen from a row of buttons.
+  const code = page.locator("#calculator [data-snippets]");
+  await expect(code.locator("[data-snippet=python] pre")).toBeVisible();
+  const text = async (kind: string) => {
+    await code.locator(`[data-snippet-tab=${kind}]`).click();
+    await expect(code.locator(`[data-snippet-tab=${kind}]`)).toHaveAttribute("aria-pressed", "true");
+    return (await code.locator(`[data-snippet=${kind}] pre`).textContent()) ?? "";
+  };
   expect(await text("python")).toContain('pyeconomics.run("fixed_income.duration", inputs)');
   expect(await text("cli")).toContain("pyeconomics models run fixed_income.duration --inputs - <<'JSON'");
   expect(await text("curl")).toContain("https://pyeconomics.dev/v1/models/fixed_income.duration/run");
@@ -260,4 +271,100 @@ test("no input reaches storage or the URL", async ({ page, api }) => {
     cookies: document.cookie,
   }));
   expect(stored).toEqual({ local: 0, session: 0, cookies: "" });
+});
+
+// Phase 5 Step 18's round 1. The class, not the instance: a result must be
+// readable on a phone with no sideways scroll, whatever the model's outputs.
+for (const path of ["/models/performance/risk-adjusted/", "/models/fixed-income/bond-pricing/", "/models/macro/policy-rule/"]) {
+  test(`a result on ${path} fits a phone: every value and unit, with no sideways scroll`, async ({ page, api }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openCalculator(page, path);
+    await run(page);
+    const outputs = page.locator("#calculator [data-outputs]");
+    await expect(outputs).toBeVisible();
+    const fit = await outputs.evaluate((table) => {
+      const within = (element: Element) => element.getBoundingClientRect().right <= window.innerWidth + 0.5;
+      const scrollers = [...document.querySelectorAll("#calculator [data-outcome] *")].filter((element) => {
+        const style = getComputedStyle(element);
+        return ["auto", "scroll"].includes(style.overflowX) && element.scrollWidth > element.clientWidth + 1 && element.tagName !== "PRE";
+      });
+      return {
+        table: within(table),
+        cells: [...table.querySelectorAll("th, td")].every(within),
+        units: [...table.querySelectorAll("[data-unit]")].every(within),
+        scrollers: scrollers.map((element) => element.tagName.toLowerCase()),
+        page: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      };
+    });
+    expect(fit).toEqual({ table: true, cells: true, units: true, scrollers: [], page: true });
+    expect(api.requests).toHaveLength(1);
+  });
+}
+
+test("the form asks first for what a run needs, names its options, and keeps optional inputs in a disclosure", async ({ page }) => {
+  await openCalculator(page, "/models/fixed-income/bond-pricing/");
+  const form = page.locator("#calculator form");
+  // The fields a run cannot do without come first, in the model's own order.
+  const labels = await form.locator("[data-fields] label").allTextContents();
+  expect(labels.map((label) => label.replace("*", "").trim()).slice(0, 4)).toEqual([
+    "Settlement",
+    "Maturity",
+    "Coupon rate",
+    "Yield to maturity",
+  ]);
+  // An option reads as words, with its id beside a name that does not spell it.
+  await expect(form.getByLabel("Day count").locator("option").first()).toHaveText("Actual/Actual ICMA (act_act_icma)");
+  await expect(form.getByLabel("Frequency").locator("option").first()).toHaveText("Annual");
+  // An example is named in words, and its note sits under the picker.
+  const picker = page.locator("#calculator").getByLabel("Start from an example");
+  await expect(picker.locator("option").first()).toHaveText("Treasury thirty year");
+  await expect(page.locator("#calculator [data-example-note]")).toContainText("31 CFR Part 356");
+  // A field that may be left out waits in a disclosure that names it.
+  const optional = form.locator("[data-optional-fields]");
+  await expect(optional.locator("summary")).toContainText("1 optional input");
+  await expect(optional.locator("summary")).toContainText("Issue date");
+  expect(await optional.evaluate((details) => (details as HTMLDetailsElement).open)).toBe(false);
+  await optional.locator("summary").click();
+  expect(await optional.evaluate((details) => (details as HTMLDetailsElement).open)).toBe(true);
+  await expect(optional.getByRole("combobox").first()).toBeVisible();
+  await expect(optional.getByRole("combobox").first().locator("option")).toHaveText(["Enter a value", "Leave it out"]);
+});
+
+test("an error about two inputs together marks both, in plain words, once", async ({ page, api, watch }) => {
+  await openCalculator(page, "/models/fixed-income/bond-pricing/");
+  const form = page.locator("#calculator form");
+  await form.getByLabel(/^Settlement/).fill("2031-01-01");
+  await form.getByLabel(/^Maturity/).fill("2026-01-01");
+  await page.locator("#calculator").getByRole("button", { name: "Run", exact: true }).click();
+  const problem = page.locator("#calculator [data-problem=invalid-input]");
+  await expect(problem).toBeVisible();
+  // Once, in a reader's words: no calculation name, no "Value error".
+  await expect(problem.locator("li")).toHaveText(["Settlement must be before maturity"]);
+  await expect(problem).not.toContainText("Value error");
+  await expect(problem).not.toContainText("price_from_yield");
+  // Both fields the message names carry it, each under its own input.
+  await expect(form.locator("[data-fields]").getByText("Settlement must be before maturity", { exact: true })).toHaveCount(2);
+  for (const label of [/^Settlement/, /^Maturity/]) {
+    const described = (await form.getByLabel(label).getAttribute("aria-describedby")) ?? "";
+    const error = described.split(" ").find((id) => id.endsWith("__error")) ?? "";
+    await expect(form.locator(`[id="${error}"]`)).toHaveText("Settlement must be before maturity");
+  }
+  expect(api.requests).toHaveLength(1);
+  expect(watch.violations).toEqual([]);
+});
+
+test("a run says it finished, shows the manifest's hashes, and names the model's two MCP tools", async ({ page, api }) => {
+  await openCalculator(page, "/models/performance/risk-adjusted/");
+  await run(page);
+  const result = page.locator("#calculator [data-outcome=result]");
+  await expect(result.locator("[data-run-summary]")).toHaveText("The run finished: 16 outputs, no warnings.");
+  const manifest = result.locator("[data-manifest]");
+  await manifest.locator("summary").click();
+  await expect(manifest).toContainText("Inputs SHA-256");
+  await expect(manifest.locator("dd").filter({ hasText: /^[0-9a-f]{64}$/ })).toHaveCount(2);
+  const code = page.locator("#calculator [data-snippets]");
+  await code.locator("[data-snippet-tab=mcp]").click();
+  await expect(code.locator("[data-mcp-note]")).toContainText("run_model");
+  await expect(code.locator("[data-mcp-note]")).toContainText("performance_risk_adjusted");
+  expect(api.requests).toHaveLength(1);
 });
