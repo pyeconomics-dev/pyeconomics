@@ -9651,9 +9651,9 @@ High. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus
 
 ---
 
-## Step 17 — Design Direction and Design System
+## Step 17 — Design Direction and Design System ✅
 
-**Status:** Not started
+**Status:** Complete — PR #344 (2026-11-16)
 
 > **Goal:** Give the site a deliberate visual and interaction design before
 > the release candidate freezes its pages. *Added 2026-11-13 at the
@@ -9711,6 +9711,9 @@ candidate; this step dispatches no production deploy.
 Ranked for coding, high complexity, novel. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels or its previous version's.
+
+> Ran 2026-11-15: Cost Runner-up, Balanced Pick or Quality Pick — Opus 5.5 ·
+> Medium, High or XHigh (the session could not read its own level).
 
 **Conversation:** New
 
@@ -13158,7 +13161,7 @@ workflow above maps directly to the corresponding row below.
 | 14   | Observability + operations     | Sonnet 5.5     | Complete — PR #290 |
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
-| 17   | Design direction + system      | Opus 5.5       | Not started        |
+| 17   | Design direction + system      | Opus 5.5       | Complete — PR #344 |
 | 18   | AI dogfooding loop             | GPT-6.1 Sol    | Not started        |
 | 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |
