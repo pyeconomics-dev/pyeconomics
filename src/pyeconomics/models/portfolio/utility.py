@@ -49,6 +49,7 @@ from pyeconomics.core import (
     Reference,
     Return,
     ReturnArray,
+    Symbol,
     Volatility,
     model,
 )
@@ -501,6 +502,38 @@ _PRATT = Reference(
             r"f^*_{bet} = p - \frac{1 - p}{b}, \quad f^*_{asset} = \frac{\mu - r}"
             r"{\sigma^2}, \quad g = r + f(\mu - r) - \tfrac{1}{2} f^2 \sigma^2"
         ),
+    ),
+    symbols=(
+        Symbol("U", "Mean-variance utility", "utility"),
+        Symbol("E[r]", "Expected return", "expected_return"),
+        Symbol("A", "Risk aversion", "risk_aversion"),
+        Symbol(
+            r"\sigma^2",
+            "Variance of the return: the volatility squared",
+            "volatility",
+        ),
+        Symbol(
+            "y^*",
+            "The share of wealth in the risky asset that makes utility largest",
+            "optimal_share",
+        ),
+        Symbol("r_f", "Risk-free rate", "risk_free_rate"),
+        Symbol("CE", "Certainty equivalent return", "certainty_equivalent"),
+        Symbol("p_i", "Probability of outcome i", "probabilities"),
+        Symbol("r_i", "Return in outcome i", "outcomes"),
+        Symbol(r"\gamma", "Relative risk aversion", "relative_risk_aversion"),
+        Symbol("f^*_{bet}", "The Kelly fraction of a bet", "full_kelly"),
+        Symbol("p", "Probability of winning", "win_probability"),
+        Symbol("b", "Net odds: what a winning bet of 1 pays", "odds"),
+        Symbol("f^*_{asset}", "The Kelly fraction of a risky asset", "full_kelly"),
+        Symbol(r"\mu", "The asset's expected return per year", "drift"),
+        Symbol(
+            "r",
+            "Risk-free rate per year, in the Kelly fraction of an asset",
+            "risk_free_rate",
+        ),
+        Symbol("g", "Expected growth rate of wealth at the fraction f", "growth_rate"),
+        Symbol("f", "The fraction of wealth held in the asset", "fraction"),
     ),
     assumptions=(
         (

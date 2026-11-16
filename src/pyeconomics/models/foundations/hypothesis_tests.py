@@ -39,6 +39,7 @@ from pyeconomics.core import (
     Probability,
     Ratio,
     Reference,
+    Symbol,
     model,
 )
 from pyeconomics.core.model import ARRAY_INPUT
@@ -481,6 +482,35 @@ _WELCH = Reference(
         ),
         r"z = \frac{\bar{x} - \mu_0}{\sigma / \sqrt{n}}",
         r"\chi^2 = \frac{(n - 1) s^2}{\sigma_0^2}, \quad F = \frac{s_1^2}{s_2^2}",
+    ),
+    symbols=(
+        Symbol("t", "The t statistic", "statistic"),
+        Symbol(r"\bar{x}", "Sample mean", "mean"),
+        Symbol(r"\mu_0", "The mean under the null hypothesis", "hypothesized_mean"),
+        Symbol("s", "Sample standard deviation", "sd"),
+        Symbol("n", "Sample size", "n"),
+        Symbol(r"\nu", "Degrees of freedom", "degrees_of_freedom"),
+        Symbol(r"\bar{x}_1", "Mean of the first sample", "mean1"),
+        Symbol(r"\bar{x}_2", "Mean of the second sample", "mean2"),
+        Symbol(
+            r"\delta_0",
+            "The difference in means under the null hypothesis",
+            "hypothesized_difference",
+        ),
+        Symbol("s_p", "Pooled standard deviation of the two samples"),
+        Symbol("n_1", "Size of the first sample", "n1"),
+        Symbol("n_2", "Size of the second sample", "n2"),
+        Symbol("s_1", "Standard deviation of the first sample", "sd1"),
+        Symbol("s_2", "Standard deviation of the second sample", "sd2"),
+        Symbol("z", "The z statistic", "statistic"),
+        Symbol(r"\sigma", "The population's known standard deviation", "sigma"),
+        Symbol(r"\chi^2", "The chi-square statistic", "statistic"),
+        Symbol(
+            r"\sigma_0",
+            "The standard deviation under the null hypothesis",
+            "hypothesized_sd",
+        ),
+        Symbol("F", "The F statistic", "statistic"),
     ),
     assumptions=(
         (

@@ -29,6 +29,7 @@ from pyeconomics.core import (
     Probability,
     Rate,
     Reference,
+    Symbol,
     model,
 )
 from pyeconomics.models.equity._valuation import bounded, dcf
@@ -150,6 +151,20 @@ Outputs = Annotated[
         r"FCFF=EBIT(1-t)+D-CapEx-\Delta WC",
         r"FCFE=NI+D-CapEx-\Delta WC+NB",
         r"E=V-NetDebt",
+    ),
+    symbols=(
+        Symbol("FCFF", "Free cash flow to the firm", "fcff"),
+        Symbol("EBIT", "Operating income before interest and taxes", "ebit"),
+        Symbol("t", "Tax rate", "tax_rate"),
+        Symbol("D", "Depreciation and amortization", "depreciation"),
+        Symbol("CapEx", "Capital expenditure", "capex"),
+        Symbol(r"\Delta WC", "Increase in working capital", "working_capital_change"),
+        Symbol("FCFE", "Free cash flow to equity", "fcfe"),
+        Symbol("NI", "Net income", "net_income"),
+        Symbol("NB", "Net borrowing", "net_borrowing"),
+        Symbol("E", "Value of equity", "equity_value"),
+        Symbol("V", "Value of the firm", "firm_value"),
+        Symbol("NetDebt", "Debt less cash", "net_debt"),
     ),
     assumptions=(
         ("Annual end-of-year cash flows in one currency; next_cash_flow is at t=1."),

@@ -34,6 +34,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     model,
 )
 from pyeconomics.models.macro._estimates import (
@@ -231,6 +232,37 @@ def _bindings(
         (
             r"\hat\beta, \hat\alpha \text{ by least squares}; \quad "
             r"V_{NW} = (X'X)^{-1} \hat S (X'X)^{-1}"
+        ),
+    ),
+    symbols=(
+        Symbol(r"\pi_t", "Inflation in period t", "inflation"),
+        Symbol(r"\pi^e_t", "Expected inflation in period t", "expected_inflation"),
+        Symbol(r"\alpha", "The intercept", "intercept"),
+        Symbol(
+            r"\beta",
+            "The slope: the response of the inflation surprise to the unemployment gap",
+            "slope",
+        ),
+        Symbol("u_t", "The unemployment rate in period t", "unemployment"),
+        Symbol(
+            "u^*_t",
+            "The natural rate of unemployment in period t",
+            "natural_unemployment",
+        ),
+        Symbol(
+            r"\gamma",
+            "The coefficients on the supply shocks",
+            "control_coefficients",
+        ),
+        Symbol("z_t", "The supply shocks in period t", "supply_shocks"),
+        Symbol("e_t", "The residual in period t"),
+        Symbol("V_{NW}", "The Newey-West covariance matrix of the coefficients"),
+        Symbol(
+            r"\hat S",
+            (
+                "The Newey-West estimate of the long-run covariance of the regressors "
+                "times the residuals"
+            ),
         ),
     ),
     assumptions=(

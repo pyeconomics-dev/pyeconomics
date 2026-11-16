@@ -42,6 +42,7 @@ from pyeconomics.core import (
     Rate,
     Reference,
     Return,
+    Symbol,
     model,
 )
 from pyeconomics.models.fixed_income._bonds import bounded
@@ -373,6 +374,20 @@ _AUCTION = Reference(
             r"EAY = \left(\frac{F}{P}\right)^{365/t} - 1, \quad "
             r"HPY = \frac{P_1 - P_0 + D}{P_0}"
         ),
+    ),
+    symbols=(
+        Symbol("P", "Price", "price"),
+        Symbol("F", "Face value", "face_value"),
+        Symbol("d", "Bank discount rate", "discount_rate"),
+        Symbol("t", "Days to maturity", "days"),
+        Symbol("MMY", "Money-market yield, on a 360-day year", "money_market_yield"),
+        Symbol("i", "Investment rate: the bond-equivalent yield", "investment_rate"),
+        Symbol("y", "Days in the year: 365, or 366 in a leap year", "days_in_year"),
+        Symbol("EAY", "Effective annual yield", "effective_annual_yield"),
+        Symbol("HPY", "Holding-period yield", "holding_period_yield"),
+        Symbol("P_0", "Purchase price", "purchase_price"),
+        Symbol("P_1", "Proceeds at the end of the holding period", "proceeds"),
+        Symbol("D", "Income received over the holding period", "income"),
     ),
     assumptions=(
         (

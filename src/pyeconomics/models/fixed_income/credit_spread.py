@@ -37,6 +37,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     Years,
     model,
 )
@@ -314,6 +315,38 @@ _FABOZZI = Reference(
         r"s = \lambda (1 - R), \quad \lambda = \frac{s}{1 - R}",
         r"S(T) = e^{-\lambda T}, \quad PD(T) = 1 - e^{-\lambda T}",
         r"r_{excess} \approx s\,t - D_s\,\Delta s - PD \times LGD",
+    ),
+    symbols=(
+        Symbol("EL", "Expected loss", "expected_loss"),
+        Symbol("PD", "Probability of default", "probability_of_default"),
+        Symbol(
+            "LGD",
+            "Loss given default, as a share of the exposure",
+            "loss_given_default",
+        ),
+        Symbol("EAD", "Exposure at default", "exposure"),
+        Symbol("s", "Credit spread per year", "spread"),
+        Symbol(
+            r"\lambda",
+            "Hazard rate: the default intensity per year",
+            "hazard_rate",
+        ),
+        Symbol("R", "Recovery rate", "recovery_rate"),
+        Symbol("S(T)", "Probability of surviving to time T", "survival_probability"),
+        Symbol("PD(T)", "Probability of defaulting by time T", "default_probability"),
+        Symbol("T", "Horizon, in years", "horizon"),
+        Symbol(
+            "r_{excess}",
+            "Approximate excess return of the bond over a matched government bond",
+            "spread_return",
+        ),
+        Symbol("t", "Holding period, in years", "holding_period"),
+        Symbol("D_s", "Spread duration", "spread_duration"),
+        Symbol(
+            r"\Delta s",
+            "Change in the spread over the holding period",
+            "spread_change",
+        ),
     ),
     assumptions=(
         (

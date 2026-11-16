@@ -38,6 +38,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     model,
 )
 
@@ -181,6 +182,31 @@ _CBO = Reference(
     formula=(
         r"d_t = d_{t-1}\,\frac{1 + i_t}{1 + g_t} - p_t",
         r"p^*_t = d_{t-1}\,\frac{i_t - g_t}{1 + g_t}, \quad r - g = i_t - g_t",
+    ),
+    symbols=(
+        Symbol("d_t", "Public debt over GDP at the end of year t", "debt_ratio_path"),
+        Symbol(
+            "d_{t-1}",
+            "The same ratio a year earlier; the first is the starting ratio",
+            "initial_ratio",
+        ),
+        Symbol("i_t", "Nominal interest rate on the debt in year t", "interest_rate"),
+        Symbol("g_t", "Nominal GDP growth in year t", "nominal_growth"),
+        Symbol(
+            "p_t",
+            "Primary balance over GDP in year t; a surplus is positive",
+            "primary_balance",
+        ),
+        Symbol(
+            "p^*_t",
+            "The primary balance that keeps the ratio where it is",
+            "stabilizing_balance",
+        ),
+        Symbol(
+            "r - g",
+            "The interest-growth differential",
+            "interest_growth_differential",
+        ),
     ),
     assumptions=(
         (

@@ -59,6 +59,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     Volatility,
     generator,
     has_spread,
@@ -830,6 +831,46 @@ _KEN_FRENCH = Reference(
             r"\sigma_{\text{annual},h} = \sqrt{P\,E_T[\sigma^2_{T+h}]}, \quad "
             r"\sigma_{\text{term},h} = \sqrt{\tfrac{P}{h}\sum_{i \le h}"
             r"E_T[\sigma^2_{T+i}]}"
+        ),
+    ),
+    symbols=(
+        Symbol("r_t", "The return in period t", "returns"),
+        Symbol(r"\mu", "The mean return"),
+        Symbol(r"\varepsilon_t", "The shock in period t: the return less its mean"),
+        Symbol(r"\sigma_t", "The conditional volatility in period t"),
+        Symbol("z_t", "The standardized shock, with mean 0 and variance 1"),
+        Symbol(r"\omega", "The constant of the variance equation"),
+        Symbol(r"\alpha_i", "The weight on the squared shock i periods back (ARCH)"),
+        Symbol(
+            r"\gamma_j",
+            "The extra weight on a negative shock j periods back (asymmetry)",
+        ),
+        Symbol(r"\beta_k", "The weight on the variance k periods back (GARCH)"),
+        Symbol("p", "Number of ARCH lags", "p"),
+        Symbol("o", "Number of asymmetric lags", "asymmetric_lags"),
+        Symbol("q", "Number of GARCH lags", "q"),
+        Symbol(
+            r"\pi",
+            "Persistence: how much of a shock to variance carries to the next period",
+            "persistence",
+        ),
+        Symbol(r"\bar\sigma^2", "The unconditional variance the forecasts revert to"),
+        Symbol("h", "Periods ahead", "horizon"),
+        Symbol(
+            r"E_T[\sigma^2_{T+h}]",
+            "The variance forecast h periods ahead, made at the last observation",
+            "variance_forecasts",
+        ),
+        Symbol("P", "Periods in a year", "periods_per_year"),
+        Symbol(
+            r"\sigma_{\text{annual},h}",
+            "The volatility forecast h periods ahead, for a year",
+            "volatility_forecasts_annualized",
+        ),
+        Symbol(
+            r"\sigma_{\text{term},h}",
+            "The average volatility over the next h periods, for a year",
+            "term_volatility_annualized",
         ),
     ),
     assumptions=(

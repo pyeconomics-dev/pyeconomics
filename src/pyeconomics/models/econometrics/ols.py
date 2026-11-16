@@ -49,6 +49,7 @@ from pyeconomics.core import (
     Probability,
     Ratio,
     Reference,
+    Symbol,
     has_spread,
     model,
     warn,
@@ -831,6 +832,56 @@ _NIST = Reference(
             r"JB = \frac{n}{6}\left(S^2 + \frac{(K - 3)^2}{4}\right), "
             r"\quad LM_{BP} = n R^2_{e^2}"
         ),
+    ),
+    symbols=(
+        Symbol(r"\hat\beta", "The estimated coefficients", "coefficients"),
+        Symbol(
+            "X",
+            (
+                "The design matrix: one row for each observation, one column for each "
+                "regressor"
+            ),
+            "design",
+        ),
+        Symbol("y", "The response", "response"),
+        Symbol("e", "The residuals", "residuals"),
+        Symbol(
+            "V_{HC}",
+            "A heteroskedasticity-consistent covariance matrix of the coefficients",
+        ),
+        Symbol(
+            r"\omega_i",
+            (
+                "The weight on observation i's squared residual: HC0, HC1, HC2 and "
+                "HC3 in turn"
+            ),
+        ),
+        Symbol("h_i", "The leverage of observation i"),
+        Symbol("n", "Number of observations", "observations"),
+        Symbol("k", "Number of coefficients"),
+        Symbol(
+            "V_{HAC}",
+            (
+                "The heteroskedasticity- and autocorrelation-consistent covariance "
+                "matrix (Newey-West)"
+            ),
+        ),
+        Symbol("L", "Number of lags in the HAC estimate", "hac_lags"),
+        Symbol(
+            "R^2",
+            "The share of the response's variation the regression explains",
+            "r_squared",
+        ),
+        Symbol("SSR", "Sum of squared residuals"),
+        Symbol("TSS", "Total sum of squares of the response about its mean"),
+        Symbol("d", "The Durbin-Watson statistic", "durbin_watson"),
+        Symbol("VIF_j", "Variance inflation factor of regressor j", "vif"),
+        Symbol("R_j^2", "R-squared of regressor j on the other regressors"),
+        Symbol("JB", "The Jarque-Bera statistic", "jarque_bera"),
+        Symbol("S", "Skewness of the residuals"),
+        Symbol("K", "Kurtosis of the residuals"),
+        Symbol("LM_{BP}", "The Breusch-Pagan statistic", "breusch_pagan"),
+        Symbol("R^2_{e^2}", "R-squared of the squared residuals on the regressors"),
     ),
     assumptions=(
         (

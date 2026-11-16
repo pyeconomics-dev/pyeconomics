@@ -39,6 +39,7 @@ from pyeconomics.core import (
     Reference,
     Return,
     ReturnArray,
+    Symbol,
     Volatility,
     max_drawdown,
     model,
@@ -298,6 +299,29 @@ _SORTINO = Reference(
         r"G_1 = \frac{\sqrt{n(n-1)}}{n-2}\,\frac{m_3}{m_2^{3/2}}",
         r"G_2 = \frac{n-1}{(n-2)(n-3)}\left[(n+1)\frac{m_4}{m_2^2} - 3(n-1)\right]",
         r"MDD = \max_j \left(1 - \frac{V_j}{\max_{i \le j} V_i}\right)",
+    ),
+    symbols=(
+        Symbol("s", "Sample standard deviation of the returns", "volatility"),
+        Symbol("r_t", "The return in period t", "returns"),
+        Symbol(r"\bar{r}", "Mean return", "mean"),
+        Symbol("n", "Number of returns", "observations"),
+        Symbol(r"\sigma_{annual}", "Volatility for a year", "annualized_volatility"),
+        Symbol("m", "Periods in a year", "periods_per_year"),
+        Symbol(
+            r"SD_{\bar{r}}",
+            "Semideviation: the deviation of the returns below the mean",
+            "below_mean",
+        ),
+        Symbol("DD_T", "Downside deviation below the target", "below_target"),
+        Symbol("T", "Target return per period", "target"),
+        Symbol("G_1", "Sample skewness", "skewness"),
+        Symbol("G_2", "Sample excess kurtosis", "excess_kurtosis"),
+        Symbol(
+            "m_2",
+            "The returns' second central moment; m_3 and m_4 are the third and fourth",
+        ),
+        Symbol("MDD", "Maximum drawdown", "max_drawdown"),
+        Symbol("V_j", "The value at observation j", "values"),
     ),
     assumptions=(
         (

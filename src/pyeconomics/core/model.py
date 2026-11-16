@@ -109,6 +109,7 @@ if TYPE_CHECKING:
         Example,
         Invariant,
         Reference,
+        Symbol,
     )
 
 __all__ = [
@@ -563,6 +564,7 @@ def model[I: ModelInputs, O: ModelOutputs](  # noqa: PLR0913 - the spec's fields
     cost: CostClass,
     examples: Iterable[Example],
     changelog: Iterable[ChangelogEntry],
+    symbols: Iterable[Symbol] = (),
     tags: Iterable[str] = (),
     invariants: Iterable[Invariant] = (),
     no_invariants_reason: str | None = None,
@@ -589,6 +591,10 @@ def model[I: ModelInputs, O: ModelOutputs](  # noqa: PLR0913 - the spec's fields
         The card's heading and its one-sentence description.
     formula
         One or more LaTeX strings.
+    symbols
+        What the formulas' symbols stand for, as
+        :class:`~pyeconomics.core.spec.Symbol` values: the card lists them under
+        the formulas.
     assumptions, limitations
         What the model takes for granted, and where it stops being valid.
     references
@@ -629,6 +635,7 @@ def model[I: ModelInputs, O: ModelOutputs](  # noqa: PLR0913 - the spec's fields
             outputs=outputs,
             tags=tuple(tags),
             formula=tuple(formula),
+            symbols=tuple(symbols),
             assumptions=tuple(assumptions),
             limitations=tuple(limitations),
             references=tuple(references),

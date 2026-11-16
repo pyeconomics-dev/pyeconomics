@@ -38,6 +38,7 @@ from pyeconomics.core import (
     Registry,
     RegistryError,
     ReturnArray,
+    Symbol,
     Unit,
     UnitKind,
     YearsArray,
@@ -360,6 +361,15 @@ CASES: dict[str, list[Case]] = {
     "formula": [
         case(lambda: broken(ZC, formula=())),
         case(lambda: broken(ZC, formula=(LONG,))),
+    ],
+    "symbols": [
+        # A symbol no formula writes, one defined twice, one whose field the
+        # model lacks, one with no meaning and one that would end the card's math.
+        case(lambda: broken(ZC, symbols=(Symbol("q", "A symbol of no formula"),))),
+        case(lambda: broken(ZC, symbols=(Symbol("P", "Price"), Symbol("P", "Price")))),
+        case(lambda: broken(ZC, symbols=(Symbol("P", "Price", "no_such_field"),))),
+        case(lambda: broken(ZC, symbols=(Symbol("P", " "),))),
+        case(lambda: broken(ZC, symbols=(Symbol("$P$", "Price"),))),
     ],
     "assumptions": [case(lambda: broken(ZC, assumptions=()))],
     "limitations": [case(lambda: broken(ZC, limitations=()))],

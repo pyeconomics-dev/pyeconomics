@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
     from pyeconomics.core.binding import Binding, CandidateNote
     from pyeconomics.core.model import Model
+    from pyeconomics.core.spec import Symbol
 
 __all__ = [
     "BOUND_SECTION_TITLES",
@@ -320,6 +321,8 @@ class ModelCard:
     """For each bound concept, the sources that can fill it, when known."""
     calculation: str | None = None
     """For a model with several calculations, the one the card's bind call names."""
+    symbols: tuple[Symbol, ...] = ()
+    """What the formulas' symbols stand for; a non-empty tuple adds the "Where" list."""
 
     @classmethod
     def from_model(
@@ -368,6 +371,7 @@ class ModelCard:
                 f"Version {entry.version}: {entry.note}" for entry in spec.changelog
             ),
             bindings=spec.bindings,
+            symbols=spec.symbols,
             calculation=next(iter(calculations(spec.inputs)), None),
             candidates=tuple(
                 (concept, tuple(notes)) for concept, notes in (candidates or {}).items()
@@ -442,6 +446,20 @@ class ModelCard:
             lines += ["Outputs:", "", *_json_block(example.outputs), ""]
         return lines
 
+    def _where_list(self) -> list[str]:
+        """Return the formulas' symbols, one line each: ``- $P$: the price (`price`)``.
+
+        The line's shape is a contract: the web app reads the list back from
+        the card (``web/src/lib/models.ts`` ``symbolsOf``).
+        """
+        if not self.symbols:
+            return []
+        lines = ["Where:", ""]
+        for symbol in self.symbols:
+            field = f" (`{symbol.field}`)" if symbol.field else ""
+            lines.append(f"- ${symbol.symbol}$: {symbol.meaning}{field}")
+        return [*lines, ""]
+
     def to_markdown(self) -> str:
         """Render the card as MyST Markdown (LF line endings, one trailing newline)."""
         meaning = EVIDENCE_MEANING.get(self.evidence) if self.evidence else None
@@ -458,6 +476,7 @@ class ModelCard:
         ]
         for formula in self.formula:
             lines += ["$$", formula, "$$", ""]
+        lines += self._where_list()
         lines += self._variables_section()
         if self.bindings:
             lines += self._data_section()

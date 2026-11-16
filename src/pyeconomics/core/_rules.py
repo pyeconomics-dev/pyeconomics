@@ -97,6 +97,7 @@ RULES: Final = (
     "summary",
     "tags",
     "formula",
+    "symbols",
     "assumptions",
     "limitations",
     "references",
@@ -461,6 +462,7 @@ class _Checker:
         self.identity()
         self.changelog()
         self.prose()
+        self.symbols()
         self.references()
         self.extra()
         self.io_types()
@@ -655,6 +657,41 @@ class _Checker:
                 f"input calculations {sorted(in_calcs)} differ from "
                 f"output calculations {sorted(out_calcs)}",
             )
+
+    def symbols(self) -> None:
+        """Each symbol is written once, appears in a formula and names a real field."""
+        spec = self.spec
+        members: list[Any] = [
+            member
+            for member in (*spec.input_models, *spec.output_models)
+            if _is_model_class(member)
+        ]
+        fields: set[str] = set()
+        for member in members:
+            fields.update(member.model_fields)
+        formulas = [formula for formula in spec.formula if _is_str(formula)]
+        seen: set[str] = set()
+        for symbol in spec.symbols:
+            name = symbol.symbol
+            if not _is_str(name) or not name.strip() or "$" in name:
+                self.report.add(
+                    "symbols", f"symbol {name!r} is empty or holds a dollar sign"
+                )
+                continue
+            if name in seen:
+                self.report.add("symbols", f"symbol {name!r} is defined twice")
+            seen.add(name)
+            if not any(name in formula for formula in formulas):
+                self.report.add("symbols", f"symbol {name!r} appears in no formula")
+            self.text(
+                symbol.meaning, "symbols", f"the meaning of {name!r}", MAX_TEXT_LENGTH
+            )
+            if symbol.field is not None and symbol.field not in fields:
+                self.report.add(
+                    "symbols",
+                    f"symbol {name!r} names the field {symbol.field!r}, "
+                    "which the model lacks",
+                )
 
     def invariants(self) -> None:
         spec = self.spec

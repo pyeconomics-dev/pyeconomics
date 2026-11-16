@@ -30,6 +30,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     annuity_factor,
     internal_rate_of_return,
     model,
@@ -162,6 +163,28 @@ def _mirr(inputs: Inputs) -> float | None:
         r"MIRR=(FV(C^+,r_R)/[-PV(C^-,r_F)])^{1/n}-1",
         r"PI=PV(C^+)/[-PV(C^-)]",
         r"EAA=NPV/a(r,n)",
+    ),
+    symbols=(
+        Symbol("NPV", "Net present value", "npv"),
+        Symbol("C_t", "The cash flow at time t; negative when paid out", "cash_flows"),
+        Symbol("r", "Discount rate per period", "rate"),
+        Symbol("n", "Number of periods after time 0"),
+        Symbol("MIRR", "Modified internal rate of return", "mirr"),
+        Symbol("C^+", "The positive cash flows"),
+        Symbol("C^-", "The negative cash flows"),
+        Symbol("r_R", "Reinvestment rate for the positive flows", "reinvestment_rate"),
+        Symbol("r_F", "Financing rate for the negative flows", "finance_rate"),
+        Symbol("FV", "Future value at period n"),
+        Symbol("PV", "Present value at time 0"),
+        Symbol("PI", "Profitability index", "profitability_index"),
+        Symbol("EAA", "Equivalent annual annuity", "equivalent_annual_annuity"),
+        Symbol(
+            "a(r,n)",
+            (
+                "The annuity factor: the present value of 1 a period for n periods at "
+                "rate r"
+            ),
+        ),
     ),
     assumptions=(
         (

@@ -38,6 +38,7 @@ from pyeconomics.core import (
     ModelOutputs,
     Rate,
     Reference,
+    Symbol,
     Years,
     forward_rate,
     model,
@@ -402,6 +403,30 @@ _FABOZZI = Reference(
             r"\left(1 + \frac{F_{1,2}}{f}\right)^{f (T_2 - T_1)} = "
             r"\frac{(1 + s_2/f)^{f T_2}}{(1 + s_1/f)^{f T_1}}"
         ),
+    ),
+    symbols=(
+        Symbol(
+            "d_k",
+            "Discount factor for a payment k periods from now",
+            "discount_factors",
+        ),
+        Symbol("c_k", "Par yield of the bond maturing in k periods", "par_yields"),
+        Symbol("f", "Periods in a year", "frequency"),
+        Symbol(
+            "s_k",
+            "Spot rate for k periods, compounded f times a year",
+            "spot_rates",
+        ),
+        Symbol("s_k^{cont}", "The same spot rate, continuously compounded"),
+        Symbol(
+            "F_{1,2}",
+            "Forward rate between the near and the far date",
+            "forward_rate",
+        ),
+        Symbol("T_1", "Years to the near date", "near_years"),
+        Symbol("T_2", "Years to the far date", "far_years"),
+        Symbol("s_1", "Spot rate to the near date", "near_rate"),
+        Symbol("s_2", "Spot rate to the far date", "far_rate"),
     ),
     assumptions=(
         (

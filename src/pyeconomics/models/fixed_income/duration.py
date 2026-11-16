@@ -36,6 +36,7 @@ from pyeconomics.core import (
     Money,
     Rate,
     Reference,
+    Symbol,
     Years,
     model,
 )
@@ -333,6 +334,46 @@ _CURVE = {
         r"D_{eff} = \frac{P(z - h) - P(z + h)}{2 P(z) h}",
         r"KRD_k = \frac{P(z - h s_k) - P(z + h s_k)}{2 P(z) h}, \quad \sum_k s_k = 1",
         r"DV01 = D_{mod}\,P \times 0.0001",
+    ),
+    symbols=(
+        Symbol("D_{Mac}", "Macaulay duration, in years", "macaulay_duration"),
+        Symbol("P", "Full price of the bond", "full_price"),
+        Symbol("t_j", "Time to cash flow j, in coupon periods from settlement"),
+        Symbol("f", "Coupons per year", "frequency"),
+        Symbol(
+            "CF_j",
+            (
+                "The j-th remaining cash flow: a coupon, or the last coupon and the "
+                "redemption"
+            ),
+        ),
+        Symbol(
+            "y",
+            "Yield to maturity per year, compounded at the coupon frequency",
+            "yield_to_maturity",
+        ),
+        Symbol(
+            "D_{mod}",
+            "Modified duration: the relative fall in price for a rise of one in yield",
+            "modified_duration",
+        ),
+        Symbol("D_{eff}", "Effective duration, off a spot curve", "effective_duration"),
+        Symbol("P(z)", "The price off the spot curve z"),
+        Symbol("z", "The spot curve", "curve_rates"),
+        Symbol("h", "The shift of the curve, up and down", "bump"),
+        Symbol("KRD_k", "Key-rate duration at key tenor k", "key_rate_durations"),
+        Symbol(
+            "s_k",
+            (
+                "The shape of the shift for key tenor k: 1 at that tenor, falling to "
+                "0 at its neighbours"
+            ),
+        ),
+        Symbol(
+            "DV01",
+            "Change in the price of the holding for a fall of one basis point in yield",
+            "dv01",
+        ),
     ),
     assumptions=(
         (

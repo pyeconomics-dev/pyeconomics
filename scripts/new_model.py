@@ -93,6 +93,7 @@ class {camel}Outputs(ModelOutputs):
     title="TODO: a title",
     summary="TODO: one sentence saying what the model computes.",
     formula=(),
+    symbols=(),
     assumptions=(),
     limitations=(),
     references=(),

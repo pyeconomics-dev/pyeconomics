@@ -37,6 +37,7 @@ from pyeconomics.core import (
     ModelOutputs,
     Rate,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -307,6 +308,29 @@ _SEP = Reference(
             r"r^* = i^{LR}_{SEP} - \pi^*"
         ),
         r"i^* = r^* + \pi^*, \quad \text{gap} = (i - \pi) - r^*",
+    ),
+    symbols=(
+        Symbol("r^*", "The real neutral rate of interest", "real_neutral_rate"),
+        Symbol(r"\hat r^*_{LW}", "The Laubach-Williams estimate", "lw_estimate"),
+        Symbol(
+            r"\hat r^*_{HLW}",
+            "The Holston-Laubach-Williams estimate",
+            "hlw_estimate",
+        ),
+        Symbol(
+            "i^{LR}_{SEP}",
+            "The longer-run policy rate of the Summary of Economic Projections",
+            "longer_run_policy_rate",
+        ),
+        Symbol(r"\pi^*", "The inflation target", "inflation_target"),
+        Symbol("i^*", "The nominal neutral rate", "nominal_neutral_rate"),
+        Symbol(
+            r"\text{gap}",
+            "The real policy rate less the real neutral rate",
+            "real_policy_gap",
+        ),
+        Symbol("i", "The policy rate", "policy_rate"),
+        Symbol(r"\pi", "Inflation", "inflation"),
     ),
     assumptions=(
         (

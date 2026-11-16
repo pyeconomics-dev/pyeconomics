@@ -55,6 +55,7 @@ from pyeconomics.core import (
     Reference,
     Return,
     ReturnArray,
+    Symbol,
     Volatility,
     VolatilityArray,
     has_spread,
@@ -552,6 +553,42 @@ _EXAMPLE_ASSETS: Final = {
             r"w_T = \frac{\Sigma^{-1}(\mu - r_f \mathbf{1})}{\mathbf{1}'\Sigma^{-1}"
             r"(\mu - r_f\mathbf{1})}, \quad \text{slope} = \sqrt{(\mu - r_f "
             r"\mathbf{1})'\Sigma^{-1}(\mu - r_f \mathbf{1})}"
+        ),
+    ),
+    symbols=(
+        Symbol("E[R_p]", "The portfolio's expected return", "expected_return"),
+        Symbol("w", "The portfolio's weights", "weights"),
+        Symbol(r"\mu", "The assets' expected returns", "expected_returns"),
+        Symbol(r"\sigma_p^2", "The portfolio's variance", "variance"),
+        Symbol(r"\Sigma", "Covariance matrix of the assets' returns", "covariance"),
+        Symbol("w_g", "Weights of the global minimum-variance portfolio", "weights"),
+        Symbol("A", "The sum of the elements of the inverse covariance matrix"),
+        Symbol(r"\sigma_g^2", "Variance of the global minimum-variance portfolio"),
+        Symbol(
+            r"\sigma^2(m)",
+            "The smallest variance for the expected return m",
+            "variances",
+        ),
+        Symbol("m", "A target expected return on the frontier", "target_returns"),
+        Symbol(
+            r"\mu_g",
+            "Expected return of the global minimum-variance portfolio",
+            "minimum_variance_return",
+        ),
+        Symbol(
+            "q",
+            (
+                "How fast the frontier's variance rises away from the minimum- "
+                "variance return"
+            ),
+        ),
+        Symbol("d", "The assets' expected returns less the minimum-variance return"),
+        Symbol("w_T", "Weights of the tangency portfolio", "weights"),
+        Symbol("r_f", "Risk-free rate", "risk_free_rate"),
+        Symbol(
+            r"\text{slope}",
+            "Slope of the capital market line: the tangency portfolio's Sharpe ratio",
+            "capital_market_line_slope",
         ),
     ),
     assumptions=(

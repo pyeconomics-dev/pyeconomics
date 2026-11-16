@@ -58,6 +58,7 @@ from pyeconomics.core import (
     Rate,
     Reference,
     RootPolicy,
+    Symbol,
     Volatility,
     Years,
     find_root,
@@ -715,6 +716,29 @@ _JAMSHIDIAN = Reference(
             r"D_{eff} = \frac{V_- - V_+}{2 V_0 \Delta y}, \quad "
             r"C_{eff} = \frac{V_- + V_+ - 2 V_0}{V_0 \Delta y^2}"
         ),
+    ),
+    symbols=(
+        Symbol("r_{t,j}", "The one-period rate at step t, node j", "node_rates"),
+        Symbol("r_{t,0}", "The lowest rate at step t", "lowest_rates"),
+        Symbol(r"\sigma", "Volatility of the one-period rate per year", "volatility"),
+        Symbol(r"\Delta", "The length of one step, in years", "step_years"),
+        Symbol("V_{t,j}", "The bond's value at step t, node j"),
+        Symbol("C", "The coupon paid each step"),
+        Symbol("s", "Option-adjusted spread added to every rate", "oas"),
+        Symbol("K", "The price the option is exercised at", "exercise_prices"),
+        Symbol("q_{t,j}", "The value today of 1 paid at step t, node j"),
+        Symbol(
+            "d_{t+1}",
+            "Discount factor for a payment at step t + 1",
+            "discount_factors",
+        ),
+        Symbol("c_{t+1}", "Par yield of the bond maturing at step t + 1", "par_yields"),
+        Symbol("D_{eff}", "Effective duration", "effective_duration"),
+        Symbol("C_{eff}", "Effective convexity", "effective_convexity"),
+        Symbol("V_0", "The bond's value on the tree", "value"),
+        Symbol("V_-", "Its value with the curve shifted down", "value_down"),
+        Symbol("V_+", "Its value with the curve shifted up", "value_up"),
+        Symbol(r"\Delta y", "The parallel shift of the par curve", "shift"),
     ),
     assumptions=(
         (

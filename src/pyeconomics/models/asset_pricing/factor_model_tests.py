@@ -63,6 +63,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     least_squares,
     model,
     warn,
@@ -708,6 +709,61 @@ def _bindings(
             r"\hat V_S = \tfrac{1}{T}\left[(1 + \hat\gamma'\hat\Sigma_f^{-1}"
             r"\hat\gamma)\, A \hat\Sigma A' + \hat\Sigma_f^*\right], \quad A = "
             r"(X'X)^{-1}X'"
+        ),
+    ),
+    symbols=(
+        Symbol("r_{it}", "Excess return of test asset i in period t", "returns"),
+        Symbol(
+            r"\alpha_i",
+            "Asset i's alpha: the average excess return its betas leave unexplained",
+            "alphas",
+        ),
+        Symbol(r"\beta_i", "Asset i's betas on the factors", "betas"),
+        Symbol("f_t", "The factors' returns in period t", "factors"),
+        Symbol("e_{it}", "Asset i's residual in period t"),
+        Symbol("W", "The GRS statistic", "statistic"),
+        Symbol("T", "Number of periods", "observations"),
+        Symbol("N", "Number of test assets", "numerator_degrees_of_freedom"),
+        Symbol("L", "Number of factors"),
+        Symbol(r"\hat\Sigma", "Estimated covariance matrix of the residuals"),
+        Symbol(r"\bar f", "The factors' average returns"),
+        Symbol(r"\hat\Omega", "Estimated covariance matrix of the factors"),
+        Symbol(
+            r"\gamma_{0t}",
+            "The cross-sectional constant in period t: the zero-beta excess return",
+            "intercept",
+        ),
+        Symbol(
+            r"\hat B",
+            "The assets' estimated betas, one row for each asset",
+            "betas",
+        ),
+        Symbol(
+            r"\gamma_t",
+            "The factors' premia in period t's cross-sectional regression",
+        ),
+        Symbol(r"\hat\gamma", "The factors' average premia over the periods", "premia"),
+        Symbol(
+            r"s(\hat\gamma)",
+            "Fama-MacBeth standard errors of the premia",
+            "premium_standard_errors",
+        ),
+        Symbol(r"\eta_t", "The cross-sectional residuals in period t"),
+        Symbol(
+            r"\hat V_S",
+            (
+                "Covariance of the premia with Shanken's correction; its diagonal "
+                "gives the corrected standard errors"
+            ),
+            "shanken_standard_errors",
+        ),
+        Symbol(
+            r"\hat\Sigma_f",
+            "Estimated covariance matrix of the factors, in the correction",
+        ),
+        Symbol(
+            "X",
+            "The matrix of betas, with a column of ones when a constant is included",
         ),
     ),
     assumptions=(

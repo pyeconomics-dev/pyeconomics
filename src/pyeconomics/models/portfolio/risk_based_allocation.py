@@ -51,6 +51,7 @@ from pyeconomics.core import (
     ModelOutputs,
     Ratio,
     Reference,
+    Symbol,
     Volatility,
     VolatilityArray,
     model,
@@ -545,6 +546,31 @@ _EXAMPLE: Final = {
             r"d_{ij} = \sqrt{\tfrac{1}{2}(1 - \rho_{ij})}, \quad \alpha = 1 - "
             r"\frac{V_1}{V_1 + V_2}"
         ),
+    ),
+    symbols=(
+        Symbol("w_i^{IV}", "Asset i's inverse-volatility weight", "weights"),
+        Symbol(r"\sigma_i", "Volatility of asset i", "volatilities"),
+        Symbol(
+            "RC_i",
+            "Asset i's contribution to the portfolio's volatility",
+            "risk_contributions",
+        ),
+        Symbol(r"\Sigma", "Covariance matrix of the assets' returns", "covariance"),
+        Symbol(r"\sigma_p", "The portfolio's volatility", "volatility"),
+        Symbol(
+            "w^{ERC}",
+            "The equal-risk-contribution (risk parity) weights",
+            "weights",
+        ),
+        Symbol("y^*", "The unscaled weights that solve the risk-parity problem"),
+        Symbol("N", "Number of assets"),
+        Symbol("d_{ij}", "The correlation distance between assets i and j"),
+        Symbol(r"\rho_{ij}", "The correlation between assets i and j", "correlations"),
+        Symbol(
+            r"\alpha",
+            "The share given to the first of two clusters when a cluster is split",
+        ),
+        Symbol("V_1", "Variance of the first cluster; V_2 is the second's"),
     ),
     assumptions=(
         (

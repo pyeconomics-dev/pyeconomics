@@ -52,6 +52,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -1110,6 +1111,64 @@ _RULE_BINDINGS: Final = (
             r"R^{FD} = R_{t-1} + 0.5(\pi - \pi^*) + 0.5(y_t - y_{t-4})"
         ),
         r"R = \max\{\rho R_{t-1} + (1 - \rho) R^{rule},\ \text{ELB}\}",
+    ),
+    symbols=(
+        Symbol("R^{T93}", "The rate Taylor's 1993 rule prescribes"),
+        Symbol("r^*", "The neutral real rate of interest", "neutral_real_rate"),
+        Symbol(r"\pi", "Inflation over the last year", "inflation"),
+        Symbol(r"\pi^*", "The inflation target", "inflation_target"),
+        Symbol(
+            "y",
+            (
+                "The resource gap: the output gap, or Okun's coefficient times the "
+                "unemployment gap"
+            ),
+            "output_gap",
+        ),
+        Symbol("k", "Okun's coefficient", "okun_coefficient"),
+        Symbol("u^*", "The natural rate of unemployment", "natural_unemployment"),
+        Symbol("u", "The unemployment rate", "unemployment"),
+        Symbol("R^{T99}", "The rate Taylor's 1999 rule prescribes"),
+        Symbol(
+            "R^{BA}",
+            "The balanced-approach rule's rate, the same as Taylor's 1999 rule",
+        ),
+        Symbol(
+            "R^{BAS}",
+            (
+                "The balanced-approach (shortfalls) rule's rate, which answers only "
+                "to a gap below zero"
+            ),
+        ),
+        Symbol("R^{T93adj}", "The adjusted Taylor 1993 rule's rate"),
+        Symbol(
+            "Z",
+            "The cumulative shortfall of policy while the lower bound held",
+            "cumulative_shortfall",
+        ),
+        Symbol(
+            r"\text{ELB}",
+            "The effective lower bound on the policy rate",
+            "lower_bound",
+        ),
+        Symbol("R^{FD}", "The first-difference rule's rate"),
+        Symbol("R_{t-1}", "The policy rate of the quarter before", "previous_rate"),
+        Symbol(
+            "y_{t-4}",
+            "The resource gap four quarters earlier",
+            "output_gap_lagged",
+        ),
+        Symbol(
+            r"\rho",
+            "The weight on the rate of the quarter before: the smoothing",
+            "smoothing",
+        ),
+        Symbol(
+            "R^{rule}",
+            "The rate the chosen rule prescribes before smoothing and the lower bound",
+            "unconstrained_rate",
+        ),
+        Symbol("R", "The prescribed policy rate", "prescribed_rate"),
     ),
     assumptions=(
         (

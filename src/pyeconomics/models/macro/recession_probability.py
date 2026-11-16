@@ -38,6 +38,7 @@ from pyeconomics.core import (
     Probability,
     Rate,
     Reference,
+    Symbol,
     decimal_to_percent,
     model,
 )
@@ -155,6 +156,26 @@ _NYFED = Reference(
     formula=(
         r"P = \Phi(-0.5333 - 0.6330\,S), \quad S = 100\,(y_{10} - y_{3m})",
         r"y_{3m} = \frac{365\,d}{360 - 91\,d} \ \text{(from a discount rate } d)",
+    ),
+    symbols=(
+        Symbol(
+            "P",
+            "The probability of a recession twelve months ahead",
+            "probability",
+        ),
+        Symbol(r"\Phi", "The standard normal cumulative distribution"),
+        Symbol("S", "The term spread, in percentage points", "spread"),
+        Symbol("y_{10}", "The ten-year Treasury yield", "ten_year_yield"),
+        Symbol(
+            "y_{3m}",
+            "The three-month Treasury bill's bond-equivalent yield",
+            "bill_bond_equivalent",
+        ),
+        Symbol(
+            "d",
+            "The bill's rate when it is quoted on a discount basis",
+            "three_month_yield",
+        ),
     ),
     assumptions=(
         (
