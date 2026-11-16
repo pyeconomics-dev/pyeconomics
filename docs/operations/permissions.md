@@ -31,11 +31,11 @@ pages read that day.
 
 | Recipient | Published contact | Sent | Issue | Answer | Outcome |
 |-----------|-------------------|------|-------|--------|---------|
-| Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | | |
+| Federal Reserve Bank of St. Louis (FRED, ALFRED) | stlsFRED@stls.frb.org ([FRED legal page](https://fred.stlouisfed.org/legal/): "For comments or questions about the data in the FRED® database, we prefer you send an email to stlsFRED@stls.frb.org"; the [contact form](https://fred.stlouisfed.org/contactus/) is the other route) | 2026-11-12, by email | #308 | 2026-11-16, by email from the FRED team, summarised in section 1 because its emails ask not to be quoted: the terms permit no storage, and a web application should give its users only public-domain series, each through the user's own FRED API key | Declined for the hosted site: `fred` stays library-only and pyeconomics.dev never serves it; the citation must name the originating source (#346) (section 1) |
 | Kenneth R. French (Data Library) | kfrench@dartmouth.edu ([contact page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/contact_Information.html)) | 2026-11-12, by email | #309 | 2026-11-13, by email from Professor French: we may not include the data in software we distribute. Told the same day that the library downloads his files at a user's request, he wrote that this is fine, and that he may rescind the permission | Declined: `ken_french` stays library-only; nothing we distribute holds the data; the run-time download continues with his consent, which he may rescind (section 2) |
 | Robert J. Shiller (US stock market data and CAPE) | laurence.black@theindexstandard.com ([Professor Shiller's data page](http://www.econ.yale.edu/~shiller/data.htm), "For questions or more information") | 2026-11-12, by email | #310 | 2026-11-13, by email: they cannot permit showing S&P data, which belongs to S&P; they named S&P's licensing contact. The file's new layout is expected within two months (#324) | Declined: `shiller` stays library-only; no S&P licence sought (section 3) |
 | International Monetary Fund | copyright@imf.org ([copyright and usage](https://www.imf.org/en/about/copyright-and-terms)) | 2026-11-12, by email | #311 | 2026-11-13: an automatic reply only, pointing to the Copyright Clearance Center; no answer from a person yet | |
-| Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | | |
+| Federal Reserve Bank of Philadelphia (RTDSM, SPF) | PHIL.SPF@phil.frb.org, copy Casey.Ross@phil.frb.org ([SPF documentation](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/survey-of-professional-forecasters); [RTDSM page](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists)) | 2026-11-12, by email | #312 | 2026-11-16, by email from the Real-Time Data Operations Manager: the Bank's online terms of use and privacy notice set the permitted use; nothing further was granted; scheduled daily downloads risk being blocked or rate-limited | No grant: `philadelphia_fed` stays library-only; nothing downloads its files daily (section 5) |
 | Federal Reserve Bank of Atlanta (GDPNow) | [GDPNow inquiry form](https://www.atlantafed.org/en/research-and-data/data/gdpnow/gdpnow-inquiry) | 2026-11-12, by web form | #313 | | |
 | Federal Reserve Bank of Cleveland (inflation expectations) | public.information@clev.frb.org ([inflation expectations](https://www.clevelandfed.org/indicators-and-data/inflation-expectations), "For further information") | 2026-11-12, by email | #314 | | |
 | CFA Institute (the mark in URL paths) | trademark@cfainstitute.org ([trademark guidance](https://www.cfainstitute.org/programs/candidate-resources/share-achievement)) | 2026-11-12, by email | #315 | 2026-11-13, by email: before answering, they asked for representative mapping pages and whether anything comes from CFA Institute curriculum or other CFA Institute materials | Open: our reply went 2026-11-14; they review our pages before answering (section 8) |
@@ -98,6 +98,46 @@ owned by third parties, so the letter asks only about what the Bank owns.
 > Nathan Ramos, CFA
 > Maintainer, pyeconomics
 > nathan.ramos.github@gmail.com · https://github.com/pyeconomics-dev/pyeconomics
+
+**Answer (2026-11-16).** The FRED team answered by email. Its emails ask not to be
+quoted or attributed to the Federal Reserve System or the Bank, so this is our
+summary, not a statement of the Bank's:
+
+- FRED's terms do not permit indefinite storage, which refuses the daily copy
+  (question 2).
+- In a web application, users should reach only series tagged "Public Domain:
+  Citation Requested". Each user should do so through a free FRED account and their
+  own API key passed to the application.
+- A series tagged "Copyrighted" needs its originating source's permission, which
+  the Bank cannot give.
+- Any reuse, even as material for a calculation, should cite both the originating
+  source and FRED, with the date accessed. The work should state that it uses FRED
+  but is not endorsed or certified by the Bank.
+- The API allows 2 requests a second before it throttles, and no higher limit is
+  licensed.
+- On questions 3 to 5, the reply pointed to the prohibited uses in the terms and
+  said nothing more.
+
+**Outcome.** Declined for the hosted site as designed. `fred` stays library-only, and
+pyeconomics.dev never serves FRED: no snapshot holds it, and the hosted site takes no
+visitor's key (AGENTS.md, "Web rules"). The per-user-key route the reply describes is
+already the library's and the local app's (`pyeconomics serve`), where a user's own
+key reads FRED on their own computer, under their own acceptance of the terms.
+Question 5 got no answer, so `llm_use` stays `forbidden`.
+
+The library already follows the rest:
+
+- FRED's notice appears verbatim (`FRED_NOTICE` in `providers/fred.py`).
+- Each series' copyright tag sets its notice (`copyright_terms`).
+- There is no cache path.
+- The rate limits are 2 requests a second and 120 a minute.
+- Every record keeps the retrieval time, which is the access date.
+
+One gap remains. The attribution names FRED as the source, where FRED's terms say to
+"cite the source of the data and note that it was accessed via FRED" (the
+[legal page](https://fred.stlouisfed.org/legal/), read 2026-11-16). Issue #346 makes
+each series' attribution name its originating source, before the release candidate
+(Step 19). Issue #308 is closed as declined.
 
 ### 2. Kenneth R. French: the Data Library
 
@@ -276,6 +316,29 @@ The Bank's terms allow informational, educational and research use only.
 > Nathan Ramos, CFA
 > Maintainer, pyeconomics
 > nathan.ramos.github@gmail.com · https://github.com/pyeconomics-dev/pyeconomics
+
+**Answer (2026-11-16).** Casey W. Ross, the Real-Time Data Operations Manager,
+replied that the Bank's online terms of use and privacy notice "specify the
+permissible use of our website's information, materials, or other content available
+through it". That is the page the provider's `terms_url` already names. He granted
+nothing beyond it. He added: "by scheduling daily downloads to our site, your IP
+address runs the risk of being flagged as suspicious by our servers and blocked or
+'rate-limited'."
+
+**Outcome.** No grant, so `philadelphia_fed` stays library-only: a pointer to the
+terms counts as silence does. The hosted site never serves the RTDSM or the SPF.
+
+The warning applies only to the daily copy that question 2 asked about, and nothing
+makes one:
+
+- the snapshot set leaves the source out, because it is not hosted-safe;
+- the daily heartbeat (`providers-heartbeat.yml`) asks only GitHub about the live
+  run; and
+- the one scheduled fetch is the weekly live check (`providers-live.yml`, Mondays).
+
+A user's library downloads the files only when that user asks, and keeps them for
+the provider's declared day (`ttl_seconds`). Keep it so: never schedule a daily
+download of the Bank's files. Issue #312 is closed as declined.
 
 ### 6. Federal Reserve Bank of Atlanta: GDPNow
 
