@@ -452,3 +452,4 @@ model per line, in exactly this form:
 - google/Gemini Robotics Er 2 — an image, audio, video, embedding, robotics or computer-use model; the catalog rates general text models (declined 2026-10-07)
 - zai/GLM-5.3-FlashX-Legal — no price on the provider page; re-checked each run (declined 2026-11-12)
 - anthropic/Claude Mythos 5.2 — the provider page's name for `claude-fable-5.2`, which the catalog carries (declined 2026-11-12)
+- google/Gemini 4 Hydrogen — named by one source only; re-checked each run (declined 2026-11-12)
