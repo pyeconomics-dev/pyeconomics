@@ -139,3 +139,12 @@ Each image shows a page's first screen at 390, 820 and 1440 wide, light above da
 | A, Textbook | ![Direction A, home](img/direction-a-home.webp) | ![Direction A, model page](img/direction-a-model-family.webp) |
 | B, Instrument | ![Direction B, home](img/direction-b-home.webp) | ![Direction B, model page](img/direction-b-model-family.webp) |
 | C, Signal | ![Direction C, home](img/direction-c-home.webp) | ![Direction C, model page](img/direction-c-model-family.webp) |
+
+### As built
+
+Direction A across the site, with Literata, captured by the harness (run
+`design-3`) at three widths in both themes.
+
+| Home | A model page | A model whose data the site may not serve |
+| --- | --- | --- |
+| ![The home page as built](img/as-built-home.webp) | ![A model page as built](img/as-built-model-family.webp) | ![The library-only model page as built](img/as-built-library-only.webp) |
