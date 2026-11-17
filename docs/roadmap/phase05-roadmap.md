@@ -10211,9 +10211,9 @@ its own work. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 18 — AI Dogfooding Loop
+## Step 18 — AI Dogfooding Loop ✅
 
-**Status:** Not started
+**Status:** Complete — PR #352 (2026-11-16)
 
 > **Goal:** Iterate the site with independent AI evaluators until another
 > round stops paying for itself, then lock the result in. *Added
@@ -13172,7 +13172,7 @@ workflow above maps directly to the corresponding row below.
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
 | 17   | Design direction + system      | Opus 5.5       | Complete — PR #344 |
-| 18   | AI dogfooding loop             | GPT-6.1 Sol    | Not started        |
+| 18   | AI dogfooding loop             | GPT-6.1 Sol    | Complete — PR #352 |
 | 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |
 | 21   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |
