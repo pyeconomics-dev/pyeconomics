@@ -30,7 +30,7 @@ import Calculator from "@/components/calculator/Calculator";
 import HypotheticalLegend from "@/components/models/HypotheticalLegend.astro";
 import VariablesTable from "@/components/models/VariablesTable.astro";
 import Base from "@/layouts/Base.astro";
-import { calculatorProps } from "@/lib/calculator";
+import { calculations, calculatorProps, formRoom } from "@/lib/calculator";
 import { relatedModels, topicsOf } from "@/lib/catalog";
 import {
   COST_MEANING,
@@ -41,18 +41,21 @@ import {
   docsUrl,
   domainPath,
   domainTitle,
+  liveNotice,
   modelPath,
   pretty,
   referenceLink,
-  unservedSources,
+  symbolsOf,
   variables,
 } from "@/lib/models";
 import { LOCAL_APP } from "@/lib/explorer";
 import { simulates } from "@/lib/legal";
 import { cliSnippet, pythonSnippet } from "@/lib/snippets";
 import { conceptPath } from "@/lib/paths";
+import { profileLabel, profileName } from "@/lib/profiles";
 import type { Model } from "@/lib/registry-schema";
-import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
+import { prerelease } from "@/lib/mcp";
+import { conceptData, problemData, sourceData, syllabusData, version, type SurfaceEntry } from "@/lib/site-data";
 import { modelPage, type Crumb } from "@/lib/structured-data";
 
 interface Props {
@@ -71,12 +74,19 @@ const trail: Crumb[] = [
   { name: model.title, path },
 ];
 const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
+// What each symbol of the formulas stands for, from the card's "Where" list (issue #343).
+const symbols = symbolsOf(model.card);
 const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
+// A family's calculations in words, beside their ids in the variables tables.
+const calculationWords = new Map(calculations(model.input_schema).map((entry) => [entry.value, entry.label]));
 const profiles = dataProfiles(model.bindings, conceptData, sourceData);
-const unserved = unservedSources(profiles);
-// Whether the hosted site serves every field of the default profile (issue #320).
-const defaultServed = profiles.find((profile) => profile.profile === "default")?.rows.every((row) => row.hosted) ?? false;
+// What the page says when the hosted site may not serve some of the model's data (issue #320).
+const notice = liveNotice(profiles);
 const calculator = calculatorProps(model, surface, problemData, sourceData, conceptData);
+// The package's install command, beside the calculator's Python and command-line snippets.
+const install = prerelease(version) ? "pip install --pre pyeconomics" : "pip install pyeconomics";
+// The room the loaded form takes, held before it loads so the page does not shift.
+const room = formRoom(model, surface.profiles.length);
 const topics = topicsOf(model.id, syllabusData);
 const syllabi = syllabusData.filter((syllabus) => topics.some((entry) => entry.syllabus.id === syllabus.id));
 const related = relatedModels(model, models, syllabusData);
@@ -103,10 +113,10 @@ const contents = [
   ...(related.length > 0 ? [{ id: "related", label: "Related models" }] : []),
   { id: "use-it-elsewhere", label: "Use it elsewhere" },
 ];
-const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
+const preClass = "code-box overflow-x-auto rounded-md px-4 py-3 text-sm";
 ---
 
-<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)} searchable>
+<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)} searchable paintWith="formula">
   <Breadcrumbs trail={trail} />
   <div class="model-layout">
   <article class="model-article">
@@ -149,9 +159,29 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
       <div class="formula-plate">
         {model.formula.map((latex) => <Math latex={latex} display />)}
       </div>
+      {
+        symbols.length > 0 && (
+          <div class="where" data-symbols>
+            <h3 class="subsection-title">Where</h3>
+            <dl class="symbols">
+              {symbols.map((entry) => (
+                <div data-symbol={entry.field ?? ""}>
+                  <dt>
+                    <Math latex={entry.symbol} />
+                  </dt>
+                  <dd>
+                    {entry.field ? `${entry.meaning} ` : entry.meaning}
+                    {entry.field && <code class="symbol-field">{entry.field}</code>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )
+      }
       <p class="note measure">
-        The inputs and outputs, with their units and bounds, are under <a href="#variables">Variables</a>; the
-        <a href="#citations">citations</a> give each formula's source.
+        Each symbol's field is named beside it; the inputs and outputs, with their units and bounds, are under{" "}
+        <a href="#variables">Variables</a>, and the <a href="#citations">citations</a> give each formula's source.
       </p>
     </section>
 
@@ -167,8 +197,8 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           table.calculation ? (
             <details class="variables-group" open={index === 0}>
               <summary>
-                The calculation <code>{table.calculation}</code>: {table.rows.length}{" "}
-                {table.rows.length === 1 ? "input" : "inputs"}
+                {calculationWords.get(table.calculation) ?? table.calculation} (<code>{table.calculation}</code>):{" "}
+                {table.rows.length} {table.rows.length === 1 ? "input" : "inputs"}
               </summary>
               <VariablesTable table={table} caption={`Inputs of the calculation ${table.calculation}`} />
             </details>
@@ -183,8 +213,8 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           table.calculation ? (
             <details class="variables-group" open={index === 0}>
               <summary>
-                The calculation <code>{table.calculation}</code>: {table.rows.length}{" "}
-                {table.rows.length === 1 ? "output" : "outputs"}
+                {calculationWords.get(table.calculation) ?? table.calculation} (<code>{table.calculation}</code>):{" "}
+                {table.rows.length} {table.rows.length === 1 ? "output" : "outputs"}
               </summary>
               <VariablesTable table={table} caption={`Outputs of the calculation ${table.calculation}`} />
             </details>
@@ -208,30 +238,25 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
         goes to the pyeconomics API on this site: your values travel only in the request, and nothing is stored.
       </p>
       {
-        unserved.length > 0 && (
+        notice && (
           <div class="notice measure" data-library-only>
-            <p class="font-medium">{defaultServed ? "Some live data run on your own computer only" : "Live data run on your own computer only"}</p>
+            <p class="font-medium">{notice.title}</p>
+            {notice.served && <p class="mt-2" data-served-profiles>{notice.served}</p>}
+            {notice.local.map((sentence) => <p class="mt-2" data-local-profiles>{sentence}</p>)}
             <p class="mt-2">
-              {unserved.map((source, index) => (
-                <Fragment>
-                  {index > 0 && " "}
-                  This model reads {source.labels.join(", ")} from {source.name}
-                  {defaultServed && <Fragment> (in the profile{source.profiles.length > 1 ? "s" : ""} {source.profiles.join(", ")})</Fragment>}.
-                </Fragment>
-              ))}{" "}
-              {unserved.length > 1 ? "Their" : "Its"} terms let pyeconomics read the data on your own computer, but not
-              serve them from this website: {unserved.length > 1 ? "their licence class is" : "its licence class is"}{" "}
-              library-only.
-            </p>
-            <p class="mt-2">
-              Here you can enter your own values, or bring them as a file with "Use my own data". To run this page with
-              live data, install the local app and start it: <code>{LOCAL_APP}</code>.
+              {notice.served ? "For those" : "Here"}, enter your own values, or bring them as a file with "Use my own data".
+              To run this page with every profile's live data, install the local app and start it:{" "}
+              <code>{LOCAL_APP}</code>.
             </p>
           </div>
         )
       }
       <div class="calculator-card">
-        <Calculator client:visible {...calculator} />
+        <div class="calculator-slot">
+          <Calculator client:visible {...calculator} install={install} />
+        </div>
+        <svg class="calculator-room calculator-room-narrow" aria-hidden="true" focusable="false" width="0" height={room.narrow}></svg>
+        <svg class="calculator-room calculator-room-wide" aria-hidden="true" focusable="false" width="0" height={room.wide}></svg>
       </div>
       {hypothetical && <HypotheticalLegend model={model} place="calculator" />}
       <noscript>
@@ -375,20 +400,26 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
             <div class="overflow-x-auto" role="region" aria-label={`Profile ${profile.profile}`} tabindex="0">
               <table class="w-full border-collapse text-left text-sm">
                 <caption class="mb-2 text-left font-medium">
-                  Profile <code>{profile.profile}</code>
+                  Profile: {profileName(profile.profile)}
+                  {profileLabel(profile.profile) !== profileName(profile.profile) && (
+                    <Fragment>
+                      {" "}
+                      (<code>{profile.profile}</code>)
+                    </Fragment>
+                  )}
                 </caption>
                 <thead>
                   <tr class="border-b">
                     <th scope="col" class="py-2 pr-4">
                       Field
                     </th>
-                    <th scope="col" class="py-2 pr-4">
+                    <th scope="col" class="min-w-40 py-2 pr-4">
                       Concept
                     </th>
-                    <th scope="col" class="py-2 pr-4">
+                    <th scope="col" class="min-w-48 py-2 pr-4">
                       Read as
                     </th>
-                    <th scope="col" class="py-2">
+                    <th scope="col" class="min-w-56 py-2">
                       Sources (licence class; hosted)
                     </th>
                   </tr>
@@ -484,10 +515,18 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
                 <a href={modelPath(other.id)} class="font-medium">
                   {other.title}
                 </a>
-                <span class="block text-sm text-muted-foreground">{domainTitle(other.domain)}</span>
+                <span class="block text-sm text-muted-foreground">{describe(other, 110)}</span>
+                {other.domain !== model.domain && (
+                  <span class="block text-xs text-muted-foreground">{domainTitle(other.domain)}</span>
+                )}
               </li>
             ))}
           </ul>
+          <p class="mt-4">
+            <a href={domainPath(model.domain)} data-related-domain>
+              Every {domainTitle(model.domain)} model
+            </a>
+          </p>
         </section>
       )
     }
@@ -504,7 +543,19 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
             <Fragment>
               <dt class="font-medium">MCP tool</dt>
               <dd>
-                <code>{surface.mcp_tool}</code>
+                <code>{surface.mcp_tool}</code>, or <code>run_model</code> with the model's id; both give the same
+                result. <a href="/assistants/">Connect an assistant</a>
+              </dd>
+            </Fragment>
+          )
+        }
+        {
+          !surface.mcp_tool && (
+            <Fragment>
+              <dt class="font-medium">MCP tool</dt>
+              <dd>
+                <code>run_model</code> with the model's id, <code>{model.id}</code>.{" "}
+                <a href="/assistants/">Connect an assistant</a>
               </dd>
             </Fragment>
           )

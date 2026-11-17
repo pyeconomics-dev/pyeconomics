@@ -122,7 +122,7 @@ governance", enforced by `registry.validate()` and the pull request template:
 | Requirement      | Rule                                                                                         |
 |------------------|----------------------------------------------------------------------------------------------|
 | Identity         | Permanent dotted id; a per-model version that bumps on any output change                     |
-| Model card       | Summary, formula, variables with units, assumptions, limitations, evidence status, curriculum mapping, references |
+| Model card       | Summary, formula with each symbol defined, variables with units, assumptions, limitations, evidence status, curriculum mapping, references |
 | Citations        | At least one primary reference; every golden case cites its source; no copied copyrighted text — numbers and formulas only, in our own words |
 | Golden tests     | At least three cited cases including an edge case, each with a tolerance                     |
 | Property tests   | One per invariant the domain guarantees                                                      |

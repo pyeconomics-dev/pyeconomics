@@ -55,6 +55,7 @@ from pyeconomics.core import (
     Reference,
     Return,
     ReturnArray,
+    Symbol,
     Volatility,
     annualized_log_return,
     has_spread,
@@ -414,6 +415,60 @@ _BACON = Reference(
         (
             r"Calmar = \frac{(\prod (1 + r_t))^{m/n} - 1}{MDD}, \quad UC = "
             r"\frac{\bar{r}^{G}_{b > 0}}{\bar{b}^{G}_{b > 0}}"
+        ),
+    ),
+    symbols=(
+        Symbol("S", "Sharpe ratio, for a year", "sharpe_ratio"),
+        Symbol(r"\bar{e}", "Mean excess return over the risk-free return"),
+        Symbol("s_e", "Standard deviation of the excess returns"),
+        Symbol("m", "Periods in a year", "periods_per_year"),
+        Symbol("Sortino", "Sortino ratio, for a year", "sortino_ratio"),
+        Symbol(r"\bar{r}", "Mean return"),
+        Symbol(
+            "MAR",
+            "Minimum acceptable return per period",
+            "minimum_acceptable_return",
+        ),
+        Symbol(
+            "DD",
+            "Downside deviation below the minimum acceptable return",
+            "downside_deviation",
+        ),
+        Symbol("r_t", "The return in period t", "returns"),
+        Symbol("n", "Number of returns", "observations"),
+        Symbol(r"\beta", "Beta to the benchmark", "beta"),
+        Symbol("e^b", "The benchmark's excess returns"),
+        Symbol("T", "Treynor ratio, for a year", "treynor_ratio"),
+        Symbol(r"\alpha", "Jensen's alpha, for a year", "jensen_alpha"),
+        Symbol("TE", "Tracking error, for a year", "tracking_error"),
+        Symbol(
+            "s_a",
+            (
+                "Standard deviation of the active returns: the portfolio's less the "
+                "benchmark's"
+            ),
+        ),
+        Symbol("IR", "Information ratio, for a year", "information_ratio"),
+        Symbol(r"\bar{a}", "Mean active return"),
+        Symbol(
+            "M^2",
+            "Modigliani-Modigliani measure: the return at the benchmark's volatility",
+            "m_squared",
+        ),
+        Symbol(r"\bar{f}", "Mean risk-free return"),
+        Symbol(
+            "Calmar",
+            "Calmar ratio: the annualized return over the maximum drawdown",
+            "calmar_ratio",
+        ),
+        Symbol("MDD", "Maximum drawdown", "max_drawdown"),
+        Symbol(
+            "UC",
+            (
+                "Up capture: the portfolio's return over the benchmark's, in periods "
+                "the benchmark rose"
+            ),
+            "up_capture",
         ),
     ),
     assumptions=(

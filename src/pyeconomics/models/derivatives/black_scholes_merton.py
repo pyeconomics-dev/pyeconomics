@@ -37,6 +37,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     Volatility,
     Years,
     model,
@@ -277,6 +278,37 @@ _HULL = Reference(
             r"\Gamma = \frac{e^{-qT} n(d_1)}{S \sigma \sqrt{T}}, \quad "
             r"\nu = S e^{-qT} n(d_1) \sqrt{T}"
         ),
+    ),
+    symbols=(
+        Symbol("S", "Price of the underlying asset now", "spot"),
+        Symbol("K", "Strike price", "strike"),
+        Symbol(
+            "r",
+            "Risk-free rate per year, continuously compounded",
+            "risk_free_rate",
+        ),
+        Symbol(
+            "q",
+            "Dividend yield per year, continuously compounded",
+            "dividend_yield",
+        ),
+        Symbol(r"\sigma", "Volatility of the asset's return per year", "volatility"),
+        Symbol("T", "Time to expiry, in years", "years"),
+        Symbol(
+            "d_1",
+            "The first standardized distance the normal distribution is read at",
+        ),
+        Symbol(
+            "d_2",
+            "The second: the first less the volatility over the time to expiry",
+        ),
+        Symbol("N", "The standard normal cumulative distribution"),
+        Symbol("n", "The standard normal density"),
+        Symbol("c", "Price of a European call", "price"),
+        Symbol("p", "Price of a European put", "price"),
+        Symbol(r"\Delta_c", "The call's delta", "delta"),
+        Symbol(r"\Gamma", "Gamma, the same for a call and a put", "gamma"),
+        Symbol(r"\nu", "Vega: the change in price per unit of volatility", "vega"),
     ),
     assumptions=(
         (

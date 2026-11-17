@@ -10,8 +10,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   SERIES_TRANSFORMS,
+  TRANSFORM_LABELS,
   availability,
   chartNote,
+  citation,
   conceptListings,
   convertTargets,
   defaultRange,
@@ -23,6 +25,7 @@ import {
   seriesFigure,
   seriesPath,
   seriesQuery,
+  topicAnchor,
   transformText,
   transformsFor,
   type ConceptQuery,
@@ -166,6 +169,12 @@ describe("what a concept page offers", () => {
 describe("transforms", () => {
   it("offers yoy only for month-based series and convert only to a lower frequency", () => {
     expect(transformsFor("monthly", "series")).toEqual([...SERIES_TRANSFORMS]);
+    // The picker shows each transform as its words with its name beside them, so no label ends in its own name (round 3: "Earlier value (lag) (lag)").
+    for (const name of SERIES_TRANSFORMS) {
+      const label = TRANSFORM_LABELS.get(name) ?? "";
+      expect(label, name).not.toBe("");
+      expect(label.endsWith(`(${name})`), name).toBe(false);
+    }
     expect(transformsFor("daily", "series")).not.toContain("yoy");
     expect(transformsFor("daily", "series")).toContain("convert");
     expect(transformsFor("annual", "series")).toEqual(["pct_change", "yoy", "diff", "lag", "log"]);
@@ -274,8 +283,13 @@ describe("the chart", () => {
     const [note] = figure.layout.annotations;
     expect(note?.text).toBe("Source: U.S. Bureau of Labor Statistics &lt;BLS&gt; &amp; partners. Data as of 2026-11-02.");
     expect(note?.text).not.toMatch(/<(?!br>)/);
-    expect(figure.layout.yaxis.title.text).toBe("Decimal, shown as a percent");
+    expect(figure.layout.yaxis.title.text).toBe("Percent");
     expect(figure.layout.yaxis.tickformat).toBe(".1%");
+    // The concept's own title and unit head the chart when its page gives them.
+    const labelled = seriesFigure(DOCUMENT, 0, 700, { title: "US unemployment", unit: "index points" });
+    expect(labelled.layout.title.text).toBe("US unemployment");
+    expect(labelled.layout.yaxis.title.text).toBe("index points");
+    expect(labelled.layout.yaxis.tickformat).toBeUndefined();
     // A phone's narrow chart wraps the note to its width.
     expect(seriesFigure(DOCUMENT, 0, 300).layout.annotations[0]?.text.split("<br>").length).toBeGreaterThan(1);
   });
@@ -305,5 +319,37 @@ describe("the chart", () => {
     expect(lines.join(" ")).toBe("word ".repeat(60).trim());
     const vintage = { ...DOCUMENT, sources: [{ ...DOCUMENT.sources[0], realtime: { realtime_start: "2025-06-01" } }] } as SeriesDocument;
     expect(chartNote(vintage)).toMatch(/Data as of 2025-06-01\.$/);
+  });
+});
+
+describe("citing a series (Phase 5 Step 18)", () => {
+  const concept = { title: "Unemployment rate", url: "https://pyeconomics.dev/data/us/unemployment/rate/" };
+
+  it("gives the publisher, the series, how far it runs, when it was retrieved and the page", () => {
+    const record = {
+      provider: "bls",
+      series_id: "LNS14000000",
+      licence: "hosted-safe",
+      attribution: "Source: U.S. Bureau of Labor Statistics.",
+      observation_end: "2026-09-30",
+      retrieved_at: "2026-10-15T12:00:00+00:00",
+    };
+    expect(citation({ sources: [record] }, concept, { bls: "US Bureau of Labor Statistics" })).toBe(
+      "US Bureau of Labor Statistics. Unemployment rate, series LNS14000000. Observations to 2026-09-30. " +
+        "Retrieved 2026-10-15 through pyeconomics: https://pyeconomics.dev/data/us/unemployment/rate/",
+    );
+  });
+
+  it("leaves out what the record lacks, and names the provider by its id when no name is known", () => {
+    const record = { provider: "bls", series_id: "S", licence: "hosted-safe", attribution: "A" };
+    expect(citation({ sources: [record] }, concept, {})).toBe(
+      "bls. Unemployment rate, series S. Read through pyeconomics: https://pyeconomics.dev/data/us/unemployment/rate/",
+    );
+    expect(citation({ sources: [] }, concept, {})).toBe("Unemployment rate. https://pyeconomics.dev/data/us/unemployment/rate/");
+  });
+
+  it("anchors a topic by its words", () => {
+    expect(topicAnchor("Prices and inflation")).toBe("topic-prices-and-inflation");
+    expect(topicAnchor("Labour")).toBe("topic-labour");
   });
 });

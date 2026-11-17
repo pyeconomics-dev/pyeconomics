@@ -16,11 +16,15 @@ import {
   domainTitle,
   formatG,
   idOfPath,
+  liveNotice,
   modelPath,
   referenceLink,
+  sentenceList,
+  symbolsOf,
   variables,
   type VariableTable,
 } from "@/lib/models";
+import { PROFILE_NAMES, REGIONS, profileLabel, profileName, profileRegion } from "@/lib/profiles";
 import { COST, EVIDENCE, parseModels } from "@/lib/registry-schema";
 import { conceptData, registryData, sourceData } from "@/lib/site-data";
 
@@ -219,5 +223,125 @@ describe("citations and descriptions", () => {
     const long = describeModel({ summary: `${"word ".repeat(60)}end` });
     expect(long.length).toBeLessThanOrEqual(160);
     expect(long.endsWith("word…")).toBe(true);
+  });
+});
+
+describe("the live-data notice (Phase 5 Step 18)", () => {
+  const row = (field: string, hosted: boolean, source: string) => ({
+    field,
+    shape: null,
+    concept: `c.${field}`,
+    conceptTitle: `Title of ${field}`,
+    transform: null,
+    rule: "",
+    vintage: "",
+    sources: [{ provider: source, name: source, licence: hosted ? "hosted-safe" : "library-only", hosted }],
+    hosted,
+  });
+
+  it("says nothing for a model whose data the site serves, or that reads none", () => {
+    expect(liveNotice([])).toBeNull();
+    expect(liveNotice([{ profile: "default", rows: [row("a", true, "BLS")] }])).toBeNull();
+  });
+
+  it("names the profiles that run here first, then what the others read and from whom", () => {
+    const notice = liveNotice([
+      { profile: "default", rows: [row("a", true, "BLS")] },
+      { profile: "ea", rows: [row("a", true, "BLS")] },
+      { profile: "us_spf", rows: [row("a", false, "A Bank"), row("b", false, "A Bank")] },
+    ]);
+    expect(notice?.title).toBe("Live data: some profiles run here, the rest on your own computer");
+    // Each profile by its name, its id beside a name that does not spell it (round 2: the notice listed ids).
+    expect(notice?.served).toBe('On this site, "Live data" runs with the profiles Default and Euro area (ea).');
+    expect(notice?.local).toEqual([
+      "The profile US forecasters' survey (us_spf) reads Title of a and Title of b. Their source, A Bank, lets pyeconomics read the data on your own computer but not serve them from this website.",
+    ]);
+  });
+
+  it("names every profile a model binds, and holds no name for a profile none does", () => {
+    const bound = new Set(registryData.models.flatMap((model) => (model.bindings as { profile: string }[]).map((binding) => binding.profile)));
+    for (const id of PROFILE_NAMES.keys()) expect(bound.has(id), id).toBe(true);
+    for (const id of bound) {
+      // A name in words, never the bare code of two or three letters.
+      expect(profileName(id), id).toMatch(/^[A-Z]/);
+      if (id.length <= 3) expect(PROFILE_NAMES.has(id), id).toBe(true);
+    }
+    expect(profileLabel("default")).toBe("Default");
+    expect(profileLabel("nominal")).toBe("Nominal");
+    expect(profileLabel("gb")).toBe("United Kingdom (gb)");
+    expect(profileLabel("us_output_gap")).toBe("US output gap");
+    // A profile whose name says nothing of where its data is from says so (round 3).
+    expect(profileRegion(["us.inflation.cpi.yoy", "us.unemployment.rate"])).toBe("United States");
+    expect(profileRegion(["us.inflation.cpi.yoy", "ea.inflation.hicp.yoy"])).toBeNull();
+    expect(profileRegion(["pwt.rgdpna.ca.annual"])).toBeNull();
+    expect(profileRegion([])).toBeNull();
+    expect(profileLabel("default", "United States")).toBe("Default (United States data)");
+    expect(profileLabel("ea", "Euro area")).toBe("Euro area (ea)");
+    for (const model of registryData.models) {
+      const concepts = (model.bindings as { profile: string; concept: string }[]).filter((binding) => binding.profile === "default");
+      // Every region a default profile reads is one the table names.
+      const prefix = new Set(concepts.map((binding) => binding.concept.split(".")[0] ?? ""));
+      if (prefix.size === 1 && REGIONS.has([...prefix][0] ?? "")) {
+        expect(profileRegion(concepts.map((binding) => binding.concept)), model.id).not.toBeNull();
+      }
+    }
+  });
+
+  it("says so plainly when no profile runs here", () => {
+    const notice = liveNotice([{ profile: "default", rows: [row("a", false, "A Bank")] }]);
+    expect(notice?.title).toBe("Live data runs on your own computer only");
+    expect(notice?.served).toBeNull();
+    expect(notice?.local[0]).toMatch(/^This model reads Title of a\. Its source, A Bank, /);
+  });
+
+  it("lists names as a sentence does", () => {
+    expect(sentenceList([])).toBe("");
+    expect(sentenceList(["a"])).toBe("a");
+    expect(sentenceList(["a", "b"])).toBe("a and b");
+    expect(sentenceList(["a", "b", "c"])).toBe("a, b and c");
+  });
+});
+
+describe("formula symbols (issue #343)", () => {
+  it("reads a card's Where list: each symbol, its meaning and the field it stands for", () => {
+    const card = [
+      "# Title",
+      "",
+      "## Formula",
+      "",
+      "$$",
+      "D_{Mac} = \\frac{1}{P}",
+      "$$",
+      "",
+      "Where:",
+      "",
+      "- $D_{Mac}$: Macaulay duration, in years (`macaulay_duration`)",
+      "- $t_j$: Time to cash flow j, in coupon periods (from settlement)",
+      "- $\\frac{\\Delta P}{P}$: The relative change in price (`estimated_change`)",
+      "",
+      "## Variables",
+      "",
+      "- $x$: not a symbol of the formula section",
+    ].join("\n");
+    expect(symbolsOf(card)).toEqual([
+      { symbol: "D_{Mac}", meaning: "Macaulay duration, in years", field: "macaulay_duration" },
+      { symbol: "t_j", meaning: "Time to cash flow j, in coupon periods (from settlement)", field: null },
+      { symbol: "\\frac{\\Delta P}{P}", meaning: "The relative change in price", field: "estimated_change" },
+    ]);
+    expect(symbolsOf("# Title\n\n## Formula\n\n$$\nx\n$$\n\n## Variables\n")).toEqual([]);
+  });
+
+  it("finds every model's symbols, each field one the model has", () => {
+    for (const model of parseModels(registryData)) {
+      const symbols = symbolsOf(model.card);
+      expect(symbols.length, model.id).toBeGreaterThanOrEqual(3);
+      const fields = new Set(
+        [...variables(model.input_schema), ...variables(model.output_schema)].flatMap((table) => table.rows.map((row) => row.name)),
+      );
+      for (const symbol of symbols) {
+        if (symbol.field !== null) expect(fields.has(symbol.field), `${model.id} ${symbol.symbol}`).toBe(true);
+        expect(model.formula.some((formula) => formula.includes(symbol.symbol)), `${model.id} ${symbol.symbol}`).toBe(true);
+      }
+    }
   });
 });

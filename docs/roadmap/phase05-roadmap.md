@@ -10211,9 +10211,9 @@ its own work. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 18 — AI Dogfooding Loop
+## Step 18 — AI Dogfooding Loop ✅
 
-**Status:** Not started
+**Status:** Complete — PR #352 (2026-11-16)
 
 > **Goal:** Iterate the site with independent AI evaluators until another
 > round stops paying for itself, then lock the result in. *Added
@@ -10263,6 +10263,8 @@ the same `_headers` as Cloudflare. No production deploy.
 
 Ranked for multimodal, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-16: Quality Pick — Fable 5.2 · XHigh.
 
 **Conversation:** New
 
@@ -10524,7 +10526,12 @@ platform allows. New conversation per phase-boundary hygiene.
       L1 to L3 and L8 to L10) are this step's starting
       backlog: fix them, or file each one, before round 1's
       implementer pass closes. #343 (formula symbols in the
-      model cards) stays an issue for a later phase.
+      model cards) was to stay an issue for a later phase;
+      it was fixed in this step instead (spec-rot, recorded
+      2026-11-16): round 1's evaluators rated the undefined
+      symbols High, which the stopping rule cannot pass, and
+      the fix is card text only (no schema, description,
+      output or hash changes).
     - Step 17's evaluators ran as Claude Code subagents,
       which offer Claude models only (Sonnet 5.5 beside the
       implementer's Opus 5.5). Where this step's platform
@@ -10964,7 +10971,9 @@ hygiene.
       the dogfooding loop's visual baselines are in `main`
       and on staging (docs/design/); the release candidate
       carries them to production. The page URLs this step
-      freezes are unchanged by them.
+      freezes are unchanged by them, and Step 18 added two
+      pages the freeze takes in with the rest: `/about/` and
+      `/assistants/` (recorded 2026-11-16).
     - Step 13 note: deploy-production.yml copies the image
       tagged with the commit from staging's registry, which
       keeps its two newest images and deletes the others
@@ -11576,7 +11585,8 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       Step 18's personas, rubric and harness
       (docs/design/dogfooding.md) and fresh evaluators. PASS
       needs no Blocker or High finding and a median score no
-      lower than Step 18's last round; record the round, then
+      lower than Step 18's last round (round 3's 7.38;
+      docs/design/rounds/summary.md); record the round, then
       ask the maintainer to accept the design with the
       decision (one question, beside the GO).
     </requirement>
@@ -13162,7 +13172,7 @@ workflow above maps directly to the corresponding row below.
 | 15   | Growth signals (Gate G2)       | GPT-6.1 Sol    | Complete — PR #297 |
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
 | 17   | Design direction + system      | Opus 5.5       | Complete — PR #344 |
-| 18   | AI dogfooding loop             | GPT-6.1 Sol    | Not started        |
+| 18   | AI dogfooding loop             | GPT-6.1 Sol    | Complete — PR #352 |
 | 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
 | 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |
 | 21   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |

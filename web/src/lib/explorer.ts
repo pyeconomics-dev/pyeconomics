@@ -73,7 +73,7 @@ export const TRANSFORM_LABELS: ReadonlyMap<TransformName, string> = new Map([
   ["pct_change", "Change, as a decimal"],
   ["yoy", "Year-over-year change"],
   ["diff", "Difference"],
-  ["lag", "Earlier value (lag)"],
+  ["lag", "Earlier value"],
   ["log", "Natural logarithm"],
   ["convert", "Convert the frequency"],
 ]);
@@ -146,6 +146,16 @@ export function searchConcepts(concepts: readonly ConceptListing[], query: Conce
     .filter(({ concept, value }) => value > 0 && words.every((word) => score(concept, [word]) > 0))
     .sort((a, b) => b.value - a.value || byId(a.concept, b.concept))
     .map(({ concept }) => concept);
+}
+
+/** A topic's anchor on /data/: "Prices and inflation" is `topic-prices-and-inflation`. */
+export function topicAnchor(topic: string): string {
+  const slug = topic
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((part) => part !== "")
+    .join("-");
+  return `topic-${slug}`;
 }
 
 /** The values a filter offers, sorted. */
@@ -425,15 +435,54 @@ export interface SeriesFigure {
 }
 
 /**
+ * The words a concept's page gives its chart, in place of the source's own:
+ * the concept's title, and its unit while the series is drawn as published
+ * (a transform changes the unit, so the answer's own is used then).
+ */
+export interface ChartLabels {
+  title?: string;
+  unit?: string;
+}
+
+/**
+ * What a reader may cite a series by (Phase 5 Step 18: round 0 and round 1
+ * both found no "cite this series"): who publishes it, what it is, the
+ * source's own series id, how far the observations run, when the data was
+ * retrieved and the page it was read on. Every part comes from the answer's
+ * first source record and the concept's page; a part the record lacks is left
+ * out. The publisher's own attribution, which its terms ask for, is the
+ * chart's note, not this line.
+ */
+export function citation(
+  document: Pick<SeriesDocument, "sources">,
+  concept: { title: string; url: string },
+  names: Readonly<Record<string, string>>,
+): string {
+  const record = document.sources.find((entry) => entry.licence !== "user-supplied") ?? document.sources.at(0);
+  if (!record) return `${concept.title}. ${concept.url}`;
+  const publisher = new Map(Object.entries(names)).get(record.provider) ?? record.provider;
+  const parts = [`${publisher}. ${concept.title}, series ${record.series_id}.`];
+  if (record.observation_end) parts.push(`Observations to ${record.observation_end}.`);
+  const retrieved = record.retrieved_at?.slice(0, 10);
+  parts.push(`${retrieved ? `Retrieved ${retrieved} through` : "Read through"} pyeconomics: ${concept.url}`);
+  return parts.join(" ");
+}
+
+/**
  * The chart of one column of a series document, with its attribution and as-of
  * date drawn on it, wrapped to the chart's width in pixels (a phone's chart is
  * narrow: Phase 5 Step 17's round 0 found the note cut off at 390). A series
- * in decimals shows its ticks as percents; the values stay the document's.
+ * in decimals shows its ticks as percents, under the axis title "Percent"; the
+ * values stay the document's. `labels` gives the concept's own title and unit
+ * (Step 18's round 1: the chart was headed by the source's series title and
+ * "Units").
  */
-export function seriesFigure(document: SeriesDocument, column = 0, width = 700): SeriesFigure {
+export function seriesFigure(document: SeriesDocument, column = 0, width = 700, labels: ChartLabels = {}): SeriesFigure {
   const frame = document.frame;
   const name = columnsOf(frame).at(column) ?? frame.meta.title;
-  const unit = frame.type === "series" ? (frame.meta.unit?.text ?? "") : (frame.columns?.at(column)?.unit.text ?? "");
+  const own = frame.type === "series" ? (frame.meta.unit?.text ?? "") : (frame.columns?.at(column)?.unit.text ?? "");
+  const unit = labels.unit ?? own;
+  const heading = labels.title ?? frame.meta.title;
   const characters = Math.max(28, Math.floor(width / 7));
   const lines = plotlyLines(chartNote(document), characters);
   const decimal = /^decimal\b/i.test(unit);
@@ -441,11 +490,11 @@ export function seriesFigure(document: SeriesDocument, column = 0, width = 700):
     data: [{ type: "scatter", mode: "lines", x: frame.index, y: valuesOf(frame, column), name, connectgaps: false }],
     layout: {
       title: {
-        text: plotlyLines(frame.type === "series" ? frame.meta.title : `${frame.meta.title}: ${name}`, Math.min(70, characters)).join("<br>"),
+        text: plotlyLines(frame.type === "series" ? heading : `${heading}: ${name}`, Math.min(70, characters)).join("<br>"),
       },
       xaxis: { title: { text: "" } },
       yaxis: {
-        title: { text: plotlyLines(decimal ? `${unit}, shown as a percent` : unit, 40).join("<br>") },
+        title: { text: plotlyLines(decimal ? "Percent" : unit, 40).join("<br>") },
         ...(decimal ? { tickformat: ".1%" } : {}),
       },
       margin: { t: 60, r: 20, l: 70, b: 48 + 15 * lines.length },

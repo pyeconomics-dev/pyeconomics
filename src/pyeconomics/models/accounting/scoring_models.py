@@ -26,6 +26,7 @@ from pyeconomics.core import (
     ModelOutputs,
     Ratio,
     Reference,
+    Symbol,
     model,
 )
 
@@ -223,6 +224,36 @@ Outputs = Annotated[
         r"Z=1.2X_1+1.4X_2+3.3X_3+0.6X_4+0.999X_5",
         r"M=-4.84+.920DSRI+.528GMI+.404AQI+.892SGI+.115DEPI-.172SGAI+4.679TATA-.327LVGI",
         r"F=\sum_{j=1}^9 I_j",
+    ),
+    symbols=(
+        Symbol("Z", "Altman's Z-score", "z_score"),
+        Symbol("X_1", "Working capital over total assets", "working_capital_to_assets"),
+        Symbol(
+            "X_2",
+            "Retained earnings over total assets",
+            "retained_earnings_to_assets",
+        ),
+        Symbol("X_3", "EBIT over total assets", "ebit_to_assets"),
+        Symbol(
+            "X_4",
+            "Market value of equity over book total liabilities",
+            "market_equity_to_liabilities",
+        ),
+        Symbol("X_5", "Sales over total assets", "sales_to_assets"),
+        Symbol("M", "Beneish's M-score", "m_score"),
+        Symbol("DSRI", "Days' sales in receivables index", "dsri"),
+        Symbol("GMI", "Gross margin index", "gmi"),
+        Symbol("AQI", "Asset quality index", "aqi"),
+        Symbol("SGI", "Sales growth index", "sgi"),
+        Symbol("DEPI", "Depreciation index", "depi"),
+        Symbol("SGAI", "Selling, general and administrative expenses index", "sgai"),
+        Symbol("TATA", "Total accruals over total assets", "tata"),
+        Symbol("LVGI", "Leverage index", "lvgi"),
+        Symbol("F", "Piotroski's F-score", "f_score"),
+        Symbol(
+            "I_j",
+            "The j-th of the nine signals: 1 when it holds, 0 when it does not",
+        ),
     ),
     assumptions=(
         (

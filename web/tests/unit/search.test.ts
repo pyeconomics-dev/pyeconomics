@@ -5,7 +5,7 @@
 // a result whose URL is not a same-origin path is refused.
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { BUNDLE, MAX_QUERY, excerptParts, loadPagefind, resetPagefind, resultPath, search, type Pagefind } from "@/lib/search";
+import { BUNDLE, MAX_QUERY, excerptParts, loadPagefind, resetPagefind, resultPath, search, titleFirst, type Pagefind } from "@/lib/search";
 
 function fake(results: { url: string; excerpt: string; meta: Record<string, string> }[]): Pagefind & { queries: string[] } {
   const queries: string[] = [];
@@ -62,6 +62,26 @@ describe("search", () => {
     expect(hits.map((hit) => hit.url)).toEqual(["/models/fixed-income/duration/", "/problems/invalid-input/"]);
     expect(hits[0]).toMatchObject({ title: "Bond duration", kind: "Model", domain: "Fixed income", summary: "Duration." });
     expect(hits[1]).toMatchObject({ kind: "Problem", domain: null, summary: null });
+  });
+
+  it("puts a page named for the query first, the shortest name leading", async () => {
+    const hit = (title: string) => ({ url: `/data/${title.toLowerCase().replaceAll(" ", "-")}/`, excerpt: "", meta: { title, kind: "Data series" } });
+    const pagefind = fake([
+      hit("SEP median unemployment rate"),
+      hit("Unemployment rate, noncyclical"),
+      hit("Okun's law"),
+      hit("Unemployment rate"),
+    ]);
+    const hits = await search("Unemployment ", 8, pagefind);
+    expect(hits.map((entry) => entry.title)).toEqual([
+      "Unemployment rate",
+      "Unemployment rate, noncyclical",
+      "SEP median unemployment rate",
+      "Okun's law",
+    ]);
+    // Nothing named for the query: Pagefind's order stands.
+    expect(titleFirst(hits, "rate of").map((entry) => entry.title)).toEqual(hits.map((entry) => entry.title));
+    expect(titleFirst(hits, "  ")).toEqual(hits);
   });
 
   it("sends nothing for an empty query and cuts a long one", async () => {

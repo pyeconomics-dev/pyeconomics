@@ -45,6 +45,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     RootPolicy,
+    Symbol,
     find_root,
     growing_annuity_factor,
     model,
@@ -221,6 +222,20 @@ _DAMODARAN_FILE = Reference(
             r"\frac{C_0 (1+g)^N (1+g_T)}{(r - g_T)(1+r)^N}"
         ),
         r"\mathrm{ERP} = r - r_f, \quad g_T = r_f \text{ by default}",
+    ),
+    symbols=(
+        Symbol("P", "Level of the index", "index_level"),
+        Symbol("C_0", "Cash paid to shareholders over the last year", "cash_flow"),
+        Symbol("g", "Growth rate of the cash flow over the first N years", "growth"),
+        Symbol("N", "Years of that growth", "years"),
+        Symbol("g_T", "Growth rate after year N", "terminal_growth"),
+        Symbol("r", "The return the index's price implies", "implied_return"),
+        Symbol(
+            r"\mathrm{ERP}",
+            "The implied equity risk premium",
+            "equity_risk_premium",
+        ),
+        Symbol("r_f", "Risk-free rate", "risk_free"),
     ),
     assumptions=(
         (

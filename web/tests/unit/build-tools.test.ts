@@ -3,14 +3,16 @@
 // names the npm package of every bundled module, and the Lighthouse runner
 // (scripts/lighthouse.ts) takes the median of its runs over the sample pages
 // the build wrote.
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 import { CATEGORIES, SAMPLE, built, cpuSlowdown, median, unattributed, unmeasured } from "../../scripts/lighthouse.ts";
 import { packageOf, packagesOf } from "../../scripts/shipped-packages.ts";
+import { SAMPLE as VISUAL_SAMPLE, baselineNames } from "../visual/sample.ts";
 
 describe("packageOf", () => {
   it.each([
@@ -81,5 +83,66 @@ describe("the Lighthouse runner", () => {
     mkdirSync(join(dist, "data"));
     writeFileSync(join(dist, "data", "index.html"), "<!doctype html>");
     expect(built(dist)).toEqual(["/", "/data/"]);
+  });
+});
+
+// Phase 5 Step 18: round 0 of the dogfooding protocol found a copy that failed
+// without a word. One control copies (CopyButton.tsx), it says what happened,
+// and tests/e2e/copy.spec.ts refuses the clipboard on every one in a page; so
+// nothing else under src/ may write to the clipboard and skip that check.
+describe("the clipboard", () => {
+  const SOURCE = fileURLToPath(new URL("../../src/", import.meta.url));
+  const files = (directory: string): string[] =>
+    readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(directory, entry.name);
+      return entry.isDirectory() ? files(path) : [path];
+    });
+
+  it("is written to only by the one copy control", () => {
+    const writers = files(SOURCE)
+      .filter((path) => /\.(?:astro|ts|tsx)$/.test(path))
+      .filter((path) => /navigator\s*\.\s*clipboard|execCommand\(\s*["']copy/.test(readFileSync(path, "utf8")))
+      .map((path) => path.slice(SOURCE.length).split("\\").join("/"));
+    expect(writers).toEqual(["components/calculator/CopyButton.tsx"]);
+  });
+});
+
+// Phase 5 Step 18's round 2: a control that is off until its island loads is
+// drawn at half strength, and a transition on every property made it fade back
+// in over 150 milliseconds once it was on. axe, reading the page in that
+// moment, saw an enabled button at a contrast of 2.6. No control's opacity
+// transitions, so one is either off or fully drawn.
+describe("a control leaving its disabled state", () => {
+  const SOURCE = fileURLToPath(new URL("../../src/", import.meta.url));
+  const files = (directory: string): string[] =>
+    readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(directory, entry.name);
+      return entry.isDirectory() ? files(path) : [path];
+    });
+
+  it("does not fade: nothing transitions every property or its opacity beside a disabled look", () => {
+    const fading = files(SOURCE)
+      .filter((path) => /\.(?:astro|ts|tsx)$/.test(path))
+      .filter((path) => {
+        const text = readFileSync(path, "utf8");
+        return /disabled:opacity-/.test(text) && /\btransition-all\b|\btransition-opacity\b|\btransition(?=[\s"'`])/.test(text);
+      })
+      .map((path) => path.slice(SOURCE.length).split("\\").join("/"));
+    expect(fading).toEqual([]);
+  });
+});
+
+// Phase 5 Step 18: the visual baselines photograph decision 19's sample, the
+// pages Lighthouse measures before the two Step 15 added.
+describe("the visual baselines' sample", () => {
+  it("is decision 19's thirteen pages, each at two widths in both themes", () => {
+    const added = new Set(["/pro/", "/newsletter/"]);
+    expect(VISUAL_SAMPLE.map((page) => page.path)).toEqual(SAMPLE.filter((path) => !added.has(path)));
+    expect(VISUAL_SAMPLE).toHaveLength(13);
+    const names = baselineNames();
+    expect(names).toHaveLength(52);
+    expect(new Set(names).size).toBe(52);
+    expect(names).toContain("home-390-light.png");
+    expect(names).toContain("problem-1440-dark.png");
   });
 });

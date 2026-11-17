@@ -233,3 +233,24 @@ issue and raises the median by less than 0.5 over the round before, and at round
 ## Changes to this protocol
 
 - 2026-11-15: written (Phase 5 Step 17).
+- 2026-11-16 (Phase 5 Step 18, after round 1): two faults of the harness itself,
+  which round 1's evaluators had charged to the site. Neither changes a persona,
+  a task, the rubric, the severity scale or the page list.
+  - A capture waits for every animation that ends before it takes its picture
+    (`support.ts settled`). The phone menu's 220 ms fade had been captured
+    half-transparent in one theme and not at all in the other.
+  - The `visit` tool's `click` finds a disclosure's summary by its text as well
+    as a button or a link, and prefers a control whose name is exactly the text
+    over one that contains it. A `<summary>` has no ARIA role, so no evaluator
+    could open the phone menu by name, and `{"click": "Run"}` pressed the link
+    "Run the calculator" above the Run button.
+- 2026-11-16 (Phase 5 Step 18, after round 2): one more fault of the harness,
+  which two of round 2's evaluators read as the site's. It changes no persona,
+  task, rubric, severity or page.
+  - A scripted choice in a select is made as a visitor makes it, after a key
+    press (`support.ts choose`, used by the task states and the `visit` tool).
+    Playwright sets a select's value from script, which a browser does not count
+    as input, so the taller form of a family's second example was scored as an
+    unexpected layout shift of 0.176 on the duration page. A visitor's own
+    choice never is: the measure leaves out a shift within half a second of a
+    key or a pointer press.

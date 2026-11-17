@@ -10,10 +10,15 @@
 // Plotly.js's basic bundle (src/lib/plotly.ts), with the source's attribution
 // and as-of date drawn on it and repeated beneath it; the sources follow
 // (ResultPanel's Source), and every download is the same request with
-// ?format=, so each file carries its attributions. Nothing the server sent is
+// ?format=, so each file carries its attributions. A concept the site serves
+// is drawn once when its chart comes into view, over the default window, so
+// the page shows its series without a click (Phase 5 Step 18: rounds 0 and 1);
+// the form's button is disabled until the island can answer it. A line the
+// reader may cite the series by follows the chart. Nothing the server sent is
 // rendered as HTML, and nothing is kept in storage or the URL.
 import { useEffect, useRef, useState } from "react";
 
+import CopyButton from "@/components/calculator/CopyButton";
 import ProblemPanel, { type ProblemDocument } from "@/components/calculator/ProblemPanel";
 import { Source } from "@/components/calculator/ResultPanel";
 import { buttonVariants } from "@/components/ui/button";
@@ -24,6 +29,7 @@ import {
   TRANSFORM_LABELS,
   availability,
   chartNote,
+  citation,
   columnsOf,
   convertTargets,
   defaultRange,
@@ -32,6 +38,7 @@ import {
   transformText,
   transformsFor,
   type Availability,
+  type ChartLabels,
   type ConvertMethod,
   type SeriesDocument,
   type SeriesFormat,
@@ -48,6 +55,10 @@ import { getSeries, serverMode } from "@/lib/series-request";
 
 export interface SeriesExplorerProps {
   conceptId: string;
+  /** The concept's title and unit, which head its chart, and its page's address, for the citation. */
+  title: string;
+  unit: string;
+  url: string;
   frequency: string;
   shape: string;
   /** Whether the hosted snapshot serves the concept. */
@@ -112,17 +123,21 @@ function filename(conceptId: string, extension: string): string {
   return `${conceptId.replaceAll(".", "_")}.${extension}`;
 }
 
-function SeriesChart({ document: series, column }: { document: SeriesDocument; column: number }) {
+function SeriesChart({ document: series, column, labels }: { document: SeriesDocument; column: number; labels: ChartLabels }) {
   const root = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const note = chartNote(series);
+  const { title, unit } = labels;
 
   useEffect(() => {
     const element = root.current;
     if (!element) return undefined;
     let cancelled = false;
     let plotly: Awaited<ReturnType<typeof loadPlotly>> | null = null;
-    const figure = seriesFigure(series, column, element.clientWidth || undefined);
+    const figure = seriesFigure(series, column, element.clientWidth || undefined, {
+      ...(title === undefined ? {} : { title }),
+      ...(unit === undefined ? {} : { unit }),
+    });
     loadPlotly()
       .then(async (loaded) => {
         if (cancelled) return;
@@ -140,9 +155,9 @@ function SeriesChart({ document: series, column }: { document: SeriesDocument; c
       cancelled = true;
       plotly?.purge(element);
     };
-  }, [series, column]);
+  }, [series, column, title, unit]);
 
-  const name = columnsOf(series.frame).at(column) ?? series.frame.meta.title;
+  const name = title ?? columnsOf(series.frame).at(column) ?? series.frame.meta.title;
   return (
     <figure className="flex flex-col gap-2" data-series-chart="">
       <div ref={root} className="min-h-96 w-full" role="img" aria-label={`Chart: ${name}. ${note}`} />
@@ -260,6 +275,7 @@ function Explorer(props: SeriesExplorerProps) {
   const [sent, setSent] = useState<Sent | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const drawn = useRef(false);
   const names = transformsFor(props.frequency, props.shape);
 
   useEffect(() => {
@@ -324,6 +340,15 @@ function Explorer(props: SeriesExplorerProps) {
     }
   };
 
+  // The chart of a concept this server serves is drawn once, unasked, when the
+  // island is in view and its default window is known.
+  useEffect(() => {
+    if (drawn.current || !hydrated || offer?.kind !== "fetch") return;
+    if (!range.end || (props.needsWindow && !range.start)) return;
+    drawn.current = true;
+    void read();
+  });
+
   const download = async (format: Exclude<SeriesFormat, "json">, extension: string) => {
     if (!sent) return;
     setAnnouncement(`Preparing the ${format} download…`);
@@ -366,8 +391,8 @@ function Explorer(props: SeriesExplorerProps) {
       {offer?.kind === "local" && (
         <div className="flex flex-col gap-2" data-offer="local">
           <p className="max-w-3xl">
-            The hosted site does not serve this concept: none of its sources is both hosted-safe and kept in the daily
-            snapshot. Read it on your own computer, with your own keys where a source needs one:
+            This site does not serve this series: no source of it both allows that and is kept in the site's daily
+            copy. Read it on your own computer, with your own keys where a source needs one:
           </p>
           <pre className="overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm" role="region" tabIndex={0} aria-label="Local command">
             <code>{offer.command}</code>
@@ -416,7 +441,7 @@ function Explorer(props: SeriesExplorerProps) {
             </p>
           )}
           <div>
-            <button type="submit" className={buttonVariants()} disabled={busy}>
+            <button type="submit" className={buttonVariants()} disabled={busy || !hydrated}>
               {busy ? "Reading…" : "Draw the chart"}
             </button>
           </div>
@@ -427,8 +452,15 @@ function Explorer(props: SeriesExplorerProps) {
         {announcement}
       </p>
 
+      {/* Room for the chart a served concept draws unasked, so what follows does not move when it arrives. */}
+      {offer?.kind === "fetch" && !outcome && (
+        <div className="chart-room rounded-md border border-dashed p-4 text-sm text-muted-foreground" data-chart-room="">
+          The chart, its downloads and its sources appear here.
+        </div>
+      )}
+
       {outcome?.kind === "series" && (
-        <section className="flex flex-col gap-4" aria-label="The series">
+        <section className="flex flex-col gap-4" aria-label="The series" data-series="">
           {outcome.document.frame.type === "table" && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">Column</span>
@@ -441,7 +473,33 @@ function Explorer(props: SeriesExplorerProps) {
               </select>
             </label>
           )}
-          <SeriesChart document={outcome.document} column={column} />
+          <SeriesChart
+            document={outcome.document}
+            column={column}
+            labels={sent?.transform || props.unit === "" ? { title: props.title } : { title: props.title, unit: props.unit }}
+          />
+          {/* Beside the chart, where the two are compared (round 3: under the downloads it was missed). */}
+          {/^decimal\b/i.test(props.unit) && !sent?.transform && (
+            <p className="text-sm" data-percent-note="">
+              The chart shows percents; the series and every file hold the same values as decimals (0.042 is 4.2%).
+            </p>
+          )}
+          <div className="flex flex-col gap-2 rounded-md border p-3" data-cite="">
+            <h3 className="font-medium">Cite this series</h3>
+            <p className="text-sm wrap-anywhere" data-citation="">
+              {citation(outcome.document, { title: props.title, url: props.url }, props.sourceNames)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              A line to adapt to your style guide. The publisher's own notice is the note under the chart, and every
+              downloaded file carries it.
+            </p>
+            <div>
+              <CopyButton
+                text={citation(outcome.document, { title: props.title, url: props.url }, props.sourceNames)}
+                label="Copy the citation"
+              />
+            </div>
+          </div>
           <div className="flex flex-col gap-2">
             <h3 className="font-medium">Download</h3>
             <div className="flex flex-wrap gap-2">

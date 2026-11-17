@@ -51,6 +51,7 @@ from pyeconomics.core import (
     Reference,
     Return,
     ReturnArray,
+    Symbol,
     Volatility,
     generator,
     model,
@@ -599,6 +600,51 @@ _MANISTRE = Reference(
             r"{f(\hat{q})}, \quad \mathrm{SE}(\widehat{\mathrm{ES}}) = "
             r"\sqrt{\frac{s^2_{tail} + c(\mathrm{ES} - \mathrm{VaR})^2}{N(1 - c)}}"
         ),
+    ),
+    symbols=(
+        Symbol(
+            r"\mathrm{VaR}",
+            "Value-at-risk: the loss the confidence level leaves a chance of exceeding",
+            "value_at_risk",
+        ),
+        Symbol(
+            r"\mathrm{ES}",
+            "Expected shortfall: the average loss beyond value-at-risk",
+            "expected_shortfall",
+        ),
+        Symbol(r"\mu", "Mean return per period", "mean"),
+        Symbol(r"\sigma", "Volatility per period", "volatility"),
+        Symbol("h", "Horizon, in periods", "horizon"),
+        Symbol("c", "Confidence level", "confidence"),
+        Symbol("z_c", "The standard normal quantile at the confidence level"),
+        Symbol(r"\varphi", "The standard normal density"),
+        Symbol(
+            "g",
+            "The Cornish-Fisher quantile, adjusted for skewness and kurtosis",
+            "quantile",
+        ),
+        Symbol("z", "The standard normal quantile at one less the confidence level"),
+        Symbol("S", "Skewness of the returns", "skewness"),
+        Symbol("K", "Excess kurtosis of the returns", "excess_kurtosis"),
+        Symbol(r"\mathrm{mES}", "Modified expected shortfall", "expected_shortfall"),
+        Symbol(
+            "He_3",
+            (
+                "A probabilists' Hermite polynomial; He_4 and He_6 are the fourth and "
+                "the sixth"
+            ),
+        ),
+        Symbol(
+            r"\hat{q}_{1 - c}",
+            "The returns' empirical quantile at one less the confidence level",
+            "quantile",
+        ),
+        Symbol("r_t", "The return in period t", "returns"),
+        Symbol(r"\lambda", "The decay of the exponentially weighted variance", "decay"),
+        Symbol(r"\sigma_t^2", "The exponentially weighted variance in period t"),
+        Symbol("N", "Number of returns, or of simulations", "observations"),
+        Symbol(r"f(\hat{q})", "The density of the returns at the quantile"),
+        Symbol("s^2_{tail}", "Variance of the losses beyond value-at-risk"),
     ),
     assumptions=(
         (

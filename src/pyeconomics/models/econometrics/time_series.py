@@ -55,6 +55,7 @@ from pyeconomics.core import (
     Probability,
     Ratio,
     Reference,
+    Symbol,
     generator,
     has_spread,
     library_warnings,
@@ -1095,6 +1096,76 @@ _STATSMODELS = Reference(
             r"\lambda_{\text{trace}}(r) = -T \sum_{i=r+1}^{K}\ln(1-\hat\lambda_i), "
             r"\quad \lambda_{\max}(r) = -T\ln(1 - \hat\lambda_{r+1})"
         ),
+    ),
+    symbols=(
+        Symbol(
+            "y_t",
+            "The series at time t; in the VAR, the vector of series",
+            "series",
+        ),
+        Symbol("L", "The lag operator: L y_t is y_{t-1}"),
+        Symbol(r"\phi(L)", "The autoregressive polynomial", "ar"),
+        Symbol(r"\Phi(L^s)", "The seasonal autoregressive polynomial", "seasonal_ar"),
+        Symbol(r"\theta(L)", "The moving-average polynomial", "ma"),
+        Symbol(r"\Theta(L^s)", "The seasonal moving-average polynomial", "seasonal_ma"),
+        Symbol("d", "Number of differences", "differences"),
+        Symbol("D", "Number of seasonal differences", "seasonal_differences"),
+        Symbol("s", "Periods in a season", "season"),
+        Symbol("c", "The constant or trend term", "trend"),
+        Symbol(r"\varepsilon_t", "The innovation at time t"),
+        Symbol(r"\sigma^2", "The innovations' variance"),
+        Symbol(r"\nu", "The VAR's intercepts"),
+        Symbol(
+            "A_1",
+            "The VAR's coefficient matrix at lag 1; A_p is the matrix at lag p",
+            "coefficients",
+        ),
+        Symbol("p", "Number of lags in the VAR", "lags"),
+        Symbol("u_t", "The VAR's residuals at time t"),
+        Symbol(
+            r"\Sigma_u",
+            "Covariance matrix of the VAR's residuals",
+            "residual_covariance",
+        ),
+        Symbol("P", "The lower-triangular Cholesky factor of the residual covariance"),
+        Symbol(r"\Phi_h", "The moving-average coefficient matrix at horizon h"),
+        Symbol(
+            r"\Theta_h",
+            "The orthogonalized impulse responses at horizon h",
+            "impulse_responses",
+        ),
+        Symbol(
+            r"\omega_{ij,h}",
+            (
+                "The share of series i's forecast-error variance at horizon h due to "
+                "shocks to series j"
+            ),
+            "variance_decomposition",
+        ),
+        Symbol(r"\beta", "The cointegrating coefficients"),
+        Symbol("x_t", "The other series at time t"),
+        Symbol("e_t", "The residual of the cointegrating regression"),
+        Symbol(
+            r"\rho",
+            (
+                "The coefficient the Engle-Granger test is on: negative when the "
+                "residual reverts"
+            ),
+        ),
+        Symbol("k", "Number of lagged differences in the test regression"),
+        Symbol(
+            r"\lambda_{\text{trace}}(r)",
+            "Johansen's trace statistic for at most r cointegrating relations",
+            "trace_statistics",
+        ),
+        Symbol(
+            r"\lambda_{\max}(r)",
+            "Johansen's maximum-eigenvalue statistic for r against r + 1 relations",
+            "max_eigenvalue_statistics",
+        ),
+        Symbol(r"\hat\lambda_i", "The i-th largest eigenvalue", "eigenvalues"),
+        Symbol("T", "Number of observations", "observations"),
+        Symbol("K", "Number of series"),
     ),
     assumptions=(
         (

@@ -47,6 +47,7 @@ from pyeconomics.core import (
     Periods,
     Rate,
     Reference,
+    Symbol,
     accumulated_annuity_factor,
     accumulated_growing_annuity_factor,
     annuity_factor,
@@ -668,6 +669,44 @@ _XNPV = Reference(
         r"NPV = \sum_{t=0}^{T} \frac{C_t}{(1+r)^t}, \quad NPV(IRR) = 0",
         r"XNPV = \sum_i \frac{C_i}{(1+r)^{(d_i - d_0)/365}}, \quad XNPV(XIRR) = 0",
         r"PMT = \frac{P\,r}{1 - (1+r)^{-n}}, \quad B_k = P\,\frac{a_{n-k}}{a_n}",
+    ),
+    symbols=(
+        Symbol("PV", "Present value", "present_value"),
+        Symbol("FV", "Future value", "future_value"),
+        Symbol("PMT", "The payment each period", "payment"),
+        Symbol("r", "Interest rate per period", "rate"),
+        Symbol("n", "Number of periods", "periods"),
+        Symbol("g", "Growth rate of the payment per period", "growth"),
+        Symbol(
+            "d",
+            (
+                "1 when each payment falls at the start of its period (an annuity "
+                "due), 0 at the end"
+            ),
+            "due",
+        ),
+        Symbol(r"PV_{\infty}", "Present value of a perpetuity", "present_value"),
+        Symbol("NPV", "Net present value", "npv"),
+        Symbol(
+            "C_t",
+            "The cash flow at period t; negative when paid out",
+            "cash_flows",
+        ),
+        Symbol(
+            "IRR",
+            "Internal rate of return: the rate at which the net present value is zero",
+            "irr",
+        ),
+        Symbol("XNPV", "Net present value of dated cash flows", "xnpv"),
+        Symbol("C_i", "The i-th dated cash flow", "cash_flows"),
+        Symbol("d_i", "The date of cash flow i; d_0 is the first date", "dates"),
+        Symbol("XIRR", "Internal rate of return of dated cash flows, per year", "xirr"),
+        Symbol("P", "Principal of the loan", "principal"),
+        Symbol("B_k", "Balance left after payment k", "balance"),
+        Symbol(
+            "a_n",
+            "The annuity factor: the present value of 1 a period for n periods",
+        ),
     ),
     assumptions=(
         (

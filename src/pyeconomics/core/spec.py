@@ -60,6 +60,7 @@ __all__ = [
     "Invariant",
     "ModelSpec",
     "Reference",
+    "Symbol",
     "union_discriminator",
     "union_members",
 ]
@@ -230,6 +231,29 @@ class ChangelogEntry:
 
 
 @dataclass(frozen=True, slots=True)
+class Symbol:
+    """One symbol of a model's formulas, and what it stands for.
+
+    A card lists its model's symbols under the formulas, so a reader can tell
+    what each letter means and which field holds its value (issue #343).
+
+    Examples
+    --------
+    >>> from pyeconomics.core import Symbol
+    >>> Symbol("D_{Mac}", "Macaulay duration, in years", "macaulay_duration").field
+    'macaulay_duration'
+
+    """
+
+    symbol: str
+    """The symbol as the formulas write it, in LaTeX: ``D_{Mac}``."""
+    meaning: str
+    """What it stands for, in words."""
+    field: str | None = None
+    """The input or output field it stands for, when it is one."""
+
+
+@dataclass(frozen=True, slots=True)
 class Alias:
     """A retired id that still resolves to a model, with a warning (ADR-0003)."""
 
@@ -267,6 +291,8 @@ class ModelSpec:
     tags: tuple[str, ...] = ()
     formula: tuple[str, ...] = ()
     """One or more LaTeX strings."""
+    symbols: tuple[Symbol, ...] = ()
+    """What the formulas' symbols stand for, in the order a reader meets them."""
     assumptions: tuple[str, ...] = ()
     limitations: tuple[str, ...] = ()
     references: tuple[Reference, ...] = ()
@@ -290,6 +316,7 @@ class ModelSpec:
         for name in (
             "tags",
             "formula",
+            "symbols",
             "assumptions",
             "limitations",
             "references",

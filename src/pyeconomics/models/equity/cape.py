@@ -44,6 +44,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -264,6 +265,34 @@ _SHILLER_DATA = Reference(
             r"r_{\mathrm{real}} = y_{10} - \left[(I_t / I_{t-n})^{m/n} - 1\right]"
             r"\ \text{or a TIPS yield}"
         ),
+    ),
+    symbols=(
+        Symbol(
+            r"\mathrm{CAPE}_t",
+            "The cyclically adjusted price-to-earnings ratio",
+            "cape",
+        ),
+        Symbol("P_t", "The price of the index", "price"),
+        Symbol(
+            "n",
+            "Number of periods the earnings are averaged over: ten years of them",
+        ),
+        Symbol("E_k", "Earnings in period k", "earnings"),
+        Symbol("I_t", "The consumer price index at the date of the price", "price_cpi"),
+        Symbol("I_k", "The consumer price index in period k", "cpi"),
+        Symbol(
+            r"y_{\mathrm{CAPE}}",
+            "The CAPE yield: average real earnings over the price",
+            "cape_yield",
+        ),
+        Symbol(
+            r"\mathrm{ECY}",
+            "The excess CAPE yield, over the real interest rate",
+            "excess_cape_yield",
+        ),
+        Symbol(r"r_{\mathrm{real}}", "The real ten-year interest rate", "real_rate"),
+        Symbol("y_{10}", "The nominal ten-year yield", "nominal_yield"),
+        Symbol("m", "Periods in a year", "periods_per_year"),
     ),
     assumptions=(
         (

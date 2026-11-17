@@ -47,6 +47,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     Volatility,
     least_squares,
     model,
@@ -683,6 +684,62 @@ def _bindings(
         (
             r"\sigma_e = \sqrt{e'e / (T - k)}, \quad "
             r"\sigma_{e,\text{annual}} = \sqrt{P}\,\sigma_e"
+        ),
+    ),
+    symbols=(
+        Symbol("r_t", "The asset's return in period t", "returns"),
+        Symbol("r_{f,t}", "The risk-free return in period t", "risk_free"),
+        Symbol(
+            r"\alpha",
+            "The intercept: the average excess return the factors leave unexplained",
+            "alpha",
+        ),
+        Symbol(r"\beta_k", "The beta on factor k"),
+        Symbol("f_{k,t}", "The return of factor k in period t"),
+        Symbol("e_t", "The residual in period t"),
+        Symbol(r"\hat\beta", "The estimated coefficients: alpha and the betas"),
+        Symbol("X", "The regressors: a constant and the factors' returns"),
+        Symbol("y", "The asset's excess returns"),
+        Symbol("V_{NW}", "The Newey-West covariance matrix of the coefficients"),
+        Symbol(
+            r"\hat S",
+            (
+                "The Newey-West estimate of the long-run covariance of the regressors "
+                "times the residuals"
+            ),
+        ),
+        Symbol(r"\alpha_{\text{annual}}", "Alpha for a year", "alpha_annualized"),
+        Symbol("P", "Periods in a year", "periods_per_year"),
+        Symbol(
+            r"\hat\beta_m",
+            "The estimated beta on the market's excess return",
+            "market_beta",
+        ),
+        Symbol("f_m", "The market's excess return", "market"),
+        Symbol(
+            r"\lambda_m",
+            "The expected market excess return per period",
+            "market_premium",
+        ),
+        Symbol("E[r]", "The security market line's expected return", "expected_return"),
+        Symbol("r_f", "The risk-free return per period", "risk_free_rate"),
+        Symbol(
+            r"\sigma_e",
+            "The residuals' standard deviation per period",
+            "residual_volatility",
+        ),
+        Symbol(
+            r"\sigma_{e,\text{annual}}",
+            "The residual volatility for a year",
+            "residual_volatility_annualized",
+        ),
+        Symbol("T", "Number of periods", "observations"),
+        Symbol(
+            "k",
+            (
+                "In the residual volatility, the number of coefficients; in the sum, "
+                "the index of a factor"
+            ),
         ),
     ),
     assumptions=(

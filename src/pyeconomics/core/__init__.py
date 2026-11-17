@@ -198,6 +198,7 @@ from pyeconomics.core.spec import (
     Invariant,
     ModelSpec,
     Reference,
+    Symbol,
 )
 from pyeconomics.core.tolerance import (
     DEFAULT_TOLERANCES,
@@ -352,6 +353,7 @@ __all__ = [
     "RootPolicy",
     "RootResult",
     "Schedule",
+    "Symbol",
     "Tolerance",
     "TransformParameter",
     "TransformParameterKind",

@@ -51,6 +51,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     Years,
     accumulation_factor,
     model,
@@ -498,6 +499,44 @@ _FAMA = Reference(
             r"q = S\,\frac{P_b}{P_q}, \quad "
             r"\Delta q = \frac{(1 + s)(1 + \pi_b)}{1 + \pi_q} - 1"
         ),
+    ),
+    symbols=(
+        Symbol("F", "Forward exchange rate", "forward_rate"),
+        Symbol(
+            "S",
+            (
+                "Spot exchange rate: units of the quote currency per unit of the base "
+                "currency"
+            ),
+            "spot",
+        ),
+        Symbol(
+            "G_q(T)",
+            "What 1 of the quote currency grows to over T at its interest rate",
+        ),
+        Symbol(
+            "G_b(T)",
+            "What 1 of the base currency grows to over T at its interest rate",
+        ),
+        Symbol("T", "Horizon, in years", "years"),
+        Symbol("i", "An interest rate per year, compounded as the convention says"),
+        Symbol("m", "Compounding periods in a year", "frequency"),
+        Symbol("E[S_T]", "Expected spot rate at the horizon", "expected_spot"),
+        Symbol(r"\pi_q", "Inflation rate of the quote currency", "quote_inflation"),
+        Symbol(r"\pi_b", "Inflation rate of the base currency", "base_inflation"),
+        Symbol(
+            "S_{PPP}",
+            "The exchange rate at which a basket costs the same in both currencies",
+            "ppp_rate",
+        ),
+        Symbol("P_q", "Price of the basket, or the price level, in the quote currency"),
+        Symbol("P_b", "Price of the basket, or the price level, in the base currency"),
+        Symbol("r", "Real interest rate"),
+        Symbol("i_q", "Nominal interest rate of the quote currency", "quote_rate"),
+        Symbol("i_b", "Nominal interest rate of the base currency", "base_rate"),
+        Symbol("q", "Real exchange rate", "real_exchange_rate"),
+        Symbol(r"\Delta q", "Change in the real exchange rate", "real_change"),
+        Symbol("s", "Change in the spot rate", "spot_change"),
     ),
     assumptions=(
         (

@@ -1,12 +1,18 @@
 // web/src/components/calculator/ResultPanel.tsx
-// A run's result (Phase 5 Step 6): the outputs as a table driven by the output
-// schema (each with its unit; a long array a page at a time), the warnings,
-// and the sources panel from the manifest's data_sources (attribution,
-// notices, licence class, terms page, as-of and retrieval time, and what
-// revised data means). Every value reaches the page as React text, never as
-// HTML.
+// A run's result (Phase 5 Step 6): a line that says what the run gave and
+// which data it read, the outputs as a table driven by the output schema (each
+// under its name in words, with its id and its unit; a long array a page at a
+// time), the warnings, the sources panel from the manifest's data_sources
+// (attribution, notices, licence class, terms page, as-of and retrieval time,
+// and what revised data means), and the manifest's own facts: the versions and
+// the two hashes that make the result reproducible. The table has two columns
+// of fixed width, so a phone shows every value and unit with no sideways
+// scroll (Step 18's round 1). Every value reaches the page as React text,
+// never as HTML.
 import { useState } from "react";
 
+import CopyButton from "@/components/calculator/CopyButton";
+import { fieldTitle } from "@/lib/calculator";
 import type { VariableTable } from "@/lib/models";
 import {
   DATA_WARNINGS,
@@ -17,11 +23,15 @@ import {
   pageCount,
   pageOf,
   sourceRecords,
+  manifestFacts,
+  runSummary,
   type Result,
   type SourceRecord,
 } from "@/lib/results";
 
-const CELL = "py-2 pr-4 align-top";
+const CELL = "py-2 pr-3 align-top wrap-anywhere";
+/** Units that say nothing beside a value: a choice's text and a flag. */
+const SILENT_UNITS: ReadonlySet<string> = new Set(["", "text", "flag"]);
 const BUTTON =
   "rounded-md border px-2 py-1 text-xs hover:bg-accent disabled:opacity-50 focus-visible:outline-2";
 
@@ -54,6 +64,14 @@ function ArrayValue({ name, values }: { name: string; values: readonly unknown[]
   );
 }
 
+/**
+ * A result of more outputs than this lists them without their descriptions
+ * until a visitor asks: sixteen described rows were a dozen screens on a phone,
+ * and the figure looked for was several screens down (Phase 5 Step 18's rounds
+ * 2 and 3). Each output keeps its name in words, its id, its value and unit.
+ */
+const DESCRIBED_ROWS = 8;
+
 function OutputsTable({ table, outputs }: { table: VariableTable | undefined; outputs: Record<string, unknown> }) {
   const known = new Set(table?.rows.map((row) => row.name) ?? []);
   const rows = [
@@ -62,46 +80,59 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
       .filter((name) => !known.has(name))
       .map((name) => ({ name, unit: "", bounds: "", description: "" })),
   ].filter((row) => row.name !== "calculation");
+  // A long result lists its outputs without their descriptions until asked.
+  const [described, setDescribed] = useState(rows.length <= DESCRIBED_ROWS);
+  const long = rows.length > DESCRIBED_ROWS && rows.some((row) => row.description !== "");
   return (
-    <div className="overflow-x-auto" role="region" aria-label="Outputs of this run" tabIndex={0}>
-      <table className="w-full border-collapse text-left text-sm">
-        <caption className="mb-2 text-left">
-          <span className="font-medium">Outputs of this run</span>
-          <span className="block text-xs text-muted-foreground">
-            Shown to ten significant digits; the JSON and every download hold the exact values.
-          </span>
-        </caption>
-        <thead>
-          <tr className="border-b">
-            <th scope="col" className={CELL}>
-              Output
-            </th>
-            <th scope="col" className={CELL}>
-              Value
-            </th>
-            <th scope="col" className={CELL}>
-              Unit
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            const value = outputs[row.name];
-            return (
-              <tr key={row.name} className="border-b">
-                <th scope="row" className={`${CELL} font-normal`}>
-                  <code>{row.name}</code>
-                  {row.description && <span className="block text-muted-foreground">{row.description}</span>}
-                </th>
-                <td className={`${CELL} font-mono`}>
+    <div className="flex flex-col gap-2">
+      {long && (
+        <label className="flex items-center gap-2 text-sm" data-describe="">
+          <input type="checkbox" checked={described} onChange={(event) => setDescribed(event.target.checked)} />
+          Say what each of the {rows.length} outputs is
+        </label>
+      )}
+    <table className="w-full table-fixed border-collapse text-left text-sm" data-outputs="">
+      <caption className="mb-2 text-left">
+        <span className="font-medium">Outputs of this run</span>
+        <span className="block text-xs text-muted-foreground">
+          Shown to ten significant digits; the JSON and every download hold the exact values.
+        </span>
+      </caption>
+      <thead>
+        <tr className="border-b">
+          <th scope="col" className={`${CELL} w-[55%]`}>
+            Output
+          </th>
+          <th scope="col" className={`${CELL} pr-0`}>
+            Value
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => {
+          const value = outputs[row.name];
+          return (
+            <tr key={row.name} className="border-b" data-output={row.name}>
+              <th scope="row" className={`${CELL} font-normal`}>
+                <span className="block font-medium">{fieldTitle(row.name)}</span>
+                <code className="block text-xs text-muted-foreground">{row.name}</code>
+                {described && row.description && <span className="mt-1 block text-muted-foreground">{row.description}</span>}
+              </th>
+              <td className={`${CELL} pr-0`}>
+                <span className="font-mono">
                   {Array.isArray(value) ? <ArrayValue name={row.name} values={value} /> : displayValue(value, row.unit)}
-                </td>
-                <td className={CELL}>{row.unit}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                </span>
+                {!SILENT_UNITS.has(row.unit) && (
+                  <span className="block text-xs text-muted-foreground" data-unit="">
+                    {row.unit}
+                  </span>
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
     </div>
   );
 }
@@ -174,8 +205,12 @@ export interface ResultPanelProps {
 
 export default function ResultPanel({ result, table, sourceNames }: ResultPanelProps) {
   const records = sourceRecords(result);
+  const facts = manifestFacts(result);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="@container flex flex-col gap-4">
+      <p className="rounded-md border border-success px-3 py-2 text-sm" data-run-summary="">
+        {runSummary(result)}
+      </p>
       <OutputsTable table={table} outputs={result.outputs} />
       <div>
         <h4 className="font-medium">Warnings</h4>
@@ -199,6 +234,26 @@ export default function ResultPanel({ result, table, sourceNames }: ResultPanelP
               <Source key={`${record.provider}-${record.series_id}-${String(index)}`} record={record} names={sourceNames} />
             ))}
           </ul>
+        </div>
+      )}
+      {facts.length > 0 && (
+        <div className="rounded-md border px-4 py-3" data-manifest="">
+          <h4 className="text-sm font-medium">Manifest: what makes this result reproducible</h4>
+          <div className="mt-2 flex flex-col gap-3 text-sm">
+            <p className="text-muted-foreground">
+              The same model version and inputs give the same result hash on every surface: the website, Python, the
+              command line, the REST API and MCP. In Python it is <code>result.manifest.result_sha256</code>.
+            </p>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 @xl:grid-cols-[auto_1fr]">
+              {facts.map((fact) => (
+                <div key={fact.label} className="contents">
+                  <dt className="text-muted-foreground">{fact.label}</dt>
+                  <dd className="font-mono text-xs wrap-anywhere">{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <CopyButton text={facts.map((fact) => `${fact.label}: ${fact.value}`).join("\n")} label="Copy the manifest's facts" />
+          </div>
         </div>
       )}
     </div>

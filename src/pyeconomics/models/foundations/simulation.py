@@ -42,6 +42,7 @@ from pyeconomics.core import (
     Ratio,
     RatioArray,
     Reference,
+    Symbol,
     Volatility,
     Years,
     generator,
@@ -336,6 +337,39 @@ _EFRON = Reference(
             r"\bar\theta^*)^2}, \quad [\hat\theta^*_{(\alpha/2)}, "
             r"\hat\theta^*_{(1-\alpha/2)}]"
         ),
+    ),
+    symbols=(
+        Symbol("S_t", "The value at time t"),
+        Symbol("S_0", "The value now", "initial_value"),
+        Symbol(r"\mu", "Drift per year", "drift"),
+        Symbol(r"\sigma", "Volatility per year", "volatility"),
+        Symbol(r"\Delta t", "The length of one step, in years"),
+        Symbol("Z", "A standard normal draw"),
+        Symbol(
+            "E[S_T]",
+            "The expected value at the horizon, which the simulated mean estimates",
+            "terminal_mean",
+        ),
+        Symbol("T", "Horizon, in years", "horizon"),
+        Symbol(
+            r"\mathrm{SE}",
+            "Standard error of the simulated mean",
+            "standard_error",
+        ),
+        Symbol(
+            "s",
+            "Standard deviation of the simulated values at the horizon",
+            "terminal_std",
+        ),
+        Symbol("N", "Number of simulated paths", "paths_simulated"),
+        Symbol(
+            r"\widehat{se}_B",
+            "Bootstrap standard error of the statistic",
+            "standard_error",
+        ),
+        Symbol("B", "Number of resamples", "resamples"),
+        Symbol(r"\hat\theta^*_b", "The statistic computed on resample b"),
+        Symbol(r"\alpha", "One less the confidence level"),
     ),
     assumptions=(
         (

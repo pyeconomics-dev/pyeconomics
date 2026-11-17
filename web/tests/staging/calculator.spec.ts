@@ -26,7 +26,7 @@ test("the duration calculator runs against the staging API and shows the result"
   await section.getByRole("button", { name: "Run", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Result", exact: true })).toBeFocused({ timeout: 60_000 });
   const outputs = page.getByRole("table", { name: "Outputs of this run" });
-  await expect(outputs.getByRole("rowheader", { name: /^macaulay_duration/ })).toBeVisible();
+  await expect(outputs.getByRole("rowheader", { name: /macaulay_duration/ })).toBeVisible();
   expect(runs).toEqual([200]);
   expect(watch.violations).toEqual([]);
   expect(watch.errors).toEqual([]);

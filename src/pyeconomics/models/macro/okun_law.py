@@ -46,6 +46,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -281,6 +282,22 @@ _WINDOW: Final = 120
             r"\left(\frac{Y_t}{Y_{t-k}}\right)^{m/k} - 1 \quad "
             r"\text{(difference; constant-unemployment growth } -a/b)"
         ),
+    ),
+    symbols=(
+        Symbol("y_t", "The output gap in period t", "output_gap"),
+        Symbol("a", "The intercept", "intercept"),
+        Symbol("b", "The slope", "slope"),
+        Symbol("u_t", "The unemployment rate in period t", "unemployment"),
+        Symbol(
+            "u^*_t",
+            "The natural rate of unemployment in period t",
+            "natural_unemployment",
+        ),
+        Symbol("e_t", "The residual in period t"),
+        Symbol("g_t", "Output growth over the last k periods, for a year"),
+        Symbol("Y_t", "Output in period t", "output"),
+        Symbol("k", "Periods the change is taken over", "span"),
+        Symbol("m", "Periods in a year", "periods_per_year"),
     ),
     assumptions=(
         (

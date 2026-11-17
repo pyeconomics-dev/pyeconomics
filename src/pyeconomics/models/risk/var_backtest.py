@@ -42,6 +42,7 @@ from pyeconomics.core import (
     Probability,
     Ratio,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -442,6 +443,67 @@ _BASEL_2019 = Reference(
         (
             r"F(x) = \sum_{k \le x}\binom{n}{k}p^k(1 - p)^{n - k}: "
             r"\text{yellow from } F \ge 0.95, \text{ red from } F \ge 0.9999"
+        ),
+    ),
+    symbols=(
+        Symbol(
+            "LR_{POF}",
+            "Kupiec's proportion-of-failures likelihood ratio",
+            "likelihood_ratio",
+        ),
+        Symbol(
+            "p",
+            (
+                "The chance of an exception the model promises: one less the "
+                "confidence level"
+            ),
+        ),
+        Symbol("c", "Confidence level of the value-at-risk", "confidence"),
+        Symbol("n", "Number of days", "observations"),
+        Symbol(
+            "x",
+            "Number of exceptions: days the loss was beyond value-at-risk",
+            "exceptions",
+        ),
+        Symbol(
+            "LR_{IND}",
+            "Christoffersen's likelihood ratio for independent exceptions",
+            "lr_independence",
+        ),
+        Symbol(r"\hat\pi", "The share of days with an exception", "exception_rate"),
+        Symbol(
+            r"\hat\pi_{01}",
+            "The share of days with an exception after a day without one",
+        ),
+        Symbol(
+            r"\hat\pi_{11}",
+            "The share of days with an exception after a day with one",
+        ),
+        Symbol(
+            "n_{00}",
+            "Days without an exception that follow a day without one",
+            "n00",
+        ),
+        Symbol("n_{01}", "Days with an exception that follow a day without one", "n01"),
+        Symbol("n_{10}", "Days without an exception that follow a day with one", "n10"),
+        Symbol("n_{11}", "Days with an exception that follow a day with one", "n11"),
+        Symbol(
+            "LR_{CC}",
+            "The conditional-coverage likelihood ratio",
+            "lr_conditional_coverage",
+        ),
+        Symbol(
+            "LR_{UC}",
+            (
+                "The unconditional-coverage likelihood ratio: the proportion-of- "
+                "failures test's"
+            ),
+            "lr_unconditional",
+        ),
+        Symbol(
+            "F(x)",
+            "The chance of x exceptions or fewer if the model is right",
+            "cumulative_probability",
         ),
     ),
     assumptions=(

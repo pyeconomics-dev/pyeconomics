@@ -11,13 +11,14 @@ import { parseArgs } from "node:util";
 
 import { chromium, type Locator, type Page } from "@playwright/test";
 
-import { BASE_URL, LAUNCH, accessHeaders, measure, prepare, write } from "./support.ts";
+import { BASE_URL, LAUNCH, accessHeaders, choose, measure, prepare, settled, write } from "./support.ts";
 
 const HELP = `Usage: node tests/dogfood/visit.ts --path <page> [options]
 
 Opens <page> on ${BASE_URL} in Chromium and follows --steps, a JSON array:
   {"goto": "/models/"}                       open another page of the site
-  {"click": "Run"}                           click the button or link with that name
+  {"click": "Run"}                           click the button, link or disclosure with that name
+                                             (exactly that name if one has it, else one containing it)
   {"click": {"role": "radio", "name": "Live data"}}   any ARIA role and name
   {"fill": {"label": "Coupon rate", "value": "0.04"}} type into a labelled field
   {"select": {"label": "Start from an example", "option": "par"}}
@@ -43,9 +44,23 @@ Options:
 
 type Step = Record<string, unknown>;
 
-function by(page: Page, target: unknown): Locator {
+/**
+ * What a click names: a button, a link or a disclosure's summary (which has no
+ * ARIA role of its own, so no role finds it). The control whose name is
+ * exactly the text wins over one that only contains it: "Run" is the Run
+ * button, not the link "Run the calculator" above it (Phase 5 Step 18's round
+ * 1, where both cost evaluators a wrong turn the site had not caused).
+ */
+async function by(page: Page, target: unknown): Promise<Locator> {
   if (typeof target === "string") {
-    return page.getByRole("button", { name: target }).or(page.getByRole("link", { name: target })).first();
+    const named = (exact: boolean) =>
+      page
+        .getByRole("button", { name: target, exact })
+        .or(page.getByRole("link", { name: target, exact }))
+        .or(page.locator("summary").filter({ has: page.getByText(target, { exact }) }))
+        .or(page.locator("summary").getByText(target, { exact }));
+    const exact = named(true);
+    return (await exact.count()) > 0 ? exact.first() : named(false).first();
   }
   const { role, name } = target as { role: Parameters<Page["getByRole"]>[0]; name?: string };
   return page.getByRole(role, name === undefined ? {} : { name }).first();
@@ -55,13 +70,13 @@ async function follow(page: Page, step: Step, shoot: (name: string, full: boolea
   if (typeof step.goto === "string") {
     await page.goto(step.goto, { waitUntil: "load" });
   } else if ("click" in step) {
-    await by(page, step.click).click();
+    await (await by(page, step.click)).click();
   } else if ("fill" in step) {
     const { label, value } = step.fill as { label: string; value: string };
     await page.getByLabel(label).first().fill(value);
   } else if ("select" in step) {
     const { label, option } = step.select as { label: string; option: string };
-    await page.getByLabel(label).first().selectOption({ label: option });
+    await choose(page, page.getByLabel(label).first(), { label: option });
   } else if (typeof step.press === "string") {
     await page.keyboard.press(step.press);
   } else if (typeof step.type === "string") {
@@ -134,6 +149,7 @@ async function main(): Promise<number> {
   const shoot = async (name: string, full: boolean) => {
     count += 1;
     const file = `visits/${values.name}/${String(count).padStart(2, "0")}-${name.replace(/[^\w-]/g, "_")}-${String(width)}-${theme}.png`;
+    await settled(page);
     saved.push(write(file, await page.screenshot({ fullPage: full })));
   };
   const output: string[] = [];

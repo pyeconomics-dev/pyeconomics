@@ -22,9 +22,18 @@ import type { ErrorSchema, RJSFValidationError } from "@rjsf/utils";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import ChartPanel from "@/components/calculator/ChartPanel";
+import CopyButton from "@/components/calculator/CopyButton";
 import CopyCommand from "@/components/calculator/CopyCommand";
+import FieldError from "@/components/calculator/FieldError";
+import FieldsTemplate from "@/components/calculator/FieldsTemplate";
 import ListWidget from "@/components/calculator/ListWidget";
-import ProblemPanel, { fieldProblems, type FieldProblem, type ProblemDocument } from "@/components/calculator/ProblemPanel";
+import ProblemPanel, {
+  fieldPath,
+  fieldProblems,
+  plainMessage,
+  type FieldProblem,
+  type ProblemDocument,
+} from "@/components/calculator/ProblemPanel";
 import ResultPanel from "@/components/calculator/ResultPanel";
 import SelectWidget from "@/components/calculator/SelectWidget";
 import SnippetsPanel from "@/components/calculator/SnippetsPanel";
@@ -32,6 +41,7 @@ import UserDataPanel from "@/components/calculator/UserDataPanel";
 import { buttonVariants } from "@/components/ui/button";
 import {
   boundFields,
+  exampleLabel,
   fieldTitle,
   outputTable,
   plainErrors,
@@ -42,11 +52,12 @@ import {
   type CalculatorProps,
 } from "@/lib/calculator";
 import { adoptStyles } from "@/lib/adopt-styles";
+import { profileLabel } from "@/lib/profiles";
 import { report } from "@/lib/error-reporting";
 import { track } from "@/lib/events";
 import { LOCAL_APP } from "@/lib/explorer";
 import { applicable } from "@/lib/figure";
-import { decode, parseResult, type Result } from "@/lib/results";
+import { decode, outputCount, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
 import { serverMode, type ServerMode } from "@/lib/series-request";
 import type { LoadedModel } from "@/lib/validators";
@@ -60,6 +71,7 @@ import stylesheet from "@/styles/calculator.css?inline";
 if (typeof document !== "undefined") adoptStyles(stylesheet);
 
 const WIDGETS = { list: ListWidget, SelectWidget };
+const TEMPLATES = { ObjectFieldTemplate: FieldsTemplate, FieldErrorTemplate: FieldError };
 
 /** The downloads beside a result, each the same run with ?format=. */
 const DOWNLOADS: readonly { format: Exclude<RunFormat, "json">; label: string; extension: string }[] = [
@@ -100,16 +112,28 @@ function save(bytes: Uint8Array, filename: string, type: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-/** A problem's field errors, placed on the form's own fields. */
+/**
+ * A problem's field errors, placed on the form's own fields. An error about
+ * the inputs together ("settlement must be before maturity") is placed on
+ * each field its words name, so the fields to change are marked (Step 18's
+ * round 1: such an error showed only in a box under the form).
+ */
 function errorSchemaOf(problems: readonly FieldProblem[], fields: readonly string[], calculation: unknown): ErrorSchema | undefined {
   const found = new Map<string, string[]>();
+  const add = (field: string, text: string) => found.set(field, [...(found.get(field) ?? []), text]);
   for (const { loc, msg } of problems) {
     // A family's error names its calculation first, as Pydantic's union does.
-    const path = loc.at(0) === calculation ? loc.slice(1) : loc;
+    const path = fieldPath(loc, calculation);
     const field = path.at(0);
-    if (typeof field !== "string" || !fields.includes(field)) continue;
-    const where = path.length > 1 ? ` (at ${path.slice(1).join(".")})` : "";
-    found.set(field, [...(found.get(field) ?? []), `${msg}${where}`]);
+    const message = plainMessage(msg);
+    if (typeof field === "string" && fields.includes(field)) {
+      add(field, `${message}${path.length > 1 ? ` (at ${path.slice(1).join(".")})` : ""}`);
+    } else if (path.length === 0) {
+      const words = ` ${msg.toLowerCase().replace(/[^a-z0-9_]+/g, " ")} `;
+      for (const name of fields) {
+        if (words.includes(` ${name} `) || words.includes(` ${name.replaceAll("_", " ")} `)) add(name, message);
+      }
+    }
   }
   if (found.size === 0) return undefined;
   return Object.fromEntries([...found].map(([field, errors]) => [field, { __errors: errors }])) as ErrorSchema;
@@ -157,6 +181,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   const [mode, setMode] = useState<ServerMode>("hosted");
   const resultHeading = useRef<HTMLHeadingElement>(null);
 
+  const regions = useMemo(() => new Map(Object.entries(props.profileRegions ?? {})), [props.profileRegions]);
   const calculation = formData.calculation;
   const fields = propertiesFor(schema, calculation);
   const chosen = props.profiles.find((entry) => entry.profile === profile);
@@ -177,7 +202,10 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   const missing = offSite(profile);
   const filled = live ? bound.map((field) => field.field) : [];
   const filledKey = filled.join(",");
-  const uiSchema = useMemo(() => uiSchemaFor(schema, filledKey ? filledKey.split(",") : []), [schema, filledKey]);
+  const uiSchema = useMemo(
+    () => uiSchemaFor(schema, filledKey ? filledKey.split(",") : [], props.inputOrder),
+    [schema, filledKey, props.inputOrder],
+  );
   const options: RunOptions = live ? { profile, ...(asOf ? { asOf } : {}) } : {};
   const inputs = runInputs(
     Object.fromEntries(Object.entries(formData).filter(([name]) => fields.includes(name))),
@@ -186,10 +214,11 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
 
   // The result comes into view with its heading focused, so a visitor who
   // pressed Run at the foot of a long form sees it (round 0: it stayed below
-  // the fold).
+  // the fold). At once, not as a glide: a jump link's smooth scroll over a
+  // dozen screens left the form in view for a second (Step 18's round 1).
   useEffect(() => {
     if (!outcome) return;
-    resultHeading.current?.scrollIntoView({ block: "start" });
+    resultHeading.current?.scrollIntoView({ block: "start", behavior: "instant" });
     resultHeading.current?.focus({ preventScroll: true });
   }, [outcome]);
 
@@ -235,7 +264,9 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
         setOutcome({ kind: "result", answer, result });
         track("calculator_run", { model: props.modelId });
         const warnings = result.warnings.length;
-        setAnnouncement(`Done. The result has ${String(Object.keys(result.outputs).length)} outputs and ${String(warnings)} warning${warnings === 1 ? "" : "s"}.`);
+        // The same count the result's own summary gives (round 3: this line said 6, the summary 5).
+        const outputs = outputCount(result);
+        setAnnouncement(`Done. The result has ${String(outputs)} output${outputs === 1 ? "" : "s"} and ${String(warnings)} warning${warnings === 1 ? "" : "s"}.`);
       } else {
         const problem = problemOf(answer);
         setOutcome({ kind: "problem", answer, problem });
@@ -283,11 +314,15 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
           <select className={CONTROL} value={example} onChange={(event) => choose(Number(event.target.value))}>
             {examples.map((entry, index) => (
               <option key={entry.name} value={index}>
-                {entry.name}
-                {entry.note ? `: ${entry.note}` : ""}
+                {exampleLabel(entry)}
               </option>
             ))}
           </select>
+          {examples.at(example)?.note && (
+            <span className="text-muted-foreground" data-example-note="">
+              {examples.at(example)?.note}
+            </span>
+          )}
         </label>
       )}
 
@@ -315,7 +350,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                 </span>
               </span>
             ) : (
-              <span>Live data: fill the model's data from its sources, then the form's other values</span>
+              <span>Live data: read the model's data from its sources</span>
             )}
           </label>
           {source === "data" && (
@@ -326,8 +361,8 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                   <select className={CONTROL} value={profile} onChange={(event) => setProfile(event.target.value)}>
                     {props.profiles.map((entry) => (
                       <option key={entry.profile} value={entry.profile}>
-                        {entry.profile}
-                        {offSite(entry.profile).length > 0 ? " (your own computer only)" : ""}
+                        {profileLabel(entry.profile, regions.get(entry.profile) ?? null)}
+                        {offSite(entry.profile).length > 0 ? ": your own computer only" : ""}
                       </option>
                     ))}
                   </select>
@@ -375,7 +410,9 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                 </p>
               ) : (
                 <p data-live="hosted">
-                  Filled from data: {fieldList(filled)}. The form's other inputs are sent with the run.
+                  Read from data, {asOf ? `as it stood on ${asOf}` : "at its latest values"}:{" "}
+                  {sentence(filled.map((field) => fieldTitle(field)))}. The result lists each series with its source
+                  and the date of its last observation. The form's other inputs are sent with the run.
                 </p>
               )}
             </div>
@@ -403,6 +440,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
         validator={validator}
         formData={formData}
         widgets={WIDGETS}
+        templates={TEMPLATES}
         extraErrors={extraErrors}
         showErrorList={false}
         noHtml5Validate
@@ -426,10 +464,17 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
         onError={invalid}
         onSubmit={() => void run()}
       >
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <button type="submit" className={buttonVariants()} disabled={running}>
             {running ? "Running…" : "Run"}
           </button>
+          <span className="text-xs text-muted-foreground">Inputs marked * are required.</span>
+          {/* The run as code is beneath the result, which can be long (Step 18's round 2). */}
+          {props.snippets !== false && (
+            <a href="#calculator-code" className="text-sm sm:ml-auto" data-code-link="">
+              These inputs as code
+            </a>
+          )}
         </div>
       </Form>
 
@@ -460,13 +505,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                       {entry.label}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    className={SMALL_BUTTON}
-                    onClick={() => void navigator.clipboard.writeText(decode(outcome.answer.bytes)).then(() => setAnnouncement("The result's JSON is copied."))}
-                  >
-                    Copy JSON
-                  </button>
+                  <CopyButton text={() => decode(outcome.answer.bytes)} label="Copy JSON" />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Every file carries the result's attributions, notices and manifest: the model's version, the hashes of
@@ -484,18 +523,24 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
               retryAfter={outcome.answer.retryAfter}
               localSlugs={props.localSlugs}
               localCommand={props.localCommand}
+              calculation={calculation}
             />
           )}
           {outcome.kind === "error" && <p>The run could not reach the server: {outcome.message}</p>}
         </section>
       )}
 
-      <details className="rounded-md border p-4">
-        <summary className="cursor-pointer font-medium">Copy as Python, command line, curl or MCP</summary>
-        <div className="mt-4">
-          <SnippetsPanel run={{ modelId: props.modelId, inputs, options }} />
-        </div>
-      </details>
+      {props.snippets !== false && (
+        <section className={SECTION} aria-labelledby="calculator-code" data-code="">
+          <h3 id="calculator-code" className={HEADING}>
+            The same run from code
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            These inputs as Python, a command, a request or an MCP call: each gives the same result, byte for byte.
+          </p>
+          <SnippetsPanel run={{ modelId: props.modelId, inputs, options }} mcpTool={props.mcpTool} install={props.install} />
+        </section>
+      )}
     </>
   );
 }

@@ -21,6 +21,7 @@
     "e2e": "playwright test",
     "e2e:local": "playwright test --config playwright.local.config.ts",
     "e2e:wasm": "playwright test --config playwright.wasm.config.ts",
+    "e2e:visual": "playwright test --config playwright.visual.config.ts",
     "dogfood": "playwright test --config tests/dogfood/playwright.config.ts",
     "lighthouse": "node scripts/lighthouse.ts",
     "licences": "uv run --project .. --locked python ../scripts/checks/web_licences.py"

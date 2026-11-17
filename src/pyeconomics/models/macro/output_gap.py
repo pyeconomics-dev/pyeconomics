@@ -56,6 +56,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     least_squares,
     model,
     warn,
@@ -701,6 +702,50 @@ _GDP: Final = (
             r"c^{BK}_t = \sum_{j=-K}^{K} a_j x_{t-j}, \quad a_j = b_j - "
             r"\frac{1}{2K+1}\sum_{i=-K}^{K} b_i, \quad b_j = \frac{\sin(j\omega_2) - "
             r"\sin(j\omega_1)}{\pi j}"
+        ),
+    ),
+    symbols=(
+        Symbol(r"\text{gap}_t", "The output gap in period t", "gap"),
+        Symbol("y_t", "Actual output", "actual"),
+        Symbol(r"\bar y_t", "Potential output", "potential"),
+        Symbol(r"\tau^{HP}", "The Hodrick-Prescott trend", "trend"),
+        Symbol("x_t", "The series being filtered", "series"),
+        Symbol(r"\lambda", "The smoothing parameter", "smoothing"),
+        Symbol("f", "Observations in a year", "frequency"),
+        Symbol(
+            "h",
+            "Hamilton's horizon: how many periods ahead the series is projected",
+            "horizon",
+        ),
+        Symbol("p", "Number of lags in Hamilton's regression", "lags"),
+        Symbol(
+            r"\text{cycle}_{t+h}",
+            "The cycle: the part of the series the projection misses",
+            "cycle",
+        ),
+        Symbol("c^{BK}_t", "The Baxter-King cycle", "cycle"),
+        Symbol(
+            "K",
+            "Leads and lags the Baxter-King filter uses on each side",
+            "lead_lag",
+        ),
+        Symbol("a_j", "The filter's weight on the observation j periods away"),
+        Symbol(
+            "b_j",
+            (
+                "The ideal band-pass filter's weight, before the weights are made to "
+                "sum to zero"
+            ),
+        ),
+        Symbol(
+            r"\omega_1",
+            "The lower frequency of the band, from its longest period",
+            "high",
+        ),
+        Symbol(
+            r"\omega_2",
+            "The upper frequency of the band, from its shortest period",
+            "low",
         ),
     ),
     assumptions=(

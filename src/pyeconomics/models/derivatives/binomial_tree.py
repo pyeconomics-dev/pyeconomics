@@ -40,6 +40,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     Volatility,
     Years,
     model,
@@ -230,6 +231,30 @@ _HULL = Reference(
             r"\Delta = \frac{V_{1,1} - V_{1,0}}{S u - S d}, \quad \Gamma = "
             r"\frac{\Delta_{2,up} - \Delta_{2,down}}{(S u^2 - S d^2)/2}"
         ),
+    ),
+    symbols=(
+        Symbol("u", "The price ratio of a move up", "up_factor"),
+        Symbol("d", "The price ratio of a move down"),
+        Symbol("p", "The risk-neutral probability of a move up", "up_probability"),
+        Symbol(r"\sigma", "Volatility of the asset's return per year", "volatility"),
+        Symbol(
+            r"\Delta t",
+            "The length of one step, in years: the time to expiry over the steps",
+        ),
+        Symbol(
+            "r",
+            "Risk-free rate per year, continuously compounded",
+            "risk_free_rate",
+        ),
+        Symbol(
+            "q",
+            "Dividend yield per year, continuously compounded",
+            "dividend_yield",
+        ),
+        Symbol("V_{i,j}", "The option's value at step i after j moves up"),
+        Symbol("S", "Price of the underlying asset now", "spot"),
+        Symbol(r"\Delta", "Delta: the change in price per unit of spot", "delta"),
+        Symbol(r"\Gamma", "Gamma: the change in delta per unit of spot", "gamma"),
     ),
     assumptions=(
         (

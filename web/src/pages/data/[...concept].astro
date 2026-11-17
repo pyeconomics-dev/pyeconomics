@@ -14,7 +14,7 @@ import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import SeriesExplorer from "@/components/explorer/SeriesExplorer";
 import Base from "@/layouts/Base.astro";
 import { LOCAL_APP, modelsReading } from "@/lib/explorer";
-import { domainTitle, modelPath } from "@/lib/models";
+import { ORIGIN, domainTitle, modelPath } from "@/lib/models";
 import { conceptDescription, DATA_INDEX } from "@/lib/pages";
 import { DATA_PATH, conceptPath } from "@/lib/paths";
 import { conceptData, problemData, registryData, sourceData, type ConceptEntry } from "@/lib/site-data";
@@ -62,7 +62,7 @@ const headingClass = "text-2xl font-semibold";
   <article>
     <section class="flex flex-col gap-4" aria-labelledby="concept-title" data-section="concept">
       <h1 id="concept-title" class="page-title">{concept.title}</h1>
-      <span hidden data-pagefind-meta="kind:Data"></span>
+      <span hidden data-pagefind-meta="kind:Data series"></span>
       <p class="max-w-3xl text-lg" data-pagefind-meta="summary">{concept.definition}</p>
       <dl class="grid max-w-3xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
         <dt class="text-muted-foreground">Concept id</dt>
@@ -81,7 +81,7 @@ const headingClass = "text-2xl font-semibold";
         <dd data-snapshot={concept.snapshot ? "served" : "local"}>
           {
             concept.snapshot
-              ? "Served from the daily snapshot of its originator."
+              ? "Charted and downloaded here, from this site's daily copy of its source."
               : "Not served here: read it on your own computer."
           }
         </dd>
@@ -93,6 +93,9 @@ const headingClass = "text-2xl font-semibold";
       <SeriesExplorer
         client:visible
         conceptId={concept.id}
+        title={concept.title}
+        unit={concept.unit ?? ""}
+        url={new URL(path, ORIGIN).href}
         frequency={concept.frequency}
         shape={concept.shape}
         snapshot={concept.snapshot}
@@ -104,7 +107,7 @@ const headingClass = "text-2xl font-semibold";
       />
       <noscript>
         <p class="max-w-3xl">
-          The chart needs JavaScript. Read the series with <code>{concept.local_command}</code>, or from the REST API at
+          The chart needs JavaScript. Read the series with <code>{concept.local_command}</code>, or from the REST API at{" "}
           <code>GET /v1/series/{concept.id}</code>.
         </p>
       </noscript>
@@ -113,8 +116,10 @@ const headingClass = "text-2xl font-semibold";
     <section id="sources" class={sectionClass} aria-labelledby="sources-heading" data-section="sources">
       <h2 id="sources-heading" class={headingClass}>Sources</h2>
       <p class="max-w-3xl">
-        The sources that can answer this concept, in the order they are tried. The hosted site reads only hosted-safe
-        sources; every source is available when you run pyeconomics yourself ({LOCAL_APP}).
+        The sources that can answer this concept, in the order they are tried. This website reads only a source
+        whose terms let it serve the data ("On this site: yes"); every source is read when you run pyeconomics on
+        your own computer ({LOCAL_APP}). An originator is the body that publishes the series; an aggregator
+        republishes it. <a href="/sources/#classes">What each licence class means</a>.
       </p>
       <div class="overflow-x-auto" role="region" aria-label="Sources of this concept" tabindex="0">
         <table class="w-full border-collapse text-left text-sm">
@@ -123,8 +128,8 @@ const headingClass = "text-2xl font-semibold";
             <tr class="border-b">
               <th scope="col" class="py-2 pr-4">Source</th>
               <th scope="col" class="py-2 pr-4">Series</th>
-              <th scope="col" class="py-2 pr-4">Licence class</th>
-              <th scope="col" class="py-2 pr-4">Hosted</th>
+              <th scope="col" class="py-2 pr-4">Licence</th>
+              <th scope="col" class="py-2 pr-4">On this site</th>
               <th scope="col" class="py-2">Terms</th>
             </tr>
           </thead>

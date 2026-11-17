@@ -110,6 +110,68 @@ export function sourceRecords(result: Result): SourceRecord[] {
   return Array.isArray(records) ? records : [];
 }
 
+/**
+ * What a run gave, in one line a visitor reads first (Phase 5 Step 18's round
+ * 1: nothing said a run had finished, or which data it read): how many outputs
+ * and warnings, and, for a run on live data, how many series it read and the
+ * date of the latest observation among them.
+ */
+/** How many outputs a result holds, as its table lists them: a family's calculation is not one. */
+export function outputCount(result: Result): number {
+  return Object.keys(result.outputs).filter((name) => name !== "calculation").length;
+}
+
+export function runSummary(result: Result): string {
+  const outputs = outputCount(result);
+  const warnings = result.warnings.length;
+  const parts = [
+    `The run finished: ${String(outputs)} ${outputs === 1 ? "output" : "outputs"}, ` +
+      `${warnings === 0 ? "no warnings" : `${String(warnings)} ${warnings === 1 ? "warning" : "warnings"}`}.`,
+  ];
+  const records = sourceRecords(result);
+  if (records.length > 0) {
+    const latest = records
+      .map((record) => record.observation_end ?? "")
+      .filter((date) => date !== "")
+      .sort()
+      .at(-1);
+    parts.push(
+      `It read ${String(records.length)} data series` +
+        `${latest ? `, with observations to ${latest}` : ""}: each is listed under Sources.`,
+    );
+  }
+  return parts.join(" ");
+}
+
+/** One fact of a result's manifest, as the page lists it. */
+export interface ManifestFact {
+  label: string;
+  value: string;
+}
+
+/**
+ * The manifest's facts a reader checks a result by (core/manifest.py): the
+ * model and its version, the package's version, and the SHA-256 of the inputs
+ * and of the result. Only strings and numbers the manifest holds; a field it
+ * lacks is left out.
+ */
+export function manifestFacts(result: Result): ManifestFact[] {
+  const manifest = new Map(Object.entries(result.manifest));
+  const text = (key: string): string | null => {
+    const value = manifest.get(key);
+    return typeof value === "string" || typeof value === "number" ? String(value) : null;
+  };
+  const rows: [string, string | null][] = [
+    ["Model", `${result.model_id}, version ${String(result.model_version)}`],
+    ["pyeconomics version", text("package_version")],
+    ["Inputs SHA-256", text("inputs_sha256")],
+    ["Result SHA-256", text("result_sha256")],
+    ["Manifest schema", text("schema_version")],
+    ["Seed", text("seed")],
+  ];
+  return rows.flatMap(([label, value]) => (value === null ? [] : [{ label, value }]));
+}
+
 /** What a data warning code means for a reader (data/cache/policy.py NOTE_WARNINGS and bindings). */
 export const DATA_WARNINGS: ReadonlyMap<string, string> = new Map(
   Object.entries({

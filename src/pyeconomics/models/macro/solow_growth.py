@@ -49,6 +49,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     Years,
     model,
     warn,
@@ -522,6 +523,56 @@ def _pwt_bindings(economy: str) -> tuple[Binding, ...]:
         (
             r"\Delta \ln Y = \alpha\,\Delta \ln K + (1 - \alpha)(\Delta \ln L + "
             r"\Delta \ln h) + \Delta \ln A"
+        ),
+    ),
+    symbols=(
+        Symbol(
+            "k^*",
+            "Steady-state capital for each effective worker",
+            "capital_per_effective_worker",
+        ),
+        Symbol("s", "Saving rate", "saving_rate"),
+        Symbol("n", "Population growth rate", "population_growth"),
+        Symbol("g", "Growth rate of technology", "technology_growth"),
+        Symbol(r"\delta", "Depreciation rate", "depreciation"),
+        Symbol(r"\alpha", "Capital's share of income", "capital_share"),
+        Symbol(
+            "y^*",
+            "Steady-state output for each effective worker",
+            "output_per_effective_worker",
+        ),
+        Symbol(
+            "c^*",
+            "Steady-state consumption for each effective worker",
+            "consumption_per_effective_worker",
+        ),
+        Symbol(
+            "s_{gold}",
+            "The golden-rule saving rate, which makes steady-state consumption largest",
+            "golden_rule_saving_rate",
+        ),
+        Symbol(
+            r"\lambda",
+            "Speed of convergence to the steady state, per year",
+            "convergence_speed",
+        ),
+        Symbol(
+            "t_{1/2}",
+            "Half-life of the gap to the steady state, in years",
+            "half_life",
+        ),
+        Symbol(r"\Delta \ln Y", "Growth of output", "output_growth"),
+        Symbol(r"\Delta \ln K", "Growth of capital", "capital_growth"),
+        Symbol(r"\Delta \ln L", "Growth of labour", "labour_growth"),
+        Symbol(
+            r"\Delta \ln h",
+            "Growth of human capital for each worker",
+            "human_capital_growth",
+        ),
+        Symbol(
+            r"\Delta \ln A",
+            "Growth of total factor productivity: the Solow residual",
+            "tfp_growth",
         ),
     ),
     assumptions=(

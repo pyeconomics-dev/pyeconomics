@@ -25,6 +25,7 @@ from pyeconomics.core import (
     Money,
     Ratio,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -76,6 +77,27 @@ class Outputs(ModelOutputs):
         r"DOL=Q(P-v)/EBIT,\quad DFL=EBIT/(EBIT-I)",
         r"DTL=DOL\,DFL",
         r"Q_O=F/(P-v),\quad Q_T=(F+I)/(P-v)",
+    ),
+    symbols=(
+        Symbol("EBIT", "Operating income", "operating_income"),
+        Symbol("Q", "Units sold in the period", "quantity"),
+        Symbol("P", "Selling price per unit", "price"),
+        Symbol("v", "Variable cost per unit", "variable_cost"),
+        Symbol("F", "Fixed operating costs in the period", "fixed_costs"),
+        Symbol("I", "Interest expense in the period", "interest"),
+        Symbol("DOL", "Degree of operating leverage", "dol"),
+        Symbol("DFL", "Degree of financial leverage", "dfl"),
+        Symbol("DTL", "Degree of total leverage", "dtl"),
+        Symbol(
+            "Q_O",
+            "Operating breakeven: the units at which operating income is zero",
+            "operating_breakeven",
+        ),
+        Symbol(
+            "Q_T",
+            "Total breakeven: the units at which pretax income is zero",
+            "total_breakeven",
+        ),
     ),
     assumptions=(
         (

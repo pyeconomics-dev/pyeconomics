@@ -50,6 +50,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     Years,
     curve_discount_factors,
     model,
@@ -440,6 +441,32 @@ _ISDA = Reference(
         r"V_{float} = N (d_0 - d_n), \quad V_{fixed} = c N A",
         r"s_{par} = \frac{d_0 - d_n}{A}",
         r"V_{payer} = V_{float} - V_{fixed} = N A (s_{par} - c) = -V_{receiver}",
+    ),
+    symbols=(
+        Symbol(
+            "A",
+            "Annuity factor: the value of 1 paid on the fixed leg's accruals",
+            "annuity_factor",
+        ),
+        Symbol(r"\alpha_i", "Accrual fraction of fixed period i, in years", "accruals"),
+        Symbol("d_i", "Discount factor at fixed payment i", "discount_factors"),
+        Symbol("d_0", "Discount factor at the swap's start", "start_discount_factor"),
+        Symbol("d_n", "Discount factor at the last payment"),
+        Symbol("N", "Notional", "notional"),
+        Symbol("c", "Fixed rate of the swap", "fixed_rate"),
+        Symbol("V_{float}", "Value of the floating leg", "floating_leg_value"),
+        Symbol("V_{fixed}", "Value of the fixed leg", "fixed_leg_value"),
+        Symbol(
+            "s_{par}",
+            "Par swap rate: the fixed rate that makes the swap worth nothing",
+            "par_swap_rate",
+        ),
+        Symbol("V_{payer}", "Value to the payer of the fixed rate", "payer_value"),
+        Symbol(
+            "V_{receiver}",
+            "Value to the receiver of the fixed rate",
+            "receiver_value",
+        ),
     ),
     assumptions=(
         (

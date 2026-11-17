@@ -54,6 +54,7 @@ from pyeconomics.core import (
     Rate,
     Reference,
     Return,
+    Symbol,
     annualized_return,
     compound_return,
     internal_rate_of_return,
@@ -522,6 +523,42 @@ _XIRR = Reference(
             r"W_i = \frac{CD - D_i}{CD}"
         ),
         r"R_{annual} = (1 + R)^{m / k} - 1",
+    ),
+    symbols=(
+        Symbol("r_k", "The return of sub-period k", "sub_period_returns"),
+        Symbol("V_k", "The value at the end of sub-period k", "values"),
+        Symbol(
+            "F_k",
+            "The external flow at the end of sub-period k; a contribution is positive",
+            "flows",
+        ),
+        Symbol("TWR", "Time-weighted return", "time_weighted_return"),
+        Symbol("V_0", "The value at the beginning", "beginning_value"),
+        Symbol("V_T", "The value at the end", "ending_value"),
+        Symbol("r", "The money-weighted return per period", "money_weighted_return"),
+        Symbol("T", "The length of the whole period"),
+        Symbol("t_k", "The time of flow k", "flow_times"),
+        Symbol("R_{MD}", "The modified Dietz return", "modified_dietz_return"),
+        Symbol(
+            "V_1",
+            "The value at the end, in the modified Dietz return",
+            "ending_value",
+        ),
+        Symbol("F_i", "The i-th external flow", "flows"),
+        Symbol("W_i", "The weight of flow i: the share of the period it was invested"),
+        Symbol("CD", "Calendar days in the period"),
+        Symbol("D_i", "Days from the start of the period to flow i"),
+        Symbol("R_{annual}", "The return for a year", "annualized_return"),
+        Symbol("R", "The return over the whole span"),
+        Symbol("m", "Periods in a year", "periods_per_year"),
+        Symbol(
+            "k",
+            (
+                "In the annualized return, the periods the return spans; elsewhere, "
+                "the index of a sub-period"
+            ),
+            "periods",
+        ),
     ),
     assumptions=(
         (

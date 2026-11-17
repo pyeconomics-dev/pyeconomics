@@ -89,6 +89,17 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
   cited golden cases, property tests, units and bounds.
 - Model ids are permanent (ADR-0003). Never copy CFA Program curriculum text,
   questions or worked examples.
+- A model says what its formulas' symbols stand for (issue #343):
+  `symbols=(Symbol(r"D_{Mac}", "Macaulay duration, in years",
+  "macaulay_duration"), ...)` on `@model`, each symbol written as a formula
+  writes it, its meaning a phrase with no full stop, and its field named when
+  it stands for one. `registry.validate()` reports a symbol no formula holds,
+  one defined twice or a field the model lacks under `symbols`. The card lists
+  them under its formulas as `- $<LaTeX>$: <meaning> (`<field>`)`, a line the
+  web app reads back (`web/src/lib/models.ts symbolsOf`), so its shape changes
+  only with `tests/registry/test_formula_symbols.py` and the web's tests. The
+  description (`registry.describe`, the registry export, the REST and MCP
+  schemas) has no key for them: the card carries them.
 - Declare a model with `@model` from `pyeconomics.core`, list the `Model` object
   in its module's `__all__`, and name the module in
   `[project.entry-points."pyeconomics.models"]`. `registry.validate()` must pass
@@ -1038,6 +1049,124 @@ From Phase 5 Step 17, which gave the site its design (ADR-0013 decisions 2, 9 an
   the deploy, which rolls the Worker back.
   A change to the personas, rubric, harness or page list is a change to the protocol,
   dated in its change log. Round 0's record is `docs/design/audit-round-0.md`.
+
+From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
+(`docs/design/rounds/`: a record for each round, and `summary.md`):
+
+- Visual baselines (`web/tests/visual/`, `npm run e2e:visual`): the first screen of
+  decision 19's thirteen pages at 390 and 1440 wide, in light and dark, 52 PNG files
+  in `tests/visual/baselines/`. They are the web job's Linux runner's pictures and
+  are compared only there, with at most 300 differing pixels; every test skips on
+  another platform. No picture holds personal data: a paragraph with a mail
+  address in it (the privacy policy's first lines) is masked. To change one on purpose: push the change; the web job's
+  comparison fails, draws all 52 again and uploads them as the `visual-baselines`
+  artifact; run `gh run download <run-id> -n visual-baselines -D
+  web/tests/visual/baselines`, look at each picture that changed, commit them, and
+  say in the pull request why each changed. Never draw one on another machine, and
+  never raise the limit to pass a change. A new sample page joins
+  `tests/visual/sample.ts`, which a unit test holds to Lighthouse's sample.
+- Each bug class the rounds found has a check, and a rule that keeps it out:
+  - Astro drops a line break between a word and an inline element beside it
+    (`the` then `<a>` on the next line built "the<a>"). End such a line with
+    `{" "}`, or write the text as one string; `tests/site/` "prose" fails on a
+    glued word in any built page.
+  - What a visitor types or chooses before an island hydrates is read while it
+    hydrates (a lazy `useState`, before React sets the fields) and kept; a control
+    that cannot work before its island is `disabled` until then
+    (`tests/e2e/hydration.spec.ts`, which holds the site's scripts back).
+  - A page holds room for what arrives after it loads, so nothing moves: a
+    calculator's card by an invisible `<svg>` of the height `formRoom`
+    (`src/lib/calculator.ts`) estimates for its form, set by its `height`
+    attribute, never a style; the explorer's chart by `.chart-room`; the search
+    results by a minimum height. `tests/e2e/layout-shift.spec.ts` holds each sample
+    page under 0.1 at three sizes; a form that outgrows `ROOM`'s fitted numbers
+    fails there (`node scripts/form-room.ts` prints each model's measured card
+    against its estimate). An island fills the room held for it, so it loads
+    from whichever side a visitor reaches it.
+  - One control copies (`CopyButton.tsx`), and says so when the browser refuses;
+    nothing else under `src/` writes to the clipboard (a unit test), and
+    `tests/e2e/copy.spec.ts` refuses the clipboard on every one in a page.
+  - A result fits a phone: the outputs table has two columns of fixed width, the
+    unit under its value (`calculator.spec.ts` measures three models at 390).
+  - A notice never contradicts what the page does: a model the site serves in part
+    names the profiles that run here first (`models.ts liveNotice`).
+  - Nothing a closed `<details>` holds transitions: `global.css` turns it off, and
+    `motion.spec.ts` looks.
+- Names reach a visitor as words (`src/lib/calculator.ts`): a field, an output and
+  an example through `fieldTitle`, an option through `optionLabel`, with its id
+  beside a name that does not spell it. An abbreviation joins `ACRONYMS`, an
+  option whose id is one joins `OPTION_NAMES` (a test fails on a name no schema
+  offers); never write a label for one model. A form shows the fields a run needs
+  first, in the model's own order (`fieldOrder`), two to a row on a wide card, and
+  keeps a field that may be left out in a disclosure (`FieldsTemplate.tsx`); a
+  field with a default is never hidden, because its value changes the result.
+- A concept's page draws its chart when the explorer comes into view: the one
+  request a page view sends unasked (`pages.spec.ts` allows only that one), and
+  gives a line to cite the series by (`explorer.ts citation`), built only from
+  the answer's source record and the page's own address.
+- A table a visitor reads row by row fits a phone. A model's variables tables
+  (`VariablesTable.astro`) are two columns below 640 pixels, the unit and bounds
+  under the name, and four above; `pages.spec.ts` measures three models' at 390
+  wide. A dense reference table (a profile's bindings) may scroll in its own
+  box, with a minimum width on each column, so none is too narrow to read.
+- JSON and Python a page shows go through `src/lib/json-text.ts`: a list of
+  plain values stays on one line while short and otherwise fills lines a phone's
+  code box shows whole. A unit test parses every golden case's inputs back. A
+  block of code has one look everywhere, `.code-box` (the calculator's snippets
+  and a worked example's JSON included), and a copy control sits above a block
+  that can be taller than the screen, never under it.
+- A data profile is named through `src/lib/profiles.ts` (`profileLabel`: its
+  name, with its id beside a name that does not spell it); a profile whose id is
+  a code joins `PROFILE_NAMES`, and a test fails on a name no model binds.
+- `/about/` says who runs the site only in `legal.ts`'s words (`OPERATOR`,
+  `CONTACT_EMAIL`), the same sentence the legal index gives, and counts every
+  number it states from the site data; change what it says about a person only
+  with the maintainer's word. `/assistants/` takes its tools, start command and
+  client configuration from `src/lib/mcp.ts`, held to the server's
+  `DISCOVERY_TOOLS` and to `docs/mcp.md` by `tests/web/test_mcp_tools_listed.py`.
+- Search results put a page whose title begins with the query first
+  (`search.ts titleFirst`); the footer's links are `links.ts FOOTER_GROUPS`,
+  four groups under headings.
+- A page whose first screen is followed by formulas passes `paintWith` to
+  `Base.astro` (a model page its `formula` section, the home page `try`): a
+  `<link rel="expect" blocking="render">` that holds the first paint until that
+  element is parsed. MathML takes about a tenth of a second to lay out, and
+  where the header was painted alone first, the main text became a later paint
+  that Lighthouse's simulation timed at 3.5 seconds, in some runs and not
+  others. Read a failing Lighthouse page's `.lighthouse/*.json` for its observed
+  first and largest paints before changing anything: when they differ, this is
+  why.
+- No control's opacity transitions (`ui/button.tsx` transitions colours and
+  shadow only): a button that is off until its island loads is either off or
+  fully drawn, never mid-fade, where axe once read it at a contrast of 2.6. A
+  unit test fails on `disabled:opacity-*` beside `transition-all`.
+- Refit `formRoom` (`node scripts/form-room.ts` prints each model's error) when
+  the form's or the code section's layout changes: a median error near 30
+  pixels is what the layout-shift check was fitted to pass, and a drifted
+  estimate fails it only now and then, on whichever page scrolls at the wrong
+  moment. The home page's card is a phone's width beside its introduction, so
+  it holds the phone's room there.
+- A result of more than eight outputs lists them by name, id, value and unit,
+  with a box to tick for what each is (`ResultPanel.tsx DESCRIBED_ROWS`); the
+  line under the form and the result's summary count outputs with one function
+  (`results.ts outputCount`: a family's calculation is not one). A list field's
+  help is words (`calculator.ts listHelp`). A profile whose name says nothing of
+  where its data is from says so from its series' ids (`profiles.ts
+  profileRegion`). The code box's height limit is in two places that move
+  together: `SnippetsPanel.tsx PRE` and `calculator.ts codeBox`, with
+  `CODE_FRAME` measured, not fitted.
+- The harness chooses a select's option with `support.ts choose` (a key press
+  first), so a visitor's own choice is not scored as a layout shift.
+- An evaluator is an Agent subagent on another model than the implementer's, given
+  the protocol's prompt word for word and, after it, working notes that change no
+  rule (where to run `visit`, which run folder, to skip the session-start routine
+  and read no memory, handoff or source file); `docs/design/rounds/round-1.md`
+  records them. It is shown the previous round's list only after it has returned
+  its scores, through `SendMessage`.
+- The loop stopped at round 3 (`docs/design/rounds/summary.md`: medians 5.75,
+  7.00, 7.50 and 7.38; no High since round 2). Step 20's round is held to round
+  3's. What returned each round and belongs to the models is issues #350 and
+  #351; what was disputed each time is listed in the summary, with its reason.
 
 ## Documentation rules
 

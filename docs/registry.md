@@ -68,7 +68,7 @@ Each entry holds the keys of `registry.describe(id)`, plus two:
 | `bindings` | the data each input field can be bound to, empty for most models |
 | `extra` | the optional extra the model needs, or `null` |
 | `input_schema`, `output_schema` | the model's JSON Schema 2020-12 documents |
-| `card` | the model card in MyST Markdown |
+| `card` | the model card in MyST Markdown; under its formulas, a "Where" list of what each symbol stands for |
 | `example_result` | the result of the first example |
 | `example_figure` | a Plotly figure of that result, or `null` |
 

@@ -26,6 +26,7 @@ from pyeconomics.core import (
     Money,
     Rate,
     Reference,
+    Symbol,
     Years,
     growing_perpetuity_factor,
     model,
@@ -155,6 +156,27 @@ Outputs = Annotated[
         r"V = D_1/(r-g)",
         r"V_H = D_0[(1+g_L)+H(g_S-g_L)]/(r-g_L)",
         r"PVGO=P-E_1/r",
+    ),
+    symbols=(
+        Symbol("V", "Value of the share", "value"),
+        Symbol("D_1", "The dividend expected next year", "next_dividend"),
+        Symbol("r", "Required return on equity", "required_return"),
+        Symbol("g", "Growth rate of dividends", "growth"),
+        Symbol("V_H", "Value by the H-model", "value"),
+        Symbol("D_0", "The dividend just paid", "dividend"),
+        Symbol("g_L", "Long-run growth rate", "terminal_growth"),
+        Symbol("g_S", "The initial, higher growth rate", "growth"),
+        Symbol(
+            "H",
+            (
+                "Half the years over which growth falls from the initial rate to the "
+                "long-run rate"
+            ),
+            "half_life",
+        ),
+        Symbol("PVGO", "Present value of growth opportunities", "pvgo"),
+        Symbol("P", "Price of the share", "price"),
+        Symbol("E_1", "Earnings expected next year", "earnings"),
     ),
     assumptions=(
         (

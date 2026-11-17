@@ -38,6 +38,7 @@ from pyeconomics.core import (
     Money,
     Rate,
     Reference,
+    Symbol,
     model,
     warn,
 )
@@ -403,6 +404,44 @@ _BOND = {
         r"P_{full}^{treasury} = \frac{\sum_j CF_j (1 + y/f)^{-(j - 1)}}{1 + w y / f}",
         r"AI = F\,c\,\tau(t_{prev}, t_{settle}), \quad P_{flat} = P_{full} - AI",
         r"YTW = \min\left(YTM, \min_k YTC_k\right)",
+    ),
+    symbols=(
+        Symbol("P_{full}", "Full (dirty) price at settlement", "full_price"),
+        Symbol(
+            "CF_j",
+            (
+                "The j-th remaining cash flow: a coupon, or the last coupon and the "
+                "redemption"
+            ),
+        ),
+        Symbol(
+            "y",
+            "Yield to maturity per year, compounded at the coupon frequency",
+            "yield_to_maturity",
+        ),
+        Symbol("f", "Coupons per year", "frequency"),
+        Symbol(
+            "w",
+            "The fraction of a coupon period from settlement to the next coupon",
+        ),
+        Symbol("AI", "Accrued interest", "accrued_interest"),
+        Symbol("F", "Face value", "face_value"),
+        Symbol("c", "Annual coupon rate", "coupon_rate"),
+        Symbol(
+            r"\tau(t_{prev}, t_{settle})",
+            (
+                "The year fraction from the previous coupon date to settlement, by "
+                "the day count"
+            ),
+        ),
+        Symbol(
+            "P_{flat}",
+            "Flat (clean) price: the full price less accrued interest",
+            "flat_price",
+        ),
+        Symbol("YTW", "Yield to worst", "yield_to_worst"),
+        Symbol("YTM", "Yield to maturity", "yield_to_maturity"),
+        Symbol("YTC_k", "Yield to the k-th call date", "yield_to_call"),
     ),
     assumptions=(
         (

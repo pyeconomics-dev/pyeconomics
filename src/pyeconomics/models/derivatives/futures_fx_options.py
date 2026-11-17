@@ -41,6 +41,7 @@ from pyeconomics.core import (
     Rate,
     Ratio,
     Reference,
+    Symbol,
     Volatility,
     Years,
     model,
@@ -412,6 +413,43 @@ _HULL = Reference(
             r"\quad c = S e^{-r_f T} N(d_1) - K e^{-r_d T} N(d_2)"
         ),
         r"p = K e^{-r_d T} N(-d_2) - S e^{-r_f T} N(-d_1)",
+    ),
+    symbols=(
+        Symbol("F", "Futures price", "futures_price"),
+        Symbol("K", "Strike price", "strike"),
+        Symbol(r"\sigma", "Volatility per year", "volatility"),
+        Symbol("T", "Time to expiry, in years", "years"),
+        Symbol(
+            "r",
+            "Risk-free rate per year, continuously compounded",
+            "risk_free_rate",
+        ),
+        Symbol(
+            "d_1",
+            "The first standardized distance the normal distribution is read at",
+        ),
+        Symbol(
+            "d_2",
+            "The second: the first less the volatility over the time to expiry",
+        ),
+        Symbol("N", "The standard normal cumulative distribution"),
+        Symbol("c", "Price of a European call", "price"),
+        Symbol("p", "Price of a European put", "price"),
+        Symbol(
+            "S",
+            "Spot exchange rate: domestic currency per unit of foreign",
+            "spot",
+        ),
+        Symbol(
+            "r_d",
+            "Domestic interest rate per year, continuously compounded",
+            "domestic_rate",
+        ),
+        Symbol(
+            "r_f",
+            "Foreign interest rate per year, continuously compounded",
+            "foreign_rate",
+        ),
     ),
     assumptions=(
         (

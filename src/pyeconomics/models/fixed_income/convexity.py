@@ -34,6 +34,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     Years,
     model,
 )
@@ -274,6 +275,29 @@ _BOND = {
         ),
         r"C_{eff} = \frac{P(z - h) + P(z + h) - 2 P(z)}{P(z) h^2}",
         r"\frac{\Delta P}{P} \approx -D_{mod}\,\Delta y + \tfrac{1}{2} C\,(\Delta y)^2",
+    ),
+    symbols=(
+        Symbol("C", "Convexity, in years squared", "convexity"),
+        Symbol("P", "Full price of the bond", "full_price"),
+        Symbol(
+            "y",
+            "Yield to maturity per year, compounded at the coupon frequency",
+            "yield_to_maturity",
+        ),
+        Symbol("f", "Coupons per year", "frequency"),
+        Symbol("t_j", "Time to cash flow j, in coupon periods from settlement"),
+        Symbol("CF_j", "The j-th remaining cash flow"),
+        Symbol("C_{eff}", "Effective convexity", "effective_convexity"),
+        Symbol("P(z)", "The price off the spot curve z"),
+        Symbol("z", "The spot curve", "curve_rates"),
+        Symbol("h", "The parallel shift of the curve, up and down", "bump"),
+        Symbol(r"\Delta y", "The change in yield", "yield_change"),
+        Symbol("D_{mod}", "Modified duration", "modified_duration"),
+        Symbol(
+            r"\frac{\Delta P}{P}",
+            "The estimated relative change in price",
+            "estimated_change",
+        ),
     ),
     assumptions=(
         (

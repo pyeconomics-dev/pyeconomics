@@ -23,6 +23,9 @@
 // York Fed's and the OECD's conditions passed through; the privacy policy
 // holding every data flow and processor; the licence page every shipped
 // package; and every open counsel question recorded in the counsel packet.
+// Step 18's round 1: no word glued to the link or code beside it, the notice
+// of a model the site cannot serve all the data of naming the profiles that
+// run here, and the room each calculator's card holds for its form.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,17 +34,18 @@ import { describe, expect, it } from "vitest";
 
 import { attributes, checkPage, startTags } from "../../scripts/headers.ts";
 import { DOMAINS, ORIGIN, conceptPath, domainPath, modelPath } from "@/lib/paths";
-import { dataProfiles, docsUrl, unservedSources } from "@/lib/models";
+import { dataProfiles, docsUrl, symbolsOf, unservedSources } from "@/lib/models";
 import { TRACKER_PATH } from "@/lib/analytics";
 import { checkEvent } from "@/lib/events";
-import { ogImagePath } from "@/lib/pages";
-import { CFTC_STATEMENT, DATA_FLOWS, HYPOTHETICAL_LEGEND, LEGAL_INDEX, LEGAL_PAGES, simulates } from "@/lib/legal";
+import { MCP_ENDPOINT, MCP_TOOLS, mcpArguments } from "@/lib/mcp";
+import { ABOUT, ASSISTANTS, ogImagePath } from "@/lib/pages";
+import { CFTC_STATEMENT, CONTACT_EMAIL, DATA_FLOWS, HYPOTHETICAL_LEGEND, LEGAL_INDEX, LEGAL_PAGES, OPERATOR, simulates } from "@/lib/legal";
 import { shippedLicences } from "@/lib/licences";
 import { PRO_DISCLOSURE, PRO_TIERS } from "@/lib/pro";
 import { parseModels } from "@/lib/registry-schema";
 import { SECURITY_TXT_PATH, VULNERABILITY_REPORTING, parseSecurityTxt, securityTxtProblems } from "@/lib/security-txt";
 import { PRIVACY_POLICY, SIGNUP_ACTION } from "@/lib/signup";
-import { conceptData, problemData, registryData, sourceData, syllabusData } from "@/lib/site-data";
+import { conceptData, problemData, registryData, sourceData, surfaceData as surfaces, syllabusData } from "@/lib/site-data";
 
 const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 
@@ -656,5 +660,169 @@ describe("legal and trust (Phase 5 Step 16)", () => {
       }
     }
     expect(found).toBeGreaterThan(0);
+  });
+});
+
+describe("prose (Phase 5 Step 18)", () => {
+  // Astro drops a line break, and the indentation after it, between a word
+  // and an inline element: "the\n<a>citations</a>" was built as
+  // "the<a>citations</a>" on all fifty model pages and four legal pages. The
+  // source ends such a line with {" "}; this holds every built page to it.
+  const INLINE = "(?:a|code|strong|em|kbd|abbr)";
+  const BEFORE = new RegExp(`[A-Za-z0-9]<${INLINE}\\b[^>]*>`, "g");
+  const AFTER = new RegExp(`</${INLINE}>[A-Za-z0-9]`, "g");
+
+  /** A page's body without the elements whose text is not prose. */
+  function prose(page: string): string {
+    const body = page.slice(page.indexOf("<body"));
+    return body.replace(/<(script|style|pre|math|svg|select|textarea)\b[\s\S]*?<\/\1>/g, "");
+  }
+
+  it("keeps the space between a word and the link or code beside it", () => {
+    const glued: string[] = [];
+    for (const path of PAGES) {
+      const text = prose(html(path));
+      for (const pattern of [BEFORE, AFTER]) {
+        for (const match of text.matchAll(pattern)) {
+          const at = match.index;
+          glued.push(`${path}: ${text.slice(Math.max(0, at - 24), at + match[0].length + 16).replace(/\s+/g, " ")}`);
+        }
+      }
+    }
+    expect(glued.slice(0, 12)).toEqual([]);
+  });
+
+  it("finds a glued word when there is one", () => {
+    expect("read the<a href=\"/x/\">terms</a>".match(BEFORE)).not.toBeNull();
+    expect("the <code>id</code>s".match(AFTER)).not.toBeNull();
+    expect("read the <a href=\"/x/\">terms</a>, then".match(BEFORE)).toBeNull();
+    expect("read the <a href=\"/x/\">terms</a>, then".match(AFTER)).toBeNull();
+  });
+});
+
+describe("calculators (Phase 5 Step 18)", () => {
+  it("names the profiles that run here before those that do not, on a model the site serves in part", () => {
+    const page = html(modelPath("macro.policy_rule"));
+    const notice = /<div class="notice measure" data-library-only[^>]*>([\s\S]*?)<\/div>/.exec(page)?.[1] ?? "";
+    const text = notice.replace(/<[^>]+>/g, " ").replaceAll("&quot;", '"').replace(/\s+/g, " ");
+    expect(text).toContain("Live data: some profiles run here, the rest on your own computer");
+    // Each profile by its name, its id beside a name that does not spell it (round 2).
+    // The default profile says whose data it reads (round 3).
+    expect(text).toMatch(/On this site, "Live data" runs with the profiles Default \(United States data\), US output gap,/);
+    expect(text).toContain("Euro area (ea)");
+    expect(text).toContain("The profile US forecasters&#39; survey (us_spf) reads");
+    expect(text.indexOf("The profile US forecasters")).toBeGreaterThan(text.indexOf("On this site"));
+    // A model none of whose profiles the site serves says so plainly.
+    expect(html(modelPath("equity.cape"))).toContain("Live data runs on your own computer only");
+  });
+
+  it("paints a page of formulas in one step: the first paint waits for the first screen", () => {
+    // Round 2: where the header was painted alone first, a model page's main text
+    // was a later paint that Lighthouse timed at over three seconds.
+    const expects = (page: string) => [...page.matchAll(/<link rel="expect" href="#([a-z-]+)" blocking="render">/g)].map((found) => found[1]);
+    for (const path of ["/", ...registryData.models.map((model) => modelPath(model.id))]) {
+      expect(expects(html(path)), path).toHaveLength(1);
+    }
+    // Wherever a page asks for it, the element it waits for is in the page.
+    for (const path of PAGES) {
+      const page = html(path);
+      for (const id of expects(page)) expect(page, path).toContain(`id="${String(id)}"`);
+    }
+  });
+
+  it("holds room for every calculator's form, on a phone and on a wide card", () => {
+    for (const path of ["/", ...registryData.models.map((model) => modelPath(model.id))]) {
+      const page = html(path);
+      const rooms = [...page.matchAll(/<svg class="calculator-room calculator-room-(narrow|wide)"[^>]*height="(\d+)"/g)];
+      expect(rooms.map((room) => room[1]), path).toEqual(["narrow", "wide"]);
+      for (const room of rooms) expect(Number(room[2]), path).toBeGreaterThanOrEqual(600);
+      // The room is a height attribute, never an inline style.
+      expect(page, path).not.toMatch(/<svg class="calculator-room[^>]*style=/);
+    }
+  });
+});
+
+describe("formula symbols (issue #343)", () => {
+  it("lists what each symbol stands for under every model's formulas, typeset as the formulas are", () => {
+    for (const model of parseModels(registryData)) {
+      const page = html(modelPath(model.id));
+      const symbols = symbolsOf(model.card);
+      const from = page.indexOf('<dl class="symbols"');
+      const list = from < 0 ? "" : page.slice(from, page.indexOf("</dl>", from));
+      // One entry per symbol: <div data-symbol="field"><dt>MathML</dt><dd>meaning</dd></div>.
+      const entries = list.split("</dd></div>").filter((entry) => entry.includes("<dt"));
+      expect(entries.length, model.id).toBe(symbols.length);
+      entries.forEach((entry, index) => {
+        const symbol = symbols.at(index);
+        // A symbol that stands for no field has a bare attribute.
+        const field = /<div data-symbol="([a-z0-9_]+)"/.exec(entry)?.[1] ?? "";
+        expect(field, model.id).toBe(symbol?.field ?? "");
+        // The symbol is MathML, as the formulas are: no HTML fallback and no style.
+        const term = entry.slice(entry.indexOf("<dt"), entry.indexOf("</dt>"));
+        expect(term, model.id).toContain("<math");
+        expect(term, model.id).not.toMatch(/katex-html|style=/);
+      });
+      expect(page.indexOf('data-section="formula"'), model.id).toBeLessThan(page.indexOf("data-symbols"));
+      expect(page.indexOf("data-symbols"), model.id).toBeLessThan(page.indexOf('data-section="variables"'));
+    }
+  });
+});
+
+describe("who makes it, and how to use it from an assistant (Phase 5 Step 18's round 2)", () => {
+  const words = (page: string) => page.replace(/<[^>]+>/g, " ").replaceAll("&quot;", '"').replaceAll("&#39;", "'").replace(/\s+/g, " ");
+
+  it("says who runs the site in the legal index's own words, and nothing more about them", () => {
+    const sentence = `pyeconomics.dev is operated by ${OPERATOR}, the project's maintainer.`;
+    const about = words(html(ABOUT.path));
+    expect(about).toContain(sentence);
+    expect(words(html(LEGAL_INDEX.path))).toContain(sentence);
+    // The operator is named once, in that sentence, with the one published address.
+    expect(about.split(OPERATOR).length - 1).toBe(1);
+    expect(about).toContain(CONTACT_EMAIL);
+  });
+
+  it("counts what it claims from the site data", () => {
+    const about = words(html(ABOUT.path));
+    const models = parseModels(registryData);
+    const citations = models.reduce((total, model) => total + model.references.length, 0);
+    expect(about).toContain(`${String(models.length)} models and ${String(conceptData.length)} data series`);
+    expect(about).toContain(`${String(citations)} citations across the ${String(models.length)} models`);
+    // Every evidence status with its count, which add up to the models.
+    const counts = [...html(ABOUT.path).matchAll(/<li data-evidence="[a-z]+"[^>]*>\s*<strong>[a-z]+<\/strong>\s*\((\d+)/g)].map((found) => Number(found[1]));
+    expect(counts.reduce((total, count) => total + count, 0)).toBe(models.filter((model) => model.evidence !== null).length);
+  });
+
+  it("links the about page from the home page's claims and every footer", () => {
+    const home = html("/");
+    expect(home).toContain('<a href="/about/#tested">tested values</a>');
+    expect(home).toContain('<a href="/about/">Who runs this site</a>');
+    expect(html(ABOUT.path)).toContain('id="tested"');
+    for (const path of PAGES.filter((page) => page !== "/404/")) {
+      const footer = html(path).split("<footer").at(-1) ?? "";
+      expect(footer, path).toContain('href="/about/"');
+      expect(footer, path).toContain('href="/assistants/"');
+    }
+  });
+
+  it("gives an assistant's configuration, the hosted endpoint and every tool", () => {
+    const page = html(ASSISTANTS.path);
+    const config = /<pre[^>]*data-mcp-config[^>]*><code>([\s\S]*?)<\/code><\/pre>/.exec(page)?.[1] ?? "";
+    const parsed = JSON.parse(config.replaceAll("&quot;", '"')) as { mcpServers: { pyeconomics: { command: string; args: string[] } } };
+    expect(parsed.mcpServers.pyeconomics.command).toBe("uvx");
+    expect(parsed.mcpServers.pyeconomics.args.slice(-4)).toEqual(mcpArguments("1.0.0"));
+    expect(page).toContain(`data-mcp-endpoint>${MCP_ENDPOINT}</code>`);
+    expect([...page.matchAll(/data-mcp-tool="([a-z_]+)"/g)].map((found) => found[1])).toEqual([...MCP_TOOLS]);
+    // Each model with a tool of its own is listed with a link to its page.
+    const own = (surfaces as { models?: unknown }).models ?? surfaces;
+    const tools = (own as { id: string; mcp_tool: string | null }[]).filter((entry) => entry.mcp_tool !== null);
+    const list = page.slice(page.indexOf("data-own-tools"), page.indexOf("</ul>", page.indexOf("data-own-tools")));
+    expect(tools.length).toBeGreaterThan(0);
+    for (const entry of tools) {
+      expect(list, entry.id).toContain(`<code>${String(entry.mcp_tool)}</code>`);
+      expect(list, entry.id).toContain(`href="${modelPath(entry.id)}"`);
+    }
+    // The home page, each model's page and the calculator's MCP note lead here.
+    expect(html("/")).toContain('href="/assistants/"');
+    expect(html(modelPath("fixed_income.duration")).split('data-section="use-it-elsewhere"').at(-1)).toContain('href="/assistants/"');
   });
 });

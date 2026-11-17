@@ -44,6 +44,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     Years,
     model,
 )
@@ -329,6 +330,46 @@ _BIS = Reference(
         (
             r"F_{fx} = S\,\frac{1 + r_q\,d/B_q}{1 + r_b\,d/B_b}, "
             r"\quad \text{points} = F_{fx} - S"
+        ),
+    ),
+    symbols=(
+        Symbol("F", "Forward price", "forward_price"),
+        Symbol("S", "Spot price", "spot"),
+        Symbol(
+            "I",
+            "Present value of the income the asset pays before delivery",
+            "income_present_value",
+        ),
+        Symbol(
+            "U",
+            "Present value of the storage costs before delivery",
+            "storage_cost_present_value",
+        ),
+        Symbol(
+            "r",
+            "Risk-free rate per year, continuously compounded",
+            "risk_free_rate",
+        ),
+        Symbol("q", "Income yield per year", "income_yield"),
+        Symbol("u", "Storage cost per year, as a rate", "storage_cost_rate"),
+        Symbol("y", "Convenience yield per year", "convenience_yield"),
+        Symbol("T", "Time to delivery, in years", "years"),
+        Symbol("f_{long}", "Value of a long forward position", "value"),
+        Symbol("f_{short}", "Value of a short forward position", "value"),
+        Symbol("K", "Delivery price agreed in the contract", "delivery_price"),
+        Symbol("F_{fx}", "Forward exchange rate", "forward_rate"),
+        Symbol("r_q", "Money-market rate of the quote currency", "quote_rate"),
+        Symbol("r_b", "Money-market rate of the base currency", "base_rate"),
+        Symbol("d", "Days to delivery", "days"),
+        Symbol(
+            "B_q",
+            "Days in the year of the quote currency's day count: 360 or 365",
+            "quote_day_count",
+        ),
+        Symbol(
+            "B_b",
+            "Days in the year of the base currency's day count: 360 or 365",
+            "base_day_count",
         ),
     ),
     assumptions=(

@@ -49,6 +49,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     compound_return,
     log_return,
     model,
@@ -433,6 +434,32 @@ _TWO_SECTORS: Final = {
             r"k_t = \frac{\ln(1 + R_t) - \ln(1 + B_t)}{R_t - B_t}, \quad "
             r"E^{linked} = \sum_t \frac{k_t}{k} E_t"
         ),
+    ),
+    symbols=(
+        Symbol(
+            "A^{BHB}_i",
+            "Allocation effect of sector i, by Brinson, Hood and Beebower",
+        ),
+        Symbol(
+            "A^{BF}_i",
+            "Allocation effect of sector i, by Brinson and Fachler",
+            "sector_allocation",
+        ),
+        Symbol("w^p_i", "The portfolio's weight in sector i", "portfolio_weights"),
+        Symbol("w^b_i", "The benchmark's weight in sector i", "benchmark_weights"),
+        Symbol("r^p_i", "The portfolio's return in sector i", "portfolio_returns"),
+        Symbol("r^b_i", "The benchmark's return in sector i", "benchmark_returns"),
+        Symbol("B", "The benchmark's total return", "benchmark_return"),
+        Symbol("S_i", "Selection effect of sector i", "sector_selection"),
+        Symbol("I_i", "Interaction effect of sector i", "sector_interaction"),
+        Symbol(
+            "k_t",
+            "The factor that links period t's effects, so they add up over the periods",
+        ),
+        Symbol("R_t", "The portfolio's return in period t", "period_portfolio_returns"),
+        Symbol("B_t", "The benchmark's return in period t", "period_benchmark_returns"),
+        Symbol("E^{linked}", "An effect linked over the periods"),
+        Symbol("E_t", "The effect in period t"),
     ),
     assumptions=(
         (

@@ -28,7 +28,8 @@ export default function SearchPage() {
   useEffect(() => {
     const given = (new URLSearchParams(window.location.search).get("q") ?? "").slice(0, MAX_QUERY);
     if (input.current && given !== "") input.current.value = given;
-    setQuery(given);
+    // With no query in the address, what the visitor typed before the island hydrated.
+    setQuery(given !== "" ? given : (input.current?.value ?? "").slice(0, MAX_QUERY));
   }, []);
 
   useEffect(() => {
@@ -62,13 +63,13 @@ export default function SearchPage() {
   const status = failed
     ? "Search could not load. Reload the page to try again."
     : hits === null
-      ? "Type to search every model, domain and problem page."
+      ? "Type to search every model, data series and page."
       : hits.length === 0
         ? `No results for “${asked}”.`
         : `${String(hits.length)} ${hits.length === 1 ? "result" : "results"} for “${asked}”.`;
 
   return (
-    <div className="flex flex-col gap-6" data-search-page="">
+    <div className="flex min-h-screen flex-col gap-6" data-search-page="">
       <form
         role="search"
         aria-label="Search the site"

@@ -56,6 +56,22 @@ export const DATA_INDEX = {
     "The economic series pyeconomics models read: search the catalog, see each series' sources and licence, and chart and download those this site serves.",
 };
 
+/** The about page's path, title and description (Phase 5 Step 18's round 2). */
+export const ABOUT = {
+  path: "/about/",
+  title: "About",
+  description:
+    "What pyeconomics is, who runs this site, where its formulas come from and how each model is tested.",
+};
+
+/** The assistants page's path, title and description (Phase 5 Step 18's round 2). */
+export const ASSISTANTS = {
+  path: "/assistants/",
+  title: "AI assistants",
+  description:
+    "Give an AI assistant every pyeconomics model and data series as tools: the MCP server's configuration, its hosted endpoint and its tools.",
+};
+
 /** The newsletter page's title and description (Phase 5 Step 15). */
 export const NEWSLETTER = {
   title: "Newsletter",
@@ -110,7 +126,7 @@ export function sitePages(): SitePage[] {
     pages.push({ path: conceptPath(concept.id), title: concept.title, description: conceptDescription(concept) });
   }
   pages.push({ path: "/search/", ...SEARCH }, { path: "/coverage/", ...COVERAGE });
-  pages.push({ path: "/newsletter/", ...NEWSLETTER }, { path: "/pro/", ...PRO });
+  pages.push({ ...ABOUT }, { ...ASSISTANTS }, { path: "/newsletter/", ...NEWSLETTER }, { path: "/pro/", ...PRO });
   for (const page of [LEGAL_INDEX, ...LEGAL_PAGES]) {
     pages.push({ path: page.path, title: page.title, description: page.description });
   }

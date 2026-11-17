@@ -211,6 +211,33 @@
     text-decoration-thickness: 2px;
   }
 
+  /*
+   * A link that leaves the site says so (Phase 5 Step 18: round 0's L10): a
+   * small arrow after its text, drawn as a mask in the link's own colour, so
+   * it needs no font and no reader hears it. Every link inside the site is a
+   * path, so an address with a scheme is one that leaves.
+   */
+  a[href^="http"]::after {
+    background: currentcolor;
+    content: "";
+    display: inline-block;
+    height: 0.6em;
+    margin-left: 0.25em;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4 1.5h6.5V8M10.5 1.5 1.5 10.5' fill='none' stroke='%23000' stroke-width='1.7'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    width: 0.6em;
+  }
+
+  /*
+   * Nothing a closed disclosure holds starts a transition: the browser does
+   * not render it, so the transition would never finish, and the tests (and
+   * anything else that waits for transitions) would wait forever (Step 17).
+   */
+  details:not([open]) > :not(summary),
+  details:not([open]) > :not(summary) * {
+    transition: none !important;
+  }
+
   code,
   kbd,
   pre {
@@ -268,6 +295,17 @@
 
   math[display="block"] {
     font-size: 1.2em;
+  }
+
+  /*
+   * A phone's column is narrow: a display formula is set at the text's own
+   * size there, so more of them fit without a sideways scroll (Phase 5 Step
+   * 18's round 1: the home page's formula was cut at the plate's edge).
+   */
+  @media (width < 40rem) {
+    math[display="block"] {
+      font-size: 1em;
+    }
   }
 }
 
@@ -543,6 +581,40 @@
     padding-bottom: 0.5rem;
   }
 
+  /*
+   * What a formula's symbols stand for (issue #343): each symbol in the math
+   * font beside its meaning, the field it stands for after it.
+   */
+  .where {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .symbols {
+    display: grid;
+    gap: 0.375rem 1rem;
+    grid-template-columns: fit-content(40%) minmax(0, 1fr);
+    max-width: 68ch;
+  }
+
+  .symbols > div {
+    display: contents;
+  }
+
+  .symbols dt {
+    min-width: 2rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: right;
+  }
+
+  /* A symbol's field: the name the API takes, a quieter second to its meaning (round 3). */
+  .symbol-field {
+    color: var(--muted-foreground);
+    font-size: 0.8125em;
+  }
+
   /* Model page */
   .model-layout {
     display: grid;
@@ -644,9 +716,118 @@
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-md);
     color: var(--card-foreground);
-    /* Room for the form before it loads, so the page does not jump when it does. */
+    /*
+     * The form and the room held for it share one grid cell, so the card is
+     * as tall as the taller of the two.
+     */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     min-height: 24rem;
     padding: 1.25rem;
+  }
+
+  .calculator-card > * {
+    grid-area: 1 / 1;
+  }
+
+  /*
+   * The form's own box fills the room held for it, so the calculator loads
+   * when any part of its card comes into view (a visitor may reach it from
+   * below), not only the card's top line.
+   */
+  .calculator-slot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * Room for the form before it loads (Phase 5 Step 18): a box of the height
+   * the page estimated for the loaded form at build time (src/lib/
+   * calculator.ts formRoom), one for a phone and one for a wide card, set by
+   * its height attribute, so no style is written inline. Until the form
+   * arrives it shows faint bars where fields will be, one column on a phone
+   * and two on a wide card, under the line that says the calculator is
+   * loading (round 2: the room was a blank card). It goes when the form is
+   * ready, and it is never shown where scripts do not run and the form cannot
+   * load.
+   */
+  .calculator-room {
+    --field: color-mix(in oklab, var(--muted) 75%, transparent);
+
+    background-clip: content-box;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 1.5rem,
+      var(--field) 1.5rem 4rem,
+      transparent 4rem 5.5rem
+    );
+    background-repeat: no-repeat;
+    display: none;
+    padding-top: 2.5rem;
+    pointer-events: none;
+    width: 100%;
+  }
+
+  @media (scripting: enabled) {
+    .calculator-room-narrow {
+      display: block;
+    }
+
+    @media (width >= 40rem) {
+      .calculator-room-narrow {
+        display: none;
+      }
+
+      .calculator-room-wide {
+        background-image:
+          repeating-linear-gradient(to bottom, transparent 0 1.5rem, var(--field) 1.5rem 4rem, transparent 4rem 5.5rem),
+          repeating-linear-gradient(to bottom, transparent 0 1.5rem, var(--field) 1.5rem 4rem, transparent 4rem 5.5rem);
+        background-position:
+          left top,
+          right top;
+        background-size:
+          calc(50% - 0.75rem) 100%,
+          calc(50% - 0.75rem) 100%;
+        display: block;
+      }
+    }
+  }
+
+  /*
+   * The home page's calculator sits beside its introduction from 64rem, in a
+   * card as narrow as a phone's, so its fields are one to a row again and its
+   * form is as tall as a phone's (round 2: the wide room was 230 pixels short).
+   */
+  @media (scripting: enabled) and (width >= 64rem) {
+    .try-calculator > .calculator-room-narrow {
+      display: block;
+    }
+
+    .try-calculator > .calculator-room-wide {
+      display: none;
+    }
+  }
+
+  .calculator-card:has([data-ready="true"]) > .calculator-room {
+    display: none;
+  }
+
+  /*
+   * Room for the chart a concept's page draws when it comes into view, with
+   * its downloads, citation and sources: about what they take, so the
+   * sections after the explorer stay where they are when the chart arrives.
+   * Held only where scripts run.
+   */
+  @media (scripting: enabled) {
+    .chart-room {
+      min-height: 73rem;
+    }
+
+    @media (width >= 40rem) {
+      .chart-room {
+        min-height: 59rem;
+      }
+    }
   }
 
   @media (width >= 40rem) {
@@ -840,6 +1021,16 @@
     letter-spacing: 0.06em;
     margin-bottom: 0.375rem;
     text-transform: uppercase;
+  }
+
+  /*
+   * One look for a block of code wherever it is: a page's samples, a worked
+   * example's JSON and the calculator's snippets (Step 18's round 2: two of
+   * them were light boxes beside the dark ones).
+   */
+  .code-box {
+    background: var(--code-bg);
+    color: var(--code-fg);
   }
 
   .code-block pre {

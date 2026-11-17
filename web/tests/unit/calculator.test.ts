@@ -5,10 +5,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  OPTION_NAMES,
   boundFields,
   calculations,
   calculatorProps,
+  exampleLabel,
   fieldHelp,
+  fieldOrder,
+  fieldTitle,
+  formRoom,
+  optionLabel,
   outputTable,
   problemSlug,
   propertiesFor,
@@ -19,7 +25,17 @@ import {
   uiSchemaFor,
 } from "@/lib/calculator";
 import { formatList, listShape, parseList } from "@/lib/lists";
-import { asOfText, displayValue, formatValue, pageCount, pageOf, parseResult, sourceRecords } from "@/lib/results";
+import {
+  asOfText,
+  displayValue,
+  formatValue,
+  manifestFacts,
+  pageCount,
+  pageOf,
+  parseResult,
+  runSummary,
+  sourceRecords,
+} from "@/lib/results";
 import type { Model } from "@/lib/registry-schema";
 import { conceptData, problemData, registryData, sourceData, surfaceData } from "@/lib/site-data";
 
@@ -37,9 +53,12 @@ describe("the form's uiSchema", () => {
   it("gives a family a calculation selector with each calculation's words, and hides the constant", () => {
     expect(calculations(family).map((c) => c.value)).toEqual(["macaulay_modified", "effective", "key_rate", "dv01"]);
     const ui = uiSchemaFor(family) as { oneOf: Record<string, Record<string, unknown>>[] };
-    expect(ui.oneOf[0]?.["ui:title"]).toBe("Macaulay and modified duration (macaulay_modified)");
+    expect(ui.oneOf[0]?.["ui:title"]).toBe("Macaulay and modified duration");
     expect(ui.oneOf[0]?.calculation).toEqual({ "ui:widget": "hidden" });
-    expect(ui.oneOf[0]?.coupon_rate).toEqual({ "ui:help": "Rate, as a decimal (0.05 is 5%); from 0 to 1" });
+    expect(ui.oneOf[0]?.coupon_rate).toEqual({
+      "ui:title": "Coupon rate",
+      "ui:help": "Rate, as a decimal (0.05 is 5%); from 0 to 1",
+    });
     expect(ui.oneOf[0]?.day_count).toMatchObject({ "ui:title": "Day count" });
     expect(ui.oneOf[1]?.curve_tenors).toMatchObject({ "ui:widget": "list" });
   });
@@ -47,9 +66,70 @@ describe("the form's uiSchema", () => {
   it("names a nullable field's two options and keeps its help beside it", () => {
     const ui = uiSchemaFor(family) as { oneOf: Record<string, Record<string, unknown>>[] };
     expect(ui.oneOf[0]?.issue_date).toEqual({
+      "ui:title": "Issue date",
       anyOf: [{ "ui:title": "Enter a value" }, { "ui:title": "Leave it out" }],
-      "ui:help": "Unit: date",
     });
+  });
+
+  it("writes names as words: fields, examples and options, each option's id beside a name that does not spell it", () => {
+    expect(fieldTitle("yield_to_maturity")).toBe("Yield to maturity");
+    expect(fieldTitle("ebit")).toBe("EBIT");
+    expect(fieldTitle("formula_capm")).toBe("Formula CAPM");
+    expect(exampleLabel({ name: "monthly_annuity" })).toBe("Monthly annuity");
+    expect(optionLabel("act_act_icma")).toBe("Actual/Actual ICMA (act_act_icma)");
+    expect(optionLabel("semiannual")).toBe("Semiannual");
+    expect(optionLabel("taylor_1993")).toBe("Taylor (1993)");
+    expect(optionLabel("newey_west")).toBe("Newey-West");
+    // A one- or two-letter code is explained by its field, not renamed.
+    expect(optionLabel("ct")).toBe("ct");
+    const ui = uiSchemaFor(family) as { oneOf: Record<string, Record<string, unknown>>[] };
+    expect(ui.oneOf[0]?.day_count?.["ui:enumNames"]).toMatchObject({ act_act_icma: "Actual/Actual ICMA (act_act_icma)" });
+  });
+
+  it("names only options some model offers", () => {
+    const offered = new Set<string>();
+    const walk = (node: unknown): void => {
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
+      if (typeof node !== "object" || node === null) return;
+      const { enum: values } = node as { enum?: unknown };
+      if (Array.isArray(values)) for (const value of values) offered.add(String(value));
+      Object.values(node).forEach(walk);
+    };
+    for (const model of registryData.models) walk(model.input_schema);
+    expect([...OPTION_NAMES.keys()].filter((name) => !offered.has(name))).toEqual([]);
+  });
+
+  it("orders a form's fields as the model declares them, those a run needs first", () => {
+    const node = {
+      properties: { a: {}, b: {}, c: {}, d: {} },
+      required: ["d", "b"],
+    };
+    expect(fieldOrder(node, ["d", "c", "b", "a", "gone"])).toEqual(["d", "b", "c", "a"]);
+    // A field the card does not list keeps its place after the listed ones.
+    expect(fieldOrder(node, ["c"])).toEqual(["b", "d", "c", "a"]);
+    const { model, surface } = entry("fixed_income.bond_pricing");
+    const order = calculatorProps(model, surface, problemData, sourceData, conceptData).inputOrder;
+    const ui = uiSchemaFor(model.input_schema as Record<string, unknown>, [], order) as { oneOf: Record<string, unknown>[] };
+    expect((ui.oneOf[0]?.["ui:order"] as string[]).slice(0, 4)).toEqual([
+      "settlement",
+      "maturity",
+      "coupon_rate",
+      "yield_to_maturity",
+    ]);
+  });
+
+  it("estimates the room each model's form takes, at least most of a screen and never absurd", () => {
+    for (const candidate of registryData.models) {
+      const { model, surface } = entry(candidate.id);
+      const room = formRoom(model, surface.profiles.length);
+      expect(room.narrow, candidate.id).toBeGreaterThanOrEqual(600);
+      expect(room.wide, candidate.id).toBeGreaterThanOrEqual(600);
+      expect(room.narrow, candidate.id).toBeLessThan(6000);
+      expect(room.wide, candidate.id).toBeLessThanOrEqual(room.narrow + 400);
+    }
   });
 
   it("hides the fields live data fills, and nothing else", () => {
@@ -59,10 +139,18 @@ describe("the form's uiSchema", () => {
     expect(ui.oneOf[0]?.inflation_target?.["ui:widget"]).toBeUndefined();
   });
 
-  it("shows no unit for a choice or a flag", () => {
+  it("shows no unit for a choice, a flag or a date", () => {
     expect(fieldHelp({ type: "boolean" })).toBe("");
     expect(fieldHelp({ type: "string", enum: ["a"] })).toBe("");
+    expect(fieldHelp({ type: "string", format: "date", "x-unit": "date" })).toBe("");
     expect(fieldHelp({ type: "number", "x-unit": "money", minimum: 0 })).toBe("Unit: money; 0 or more");
+    // A list says what its values are, how many the model takes and the range of each (round 3).
+    expect(
+      fieldHelp({ type: "array", minItems: 2, maxItems: 10080, items: { type: "number", "x-unit": "return", minimum: -1, maximum: 100 } }),
+    ).toBe("A list of returns, as decimals (0.05 is 5%); 2 to 10,080 values; each from -1 to 100");
+    expect(fieldHelp({ type: "array", maxItems: 60, items: { type: "number", "x-unit": "years", minimum: 0 } })).toBe(
+      "A list; unit: years; up to 60 values; each 0 or more",
+    );
   });
 });
 
@@ -210,5 +298,47 @@ describe("the outputs table's values (Phase 5 Step 17)", () => {
     expect(displayValue(1.5, "ratio")).toBe("1.5");
     expect(displayValue(null)).toBe(formatValue(null));
     expect(displayValue("text")).toBe("text");
+  });
+});
+
+describe("a result's summary and manifest", () => {
+  const result = parseResult(
+    new TextEncoder().encode(
+      JSON.stringify({
+        model_id: "a.b",
+        model_version: 3,
+        inputs: {},
+        outputs: { calculation: "x", rate: 0.05, price: 99 },
+        warnings: [{ code: "w", message: "m" }],
+        manifest: {
+          package_version: "1.0.0",
+          inputs_sha256: "aa",
+          result_sha256: "bb",
+          schema_version: 2,
+          seed: null,
+          data_sources: [
+            { provider: "bls", series_id: "S1", licence: "hosted-safe", attribution: "A", observation_end: "2026-08-31" },
+            { provider: "bea", series_id: "S2", licence: "hosted-safe", attribution: "B", observation_end: "2026-09-30" },
+          ],
+        },
+      }),
+    ),
+  );
+
+  it("says what a run gave and how far its data runs", () => {
+    expect(runSummary(result)).toBe(
+      "The run finished: 2 outputs, 1 warning. It read 2 data series, with observations to 2026-09-30: each is listed under Sources.",
+    );
+    expect(runSummary({ ...result, warnings: [], manifest: {} })).toBe("The run finished: 2 outputs, no warnings.");
+  });
+
+  it("lists the manifest's facts a reader checks a result by, and only those it holds", () => {
+    expect(manifestFacts(result)).toEqual([
+      { label: "Model", value: "a.b, version 3" },
+      { label: "pyeconomics version", value: "1.0.0" },
+      { label: "Inputs SHA-256", value: "aa" },
+      { label: "Result SHA-256", value: "bb" },
+      { label: "Manifest schema", value: "2" },
+    ]);
   });
 });

@@ -59,6 +59,7 @@ from pyeconomics.core import (
     Ratio,
     Reference,
     Return,
+    Symbol,
     VolatilityArray,
     model,
 )
@@ -520,6 +521,47 @@ _EXAMPLE: Final = {
             r"w = (\delta\Sigma)^{-1}\mu = w_{mkt} + \tfrac{\tau}{\delta} P'"
             r"(P\tau\Sigma P' + \Omega)^{-1}(Q - P\Pi), \quad w_{HL} = "
             r"(\delta(\Sigma + M))^{-1}\mu"
+        ),
+    ),
+    symbols=(
+        Symbol(
+            r"\Pi",
+            "The equilibrium excess returns the market's weights imply",
+            "equilibrium_returns",
+        ),
+        Symbol(r"\delta", "Risk aversion of the market", "risk_aversion"),
+        Symbol(r"\Sigma", "Covariance matrix of the assets' returns", "covariance"),
+        Symbol("w_{mkt}", "The market's weights", "market_weights"),
+        Symbol(r"\mu", "Posterior expected excess returns", "posterior_returns"),
+        Symbol(
+            r"\tau",
+            "The scale of the uncertainty in the equilibrium returns",
+            "tau",
+        ),
+        Symbol(
+            "P",
+            "The pick matrix: one row for each view, giving the assets it is about",
+            "picks",
+        ),
+        Symbol("Q", "The returns the views expect", "view_returns"),
+        Symbol(
+            r"\Omega",
+            "The views' uncertainty: the variance of each view",
+            "view_variances",
+        ),
+        Symbol("M", "The uncertainty left in the expected returns after the views"),
+        Symbol(
+            r"\Omega_{HL}",
+            "He and Litterman's view uncertainty, in proportion to the prior's",
+        ),
+        Symbol(r"\omega_k", "Idzorek's variance of view k, from the confidence in it"),
+        Symbol("c_k", "The confidence in view k, between 0 and 1", "confidences"),
+        Symbol("p_k", "Row k of the pick matrix"),
+        Symbol("w", "The weights the posterior returns imply", "weights"),
+        Symbol(
+            "w_{HL}",
+            "He and Litterman's weights, under the posterior covariance",
+            "posterior_weights",
         ),
     ),
     assumptions=(

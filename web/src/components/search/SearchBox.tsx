@@ -100,7 +100,7 @@ export default function SearchBox() {
         id="site-search"
         name="q"
         type="search"
-        placeholder="Search models"
+        placeholder="Search models and data"
         autoComplete="off"
         maxLength={MAX_QUERY}
         className={INPUT}
