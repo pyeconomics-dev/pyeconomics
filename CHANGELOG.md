@@ -171,6 +171,16 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- Three defects the dogfooding loop's confirmation round found on staging, where
+  the API is a network away and the data is real (Phase 5 Step 18): choosing live
+  data on a phone pushed the page past the screen's edge, because the profile
+  picker's options had grown long (where a profile runs is now its group's name);
+  a result that took more than half a second arrived as a jump of the whole page
+  (its place and a skeleton of its outputs now appear with the press of Run); and
+  a series page moved when its chart arrived, because the hosted site's source
+  record is longer than the test data's (the room is held for the long one). A
+  source record gives its data warnings in words and its retrieval time to the
+  minute.
 - On a model page, once a calculator loaded, the header's navigation and domain row
   vanished on wide screens: the calculator's stylesheet repeated utilities the page
   had and overrode its responsive rules. The island now adopts only the rules the

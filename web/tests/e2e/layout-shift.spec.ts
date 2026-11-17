@@ -106,3 +106,43 @@ for (const viewport of VIEWPORTS) {
     }
   });
 }
+
+// The confirmation round on staging (Phase 5 Step 18): a run that takes more
+// than half a second put its result into the page after the browser had
+// stopped counting the press of Run as the cause, and everything under the
+// form moved at once (0.5 to 0.7, where the checks above saw nothing: the
+// local API answers in a few milliseconds). The result's place and skeleton
+// now arrive with the press, so the answer changes values, not positions.
+// A long result, a result of one output and a result with a chart.
+const SLOW_RUNS = ["/models/performance/risk-adjusted/", "/models/foundations/time-value/", "/models/econometrics/ols/"];
+
+for (const viewport of VIEWPORTS.filter((entry) => entry.name !== "tablet")) {
+  test.describe(`a slow run at a ${viewport.name}'s size`, () => {
+    test.use({ viewport: { width: viewport.width, height: viewport.height } });
+    for (const path of SLOW_RUNS) {
+      test(`page ${path} moves nothing when its result arrives a second after the press`, async ({ page, api }) => {
+        await page.goto(path, { waitUntil: "load" });
+        // Registered after the api fixture's route, so it runs first: hold the run back, then let it through.
+        await page.route("**/v1/models/**", async (route) => {
+          await new Promise((resolve) => setTimeout(resolve, 900));
+          await route.fallback();
+        });
+        const section = page.locator("#calculator");
+        await section.scrollIntoViewIfNeeded();
+        await expect(section.locator("[data-calculator][data-ready=true]")).toBeVisible();
+        await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
+        const before = await layoutShift(page);
+        await section.getByRole("button", { name: "Run", exact: true }).click();
+        // With the press: the result's place, its heading focused and the run's skeleton under it.
+        await expect(section.getByRole("heading", { name: "Running the model…" })).toBeFocused();
+        await expect(section.locator("[data-pending] [data-outputs] tbody tr").first()).toBeVisible();
+        await expect(section.getByRole("heading", { name: "Result", exact: true })).toBeFocused({ timeout: 15_000 });
+        await expect(section.locator("[data-pending]")).toHaveCount(0);
+        expect(api.requests).toHaveLength(1);
+        await page.waitForTimeout(700);
+        const after = await layoutShift(page);
+        expect(Math.round((after.total - before.total) * 1000) / 1000, after.worst.join(" | ")).toBeLessThan(LIMIT);
+      });
+    }
+  });
+}

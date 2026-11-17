@@ -391,3 +391,40 @@ test("a run says it finished, shows the manifest's hashes, and names the model's
   await expect(code.locator("[data-mcp-note]").getByRole("link", { name: "How to connect an assistant" })).toHaveAttribute("href", "/assistants/");
   expect(api.requests).toHaveLength(1);
 });
+
+// The confirmation round on staging (Phase 5 Step 18): a select is as wide as
+// its longest option, and once an option read "Default (United States data):
+// your own computer only" the profile picker pushed a phone's page to 504
+// pixels. No check chose live data on a phone. Where a profile runs is now its
+// group's name, and the page keeps its width whichever profile is chosen.
+for (const [path, groups] of [
+  ["/models/equity/cape/", ["On your own computer only"]],
+  ["/models/macro/policy-rule/", ["Runs on this site", "On your own computer only"]],
+] as const) {
+  test(`choosing live data on ${path} keeps a phone's page in its width, whichever profile`, async ({ page, api }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openCalculator(page, path);
+    const section = page.locator("#calculator");
+    await section.getByRole("radio", { name: /Live data/ }).check();
+    const picker = section.locator("fieldset select");
+    await expect(picker).toBeVisible();
+    expect(await picker.locator("optgroup").evaluateAll((found) => found.map((group) => (group as HTMLOptGroupElement).label))).toEqual([
+      ...groups,
+    ]);
+    const options = await picker
+      .locator("option")
+      .evaluateAll((found) => found.map((option) => ({ value: (option as HTMLOptionElement).value, text: option.textContent ?? "" })));
+    expect(options.length).toBeGreaterThan(0);
+    for (const option of options) {
+      // An option is its profile's name: nothing about where it runs.
+      expect(option.text, option.value).not.toMatch(/computer|this site/);
+      await picker.selectOption(option.value);
+      const widths = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+      expect(widths[0], `${path} ${option.value}`).toBeLessThanOrEqual(widths[1] ?? 0);
+      const box = await picker.boundingBox();
+      expect((box?.x ?? 0) + (box?.width ?? 0), `${path} ${option.value}`).toBeLessThanOrEqual(390);
+    }
+    // Choosing asks the server's mode and runs nothing.
+    expect(api.requests).toEqual([]);
+  });
+}

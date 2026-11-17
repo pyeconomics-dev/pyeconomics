@@ -1058,7 +1058,11 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   in `tests/visual/baselines/`. They are the web job's Linux runner's pictures and
   are compared only there, with at most 300 differing pixels; every test skips on
   another platform. No picture holds personal data: a paragraph with a mail
-  address in it (the privacy policy's first lines) is masked. To change one on purpose: push the change; the web job's
+  address in it (the privacy policy's first lines) is masked. Whoever commits a
+  baseline says how it was checked: by eye, or, where a session cannot see an
+  image, by the page's text and the mask's pixels (the first 52 were checked
+  that way and the maintainer was asked to look), never "looked at" when it was
+  not. To change one on purpose: push the change; the web job's
   comparison fails, draws all 52 again and uploads them as the `visual-baselines`
   artifact; run `gh run download <run-id> -n visual-baselines -D
   web/tests/visual/baselines`, look at each picture that changed, commit them, and
@@ -1155,6 +1159,28 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   profileRegion`). The code box's height limit is in two places that move
   together: `SnippetsPanel.tsx PRE` and `calculator.ts codeBox`, with
   `CODE_FRAME` measured, not fitted.
+- What a press asks for takes its place with the press. A calculator shows its
+  result's heading and skeleton (`ResultPanel.tsx PendingResult`: the outputs
+  table with "…" for each value, the manifest's lines, the downloads off) the
+  moment Run is pressed, and the answer changes values, not positions. A browser
+  counts a move within half a second of a press as the visitor's own; the hosted
+  API is a network away, so on staging a result arrived later than that and
+  scored 0.5 to 0.7. The local API answers in milliseconds: a check for this
+  class holds the request back (`layout-shift.spec.ts`, "a slow run").
+- A select is as wide as its longest option. Keep options to a name; say what a
+  group of them has in common in an `<optgroup>` (where a profile runs), and
+  give a `<fieldset>` `min-w-0`, because it does not shrink below its content
+  by default. `calculator.spec.ts` chooses live data on a phone, each profile
+  in turn.
+- The room held for a series (`.chart-room`) stays on the series that replaces
+  the placeholder, and is what a long source record takes on the hosted site,
+  measured there: the stand-in data's record is shorter (no line for the site's
+  daily copy, a shorter notice), so a room fitted to it was 190 pixels short on
+  staging. `explorer.spec.ts` holds space to spare locally. Measure a change to
+  how a source record is shown on staging, not only here.
+- A source record reads as words: a data warning's sentence with its code after
+  it, a retrieval time to the minute (`results.ts retrievedText`); the JSON
+  holds the code and the source's own timestamp.
 - The harness chooses a select's option with `support.ts choose` (a key press
   first), so a visitor's own choice is not scored as a layout shift.
 - An evaluator is an Agent subagent on another model than the implementer's, given

@@ -173,3 +173,43 @@ test("axe finds no WCAG 2.2 AA violation on /data/ and on a concept page with it
   expect(watch.violations).toEqual([]);
   expect(watch.errors).toEqual([]);
 });
+
+// The confirmation round on staging (Phase 5 Step 18): the room held for a
+// series was sized to the stand-in data, whose source record is shorter than
+// the hosted site's (a longer notice, the line that says the data is from the
+// site's daily copy), so on staging the sections after the explorer moved by
+// 190 pixels on a phone when the chart arrived. The series now keeps the room
+// its placeholder held, and the room is what a long record takes: here, where
+// the record is the short one, there must be space to spare.
+for (const [width, height, spare] of [
+  [390, 844, 48],
+  [1440, 900, 24],
+] as const) {
+  test(`a series at ${String(width)} wide fits the room held for it, with space for a longer record`, async ({ page, api }) => {
+    await page.setViewportSize({ width, height });
+    // Hold the series back for a moment, so the placeholder is there to measure whatever the machine's speed
+    // (registered after the api fixture's route, so it runs first, then lets the request through).
+    await page.route("**/v1/series/**", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fallback();
+    });
+    await page.goto(UNEMPLOYMENT);
+    const room = page.locator("[data-chart-room]");
+    await page.locator("#chart").scrollIntoViewIfNeeded();
+    await expect(room).toBeVisible();
+    const held = (await room.boundingBox())?.height ?? 0;
+    expect(held).toBeGreaterThan(500);
+    const series = page.locator("[data-series]");
+    await expect(series.locator("[data-cite]")).toBeVisible();
+    await expect(room).toHaveCount(0);
+    const found = await series.evaluate((section) => {
+      const top = section.getBoundingClientRect().top;
+      const last = section.lastElementChild?.getBoundingClientRect().bottom ?? top;
+      return { box: Math.round(section.getBoundingClientRect().height), content: Math.round(last - top) };
+    });
+    // The series stands in the room its placeholder held, and what it holds is shorter than the room.
+    expect(Math.abs(found.box - Math.round(held))).toBeLessThanOrEqual(1);
+    expect(found.box - found.content).toBeGreaterThanOrEqual(spare);
+    expect(api.requests).toHaveLength(1);
+  });
+}

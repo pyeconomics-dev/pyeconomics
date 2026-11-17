@@ -16,6 +16,7 @@ import { fieldTitle } from "@/lib/calculator";
 import type { VariableTable } from "@/lib/models";
 import {
   DATA_WARNINGS,
+  MANIFEST_LABELS,
   PAGE_SIZE,
   asOfText,
   displayValue,
@@ -24,6 +25,7 @@ import {
   pageOf,
   sourceRecords,
   manifestFacts,
+  retrievedText,
   runSummary,
   type Result,
   type SourceRecord,
@@ -168,7 +170,7 @@ export function Source({ record, names }: { record: SourceRecord; names: Readonl
         {record.retrieved_at && (
           <>
             <dt className="text-muted-foreground">Retrieved</dt>
-            <dd>{record.retrieved_at}</dd>
+            <dd>{retrievedText(record.retrieved_at)}</dd>
           </>
         )}
         {record.transforms && record.transforms.length > 0 && (
@@ -188,9 +190,10 @@ export function Source({ record, names }: { record: SourceRecord; names: Readonl
           </>
         )}
       </dl>
+      {/* A note in words, with the code the JSON holds after it (the confirmation round: the code led). */}
       {record.warnings?.map((code) => (
-        <p key={code} className="text-xs">
-          <code>{code}</code>: {DATA_WARNINGS.get(code) ?? "a note about this series."}
+        <p key={code} className="text-xs" data-data-warning={code}>
+          {DATA_WARNINGS.get(code) ?? "A note about this series."} <code className="text-muted-foreground">{code}</code>
         </p>
       ))}
     </li>
@@ -201,6 +204,53 @@ export interface ResultPanelProps {
   result: Result;
   table: VariableTable | undefined;
   sourceNames: Readonly<Record<string, string>>;
+}
+
+/** What stands for a value until the run answers. */
+const PENDING = "…";
+
+/**
+ * A result while its run is on its way: the same outputs table, with each
+ * output's name, id and unit and "…" for its value, and the manifest's lines,
+ * so the section is about as tall as the result that replaces it. It is shown
+ * the moment Run is pressed. A run that takes more than half a second (any run
+ * on a slow connection) otherwise put its result into the page after the
+ * browser had stopped counting the press as the cause, and everything under
+ * the form moved at once: a layout shift of 0.5 to 0.7 on staging, where the
+ * API is a network away (Phase 5 Step 18's confirmation round).
+ */
+export function PendingResult({ table }: { table: VariableTable | undefined }) {
+  const outputs = Object.fromEntries((table?.rows ?? []).map((row) => [row.name, PENDING]));
+  return (
+    <div className="@container flex flex-col gap-4" data-pending="" aria-busy="true">
+      <p className="rounded-md border px-3 py-2 text-sm" data-run-summary="">
+        Running the model…
+      </p>
+      <OutputsTable table={table} outputs={outputs} />
+      <div>
+        <h4 className="font-medium">Warnings</h4>
+        <p className="text-sm">{PENDING}</p>
+      </div>
+      <div className="rounded-md border px-4 py-3" data-manifest="">
+        <h4 className="text-sm font-medium">Manifest: what makes this result reproducible</h4>
+        <div className="mt-2 flex flex-col gap-3 text-sm">
+          <p className="text-muted-foreground">
+            The same model version and inputs give the same result hash on every surface: the website, Python, the
+            command line, the REST API and MCP. In Python it is <code>result.manifest.result_sha256</code>.
+          </p>
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-1 @xl:grid-cols-[auto_1fr]">
+            {MANIFEST_LABELS.map((label) => (
+              <div key={label} className="contents">
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="font-mono text-xs">{PENDING}</dd>
+              </div>
+            ))}
+          </dl>
+          <CopyButton text="" label="Copy the manifest's facts" disabled />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ResultPanel({ result, table, sourceNames }: ResultPanelProps) {
