@@ -1372,6 +1372,15 @@ hooks as required checks.
   so a floor moves only when the code needs it. `uv.lock` is what CI runs:
   Dependabot's uv updates use `versioning-strategy: increase-if-necessary`. They
   do not touch `pylock.toml`: regenerate it on the pull request.
+- An advisory with a patched release is fixed, by an upgrade or an `overrides`
+  pin. One with none, in build or test tools alone, may get a dated entry in
+  `scripts/checks/audit_exceptions.toml`, the Node audit's only escape hatch
+  (`scripts/checks/npm_audit.py`, issue #360): only with the maintainer's
+  approval, in a pull request that records it, with a tracking issue. The check
+  refuses an entry for anything `npm audit --omit=dev` finds, one more than 45
+  days long, one past its date and one that matches nothing, so remove the
+  entry when the fix reaches the lockfile. An entry is not a bypass of the
+  gate, and nothing else is a substitute for one.
 - A new runtime dependency must pass the licence allowlist (ADR-0004). Run
   `uv add`, `uv lock` and `uv export` with `--no-config`, so a user-level
   private index never reaches `uv.lock`.

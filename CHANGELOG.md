@@ -249,6 +249,14 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Security
 
+- The Node dependency audit takes reviewed, dated exceptions (issue #360). An
+  advisory for `picomatch` (GHSA-fc5q-39xc-vjpf, High) has no patched release,
+  and from 2026-11-17 it failed every commit and pull request; it sits only in
+  build and test tools, and nothing the site or the package ships holds it.
+  `scripts/checks/npm_audit.py` now runs `npm audit` for the gate and applies
+  `scripts/checks/audit_exceptions.toml`: an entry never covers what ships,
+  lasts 45 days at most, fails after its date and fails once it matches nothing.
+  The one entry, approved by the maintainer, expires on 2026-12-17.
 - actionlint, pinned by commit, checks every GitHub Actions workflow in the
   pre-commit gate and in CI's `zizmor` job, so a workflow GitHub would reject at
   load time fails before it merges (#212).

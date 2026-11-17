@@ -2266,7 +2266,7 @@ issue on `main`. It has four checks; all must be clean:
 |-----------------------|---------------------------------------------------|--------------------------------------------------------|
 | Secret / PII scan     | Committed credentials, tokens, keys, real PII, notebook outputs carrying either | gitleaks                                 |
 | SAST (static a.)      | Injection, unsafe deserialization (`pickle`, `yaml.load`), `eval`, path traversal, SSRF, credential logging | bandit, semgrep (project rules), `eslint-plugin-security` in `web/` |
-| Dependency audit      | Known-vulnerable, yanked or typo-squatted dependencies | pip-audit or osv-scanner on `uv.lock`; `npm audit --audit-level=high` in `web/` |
+| Dependency audit      | Known-vulnerable, yanked or typo-squatted dependencies | pip-audit or osv-scanner on `uv.lock`; `npm audit --audit-level=high` in `web/` and `tools/node`, through `scripts/checks/npm_audit.py`, whose reviewed and dated exceptions (`audit_exceptions.toml`) never cover what ships |
 | Sensitive-data review | Keys in logs or manifests, licensed data in fixtures, secrets in client bundles, over-broad scopes | PR-template checklist against the table above |
 
 Rules for the gate:

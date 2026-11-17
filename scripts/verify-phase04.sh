@@ -773,7 +773,8 @@ free_port() {
   "$PY" -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])'
 }
 node_tools() {
-  (cd tools/node && npm ci --ignore-scripts --no-fund --no-audit && npm audit --audit-level=high)
+  (cd tools/node && npm ci --ignore-scripts --no-fund --no-audit) \
+    && uv run --locked python scripts/checks/npm_audit.py tools/node
 }
 edge_tests() { (cd tools/node && node --test edge/worker.test.mjs); }
 clients() {
@@ -918,7 +919,8 @@ secret_scan() {
     && uv run --project "$ROOT" --locked prek run gitleaks --all-files)
 }
 cassette_scan() { uv run --locked pytest -q tests/providers/test_cassette_files.py tests/ai/test_ai_cassettes.py; }
-npm_audit() { (cd tools/node && npm audit --audit-level=high); }
+# The gate's own audit: `npm audit` with its reviewed, dated exceptions (issue #360).
+npm_audit() { uv run --locked python scripts/checks/npm_audit.py tools/node; }
 run_security() {
   CURRENT_MODE=security
   cd "$ROOT" || exit 2
