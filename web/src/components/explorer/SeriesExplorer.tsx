@@ -460,7 +460,7 @@ function Explorer(props: SeriesExplorerProps) {
       )}
 
       {outcome?.kind === "series" && (
-        <section className="flex flex-col gap-4" aria-label="The series" data-series="">
+        <section className="chart-room flex flex-col gap-4" aria-label="The series" data-series="">
           {outcome.document.frame.type === "table" && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">Column</span>

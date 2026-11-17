@@ -34,7 +34,7 @@ import ProblemPanel, {
   type FieldProblem,
   type ProblemDocument,
 } from "@/components/calculator/ProblemPanel";
-import ResultPanel from "@/components/calculator/ResultPanel";
+import ResultPanel, { PendingResult } from "@/components/calculator/ResultPanel";
 import SelectWidget from "@/components/calculator/SelectWidget";
 import SnippetsPanel from "@/components/calculator/SnippetsPanel";
 import UserDataPanel from "@/components/calculator/UserDataPanel";
@@ -56,7 +56,7 @@ import { profileLabel } from "@/lib/profiles";
 import { report } from "@/lib/error-reporting";
 import { track } from "@/lib/events";
 import { LOCAL_APP } from "@/lib/explorer";
-import { applicable } from "@/lib/figure";
+import { applicable, chartsFor } from "@/lib/figure";
 import { decode, outputCount, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
 import { serverMode, type ServerMode } from "@/lib/series-request";
@@ -90,6 +90,8 @@ const CONTROL =
   "focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none";
 
 type Outcome =
+  // A run on its way: its result's skeleton is shown from the press of Run.
+  | { kind: "running"; calculation: unknown }
   | { kind: "result"; answer: RunAnswer; result: Result }
   | { kind: "problem"; answer: RunAnswer; problem: ProblemDocument }
   | { kind: "error"; message: string };
@@ -198,6 +200,16 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
     return props.liveNotes.find((note) => note.profile === name)?.fields.filter((entry) => names.has(entry.field)) ?? [];
   };
   const nowhereHere = props.profiles.length > 0 && props.profiles.every((entry) => offSite(entry.profile).length > 0);
+  // The picker's groups: the profiles this site runs with live data, then those a visitor's own computer runs.
+  const profileGroups = [
+    { here: true, label: "Runs on this site", entries: props.profiles.filter((entry) => offSite(entry.profile).length === 0) },
+    { here: false, label: "On your own computer only", entries: props.profiles.filter((entry) => offSite(entry.profile).length > 0) },
+  ].filter((group) => group.entries.length > 0);
+  const profileOption = (entry: (typeof props.profiles)[number]) => (
+    <option key={entry.profile} value={entry.profile}>
+      {profileLabel(entry.profile, regions.get(entry.profile) ?? null)}
+    </option>
+  );
   const chosenNote = props.liveNotes.find((note) => note.profile === profile);
   const missing = offSite(profile);
   const filled = live ? bound.map((field) => field.field) : [];
@@ -216,10 +228,17 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   // pressed Run at the foot of a long form sees it (round 0: it stayed below
   // the fold). At once, not as a glide: a jump link's smooth scroll over a
   // dozen screens left the form in view for a second (Step 18's round 1).
+  // It comes into view when Run is pressed, with the run's skeleton under it,
+  // not when the answer arrives: a page that moves more than half a second
+  // after a press is a layout shift, and a visitor who has scrolled on while
+  // waiting is not pulled back (the confirmation round on staging).
   useEffect(() => {
-    if (!outcome) return;
-    resultHeading.current?.scrollIntoView({ block: "start", behavior: "instant" });
-    resultHeading.current?.focus({ preventScroll: true });
+    const heading = resultHeading.current;
+    if (!outcome || !heading) return;
+    const box = heading.getBoundingClientRect();
+    const inView = box.top >= 0 && box.bottom <= window.innerHeight;
+    if (outcome.kind === "running" || !inView) heading.scrollIntoView({ block: "start", behavior: "instant" });
+    if (outcome.kind === "running" || document.activeElement !== heading) heading.focus({ preventScroll: true });
   }, [outcome]);
 
   // The server's mode is asked only once live data is chosen, so a page view
@@ -244,6 +263,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   const run = async () => {
     const request: Sent = { inputs, options };
     setRunning(true);
+    setOutcome({ kind: "running", calculation });
     setExtraErrors(undefined);
     setAnnouncement("Running the model…");
     try {
@@ -301,6 +321,44 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
     }
   };
 
+  // The downloads beside a result; off, in the same place, while its run is on its way.
+  const downloads = (answer: RunAnswer | null) => (
+    <div className="flex flex-col gap-2">
+      <h4 className="font-medium">Download</h4>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={SMALL_BUTTON}
+          disabled={answer === null}
+          onClick={() => {
+            if (answer === null) return;
+            save(answer.bytes, `${props.modelId}.json`, "application/json");
+            track("download", { model: props.modelId, format: "json" });
+          }}
+        >
+          JSON
+        </button>
+        {DOWNLOADS.map((entry) => (
+          <button
+            key={entry.format}
+            type="button"
+            className={SMALL_BUTTON}
+            disabled={answer === null}
+            onClick={() => void download(entry.format, entry.extension)}
+          >
+            {entry.label}
+          </button>
+        ))}
+        <CopyButton text={() => (answer === null ? "" : decode(answer.bytes))} label="Copy JSON" disabled={answer === null} />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Every file carries the result's attributions, notices and manifest: the model's version, the hashes of its inputs
+        and result, and where each value came from. The bundle adds a script that runs it again. Formats:{" "}
+        {RUN_FORMATS.join(", ")}. <a href="https://docs.pyeconomics.dev/en/main/results.html">What a result holds</a>
+      </p>
+    </div>
+  );
+
   const invalid = (errors: RJSFValidationError[]) => {
     const count = errors.length;
     setAnnouncement(`${String(count)} input${count === 1 ? " needs" : "s need"} fixing before the run: ${errors.map((error) => error.stack).join("; ")}`);
@@ -327,7 +385,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
       )}
 
       {props.profiles.length > 0 && (
-        <fieldset className="flex flex-col gap-2 rounded-md border p-4">
+        <fieldset className="flex min-w-0 flex-col gap-2 rounded-md border p-4">
           <legend className="px-1 font-medium">Where the data comes from</legend>
           <label className="flex items-center gap-2 text-sm">
             <input type="radio" name={`${props.modelId}-source`} value="values" checked={source === "values"} onChange={() => setSource("values")} />
@@ -356,15 +414,18 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
           {source === "data" && (
             <div className="flex flex-col gap-2 pl-6 text-sm">
               <div className="flex flex-wrap gap-4">
-                <label className="flex flex-col gap-1">
+                <label className="flex max-w-full min-w-0 flex-col gap-1">
                   <span>Profile</span>
-                  <select className={CONTROL} value={profile} onChange={(event) => setProfile(event.target.value)}>
-                    {props.profiles.map((entry) => (
-                      <option key={entry.profile} value={entry.profile}>
-                        {profileLabel(entry.profile, regions.get(entry.profile) ?? null)}
-                        {offSite(entry.profile).length > 0 ? ": your own computer only" : ""}
-                      </option>
-                    ))}
+                  {/* Where a profile runs is its group's name, not a tail on every option: a select is as wide as
+                      its longest option, and a long one pushed the page past a phone's edge (the confirmation round). */}
+                  <select className={`${CONTROL} max-w-full`} value={profile} onChange={(event) => setProfile(event.target.value)}>
+                    {profileGroups.length === 1 && profileGroups[0]?.here
+                      ? props.profiles.map(profileOption)
+                      : profileGroups.map((group) => (
+                          <optgroup key={group.label} label={group.label}>
+                            {group.entries.map(profileOption)}
+                          </optgroup>
+                        ))}
                   </select>
                 </label>
                 <label className="flex flex-col gap-1">
@@ -485,35 +546,29 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
       {outcome && (
         <section className={`${SECTION} motion-rise`} aria-labelledby="calculator-result" data-outcome={outcome.kind}>
           <h3 id="calculator-result" ref={resultHeading} tabIndex={-1} className={HEADING}>
-            {outcome.kind === "result" ? "Result" : "The run failed"}
+            {outcome.kind === "running" ? "Running the model…" : outcome.kind === "result" ? "Result" : "The run failed"}
           </h3>
+          {outcome.kind === "running" && (
+            <>
+              <PendingResult table={outputTable(props.outputs, outcome.calculation)} />
+              {chartsFor(props.charts, outcome.calculation ?? null).length > 0 && (
+                <div className="flex flex-col gap-4" data-chart-pending="">
+                  {chartsFor(props.charts, outcome.calculation ?? null).map((chart) => (
+                    <figure key={chart.id} className="flex flex-col gap-2">
+                      <div className="min-h-80 w-full rounded-md border border-dashed" />
+                      <figcaption className="text-sm text-muted-foreground">{chart.title}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
+              {downloads(null)}
+            </>
+          )}
           {outcome.kind === "result" && (
             <>
               <ResultPanel result={outcome.result} table={outputTable(props.outputs, outcome.result.inputs.calculation)} sourceNames={props.sourceNames} />
               <ChartPanel charts={applicable(props.charts, outcome.result)} document={outcome.result} />
-              <div className="flex flex-col gap-2">
-                <h4 className="font-medium">Download</h4>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" className={SMALL_BUTTON} onClick={() => {
-                      save(outcome.answer.bytes, `${props.modelId}.json`, "application/json");
-                      track("download", { model: props.modelId, format: "json" });
-                    }}>
-                    JSON
-                  </button>
-                  {DOWNLOADS.map((entry) => (
-                    <button key={entry.format} type="button" className={SMALL_BUTTON} onClick={() => void download(entry.format, entry.extension)}>
-                      {entry.label}
-                    </button>
-                  ))}
-                  <CopyButton text={() => decode(outcome.answer.bytes)} label="Copy JSON" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Every file carries the result's attributions, notices and manifest: the model's version, the hashes of
-                  its inputs and result, and where each value came from. The bundle adds a script that runs it again.
-                  Formats: {RUN_FORMATS.join(", ")}.{" "}
-                  <a href="https://docs.pyeconomics.dev/en/main/results.html">What a result holds</a>
-                </p>
-              </div>
+              {downloads(outcome.answer)}
             </>
           )}
           {outcome.kind === "problem" && (

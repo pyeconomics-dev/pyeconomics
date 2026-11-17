@@ -155,6 +155,9 @@ export interface ManifestFact {
  * and of the result. Only strings and numbers the manifest holds; a field it
  * lacks is left out.
  */
+/** The labels of the facts every result's manifest gives, in order: what a result on its way shows before its values. */
+export const MANIFEST_LABELS = ["Model", "pyeconomics version", "Inputs SHA-256", "Result SHA-256", "Manifest schema"] as const;
+
 export function manifestFacts(result: Result): ManifestFact[] {
   const manifest = new Map(Object.entries(result.manifest));
   const text = (key: string): string | null => {
@@ -181,11 +184,24 @@ export const DATA_WARNINGS: ReadonlyMap<string, string> = new Map(
   served_offline: "Served from the local cache in offline mode.",
   bls_keyless: "Read from the BLS without its catalog, so the series' unit and seasonal adjustment are not known.",
   served_from_snapshot:
-    "Served from the hosted service's daily snapshot of the source, taken at the retrieval time shown, not fetched for this request.",
+    "From this site's daily copy of the source, made at the retrieval time shown; not fetched for this request.",
   stale_snapshot:
     "The snapshot is more than two days old: the source could not be read since, so newer data may exist.",
   }),
 );
+
+/**
+ * A record's retrieval time as a page shows it: to the minute, in UTC
+ * ("2026-11-16 23:31 UTC"). The JSON and every download hold the source's own
+ * timestamp, which the hosted service writes to the microsecond (the
+ * confirmation round on staging, Phase 5 Step 18). Text that is not a time is
+ * shown as it is.
+ */
+export function retrievedText(value: string): string {
+  const time = new Date(value);
+  if (Number.isNaN(time.getTime())) return value;
+  return `${time.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+}
 
 /** The as-of words of a record: its real-time period, vintage or last observation. */
 export function asOfText(record: SourceRecord): string {

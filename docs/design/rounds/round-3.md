@@ -171,7 +171,7 @@ No item was judged worse.
 | | |
 | --- | --- |
 | ![The about page's first screen](../img/round-3-about.webp) | ![A variables table on a phone, in two columns](../img/round-3-variables-390.webp) |
-| `/about/`, new in round 2: what it is, then who runs it and how it is tested | A variables table on a phone: two columns, every description in view |
+| `/about/`, new in round 2: its first screen, what pyeconomics is (who runs it and how it is tested follow below) | A variables table on a phone: two columns, every description in view |
 | ![A long formula on a phone](../img/round-3-formula-390.webp) | ![The live-data notice with the profiles' names](../img/round-3-live-data.webp) |
 | A long formula on a phone: swiped sideways in its box (M3) | Live data: profiles by name, with what will be read (M10) |
 | ![A snippet in a box that scrolls](../img/round-3-snippet.webp) | ![Search results for unemployment](../img/round-3-search.webp) |

@@ -814,18 +814,22 @@
 
   /*
    * Room for the chart a concept's page draws when it comes into view, with
-   * its downloads, citation and sources: about what they take, so the
-   * sections after the explorer stay where they are when the chart arrives.
-   * Held only where scripts run.
+   * its downloads, citation and sources, so the sections after the explorer
+   * stay where they are when the chart arrives. The placeholder holds it, and
+   * so does the series that replaces it: a source's notice and record are as
+   * long as the source makes them, so the room is what a long one takes (the
+   * hosted site's BLS record, measured on staging in the confirmation round:
+   * the stand-in data's is 90 pixels shorter on a phone), a shorter one leaves
+   * space under it, and nothing moves either way. Held only where scripts run.
    */
   @media (scripting: enabled) {
     .chart-room {
-      min-height: 73rem;
+      min-height: 84rem;
     }
 
     @media (width >= 40rem) {
       .chart-room {
-        min-height: 59rem;
+        min-height: 66rem;
       }
     }
   }

@@ -22,9 +22,11 @@ export interface CopyButtonProps {
   /** A longer name for a button whose label alone does not say what it copies. */
   ariaLabel?: string;
   size?: "xs" | "sm";
+  /** Off while there is nothing to copy yet (a result on its way). */
+  disabled?: boolean;
 }
 
-export default function CopyButton({ text, label, ariaLabel, size = "sm" }: CopyButtonProps) {
+export default function CopyButton({ text, label, ariaLabel, size = "sm", disabled = false }: CopyButtonProps) {
   const [state, setState] = useState<Copy>("idle");
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function CopyButton({ text, label, ariaLabel, size = "sm" }: Copy
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2" data-copy={state}>
-      <button type="button" className={buttonVariants({ variant: "outline", size })} aria-label={ariaLabel} onClick={copy}>
+      <button type="button" className={buttonVariants({ variant: "outline", size })} aria-label={ariaLabel} disabled={disabled} onClick={copy}>
         {state === "copied" ? "Copied" : label}
       </button>
       {/* A live region without the status role: a form's one status line stays the only one. */}
