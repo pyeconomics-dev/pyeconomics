@@ -10971,7 +10971,9 @@ hygiene.
       the dogfooding loop's visual baselines are in `main`
       and on staging (docs/design/); the release candidate
       carries them to production. The page URLs this step
-      freezes are unchanged by them.
+      freezes are unchanged by them, and Step 18 added two
+      pages the freeze takes in with the rest: `/about/` and
+      `/assistants/` (recorded 2026-11-16).
     - Step 13 note: deploy-production.yml copies the image
       tagged with the commit from staging's registry, which
       keeps its two newest images and deletes the others
@@ -11583,7 +11585,8 @@ XHigh (56.0). New conversation per phase-boundary hygiene.
       Step 18's personas, rubric and harness
       (docs/design/dogfooding.md) and fresh evaluators. PASS
       needs no Blocker or High finding and a median score no
-      lower than Step 18's last round; record the round, then
+      lower than Step 18's last round (round 3's 7.38;
+      docs/design/rounds/summary.md); record the round, then
       ask the maintainer to accept the design with the
       decision (one question, beside the GO).
     </requirement>

@@ -24,13 +24,15 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   as "Where" under its formulas, and the documentation and each model's web page
   show them. No description, schema, output or result hash changes.
 - The site after its dogfooding loop (Phase 5 Step 18; `docs/design/rounds/`):
-  rounds of five independent AI evaluators, one per persona, used the site in real
-  browsers, and each round's findings were fixed before the next. A model page
+  three rounds of five independent AI evaluators, one per persona, used the site in
+  real browsers, and each round's findings were fixed before the next; the loop
+  stopped by its rule at round 3, with no High finding since round 2. A model page
   defines its formulas' symbols; a calculator asks first for what a run needs,
   names fields, options, examples and outputs in words, marks the fields an error
   names, and shows a result that fits a phone with its manifest's hashes in view;
   the run as Python, a command, curl or an MCP call is always in view, in one
-  look, with its lists short enough to read; a series' chart draws when it comes
+  look, with its lists short enough to read and the command that installs the
+  package; a long result lists its outputs by name until asked what each is; a series' chart draws when it comes
   into view, with a line to cite it by; `/data/` leads with its search and groups
   the series by topic; search puts the page named for the query first. Two new
   pages: `/about/` (what pyeconomics is, who runs the site, where the formulas come
