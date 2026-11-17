@@ -1276,9 +1276,9 @@ and licensed market data
 |               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
@@ -1287,9 +1287,12 @@ and licensed market data
 
 Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
-estimated from the model's measured levels.
+estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
+
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
 
 > Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
 > GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
@@ -1312,10 +1315,11 @@ estimated from the model's measured levels.
 > Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
 > Intelligence XHigh.
 
-This roadmap must turn each vendor's terms into enforceable rules rather
-than prose, and design Bloomberg support around a Terminal that CI will
-never have. Same pick, rung and funding as Phase 1: Opus 5.5 at Max on
-the claude.ai Max subscription, GPT-6.1 Sol on ChatGPT Pro 5x as backup.
+On the roadmap-writing session alone, the Quality Pick fits best: Opus 5.5 on
+Claude Code at Max. A phase roadmap defines scope, sequencing, acceptance
+criteria and settings for every step, so the strongest planning option at its
+deepest supported level fits this session. The Cost Pick is GPT-6.1 Sol on Codex
+at Medium, and the Balanced Pick is Opus 5.5 on Claude Code at High.
 
 #### 6.1 Bring-your-own-key framework
 
@@ -1496,9 +1500,9 @@ batches that surface everywhere automatically.
 |               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
@@ -1507,9 +1511,12 @@ batches that surface everywhere automatically.
 
 Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
-estimated from the model's measured levels.
+estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
+
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
 
 > Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
 > GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
@@ -1532,11 +1539,11 @@ estimated from the model's measured levels.
 > Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
 > Intelligence XHigh.
 
-This roadmap must turn an open-ended ambition into a finite, ordered batch
-plan whose measure of done is the coverage matrix, with every batch held to
-the model definition of done. Same pick, rung and funding as Phase 1: Opus
-5.5 at Max on the claude.ai Max subscription, GPT-6.1 Sol on ChatGPT Pro 5x
-as backup.
+On the roadmap-writing session alone, the Quality Pick fits best: Opus 5.5 on
+Claude Code at Max. A phase roadmap defines scope, sequencing, acceptance
+criteria and settings for every step, so the strongest planning option at its
+deepest supported level fits this session. The Cost Pick is GPT-6.1 Sol on Codex
+at Medium, and the Balanced Pick is Opus 5.5 on Claude Code at High.
 
 #### 7.1 Syllabus crosswalks & the coverage matrix
 
@@ -1680,9 +1687,9 @@ Yes — account PII, authentication, billing metadata (never card data)
 |               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
@@ -1691,9 +1698,12 @@ Yes — account PII, authentication, billing metadata (never card data)
 
 Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
-estimated from the model's measured levels.
+estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
+
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
 
 > Settings updated 2026-10-29 (rerank): was Opus 5.5 · Max, Quality's Backup
 > GPT-6 Astra · Max. Quality's Backup is now GPT-6.1 Sol · Max: roadmodel
@@ -1716,11 +1726,11 @@ estimated from the model's measured levels.
 > Quality still runs Opus 5.5 at Max, and its backup is now GPT-6.1 Sol at
 > Intelligence XHigh.
 
-This roadmap must sequence money, identity and PII so that nothing paid
-ships before its legal, tax and security gates, and must honour the gate's
-evidence about what to build first. Same pick, rung and funding as Phase
-1: Opus 5.5 at Max on the claude.ai Max subscription, GPT-6.1 Sol on
-ChatGPT Pro 5x as backup.
+On the roadmap-writing session alone, the Quality Pick fits best: Opus 5.5 on
+Claude Code at Max. A phase roadmap defines scope, sequencing, acceptance
+criteria and settings for every step, so the strongest planning option at its
+deepest supported level fits this session. The Cost Pick is GPT-6.1 Sol on Codex
+at Medium, and the Balanced Pick is Opus 5.5 on Claude Code at High.
 
 #### 8.1 Gate review & decision memo
 
