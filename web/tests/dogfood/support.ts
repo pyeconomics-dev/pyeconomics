@@ -13,7 +13,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 import { MAX_TILES } from "./pages.ts";
 
@@ -111,6 +111,21 @@ export async function scrollThrough(page: Page): Promise<void> {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await page.waitForTimeout(250);
+}
+
+/**
+ * Choose a select's option as a visitor does: after a key press (Phase 5 Step
+ * 18's round 2). Playwright sets a select's value from script, which the
+ * browser does not count as input, so the change it causes (another example's
+ * form is taller) was scored as an unexpected layout shift, 0.176 on the
+ * duration page; a visitor's own choice never is, because the Layout
+ * Instability API leaves out a shift within half a second of a key or a
+ * pointer press.
+ */
+export async function choose(page: Page, picker: Locator, option: Parameters<Locator["selectOption"]>[0]): Promise<void> {
+  await picker.focus();
+  await page.keyboard.press("Shift");
+  await picker.selectOption(option);
 }
 
 /**

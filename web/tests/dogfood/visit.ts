@@ -11,7 +11,7 @@ import { parseArgs } from "node:util";
 
 import { chromium, type Locator, type Page } from "@playwright/test";
 
-import { BASE_URL, LAUNCH, accessHeaders, measure, prepare, settled, write } from "./support.ts";
+import { BASE_URL, LAUNCH, accessHeaders, choose, measure, prepare, settled, write } from "./support.ts";
 
 const HELP = `Usage: node tests/dogfood/visit.ts --path <page> [options]
 
@@ -76,7 +76,7 @@ async function follow(page: Page, step: Step, shoot: (name: string, full: boolea
     await page.getByLabel(label).first().fill(value);
   } else if ("select" in step) {
     const { label, option } = step.select as { label: string; option: string };
-    await page.getByLabel(label).first().selectOption({ label: option });
+    await choose(page, page.getByLabel(label).first(), { label: option });
   } else if (typeof step.press === "string") {
     await page.keyboard.press(step.press);
   } else if (typeof step.type === "string") {

@@ -9,7 +9,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { THEMES, VIEWPORTS } from "./pages.ts";
-import { measure, prepare, settled, write, writeRecord } from "./support.ts";
+import { choose, measure, prepare, settled, write, writeRecord } from "./support.ts";
 
 interface Task {
   id: string;
@@ -64,7 +64,7 @@ const TASKS: readonly Task[] = [
     run: async (page, shot) => {
       const section = await calculator(page);
       const picker = section.getByLabel("Start from an example");
-      if ((await picker.count()) > 0) await picker.selectOption({ index: 1 });
+      if ((await picker.count()) > 0) await choose(page, picker, { index: 1 });
       await shot("second-example");
     },
   },
