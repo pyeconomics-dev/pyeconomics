@@ -1189,6 +1189,11 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   and read no memory, handoff or source file); `docs/design/rounds/round-1.md`
   records them. It is shown the previous round's list only after it has returned
   its scores, through `SendMessage`.
+- A round on a deployed site runs the harness there first and reads its records
+  before any evaluator starts: latency and a real record's length show only
+  there (`docs/design/rounds/confirmation.md`). An evaluator that could not see
+  its screenshots is not counted, whatever it returns, and nothing works around
+  what kept it from seeing them: that is the maintainer's to lift.
 - The loop stopped at round 3 (`docs/design/rounds/summary.md`: medians 5.75,
   7.00, 7.50 and 7.38; no High since round 2). Step 20's round is held to round
   3's. What returned each round and belongs to the models is issues #350 and

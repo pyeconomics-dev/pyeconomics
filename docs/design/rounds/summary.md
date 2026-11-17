@@ -62,6 +62,22 @@ No High finding was left open, so none is filed for Step 20's gate. Step 20 reru
 the protocol on production's build; its baseline is round 3: a median of 7.38, no
 Blocker and no High.
 
+## The confirmation round on staging
+
+The step ends with one round on the deployed staging site
+([confirmation.md](confirmation.md)). Its harness found what no local round could:
+staging's API is a network away and its data is real. Choosing live data on a phone
+scrolled the page sideways (a regression of round 3's own fix), a result that took
+more than half a second arrived as a jump of the whole page, and a series' page
+moved when its chart arrived, because the hosted site's source record is longer than
+the stand-in data's. All three were fixed (#355), each with a check that reproduces
+it locally, and the harness is clean on the fixed deployment: 138 states, no
+sideways scroll, no capture shifting by more than 0.011.
+
+**Its evaluators' pass has not been run.** The five evaluators could not be shown
+the site's screenshots on the machine the loop runs on, so nothing they returned is
+counted. That pass waits on the maintainer, and Step 19 waits on it.
+
 ## What is left
 
 Two findings came back in more than one round and belong to the models, not the
@@ -75,6 +91,10 @@ pages, so each is an issue:
   typography, written in the models: word subscripts set in italic (round 0), and
   long formulas that a phone reads by swiping (round 3).
 
+A third came from the confirmation round:
+[#354](https://github.com/pyeconomics-dev/pyeconomics/issues/354), the text font
+that arrives after a page's first paint and reflows it on a slow connection.
+
 Five findings were disputed each time they returned, each with its reason in the
 rounds' records: the header's two rows of navigation (every domain one click away,
 ADR-0013 decision 10); "On this page" listing every section; a model's formulas in
@@ -86,7 +106,10 @@ models hold no currency). They are the places a later design pass would look fir
 
 - Visual baselines: the first screen of ADR-0013 decision 19's thirteen sample
   pages at 390 and 1440 pixels wide, in light and dark, compared in the web job on
-  Linux (`npm run e2e:visual`).
+  Linux (`npm run e2e:visual`). They were committed without having been seen (the
+  session could not read images) and then checked by their pages' text and their
+  masks' pixels: none holds personal data. Whether each looks right is still for
+  an eye ([confirmation.md](confirmation.md)).
 - A check for each class of bug the rounds found, so the class fails CI and not
   only the instance:
 
@@ -104,6 +127,9 @@ models hold no currency). They are the places a later design pass would look fir
 | JSON a page shows that does not parse back | Round 2 | `snippets.test.ts`, every golden case's inputs |
 | The site's MCP tools drift from the server's | Round 2 | `tests/web/test_mcp_tools_listed.py` |
 | Two counts of one thing | Round 3 | `calculator.spec.ts`: the line under the form and the result's summary |
+| A result that arrives more than half a second after the press moves the page | Confirmation, on staging | `layout-shift.spec.ts`, "a slow run": the request is held back by a second |
+| A control as wide as its longest option pushes a phone's page sideways | Confirmation, on staging | `calculator.spec.ts`: live data chosen at 390 wide, each profile in turn |
+| Room sized to the test data, not to what the hosted site shows | Confirmation, on staging | `explorer.spec.ts`: a series stands in the room held for it, with space to spare |
 
 ## What it cost
 
@@ -138,7 +164,15 @@ models hold no currency). They are the places a later design pass would look fir
   height judged from a thumbnail, a search read before its results). Each claim
   was checked by running or measuring before it was fixed or disputed, and the
   records say which were not reproduced.
-- The harness is part of the product under test. Three of its own faults were
+- The harness is part of the product under test. Four of its own faults were
   charged to the site (a capture mid-animation, a tool that could not open a
-  disclosure, a scripted choice scored as a layout shift), each fixed and dated in
-  the protocol's change log.
+  disclosure, a scripted choice scored as a layout shift, a fill that took a hidden
+  control), each fixed and dated in the protocol's change log.
+- The local build is not the deployed site. A local API answers in milliseconds and
+  serves stand-in data, so anything that depends on latency or on a real record's
+  length shows only on staging. Run the harness there and read its records before
+  the evaluators start, and give each class a check that makes the local build
+  slow or long on purpose.
+- An evaluation that did not see the pages is not an evaluation. Three evaluators of
+  the confirmation round said their screenshots had been removed; their scores were
+  discarded, not averaged in.

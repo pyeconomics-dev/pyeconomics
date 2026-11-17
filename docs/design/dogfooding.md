@@ -254,3 +254,13 @@ issue and raises the median by less than 0.5 over the round before, and at round
     unexpected layout shift of 0.176 on the duration page. A visitor's own
     choice never is: the measure leaves out a shift within half a second of a
     key or a pointer press.
+- 2026-11-17 (Phase 5 Step 18, the confirmation round on staging): one more fault
+  of the `visit` tool. It changes no persona, task, rubric, severity or page.
+  - `fill` and `select` take the first control in view that the label names, and
+    only a control (an input, a select, a text area). They took the first element
+    of any kind with that label: at a phone's width that is the header's hidden
+    search box, or its icon's link, and a fill by "Search" waited thirty seconds
+    while the page's own box stood in view.
+  - A note for whoever runs a round, with no change to the rules: an evaluator
+    that could not see its screenshots is not counted, whatever it returns
+    (`docs/design/rounds/confirmation.md`).

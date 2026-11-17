@@ -66,6 +66,20 @@ async function by(page: Page, target: unknown): Promise<Locator> {
   return page.getByRole(role, name === undefined ? {} : { name }).first();
 }
 
+/**
+ * The control a label names, as a visitor finds it: the first one in view. At
+ * a phone's width the header's search box is hidden behind its icon, and a
+ * fill by the label "Search" waited thirty seconds for it while the page's
+ * own box stood in view (the confirmation round on staging). A link or a
+ * button that carries the same label (the header's search icon) is not a
+ * control to fill.
+ */
+async function labelled(page: Page, label: string): Promise<Locator> {
+  const found = page.getByLabel(label).and(page.locator("input, textarea, select, [contenteditable]"));
+  const visible = found.filter({ visible: true });
+  return (await visible.count()) > 0 ? visible.first() : found.first();
+}
+
 async function follow(page: Page, step: Step, shoot: (name: string, full: boolean) => Promise<void>): Promise<string | null> {
   if (typeof step.goto === "string") {
     await page.goto(step.goto, { waitUntil: "load" });
@@ -73,10 +87,10 @@ async function follow(page: Page, step: Step, shoot: (name: string, full: boolea
     await (await by(page, step.click)).click();
   } else if ("fill" in step) {
     const { label, value } = step.fill as { label: string; value: string };
-    await page.getByLabel(label).first().fill(value);
+    await (await labelled(page, label)).fill(value);
   } else if ("select" in step) {
     const { label, option } = step.select as { label: string; option: string };
-    await choose(page, page.getByLabel(label).first(), { label: option });
+    await choose(page, await labelled(page, label), { label: option });
   } else if (typeof step.press === "string") {
     await page.keyboard.press(step.press);
   } else if (typeof step.type === "string") {
