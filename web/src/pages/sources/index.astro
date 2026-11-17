@@ -105,7 +105,12 @@ const cell = "py-2 pr-4 align-top";
                   ) : source.hosted ? (
                     <span class={`${badge} text-muted-foreground`}>Allowed here, no copy kept yet</span>
                   ) : (
-                    <span class={`${badge} text-muted-foreground`}>Its terms keep it local</span>
+                    <Fragment>
+                      <span class={`${badge} text-muted-foreground`}>Its terms keep it local</span>{" "}
+                      <a href="#classes" class="text-xs" data-class-link>
+                        {source.licence}
+                      </a>
+                    </Fragment>
                   )}
                 </span>
               </li>

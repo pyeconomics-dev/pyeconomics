@@ -34,29 +34,63 @@ export const NAVIGATION: readonly Link[] = [
   { label: "GitHub", href: REPOSITORY },
 ];
 
+/** One group of the footer's links, under its heading. */
+export interface LinkGroup {
+  title: string;
+  links: readonly Link[];
+}
+
 /**
- * The footer's links, beside the notices every page carries: the legal and
- * trust pages first (Phase 5 Step 16; tests/site/ holds each in every page's
- * footer).
+ * The footer's links, beside the notices every page carries, in four groups a
+ * visitor can scan (Phase 5 Step 18's round 2: seventeen links ran in one
+ * line): the project and how to follow it, what to learn from, where the work
+ * is done, and the legal and trust pages (Phase 5 Step 16; tests/site/ and the
+ * end-to-end tests hold each link in every page's footer).
  */
-export const FOOTER_LINKS: readonly Link[] = [
-  // Who runs the site and how to write to them (Step 18's round 1: no page said).
-  { label: "About this site", href: "/legal/" },
-  { label: "Terms of use", href: "/legal/terms/" },
-  { label: "Privacy", href: "/legal/privacy/" },
-  { label: "Disclaimers", href: "/legal/disclaimers/" },
-  { label: "Data sources", href: "/sources/" },
-  { label: "Licence (Apache-2.0)", href: "/legal/licence/" },
-  { label: "GitHub", href: REPOSITORY },
-  { label: "Discussions", href: DISCUSSIONS },
-  { label: "Newsletter", href: "/newsletter/" },
-  { label: "Pro preview", href: "/pro/" },
-  { label: "Documentation", href: DOCUMENTATION },
-  { label: "Example gallery", href: EXAMPLE_GALLERY },
-  { label: "In-browser examples", href: IN_BROWSER_EXAMPLES },
-  { label: "Python for finance", href: FINANCE_TUTORIALS },
-  { label: "Service status", href: STATUS_PAGE },
+export const FOOTER_GROUPS: readonly LinkGroup[] = [
+  {
+    title: "pyeconomics",
+    links: [
+      // What the site is, who runs it and how its models are checked (Step 18's
+      // rounds 1 and 2: no page said, then the link led to the legal index).
+      { label: "About", href: "/about/" },
+      { label: "AI assistants", href: "/assistants/" },
+      { label: "Newsletter", href: "/newsletter/" },
+      { label: "Pro preview", href: "/pro/" },
+      { label: "Service status", href: STATUS_PAGE },
+    ],
+  },
+  {
+    title: "Learn",
+    links: [
+      { label: "Documentation", href: DOCUMENTATION },
+      { label: "Example gallery", href: EXAMPLE_GALLERY },
+      { label: "In-browser examples", href: IN_BROWSER_EXAMPLES },
+      { label: "Python for finance", href: FINANCE_TUTORIALS },
+    ],
+  },
+  {
+    title: "Project",
+    links: [
+      { label: "GitHub", href: REPOSITORY },
+      { label: "Discussions", href: DISCUSSIONS },
+      { label: "Data sources", href: "/sources/" },
+      { label: "Licence (Apache-2.0)", href: "/legal/licence/" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Legal", href: "/legal/" },
+      { label: "Terms of use", href: "/legal/terms/" },
+      { label: "Privacy", href: "/legal/privacy/" },
+      { label: "Disclaimers", href: "/legal/disclaimers/" },
+    ],
+  },
 ];
+
+/** Every footer link, in the groups' order. */
+export const FOOTER_LINKS: readonly Link[] = FOOTER_GROUPS.flatMap((group) => group.links);
 
 /**
  * ROADMAP §5 "CFA Institute marks and content": the notice the web app

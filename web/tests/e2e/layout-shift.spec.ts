@@ -93,6 +93,11 @@ for (const viewport of VIEWPORTS) {
       // The islands ask the API (a chart's series, the server's mode), which only `api` answers here.
       test(`page ${path} shifts less than ${String(LIMIT)} as it loads`, async ({ page, api }) => {
         await page.goto(path, { waitUntil: "load" });
+        // A visitor reads the first screen before scrolling: what the address
+        // itself asks for (a search's results) arrives while they do. Round 2:
+        // scrolled to the foot of the page at once, the search page's footer
+        // was in view when the results came and moved it.
+        await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
         await scrollThrough(page, viewport.height);
         const shift = await layoutShift(page);
         expect(shift.total, shift.worst.join(" | ")).toBeLessThan(LIMIT);

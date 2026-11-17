@@ -69,7 +69,7 @@ export default function SearchPage() {
         : `${String(hits.length)} ${hits.length === 1 ? "result" : "results"} for “${asked}”.`;
 
   return (
-    <div className="flex min-h-[70vh] flex-col gap-6" data-search-page="">
+    <div className="flex min-h-screen flex-col gap-6" data-search-page="">
       <form
         role="search"
         aria-label="Search the site"

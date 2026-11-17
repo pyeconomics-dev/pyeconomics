@@ -10,6 +10,7 @@ import { bounds, cardOrder, dataProfiles, isNode, members, unit, variables, type
 import type { ChartSpec } from "@/lib/figure";
 import type { Model } from "@/lib/registry-schema";
 import type { ConceptEntry, ProblemEntry, SourceEntry, SurfaceEntry } from "@/lib/site-data";
+import { pythonSnippet } from "@/lib/snippets";
 
 /** A data profile's bound fields, as surfaces.json says hosted mode can serve them. */
 export interface HostedProfile {
@@ -114,17 +115,34 @@ export function calculatorProps(
 /**
  * What each part of a loaded form adds to its card's height, in pixels, on a
  * phone (one column of fields) and on a wide card (two): fitted in Phase 5
- * Step 18 to all 50 models' measured cards (median error about 50 pixels).
+ * Step 18 to all 50 models' measured cards at 390, 820 and 1440 pixels wide
+ * (median error about 30 pixels, the largest 140). A list's box grows by a
+ * line for each row of a matrix; a description that wraps adds a line.
  * tests/e2e/layout-shift.spec.ts holds the result: a page must not shift as
- * its calculator loads, so a form that outgrows these numbers fails there.
+ * its calculator loads, so a form that outgrows these numbers fails there
+ * (`node scripts/form-room.ts` prints each model's measured card against its
+ * estimate; refit when the form's layout changes, as round 2 did).
  */
 const ROOM = {
-  narrow: { base: 480, row: 143, array: 240, openRow: 285, optional: 67, examples: 159, profiles: 252, family: 95, anyArray: 153 },
-  wide: { base: 478, row: 141, array: 202, openRow: 356, optional: 105, examples: 106, profiles: 146, family: 80, anyArray: 172 },
+  narrow: { base: 84, row: 130, array: 214, extraRow: 14, optional: 5, openRow: 231, openArray: 285, examples: 75, profiles: 254, family: 131, anyArray: 110, descLine: 17 },
+  wide: { base: 59, row: 131, array: 199, extraRow: 13, optional: 52, openRow: 228, openArray: 243, examples: 85, profiles: 165, family: 106, anyArray: 114, descLine: 10 },
 } as const;
 
-/** What the run-as-code section adds to a card, in pixels: its heading, buttons and one snippet. */
-const CODE_ROOM = 380;
+/**
+ * What the run-as-code section adds to a card around its code box, in pixels:
+ * the gap above it, its heading and sentence, the choices and the copy
+ * control, which wrap onto more lines on a phone. Measured, not fitted: every
+ * model's is the same.
+ */
+const CODE_FRAME = { narrow: 262, wide: 140 } as const;
+
+/** A code box's height for a snippet of so many lines: 16 pixels a line and 24 of padding, up to its maximum (max-h-80). */
+function codeBox(lines: number): number {
+  return Math.min(320, 24 + 16 * lines);
+}
+
+/** The characters of a field's description a line holds, about, under a field. */
+const DESCRIPTION_LINE = 44;
 
 /**
  * The room a model's calculator takes once its form has loaded, in pixels, on
@@ -134,13 +152,14 @@ const CODE_ROOM = 380;
  * calculator does not move when it arrives.
  */
 export function formRoom(
-  model: Pick<Model, "input_schema" | "examples">,
+  model: Pick<Model, "id" | "input_schema" | "examples">,
   profiles: number,
   snippets = true,
 ): { narrow: number; wide: number } {
   const schema = model.input_schema as Node;
   const definitions = isNode(schema.$defs) ? schema.$defs : {};
-  const example = new Map(Object.entries(model.examples.at(0)?.inputs ?? {}));
+  const inputs = model.examples.at(0)?.inputs ?? {};
+  const example = new Map(Object.entries(inputs));
   const found = members(schema).find(([calculation]) => calculation === null || calculation === example.get(CALCULATION));
   const node = found?.[1] ?? {};
   const fields = Object.entries(isNode(node.properties) ? node.properties : {}).filter(
@@ -152,23 +171,40 @@ export function formRoom(
   };
   const needed = fields.filter(([, raw]) => !nullable(raw));
   const optional = fields.filter(([, raw]) => nullable(raw));
-  const arrays = needed.filter(([, raw]) => list(raw)).length;
-  const scalars = needed.length - arrays;
+  const arrays = needed.filter(([, raw]) => list(raw));
+  const optionalArrays = optional.filter(([, raw]) => list(raw));
   const open = optional.some(([name]) => (example.get(name) ?? null) !== null);
+  const shown = [...needed, ...(open ? optional : [])];
+  // A list's box shows two lines, and up to eight for a matrix, one for each of its rows (ListWidget.tsx).
+  const extraRows = [...arrays, ...(open ? optionalArrays : [])].reduce((total, [name]) => {
+    const value = example.get(name);
+    const rows = Array.isArray(value) && Array.isArray(value[0]) ? value.length : 1;
+    return total + Math.min(8, Math.max(2, rows)) - 2;
+  }, 0);
+  const descriptionLines = shown.reduce((total, [, raw]) => {
+    const words = typeof raw.description === "string" ? raw.description : "";
+    return total + Math.max(0, Math.ceil(words.length / DESCRIPTION_LINE) - 1);
+  }, 0);
+  // The Python snippet the form first shows: the example's inputs for its calculation.
+  const names = new Set([CALCULATION, ...fields.map(([name]) => name)]);
+  const first = Object.fromEntries(Object.entries(inputs).filter(([name]) => names.has(name)));
+  const lines = snippets ? pythonSnippet({ modelId: model.id, inputs: first }).trimEnd().split(/\n/).length : 0;
   const estimate = (size: "narrow" | "wide"): number => {
     const part = size === "narrow" ? ROOM.narrow : ROOM.wide;
     const perRow = size === "narrow" ? 1 : 2;
     return Math.round(
-      part.base -
-        (snippets ? 0 : CODE_ROOM) +
-        part.row * Math.ceil(scalars / perRow) +
-        part.array * arrays +
-        (arrays > 0 ? part.anyArray : 0) +
+      part.base +
+        part.row * Math.ceil((needed.length - arrays.length) / perRow) +
+        part.array * arrays.length +
+        part.extraRow * extraRows +
         (optional.length > 0 ? part.optional : 0) +
-        (open ? part.openRow * Math.ceil(optional.length / perRow) : 0) +
+        (open ? part.openRow * Math.ceil((optional.length - optionalArrays.length) / perRow) + part.openArray * optionalArrays.length : 0) +
         (model.examples.length > 1 ? part.examples : 0) +
         (profiles > 0 ? part.profiles : 0) +
-        (Array.isArray(schema.oneOf) ? part.family : 0),
+        (Array.isArray(schema.oneOf) ? part.family : 0) +
+        (arrays.length + optionalArrays.length > 0 ? part.anyArray : 0) +
+        (part.descLine * descriptionLines) / perRow +
+        (snippets ? (size === "narrow" ? CODE_FRAME.narrow : CODE_FRAME.wide) + codeBox(lines) : 0),
     );
   };
   return { narrow: estimate("narrow"), wide: estimate("wide") };

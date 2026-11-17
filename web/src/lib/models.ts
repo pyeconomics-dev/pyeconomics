@@ -6,7 +6,9 @@
 // candidates, its citations' links and the words for its evidence status.
 // Pure functions over the site data: nothing here reads a file or reaches the
 // browser.
+import { jsonText } from "@/lib/json-text";
 import { DOCUMENTATION } from "@/lib/links";
+import { profileLabel } from "@/lib/profiles";
 export {
   DOMAINS,
   ORIGIN,
@@ -391,7 +393,7 @@ export function liveNotice(profiles: readonly DataProfile[]): LiveNotice | null 
   if (unserved.length === 0) return null;
   const here = profiles
     .filter((profile) => profile.rows.length > 0 && profile.rows.every((row) => row.hosted))
-    .map((profile) => profile.profile);
+    .map((profile) => profileLabel(profile.profile));
   const some = here.length > 0;
   return {
     title: some
@@ -403,7 +405,7 @@ export function liveNotice(profiles: readonly DataProfile[]): LiveNotice | null 
     local: unserved.map((source) => {
       const one = source.profiles.length === 1;
       const subject = some
-        ? `${one ? "The profile" : "The profiles"} ${sentenceList(source.profiles)} ${one ? "reads" : "read"}`
+        ? `${one ? "The profile" : "The profiles"} ${sentenceList(source.profiles.map(profileLabel))} ${one ? "reads" : "read"}`
         : "This model reads";
       return (
         `${subject} ${sentenceList(source.labels)}. ${source.labels.length === 1 ? "Its" : "Their"} source, ` +
@@ -421,7 +423,7 @@ export function describe(model: Pick<Model, "summary">, limit = 160): string {
   return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
 }
 
-/** JSON as the worked example shows it: two-space indentation. */
+/** JSON as the worked example shows it: indented, a list of plain values kept short (src/lib/json-text.ts). */
 export function pretty(value: unknown): string {
-  return JSON.stringify(value, null, 2);
+  return jsonText(value);
 }

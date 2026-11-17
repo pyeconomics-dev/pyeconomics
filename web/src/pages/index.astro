@@ -19,6 +19,7 @@ import { buttonVariants } from "@/components/ui/button";
 import Base from "@/layouts/Base.astro";
 import { calculatorProps, formRoom } from "@/lib/calculator";
 import { DOCUMENTATION, REPOSITORY } from "@/lib/links";
+import { mcpCommand } from "@/lib/mcp";
 import { DOMAINS, domainPath, modelPath } from "@/lib/models";
 import { FEATURED_MODEL, HOME } from "@/lib/pages";
 import { cliSnippet, pythonSnippet } from "@/lib/snippets";
@@ -38,7 +39,8 @@ const counts = new Map(domains());
 const sections = DOMAINS.map((domain) => ({ domain, count: counts.get(domain.id) ?? 0 }));
 const prerelease = /(a|b|rc|dev)\d/.test(version);
 const install = prerelease ? "pip install --pre pyeconomics" : "pip install pyeconomics";
-const mcpCommand = `uvx --from "pyeconomics[mcp]==${version}" pyeconomics mcp`;
+// The command the documentation's MCP page gives (src/lib/mcp.ts).
+const mcpStart = mcpCommand(version);
 const everyModel = (await getCollection("models")).map(({ data }) => data);
 const featured = everyModel.find((model) => model.id === FEATURED_MODEL);
 const surface = surfaceData.find((entry) => entry.id === FEATURED_MODEL);
@@ -58,7 +60,7 @@ const ownTools = surfaceData.filter((entry) => entry.mcp_tool !== null);
 const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
 ---
 
-<Base title={HOME.title} description={HOME.description}>
+<Base title={HOME.title} description={HOME.description} paintWith="try">
   <div class="sr-only"><Breadcrumbs trail={[{ name: "Home", path: "/" }]} /></div>
 
   <section class="hero" aria-labelledby="hero-title">
@@ -66,9 +68,9 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
       <p class="eyebrow">Free and open source · Apache-2.0</p>
       <h1 id="hero-title" class="hero-title">Economics and finance models you can read, run and cite.</h1>
       <p class="hero-lead">
-        {models} free models with their formulas, sources and tested values, and {conceptData.length} data series, for
-        students, analysts and developers. Run them here, or from{" "}
-        <a href="#code">Python, the command line, a REST API or your AI assistant</a>.
+        {models} free models with their formulas, sources and <a href="/about/#tested">tested values</a>, and{" "}
+        {conceptData.length} data series, for students, analysts and developers. Run them here, or from{" "}
+        <a href="#code">Python, the command line, a REST API</a> or <a href="/assistants/">your AI assistant</a>.
       </p>
       <div class="hero-actions">
         <a href="#try" class={buttonVariants({ size: "lg", className: "no-underline" })}>Try a model</a>
@@ -83,7 +85,8 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
       {
         prerelease && (
           <p class="note" data-preview-note>
-            Version {version} is a preview of 1.0. <a href="/newsletter/">Get an email when 1.0 ships</a>.
+            This is a preview of version 1.0 (<span class="whitespace-nowrap">{version}</span>).{" "}
+            <a href="/newsletter/">Get an email when 1.0 ships</a>.
           </p>
         )
       }
@@ -165,9 +168,9 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
       <div>
         <dt>MCP server</dt>
         <dd>
-          Give your AI assistant every model as a tool: <code>{mcpCommand}</code>. The tool <code>run_model</code> runs
+          Give your AI assistant every model as a tool: <code>{mcpStart}</code>. The tool <code>run_model</code> runs
           any model by its id{featuredTool && <Fragment>, and {ownTools.length} models have a tool of their own, such as <code>{featuredTool}</code></Fragment>}.{" "}
-          <a href={`${DOCUMENTATION}mcp.html`}>Setting it up</a>
+          <a href="/assistants/">Connect your assistant</a>
         </dd>
       </div>
       <div>
@@ -202,7 +205,7 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
         <h3 class="card-title">Open</h3>
         <p>
           All the code, tests and history are public. <a href={REPOSITORY}>The repository on GitHub</a>.{" "}
-          <a href="/legal/">Who runs this site</a>.
+          <a href="/about/">Who runs this site</a>.
         </p>
       </li>
       <li class={card}>

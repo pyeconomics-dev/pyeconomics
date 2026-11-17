@@ -218,11 +218,9 @@ export default function ResultPanel({ result, table, sourceNames }: ResultPanelP
         </div>
       )}
       {facts.length > 0 && (
-        <details className="rounded-md border px-4" data-manifest="">
-          <summary className="cursor-pointer py-3 text-sm font-medium">
-            Manifest: what makes this result reproducible
-          </summary>
-          <div className="flex flex-col gap-3 pb-4 text-sm">
+        <div className="rounded-md border px-4 py-3" data-manifest="">
+          <h4 className="text-sm font-medium">Manifest: what makes this result reproducible</h4>
+          <div className="mt-2 flex flex-col gap-3 text-sm">
             <p className="text-muted-foreground">
               The same model version and inputs give the same result hash on every surface: the website, Python, the
               command line, the REST API and MCP.
@@ -237,7 +235,7 @@ export default function ResultPanel({ result, table, sourceNames }: ResultPanelP
             </dl>
             <CopyButton text={facts.map((fact) => `${fact.label}: ${fact.value}`).join("\n")} label="Copy the manifest's facts" />
           </div>
-        </details>
+        </div>
       )}
     </div>
   );

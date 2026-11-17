@@ -1103,6 +1103,50 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   request a page view sends unasked (`pages.spec.ts` allows only that one), and
   gives a line to cite the series by (`explorer.ts citation`), built only from
   the answer's source record and the page's own address.
+- A table a visitor reads row by row fits a phone. A model's variables tables
+  (`VariablesTable.astro`) are two columns below 640 pixels, the unit and bounds
+  under the name, and four above; `pages.spec.ts` measures three models' at 390
+  wide. A dense reference table (a profile's bindings) may scroll in its own
+  box, with a minimum width on each column, so none is too narrow to read.
+- JSON and Python a page shows go through `src/lib/json-text.ts`: a list of
+  plain values stays on one line while short and otherwise fills lines a phone's
+  code box shows whole. A unit test parses every golden case's inputs back. A
+  block of code has one look everywhere, `.code-box` (the calculator's snippets
+  and a worked example's JSON included), and a copy control sits above a block
+  that can be taller than the screen, never under it.
+- A data profile is named through `src/lib/profiles.ts` (`profileLabel`: its
+  name, with its id beside a name that does not spell it); a profile whose id is
+  a code joins `PROFILE_NAMES`, and a test fails on a name no model binds.
+- `/about/` says who runs the site only in `legal.ts`'s words (`OPERATOR`,
+  `CONTACT_EMAIL`), the same sentence the legal index gives, and counts every
+  number it states from the site data; change what it says about a person only
+  with the maintainer's word. `/assistants/` takes its tools, start command and
+  client configuration from `src/lib/mcp.ts`, held to the server's
+  `DISCOVERY_TOOLS` and to `docs/mcp.md` by `tests/web/test_mcp_tools_listed.py`.
+- Search results put a page whose title begins with the query first
+  (`search.ts titleFirst`); the footer's links are `links.ts FOOTER_GROUPS`,
+  four groups under headings.
+- A page whose first screen is followed by formulas passes `paintWith` to
+  `Base.astro` (a model page its `formula` section, the home page `try`): a
+  `<link rel="expect" blocking="render">` that holds the first paint until that
+  element is parsed. MathML takes about a tenth of a second to lay out, and
+  where the header was painted alone first, the main text became a later paint
+  that Lighthouse's simulation timed at 3.5 seconds, in some runs and not
+  others. Read a failing Lighthouse page's `.lighthouse/*.json` for its observed
+  first and largest paints before changing anything: when they differ, this is
+  why.
+- No control's opacity transitions (`ui/button.tsx` transitions colours and
+  shadow only): a button that is off until its island loads is either off or
+  fully drawn, never mid-fade, where axe once read it at a contrast of 2.6. A
+  unit test fails on `disabled:opacity-*` beside `transition-all`.
+- Refit `formRoom` (`node scripts/form-room.ts` prints each model's error) when
+  the form's or the code section's layout changes: a median error near 30
+  pixels is what the layout-shift check was fitted to pass, and a drifted
+  estimate fails it only now and then, on whichever page scrolls at the wrong
+  moment. The home page's card is a phone's width beside its introduction, so
+  it holds the phone's room there.
+- The harness chooses a select's option with `support.ts choose` (a key press
+  first), so a visitor's own choice is not scored as a layout shift.
 - An evaluator is an Agent subagent on another model than the implementer's, given
   the protocol's prompt word for word and, after it, working notes that change no
   rule (where to run `visit`, which run folder, to skip the session-start routine

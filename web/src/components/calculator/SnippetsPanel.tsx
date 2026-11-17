@@ -3,9 +3,10 @@
 // written for each other surface (src/lib/snippets.ts). One snippet shows at a
 // time, chosen from a row of buttons that is always in view beside the form
 // (Step 18's round 1: the snippets sat in a closed disclosure under the
-// result), in a plain <pre> with the site's copy button. The MCP snippet says
-// which of the server's two tools it calls. They name the public endpoint and
-// the form's own inputs only.
+// result), in a plain <pre>, with the site's copy button beside the choices.
+// The MCP snippet says which of the server's two tools it calls and where the
+// server's set-up is. They name the public endpoint and the form's own inputs
+// only.
 import { useState } from "react";
 
 import CopyButton from "@/components/calculator/CopyButton";
@@ -21,7 +22,8 @@ const LABELS: ReadonlyMap<SnippetKind, string> = new Map([
 const TAB =
   "rounded-md border px-3 py-1.5 text-sm hover:bg-accent aria-pressed:border-primary aria-pressed:bg-primary " +
   "aria-pressed:text-primary-foreground";
-const PRE = "max-h-80 overflow-auto rounded-md bg-muted px-4 py-3 text-xs";
+// The site's one look for a block of code (.code-box, src/styles/global.css).
+const PRE = "code-box max-h-80 overflow-auto rounded-md px-4 py-3 text-xs";
 
 export interface SnippetsPanelProps {
   run: SnippetRun;
@@ -41,19 +43,25 @@ export default function SnippetsPanel({ run, mcpTool = null }: SnippetsPanelProp
   const text = texts.get(kind) ?? "";
   return (
     <div className="flex flex-col gap-3" data-snippets="">
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Show the run as">
-        {SNIPPET_KINDS.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            className={TAB}
-            aria-pressed={entry === kind}
-            data-snippet-tab={entry}
-            onClick={() => setKind(entry)}
-          >
-            {LABELS.get(entry) ?? entry}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Show the run as">
+          {SNIPPET_KINDS.map((entry) => (
+            <button
+              key={entry}
+              type="button"
+              className={TAB}
+              aria-pressed={entry === kind}
+              data-snippet-tab={entry}
+              onClick={() => setKind(entry)}
+            >
+              {LABELS.get(entry) ?? entry}
+            </button>
+          ))}
+        </div>
+        {/* Beside the choices, above the code: under a tall snippet it was out of sight (Step 18's round 2). */}
+        <div className="sm:ml-auto">
+          <CopyButton text={text} label={`Copy ${label}`} />
+        </div>
       </div>
       <div className="flex flex-col gap-2" data-snippet={kind}>
         <pre className={PRE} role="region" aria-label={`${label} snippet`} tabIndex={0}>
@@ -68,12 +76,10 @@ export default function SnippetsPanel({ run, mcpTool = null }: SnippetsPanelProp
                 The model also has a tool of its own, <code>{mcpTool}</code>, which takes the inputs alone. Both give
                 the same result.
               </>
-            ) : null}
+            ) : null}{" "}
+            <a href="/assistants/">How to connect an assistant</a>
           </p>
         )}
-        <div>
-          <CopyButton text={text} label={`Copy ${label}`} />
-        </div>
       </div>
     </div>
   );

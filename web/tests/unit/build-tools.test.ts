@@ -107,6 +107,31 @@ describe("the clipboard", () => {
   });
 });
 
+// Phase 5 Step 18's round 2: a control that is off until its island loads is
+// drawn at half strength, and a transition on every property made it fade back
+// in over 150 milliseconds once it was on. axe, reading the page in that
+// moment, saw an enabled button at a contrast of 2.6. No control's opacity
+// transitions, so one is either off or fully drawn.
+describe("a control leaving its disabled state", () => {
+  const SOURCE = fileURLToPath(new URL("../../src/", import.meta.url));
+  const files = (directory: string): string[] =>
+    readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(directory, entry.name);
+      return entry.isDirectory() ? files(path) : [path];
+    });
+
+  it("does not fade: nothing transitions every property or its opacity beside a disabled look", () => {
+    const fading = files(SOURCE)
+      .filter((path) => /\.(?:astro|ts|tsx)$/.test(path))
+      .filter((path) => {
+        const text = readFileSync(path, "utf8");
+        return /disabled:opacity-/.test(text) && /\btransition-all\b|\btransition-opacity\b|\btransition(?=[\s"'`])/.test(text);
+      })
+      .map((path) => path.slice(SOURCE.length).split("\\").join("/"));
+    expect(fading).toEqual([]);
+  });
+});
+
 // Phase 5 Step 18: the visual baselines photograph decision 19's sample, the
 // pages Lighthouse measures before the two Step 15 added.
 describe("the visual baselines' sample", () => {

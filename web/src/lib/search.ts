@@ -121,14 +121,36 @@ export function resultPath(url: string): string | null {
   return url.startsWith("/") && !url.startsWith("//") ? url : null;
 }
 
-/** Search the index: up to `limit` hits, in Pagefind's order. */
+function plainWords(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/**
+ * The hits with a page named for what was typed first (Phase 5 Step 18's
+ * round 2: "unemployment" listed three forecast series above "Unemployment
+ * rate"). A hit whose title begins with the query leads, the shortest such
+ * title first; every other hit keeps Pagefind's order.
+ */
+export function titleFirst(hits: readonly SearchHit[], query: string): SearchHit[] {
+  const asked = plainWords(query);
+  if (asked === "") return [...hits];
+  const named = (hit: SearchHit) => plainWords(hit.title).startsWith(asked);
+  const leading = hits
+    .map((hit, index) => ({ hit, index }))
+    .filter(({ hit }) => named(hit))
+    .sort((a, b) => a.hit.title.length - b.hit.title.length || a.index - b.index)
+    .map(({ hit }) => hit);
+  return [...leading, ...hits.filter((hit) => !named(hit))];
+}
+
+/** Search the index: up to `limit` hits, in Pagefind's order after the pages the query names. */
 export async function search(query: string, limit = 8, pagefind?: Pagefind): Promise<SearchHit[]> {
   const text = query.trim().slice(0, MAX_QUERY);
   if (text === "") return [];
   const index = pagefind ?? (await loadPagefind());
   const response = await index.search(text);
   const data = await Promise.all((response?.results ?? []).slice(0, limit).map((result) => result.data()));
-  return data.flatMap((item) => {
+  const hits = data.flatMap((item) => {
     const url = resultPath(item.url);
     if (url === null) return [];
     return [
@@ -142,4 +164,5 @@ export async function search(query: string, limit = 8, pagefind?: Pagefind): Pro
       },
     ];
   });
+  return titleFirst(hits, text);
 }

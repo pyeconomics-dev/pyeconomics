@@ -51,6 +51,7 @@ import {
   type CalculatorProps,
 } from "@/lib/calculator";
 import { adoptStyles } from "@/lib/adopt-styles";
+import { profileLabel } from "@/lib/profiles";
 import { report } from "@/lib/error-reporting";
 import { track } from "@/lib/events";
 import { LOCAL_APP } from "@/lib/explorer";
@@ -356,8 +357,8 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                   <select className={CONTROL} value={profile} onChange={(event) => setProfile(event.target.value)}>
                     {props.profiles.map((entry) => (
                       <option key={entry.profile} value={entry.profile}>
-                        {entry.profile}
-                        {offSite(entry.profile).length > 0 ? " (your own computer only)" : ""}
+                        {profileLabel(entry.profile)}
+                        {offSite(entry.profile).length > 0 ? ": your own computer only" : ""}
                       </option>
                     ))}
                   </select>
@@ -405,7 +406,9 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                 </p>
               ) : (
                 <p data-live="hosted">
-                  Filled from data: {fieldList(filled)}. The form's other inputs are sent with the run.
+                  Read from data, {asOf ? `as it stood on ${asOf}` : "at its latest values"}:{" "}
+                  {sentence(filled.map((field) => fieldTitle(field)))}. The result lists each series with its source
+                  and the date of its last observation. The form's other inputs are sent with the run.
                 </p>
               )}
             </div>
@@ -462,6 +465,12 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
             {running ? "Running…" : "Run"}
           </button>
           <span className="text-xs text-muted-foreground">Inputs marked * are required.</span>
+          {/* The run as code is beneath the result, which can be long (Step 18's round 2). */}
+          {props.snippets !== false && (
+            <a href="#calculator-code" className="text-sm sm:ml-auto" data-code-link="">
+              These inputs as code
+            </a>
+          )}
         </div>
       </Form>
 

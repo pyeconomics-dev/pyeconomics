@@ -1,0 +1,153 @@
+---
+// web/src/pages/about/index.astro
+// /about/ (Phase 5 Step 18's round 2): what pyeconomics is, who runs this
+// site, where the formulas come from and how each model is checked. Three
+// rounds of first-time visitors asked those four questions and found the
+// answers scattered: the operator on the legal index, the citations and the
+// evidence on each model's page, the tests in the repository. This page says
+// each in a paragraph, with its numbers counted from the site data (never
+// written by hand) and a link to the page that shows it. Who operates the site
+// is the legal index's own sentence (src/lib/legal.ts): nothing here says more
+// about a person than that page does.
+import { getCollection } from "astro:content";
+
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import golden from "@/data/generated/golden.json";
+import { CONTACT_EMAIL, LEGAL_INDEX, OPERATOR } from "@/lib/legal";
+import { DISCUSSIONS, DOCUMENTATION, REPOSITORY } from "@/lib/links";
+import { EVIDENCE_MEANING, modelPath } from "@/lib/models";
+import { ABOUT, FEATURED_MODEL } from "@/lib/pages";
+import { conceptData } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: ABOUT.title, path: ABOUT.path },
+];
+const models = (await getCollection("models")).map(({ data }) => data);
+const featured = models.find((model) => model.id === FEATURED_MODEL);
+if (!featured) throw new Error(`the featured model ${FEATURED_MODEL} is not in the registry`);
+const citations = models.reduce((total, model) => total + model.references.length, 0);
+const invariants = models.reduce((total, model) => total + model.invariants.length, 0);
+const goldenCases = (golden as { cases: unknown[] }).cases.length;
+// The publishers the catalog's series come from, counted as the home page counts them.
+const publishers = new Set(conceptData.flatMap((concept) => concept.candidates.map((candidate) => candidate.provider))).size;
+const statuses = Object.entries(EVIDENCE_MEANING).map(([status, meaning]) => ({
+  status,
+  meaning,
+  count: models.filter((model) => model.evidence === status).length,
+}));
+const section = "model-section";
+---
+
+<Base
+  title={ABOUT.title}
+  description={ABOUT.description}
+  jsonLd={webPage(ABOUT.path, ABOUT.title, ABOUT.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:About"></span>
+  <h1 class="page-title">About pyeconomics</h1>
+  <p class="lead measure mt-4">
+    pyeconomics is a free, open-source library of economics and finance models, and this website is one way to use it.
+    Every model shows its formula, cites where the formula comes from and is tested against published values.
+  </p>
+
+  <section id="what" class={section} aria-labelledby="what-heading">
+    <h2 id="what-heading" class="section-title">What it is</h2>
+    <p class="measure">
+      {models.length} models and {conceptData.length} data series from {publishers} sources, under the
+      Apache-2.0 licence. The same models run here in the browser, from Python, from the command line, over a REST API
+      and as tools for an AI assistant, and each gives the same result, byte for byte. Nothing on this site needs an
+      account, and the models are free to use, to read and to change.
+    </p>
+    <p class="measure">
+      <a href="/models/">Browse the models</a>, <a href="/data/">explore the data</a>, or read the{" "}
+      <a href={DOCUMENTATION}>documentation</a>.
+    </p>
+  </section>
+
+  <section id="who" class={section} aria-labelledby="who-heading">
+    <h2 id="who-heading" class="section-title">Who runs it</h2>
+    <p class="measure" data-operator>
+      pyeconomics.dev is operated by {OPERATOR}, the project's maintainer. Write to{" "}
+      <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+    </p>
+    <p class="measure">
+      The code, its tests and the whole history of both are public in{" "}
+      <a href={REPOSITORY}>the repository on GitHub</a>, where anyone can report an error, ask a question in{" "}
+      <a href={DISCUSSIONS}>Discussions</a> or propose a model. The <a href={LEGAL_INDEX.path}>legal pages</a> hold the
+      terms of use, the privacy policy and the disclaimers.
+    </p>
+  </section>
+
+  <section id="formulas" class={section} aria-labelledby="formulas-heading">
+    <h2 id="formulas-heading" class="section-title">Where the formulas come from</h2>
+    <p class="measure">
+      Each model cites the papers, textbooks and official documents its formulas follow: {citations} citations across
+      the {models.length} models, listed on each model's page with a link where the source has one. See{" "}
+      <a href={`${modelPath(featured.id)}#citations`}>{featured.title}'s citations</a>.
+    </p>
+    <p class="measure">
+      Every model also declares how far its method is accepted, so a rule of thumb is never passed off as settled
+      theory:
+    </p>
+    <ul class="measure list-disc space-y-1 pl-6">
+      {
+        statuses.map((entry) => (
+          <li data-evidence={entry.status}>
+            <strong>{entry.status}</strong> ({entry.count} {entry.count === 1 ? "model" : "models"}): {entry.meaning}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section id="tested" class={section} aria-labelledby="tested-heading">
+    <h2 id="tested-heading" class="section-title">How each model is tested</h2>
+    <ul class="measure list-disc space-y-2 pl-6">
+      <li>
+        <strong>Against published values.</strong> {goldenCases} reference values, at least three for each model, each
+        taken from a cited source and reproduced within a stated tolerance.
+      </li>
+      <li>
+        <strong>Against properties that must always hold.</strong> {invariants} of them, each tried on many
+        generated inputs: a bond's price falls when its yield rises, for one.
+      </li>
+      <li>
+        <strong>Against independent software</strong>, where a well-known library computes the same thing.
+      </li>
+      <li>
+        <strong>Across every way of running it.</strong> The website, Python, the command line, the REST API and the
+        assistant tools must return identical bytes for the same inputs.
+      </li>
+    </ul>
+    <p class="measure">
+      The tests run on every change, in public: <a href={`${REPOSITORY}/tree/main/tests/golden`}
+        >the reference values</a
+      >{" "}
+      and <a href={`${REPOSITORY}/actions`}>the runs</a> are in the repository. Each result also carries a manifest, the
+      model's version and the hashes of its inputs and result, so anyone can run it again and compare.
+    </p>
+  </section>
+
+  <section id="data" class={section} aria-labelledby="data-heading">
+    <h2 id="data-heading" class="section-title">Where the data comes from</h2>
+    <p class="measure">
+      From the bodies that publish it: statistical offices, central banks and researchers. Every series names its
+      publisher, its licence and its terms, and this site serves only what those terms allow.{" "}
+      <a href="/sources/">The data sources</a> lists each one.
+    </p>
+  </section>
+
+  <section id="limits" class={section} aria-labelledby="limits-heading">
+    <h2 id="limits-heading" class="section-title">What it is not</h2>
+    <p class="measure">
+      pyeconomics is a tool for learning, research and analysis, offered as is. It is not investment advice, and a
+      model's output is only as good as its inputs and its assumptions, which each model's page states.{" "}
+      <a href="/legal/disclaimers/">The disclaimers</a> say more.
+    </p>
+  </section>
+</Base>

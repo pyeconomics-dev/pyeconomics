@@ -358,13 +358,23 @@ test("a run says it finished, shows the manifest's hashes, and names the model's
   await run(page);
   const result = page.locator("#calculator [data-outcome=result]");
   await expect(result.locator("[data-run-summary]")).toHaveText("The run finished: 16 outputs, no warnings.");
+  // The hashes are in view beside the result, not behind a disclosure (round 2).
   const manifest = result.locator("[data-manifest]");
-  await manifest.locator("summary").click();
   await expect(manifest).toContainText("Inputs SHA-256");
   await expect(manifest.locator("dd").filter({ hasText: /^[0-9a-f]{64}$/ })).toHaveCount(2);
   const code = page.locator("#calculator [data-snippets]");
+  // Round 2: the run as code is one click from the Run button, its copy control
+  // is above the code (under a tall snippet it was out of sight), and a year of
+  // returns fills a few lines, not a dozen.
+  await expect(page.locator("#calculator [data-code-link]")).toHaveAttribute("href", "#calculator-code");
+  const copy = await code.getByRole("button", { name: "Copy Python" }).boundingBox();
+  const box = await code.locator("pre").boundingBox();
+  expect((copy?.y ?? 0) + (copy?.height ?? 0)).toBeLessThanOrEqual(box?.y ?? 0);
+  const python = (await code.locator("pre").textContent()) ?? "";
+  expect(python.split(/\n/).length).toBeLessThan(30);
   await code.locator("[data-snippet-tab=mcp]").click();
   await expect(code.locator("[data-mcp-note]")).toContainText("run_model");
   await expect(code.locator("[data-mcp-note]")).toContainText("performance_risk_adjusted");
+  await expect(code.locator("[data-mcp-note]").getByRole("link", { name: "How to connect an assistant" })).toHaveAttribute("href", "/assistants/");
   expect(api.requests).toHaveLength(1);
 });

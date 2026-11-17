@@ -24,6 +24,7 @@ import {
   variables,
   type VariableTable,
 } from "@/lib/models";
+import { PROFILE_NAMES, profileLabel, profileName } from "@/lib/profiles";
 import { COST, EVIDENCE, parseModels } from "@/lib/registry-schema";
 import { conceptData, registryData, sourceData } from "@/lib/site-data";
 
@@ -246,14 +247,29 @@ describe("the live-data notice (Phase 5 Step 18)", () => {
   it("names the profiles that run here first, then what the others read and from whom", () => {
     const notice = liveNotice([
       { profile: "default", rows: [row("a", true, "BLS")] },
-      { profile: "other", rows: [row("a", true, "BLS")] },
-      { profile: "survey", rows: [row("a", false, "A Bank"), row("b", false, "A Bank")] },
+      { profile: "ea", rows: [row("a", true, "BLS")] },
+      { profile: "us_spf", rows: [row("a", false, "A Bank"), row("b", false, "A Bank")] },
     ]);
     expect(notice?.title).toBe("Live data: some profiles run here, the rest on your own computer");
-    expect(notice?.served).toBe('On this site, "Live data" runs with the profiles default and other.');
+    // Each profile by its name, its id beside a name that does not spell it (round 2: the notice listed ids).
+    expect(notice?.served).toBe('On this site, "Live data" runs with the profiles Default and Euro area (ea).');
     expect(notice?.local).toEqual([
-      "The profile survey reads Title of a and Title of b. Their source, A Bank, lets pyeconomics read the data on your own computer but not serve them from this website.",
+      "The profile US forecasters' survey (us_spf) reads Title of a and Title of b. Their source, A Bank, lets pyeconomics read the data on your own computer but not serve them from this website.",
     ]);
+  });
+
+  it("names every profile a model binds, and holds no name for a profile none does", () => {
+    const bound = new Set(registryData.models.flatMap((model) => (model.bindings as { profile: string }[]).map((binding) => binding.profile)));
+    for (const id of PROFILE_NAMES.keys()) expect(bound.has(id), id).toBe(true);
+    for (const id of bound) {
+      // A name in words, never the bare code of two or three letters.
+      expect(profileName(id), id).toMatch(/^[A-Z]/);
+      if (id.length <= 3) expect(PROFILE_NAMES.has(id), id).toBe(true);
+    }
+    expect(profileLabel("default")).toBe("Default");
+    expect(profileLabel("nominal")).toBe("Nominal");
+    expect(profileLabel("gb")).toBe("United Kingdom (gb)");
+    expect(profileLabel("us_output_gap")).toBe("US output gap");
   });
 
   it("says so plainly when no profile runs here", () => {

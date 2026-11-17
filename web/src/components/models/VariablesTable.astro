@@ -1,9 +1,13 @@
 ---
 // web/src/components/models/VariablesTable.astro
-// One variables table: each field's name, unit, bounds and description, as the
-// model card writes them (src/lib/models.ts variables()). Every value is text
-// Astro escapes. The table scrolls on a narrow screen, so its region is
-// focusable and named for keyboard users.
+// One variables table: each field's name in words with its id, its unit, its
+// bounds and its description, as the model card writes them (src/lib/models.ts
+// variables()). Every value is text Astro escapes. On a phone the table is two
+// columns, the unit and bounds under the name, so the description is read
+// without scrolling sideways (Phase 5 Step 18's round 2: four columns ran off
+// the screen and hid it); from 640 pixels it is four. The region stays
+// focusable and named, for a table a long id still makes scroll.
+import { fieldTitle } from "@/lib/calculator";
 import type { VariableTable } from "@/lib/models";
 
 interface Props {
@@ -15,14 +19,14 @@ const { table, caption } = Astro.props;
 ---
 
 <div class="overflow-x-auto" role="region" aria-label={caption} tabindex="0">
-  <table class="w-full border-collapse text-left text-sm">
+  <table class="w-full border-collapse text-left text-sm max-sm:table-fixed" data-variables>
     <caption class="mb-2 text-left font-medium">{caption}</caption>
     <thead>
       <tr class="border-b">
-        <th scope="col" class="py-2 pr-4">Name</th>
-        <th scope="col" class="py-2 pr-4">Unit</th>
-        <th scope="col" class="py-2 pr-4">Bounds</th>
-        <th scope="col" class="py-2">Description</th>
+        <th scope="col" class="py-2 pr-4 max-sm:w-[46%]">Name</th>
+        <th scope="col" class="hidden py-2 pr-4 sm:table-cell">Unit</th>
+        <th scope="col" class="hidden py-2 pr-4 sm:table-cell">Bounds</th>
+        <th scope="col" class="py-2 sm:min-w-64">Description</th>
       </tr>
     </thead>
     <tbody>
@@ -30,10 +34,14 @@ const { table, caption } = Astro.props;
         table.rows.map((row) => (
           <tr class="border-b align-top">
             <th scope="row" class="py-2 pr-4 font-normal">
-              <code>{row.name}</code>
+              <span class="block font-medium">{fieldTitle(row.name)}</span>
+              <code class="block text-xs text-muted-foreground">{row.name}</code>
+              <span class="mt-1 block text-xs text-muted-foreground sm:hidden" data-pagefind-ignore data-unit-bounds>
+                {[row.unit, row.bounds].filter((part) => part !== "").join(" · ")}
+              </span>
             </th>
-            <td class="py-2 pr-4">{row.unit}</td>
-            <td class="py-2 pr-4 whitespace-nowrap">{row.bounds}</td>
+            <td class="hidden py-2 pr-4 sm:table-cell">{row.unit}</td>
+            <td class="hidden py-2 pr-4 whitespace-nowrap sm:table-cell">{row.bounds}</td>
             <td class="py-2">{row.description}</td>
           </tr>
         ))

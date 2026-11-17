@@ -43,8 +43,7 @@ test("a calculator's copy controls say when the clipboard refuses", async ({ pag
   await section.scrollIntoViewIfNeeded();
   await expect(section.locator("[data-calculator][data-ready=true]")).toBeVisible();
   await section.getByRole("button", { name: "Run", exact: true }).click();
-  await expect(section.getByRole("heading", { name: "Result" })).toBeVisible();
-  await section.locator("[data-manifest] summary").click();
+  await expect(section.getByRole("heading", { name: "Result", exact: true })).toBeVisible();
   // Copy JSON, the manifest's facts and the snippet.
   await pressEach(page, 3);
   expect(api.requests).toHaveLength(1);

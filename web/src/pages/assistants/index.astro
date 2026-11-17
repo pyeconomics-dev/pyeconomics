@@ -1,0 +1,110 @@
+---
+// web/src/pages/assistants/index.astro
+// /assistants/ (Phase 5 Step 18's round 2): how to give an AI assistant the
+// models and the data, on the site itself. Rounds 1 and 2's developers found
+// a tool's name and a start command and had to leave for the documentation to
+// connect anything. This page gives the configuration a client reads, the
+// hosted endpoint, the tools and what data may reach an assistant, each from
+// src/lib/mcp.ts (the tools' names are the server's own, held equal by a
+// test) and the site data; the documentation's MCP page stays the reference
+// for each client.
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Base from "@/layouts/Base.astro";
+import { DOCUMENTATION } from "@/lib/links";
+import { MCP_ENDPOINT, MCP_TOOL_WORDS, mcpClientConfig, mcpCommand } from "@/lib/mcp";
+import { modelPath } from "@/lib/models";
+import { ASSISTANTS } from "@/lib/pages";
+import { registryData, surfaceData, version } from "@/lib/site-data";
+import { webPage, type Crumb } from "@/lib/structured-data";
+
+const trail: Crumb[] = [
+  { name: "Home", path: "/" },
+  { name: ASSISTANTS.title, path: ASSISTANTS.path },
+];
+const own = surfaceData.filter((entry) => entry.mcp_tool !== null);
+const titles = new Map(registryData.models.map((model) => [model.id, model.title]));
+const section = "model-section";
+---
+
+<Base
+  title={ASSISTANTS.title}
+  description={ASSISTANTS.description}
+  jsonLd={webPage(ASSISTANTS.path, ASSISTANTS.title, ASSISTANTS.description, trail)}
+  searchable
+>
+  <Breadcrumbs trail={trail} />
+  <span hidden data-pagefind-meta="kind:Guide"></span>
+  <h1 class="page-title">Use pyeconomics with an AI assistant</h1>
+  <p class="lead measure mt-4">
+    pyeconomics is an MCP server: an assistant that speaks the Model Context Protocol gets every model and every data
+    series as tools, and answers with the same results this site shows, each with its sources.
+  </p>
+
+  <section id="connect" class={section} aria-labelledby="connect-heading">
+    <h2 id="connect-heading" class="section-title">Connect it</h2>
+    <p class="measure">
+      Most assistants read a JSON configuration file. Add this entry, and the assistant starts the server on your own
+      computer when it needs it:
+    </p>
+    <figure class="code-block measure">
+      <figcaption>Client configuration</figcaption>
+      <pre role="region" tabindex="0" aria-label="Client configuration" data-mcp-config><code>{mcpClientConfig(version)}</code></pre>
+    </figure>
+    <p class="measure">
+      It runs <code>{mcpCommand(version)}</code>, which needs <a href="https://docs.astral.sh/uv/">uv</a> installed.
+      The server runs on your own computer and reads your own data keys, as the library does, so it reaches every
+      source you can.
+    </p>
+    <p class="measure">
+      An assistant that connects to a URL can use this site's server instead, with nothing to install:{" "}
+      <code data-mcp-endpoint>{MCP_ENDPOINT}</code>. It serves the same tools over the data this site may serve.
+    </p>
+    <p class="measure">
+      <a href={`${DOCUMENTATION}mcp.html`}>The documentation's MCP page</a> has the command for each client and every
+      option.
+    </p>
+  </section>
+
+  <section id="tools" class={section} aria-labelledby="tools-heading">
+    <h2 id="tools-heading" class="section-title">The tools</h2>
+    <p class="measure">Five tools reach every model and every source:</p>
+    <dl class="measure symbols" data-mcp-tools>
+      {
+        Object.entries(MCP_TOOL_WORDS).map(([tool, words]) => (
+          <div data-mcp-tool={tool}>
+            <dt>
+              <code>{tool}</code>
+            </dt>
+            <dd>{words}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="measure">
+      {own.length} models also have a tool of their own, which takes the model's inputs alone and gives the same result
+      as <code>run_model</code> with the model's id:
+    </p>
+    <ul class="measure list-disc space-y-1 pl-6" data-own-tools>
+      {
+        own.map((entry) => (
+          <li>
+            <code>{entry.mcp_tool}</code>: <a href={modelPath(entry.id)}>{titles.get(entry.id) ?? entry.id}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="measure">
+      Every model's page gives its tool under "Use it elsewhere", and its calculator writes the call for the inputs you
+      typed.
+    </p>
+  </section>
+
+  <section id="data" class={section} aria-labelledby="data-heading">
+    <h2 id="data-heading" class="section-title">What data reaches an assistant</h2>
+    <p class="measure">
+      Only data whose terms allow it. Each source declares whether its data may be given to a language model, and the
+      server withholds a series whose source does not; <code>list_sources</code> tells the assistant which are which.{" "}
+      <a href="/sources/">The data sources</a> lists every source and its terms.
+    </p>
+  </section>
+</Base>

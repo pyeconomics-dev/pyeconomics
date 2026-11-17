@@ -30,7 +30,7 @@ import Calculator from "@/components/calculator/Calculator";
 import HypotheticalLegend from "@/components/models/HypotheticalLegend.astro";
 import VariablesTable from "@/components/models/VariablesTable.astro";
 import Base from "@/layouts/Base.astro";
-import { calculatorProps, formRoom } from "@/lib/calculator";
+import { calculations, calculatorProps, formRoom } from "@/lib/calculator";
 import { relatedModels, topicsOf } from "@/lib/catalog";
 import {
   COST_MEANING,
@@ -52,6 +52,7 @@ import { LOCAL_APP } from "@/lib/explorer";
 import { simulates } from "@/lib/legal";
 import { cliSnippet, pythonSnippet } from "@/lib/snippets";
 import { conceptPath } from "@/lib/paths";
+import { profileLabel, profileName } from "@/lib/profiles";
 import type { Model } from "@/lib/registry-schema";
 import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
 import { modelPage, type Crumb } from "@/lib/structured-data";
@@ -75,6 +76,8 @@ const inputs = variables(model.input_schema, cardOrder(model.card, "Inputs"));
 // What each symbol of the formulas stands for, from the card's "Where" list (issue #343).
 const symbols = symbolsOf(model.card);
 const outputs = variables(model.output_schema, cardOrder(model.card, "Outputs"));
+// A family's calculations in words, beside their ids in the variables tables.
+const calculationWords = new Map(calculations(model.input_schema).map((entry) => [entry.value, entry.label]));
 const profiles = dataProfiles(model.bindings, conceptData, sourceData);
 // What the page says when the hosted site may not serve some of the model's data (issue #320).
 const notice = liveNotice(profiles);
@@ -107,10 +110,10 @@ const contents = [
   ...(related.length > 0 ? [{ id: "related", label: "Related models" }] : []),
   { id: "use-it-elsewhere", label: "Use it elsewhere" },
 ];
-const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
+const preClass = "code-box overflow-x-auto rounded-md px-4 py-3 text-sm";
 ---
 
-<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)} searchable>
+<Base title={model.title} description={describe(model)} jsonLd={modelPage(model, path, trail)} searchable paintWith="formula">
   <Breadcrumbs trail={trail} />
   <div class="model-layout">
   <article class="model-article">
@@ -191,8 +194,8 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           table.calculation ? (
             <details class="variables-group" open={index === 0}>
               <summary>
-                The calculation <code>{table.calculation}</code>: {table.rows.length}{" "}
-                {table.rows.length === 1 ? "input" : "inputs"}
+                {calculationWords.get(table.calculation) ?? table.calculation} (<code>{table.calculation}</code>):{" "}
+                {table.rows.length} {table.rows.length === 1 ? "input" : "inputs"}
               </summary>
               <VariablesTable table={table} caption={`Inputs of the calculation ${table.calculation}`} />
             </details>
@@ -207,8 +210,8 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
           table.calculation ? (
             <details class="variables-group" open={index === 0}>
               <summary>
-                The calculation <code>{table.calculation}</code>: {table.rows.length}{" "}
-                {table.rows.length === 1 ? "output" : "outputs"}
+                {calculationWords.get(table.calculation) ?? table.calculation} (<code>{table.calculation}</code>):{" "}
+                {table.rows.length} {table.rows.length === 1 ? "output" : "outputs"}
               </summary>
               <VariablesTable table={table} caption={`Outputs of the calculation ${table.calculation}`} />
             </details>
@@ -394,20 +397,26 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
             <div class="overflow-x-auto" role="region" aria-label={`Profile ${profile.profile}`} tabindex="0">
               <table class="w-full border-collapse text-left text-sm">
                 <caption class="mb-2 text-left font-medium">
-                  Profile <code>{profile.profile}</code>
+                  Profile: {profileName(profile.profile)}
+                  {profileLabel(profile.profile) !== profileName(profile.profile) && (
+                    <Fragment>
+                      {" "}
+                      (<code>{profile.profile}</code>)
+                    </Fragment>
+                  )}
                 </caption>
                 <thead>
                   <tr class="border-b">
                     <th scope="col" class="py-2 pr-4">
                       Field
                     </th>
-                    <th scope="col" class="py-2 pr-4">
+                    <th scope="col" class="min-w-40 py-2 pr-4">
                       Concept
                     </th>
-                    <th scope="col" class="py-2 pr-4">
+                    <th scope="col" class="min-w-48 py-2 pr-4">
                       Read as
                     </th>
-                    <th scope="col" class="py-2">
+                    <th scope="col" class="min-w-56 py-2">
                       Sources (licence class; hosted)
                     </th>
                   </tr>
@@ -510,6 +519,11 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
               </li>
             ))}
           </ul>
+          <p class="mt-4">
+            <a href={domainPath(model.domain)} data-related-domain>
+              Every {domainTitle(model.domain)} model
+            </a>
+          </p>
         </section>
       )
     }
@@ -527,7 +541,7 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
               <dt class="font-medium">MCP tool</dt>
               <dd>
                 <code>{surface.mcp_tool}</code>, or <code>run_model</code> with the model's id; both give the same
-                result
+                result. <a href="/assistants/">Connect an assistant</a>
               </dd>
             </Fragment>
           )
@@ -537,7 +551,8 @@ const preClass = "overflow-x-auto rounded-md bg-muted px-4 py-3 text-sm";
             <Fragment>
               <dt class="font-medium">MCP tool</dt>
               <dd>
-                <code>run_model</code> with the model's id, <code>{model.id}</code>
+                <code>run_model</code> with the model's id, <code>{model.id}</code>.{" "}
+                <a href="/assistants/">Connect an assistant</a>
               </dd>
             </Fragment>
           )

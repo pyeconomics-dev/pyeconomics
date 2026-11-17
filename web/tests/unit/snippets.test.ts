@@ -4,6 +4,8 @@
 // only. tests/parity/snippets.test.ts runs them.
 import { describe, expect, it } from "vitest";
 
+import golden from "@/data/generated/golden.json";
+import { LIST_WIDTH, fillLines, jsonText } from "@/lib/json-text";
 import { API_ORIGIN, cliSnippet, curlSnippet, mcpCall, pythonLiteral, pythonSnippet, snippets } from "@/lib/snippets";
 
 const RUN = { modelId: "fixed_income.duration", inputs: { rate: 0.05, flag: true, none: null, tenors: [1, 2], name: 'it\'s "q"' } };
@@ -16,12 +18,14 @@ describe("pythonLiteral", () => {
     expect(pythonLiteral(1e-7)).toBe("1e-7");
     expect(pythonLiteral('a "b"\n')).toBe('"a \\"b\\"\\n"');
     expect(pythonLiteral([[1, 2], [3]])).toBe("[\n    [1, 2],\n    [3],\n]");
-    // A long list goes one value to a line, so a phone's code box shows each.
+    // A long list fills lines a phone's code box shows whole.
     const long = Array.from({ length: 14 }, (_, index) => index / 100);
     expect(pythonLiteral({ returns: long }).split("\n")).toEqual([
       "{",
       '    "returns": [',
-      ...long.map((value) => `        ${String(value)},`),
+      "        0, 0.01, 0.02, 0.03, 0.04,",
+      "        0.05, 0.06, 0.07, 0.08,",
+      "        0.09, 0.1, 0.11, 0.12, 0.13,",
       "    ],",
       "}",
     ]);
@@ -59,6 +63,27 @@ describe("the snippets", () => {
   it("call MCP's run_model with the inputs and data options as its arguments", () => {
     expect(mcpCall(RUN)).toEqual({ name: "run_model", arguments: { model_id: RUN.modelId, inputs: RUN.inputs } });
     expect(mcpCall({ ...RUN, options: { profile: "default" } }).arguments).toMatchObject({ profile: "default" });
+  });
+
+  it("write JSON that parses to the same inputs, its lists short enough to read", () => {
+    const cases = (golden as { cases: { model: string; inputs: Record<string, unknown> }[] }).cases;
+    expect(cases.length).toBeGreaterThan(100);
+    for (const entry of cases) {
+      const text = jsonText(entry.inputs);
+      expect(JSON.parse(text), entry.model).toEqual(entry.inputs);
+    }
+    const returns = Array.from({ length: 12 }, (_, index) => (index % 2 === 0 ? 0.021 : -0.013));
+    const lines = jsonText({ returns, weights: [0.5, 0.5], matrix: [[1, 2], [3, 4]] }).split("\n");
+    // Twelve values fill three lines, none wider than a phone's code box; a short list stays on one.
+    expect(lines.filter((line) => /^\s+-?0\.0/.test(line))).toHaveLength(3);
+    expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(LIST_WIDTH);
+    expect(lines).toContain('  "weights": [0.5, 0.5],');
+    expect(lines).toContain("    [1, 2],");
+    expect(fillLines(["1", "2"], "", false)).toEqual(["1, 2"]);
+    expect(fillLines(["1", "2"], "", true)).toEqual(["1, 2,"]);
+    expect(jsonText([])).toBe("[]");
+    expect(jsonText({})).toBe("{}");
+    expect(jsonText(null)).toBe("null");
   });
 
   it("name nothing from the page: no key, cookie or header but the content type", () => {

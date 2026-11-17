@@ -48,6 +48,9 @@ const SAMPLE = [
   "/legal/privacy/",
   "/sources/",
   "/legal/terms/",
+  // Step 18's round 2: who runs the site, and how to connect an assistant
+  "/about/",
+  "/assistants/",
   NOT_FOUND,
 ];
 
@@ -129,16 +132,24 @@ for (const path of SAMPLE) {
 
     // Phase 5 Step 17's round 0: pages scrolled sideways on a phone, where a
     // long formula, code sample, table or link widened the page. Wide content
-    // scrolls or wraps in its own box; the islands load first.
-    test("does not scroll sideways at a phone's width", async ({ page }) => {
+    // scrolls or wraps in its own box. The islands load first, with what they
+    // ask the API for: a concept's chart and its citation, which Step 18's
+    // round 2 found four pixels too wide, are there only once its series is
+    // (so `api`, which answers it).
+    test("does not scroll sideways at a phone's width", async ({ page, api }) => {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(path);
       await page.waitForLoadState("load");
       const height = await page.evaluate(() => document.documentElement.scrollHeight);
-      for (let y = 0; y < height; y += 800) await page.evaluate((top) => window.scrollTo(0, top), y);
+      for (let y = 0; y < height; y += 800) {
+        await page.evaluate((top) => window.scrollTo(0, top), y);
+        await page.waitForTimeout(100);
+      }
+      await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
       await page.waitForTimeout(300);
       const widths = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
       expect(widths[0], path).toBeLessThanOrEqual(widths[1] ?? 0);
+      expect(api.requests.every((request) => request.method === "GET")).toBe(true);
     });
 
     // Issue #319's class: a box scrolls vertically only when it is given a
@@ -162,6 +173,41 @@ for (const path of SAMPLE) {
       );
       expect(stray).toEqual([]);
     });
+  });
+}
+
+// Phase 5 Step 18's round 2: a model's variables tables were four columns that
+// ran off a phone's screen, so a description was read only by scrolling its
+// table sideways. On a phone each is two columns, and every description is in
+// view: the bug class is a reference table whose last column is off the screen.
+for (const path of ["/models/performance/risk-adjusted/", "/models/fixed-income/duration/", "/models/macro/policy-rule/"]) {
+  test(`${path}: the variables tables fit a phone, each description in view`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(path);
+    const found = await page.evaluate(() => {
+      for (const details of document.querySelectorAll("details.variables-group")) (details as HTMLDetailsElement).open = true;
+      const width = document.documentElement.clientWidth;
+      return [...document.querySelectorAll("table[data-variables]")].map((table) => {
+        const region = table.parentElement;
+        const descriptions = [...table.querySelectorAll("tbody td:last-child")].map((cell) => cell.getBoundingClientRect());
+        return {
+          caption: table.querySelector("caption")?.textContent ?? "",
+          scrolls: (region?.scrollWidth ?? 0) > (region?.clientWidth ?? 0) + 1,
+          // A description is read where it stands: inside the screen and wide enough for words.
+          hidden: descriptions.filter((box) => box.right > width + 1 || box.width < 120).length,
+          rows: descriptions.length,
+        };
+      });
+    });
+    expect(found.length).toBeGreaterThan(1);
+    for (const table of found) {
+      expect(table.rows, table.caption).toBeGreaterThan(0);
+      expect(table.scrolls, table.caption).toBe(false);
+      expect(table.hidden, table.caption).toBe(0);
+    }
+    // From 640 pixels the table has its unit and bounds columns again.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(page.locator("table[data-variables]").first().getByRole("columnheader")).toHaveText(["Name", "Unit", "Bounds", "Description"]);
   });
 }
 

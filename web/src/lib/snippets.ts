@@ -5,6 +5,7 @@
 // user's own inputs: never a key, a cookie or a header from the page. CI runs
 // every kind for one model per domain and requires the Python API's bytes
 // (tests/parity/snippets.test.ts).
+import { LIST_LINE, fillLines, jsonText } from "@/lib/json-text";
 import { runPath, type RunOptions } from "@/lib/run-request";
 
 /** The production origin a curl snippet names. */
@@ -23,9 +24,6 @@ export interface SnippetRun {
 
 const INDENT = "    ";
 
-/** The longest list of plain values a Python snippet keeps on one line, in characters. */
-const MAX_LIST_LINE = 56;
-
 /** A JSON value as a Python literal: True, False and None for JSON's words. */
 export function pythonLiteral(value: unknown, depth = 0): string {
   const pad = INDENT.repeat(depth + 1);
@@ -42,11 +40,13 @@ export function pythonLiteral(value: unknown, depth = 0): string {
   if (Array.isArray(value)) {
     if (value.length === 0) return "[]";
     if (value.every((item) => typeof item !== "object" || item === null)) {
-      const line = `[${value.map((item) => pythonLiteral(item)).join(", ")}]`;
-      // A list too long for a phone's code box goes one value to a line, as
-      // the command line's JSON does (Phase 5 Step 18's round 1).
-      if (line.length <= MAX_LIST_LINE) return line;
-      return `[\n${value.map((item) => `${pad}${pythonLiteral(item)},`).join("\n")}\n${end}]`;
+      const texts = value.map((item) => pythonLiteral(item));
+      const line = `[${texts.join(", ")}]`;
+      // A list too long for one line fills lines a phone's code box shows
+      // whole, as the other snippets' JSON does (Phase 5 Step 18: round 1
+      // gave it a value to a line, which round 2 found too long to read).
+      if (line.length <= LIST_LINE) return line;
+      return `[\n${fillLines(texts, pad, true).join("\n")}\n${end}]`;
     }
     return `[\n${value.map((item) => `${pad}${pythonLiteral(item, depth + 1)},`).join("\n")}\n${end}]`;
   }
@@ -61,7 +61,7 @@ export function pythonLiteral(value: unknown, depth = 0): string {
 
 /** The inputs as the JSON a request carries, indented for reading. */
 export function inputsJson(inputs: Readonly<Record<string, unknown>>): string {
-  return JSON.stringify(inputs, null, 2);
+  return jsonText(inputs);
 }
 
 /** A shell word, single-quoted unless it needs no quoting. */
@@ -127,7 +127,8 @@ export function curlSnippet({ modelId, inputs, options = {} }: SnippetRun, origi
   const search = query.size > 0 ? `?${query.toString()}` : "";
   const url = `${origin}${runPath(modelId)}${search}`;
   return [
-    `curl --fail-with-body --silent --show-error -X POST ${shellWord(url)} \\`,
+    "curl --fail-with-body --silent --show-error \\",
+    `  -X POST ${shellWord(url)} \\`,
     `  -H 'Content-Type: application/json' \\`,
     `  --data-binary @- ${heredoc(inputsJson(inputs))}`,
     "",
@@ -146,7 +147,7 @@ export function mcpCall({ modelId, inputs, options = {} }: SnippetRun): Record<s
 
 /** The MCP call as the JSON a client sends in tools/call's params. */
 export function mcpSnippet(run: SnippetRun): string {
-  return `${JSON.stringify(mcpCall(run), null, 2)}\n`;
+  return `${jsonText(mcpCall(run))}\n`;
 }
 
 /** Every snippet of a run, by kind. */

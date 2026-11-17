@@ -5,11 +5,12 @@
 // not investment advice"), and links to the terms of use, the privacy policy,
 // the disclaimers, the data sources and their notices, the licence page (Phase 5
 // Step 16), the repository, Discussions, the newsletter,
-// the Pro preview, the documentation and the service's status page; and,
-// beside them, the newsletter's sign-up form (Phase 5 Step 15), left out on the
-// pages that carry their own form.
+// the Pro preview, the documentation and the service's status page, in four
+// groups under short headings (Step 18's round 2); and, beside them, the
+// newsletter's sign-up form (Phase 5 Step 15), left out on the pages that
+// carry their own form.
 import SignupForm from "@/components/SignupForm.astro";
-import { AS_IS_NOTICE, CFA_NOTICE, FOOTER_LINKS } from "@/lib/links";
+import { AS_IS_NOTICE, CFA_NOTICE, FOOTER_GROUPS } from "@/lib/links";
 import { version } from "@/lib/site-data";
 
 interface Props {
@@ -34,16 +35,21 @@ const { signup = true } = Astro.props;
         </section>
       )
     }
-    <nav aria-label="Footer">
-      <ul class="flex flex-wrap gap-x-6 gap-y-2">
-        {
-          FOOTER_LINKS.map((link) => (
-            <li>
-              <a href={link.href}>{link.label}</a>
-            </li>
-          ))
-        }
-      </ul>
+    <nav aria-label="Footer" class="grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-4">
+      {
+        FOOTER_GROUPS.map((group) => (
+          <div data-footer-group={group.title}>
+            <h2 class="mb-2 font-medium text-foreground">{group.title}</h2>
+            <ul class="flex flex-col gap-2">
+              {group.links.map((link) => (
+                <li>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
     </nav>
     <p>pyeconomics {version}</p>
   </div>

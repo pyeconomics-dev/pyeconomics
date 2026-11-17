@@ -38,9 +38,19 @@ interface Props {
   searchable?: boolean;
   /** Whether the footer carries the newsletter form (false on a page with its own). */
   signup?: boolean;
+  /**
+   * The id of the element that follows the page's first screen. The browser
+   * holds its first paint until it has parsed that far, so the header and the
+   * first screen arrive in one paint (Phase 5 Step 18's round 2). A page of
+   * formulas took a tenth of a second to lay out, and where the header was
+   * painted alone first, the page's main text was a later, separate paint that
+   * Lighthouse timed at over three seconds in two runs of three. A browser
+   * that does not know `rel="expect"` ignores the link.
+   */
+  paintWith?: string;
 }
 
-const { title, description, jsonLd, noindex = false, searchable = false, signup = true } = Astro.props;
+const { title, description, jsonLd, noindex = false, searchable = false, signup = true, paintWith } = Astro.props;
 const tracker = ANALYTICS ? trackerAttributes(ANALYTICS.websiteId) : null;
 const pageTitle = title === "pyeconomics" ? title : `${title} · pyeconomics`;
 const canonical = new URL(Astro.url.pathname, ORIGIN).href;
@@ -58,6 +68,7 @@ const image = new URL(ogImagePath(Astro.url.pathname), ORIGIN).href;
     {!noindex && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {PRELOAD_FONTS.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin="anonymous" />)}
+    {paintWith && <link rel="expect" href={`#${paintWith}`} blocking="render" />}
     <meta name="color-scheme" content="light dark" />
     {
       !noindex && (
