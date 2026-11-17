@@ -1057,7 +1057,8 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   decision 19's thirteen pages at 390 and 1440 wide, in light and dark, 52 PNG files
   in `tests/visual/baselines/`. They are the web job's Linux runner's pictures and
   are compared only there, with at most 300 differing pixels; every test skips on
-  another platform. To change one on purpose: push the change; the web job's
+  another platform. No picture holds personal data: a paragraph with a mail
+  address in it (the privacy policy's first lines) is masked. To change one on purpose: push the change; the web job's
   comparison fails, draws all 52 again and uploads them as the `visual-baselines`
   artifact; run `gh run download <run-id> -n visual-baselines -D
   web/tests/visual/baselines`, look at each picture that changed, commit them, and

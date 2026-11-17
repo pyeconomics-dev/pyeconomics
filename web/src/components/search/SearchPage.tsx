@@ -63,7 +63,7 @@ export default function SearchPage() {
   const status = failed
     ? "Search could not load. Reload the page to try again."
     : hits === null
-      ? "Type to search every model, domain and problem page."
+      ? "Type to search every model, data series and page."
       : hits.length === 0
         ? `No results for “${asked}”.`
         : `${String(hits.length)} ${hits.length === 1 ? "result" : "results"} for “${asked}”.`;

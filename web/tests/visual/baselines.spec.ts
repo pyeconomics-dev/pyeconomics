@@ -6,7 +6,8 @@
 // view ready, no request in flight, no animation running. The first screen,
 // not the whole page: it holds the header, the page's title and its first
 // content, where a change of token, font or layout shows, and it keeps the
-// baselines small enough to review in a pull request.
+// baselines small enough to review in a pull request. No picture holds
+// personal data: a paragraph with a mail address in it is masked.
 //
 // The pictures are the Linux runner's (playwright.visual.config.ts). To change
 // one on purpose, take it from the web job's `visual-baselines` artifact, as
@@ -59,7 +60,12 @@ for (const { width, height } of WIDTHS) {
         test(`${sample.name} looks as its baseline`, async ({ page, api, watch }) => {
           await page.goto(sample.path, { waitUntil: "load" });
           await settle(page);
-          await expect(page).toHaveScreenshot(baselineName(sample, width, theme));
+          // A picture holds no personal data: a paragraph that gives someone's
+          // address (the privacy policy names who runs the site and how to
+          // write to them) is painted over, in the baseline and in the page.
+          await expect(page).toHaveScreenshot(baselineName(sample, width, theme), {
+            mask: [page.locator("p:has(a[href^='mailto:'])")],
+          });
           expect(watch.violations).toEqual([]);
           expect(watch.errors).toEqual([]);
           expect(api.requests).toEqual([]);
