@@ -15,6 +15,35 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Added
 
+- What each formula's symbols stand for (Phase 5 Step 18; issue #343): a model
+  declares them on `@model` (`symbols=(Symbol(r"D_{Mac}", "Macaulay duration, in
+  years", "macaulay_duration"), ...)`, exported as `pyeconomics.core.Symbol`), each
+  written as its formulas write it, with its meaning and the field it stands for.
+  All 50 models declare theirs (756 definitions); `registry.validate()` holds each
+  to a formula and a field under the new `symbols` rule; a model card lists them
+  as "Where" under its formulas, and the documentation and each model's web page
+  show them. No description, schema, output or result hash changes.
+- The site after its dogfooding loop (Phase 5 Step 18; `docs/design/rounds/`):
+  rounds of five independent AI evaluators, one per persona, used the site in real
+  browsers, and each round's findings were fixed before the next. A model page
+  defines its formulas' symbols; a calculator asks first for what a run needs,
+  names fields, options, examples and outputs in words, marks the fields an error
+  names, and shows a result that fits a phone with its manifest's hashes in view;
+  the run as Python, a command, curl or an MCP call is always in view, in one
+  look, with its lists short enough to read; a series' chart draws when it comes
+  into view, with a line to cite it by; `/data/` leads with its search and groups
+  the series by topic; search puts the page named for the query first. Two new
+  pages: `/about/` (what pyeconomics is, who runs the site, where the formulas come
+  from and how each model is tested, its numbers counted from the registry) and
+  `/assistants/` (the MCP server's client configuration, its hosted endpoint and
+  its tools). Pages hold room for what loads after them, so nothing shifts.
+- Visual baselines (Phase 5 Step 18): the first screen of decision 19's thirteen
+  sample pages at 390 and 1440 pixels wide in light and dark, compared in the web
+  job on Linux (`npm run e2e:visual`), and a check for each class of bug the rounds
+  found: input typed before an island loads, a control that cannot work yet, a
+  layout shift, a refused clipboard, a result or a variables table wider than a
+  phone, a word glued to a link in any built page.
+
 - Legal and trust pages (Phase 5 Step 16; ADR-0013 decision 20): the site's
   `/legal/terms/` (the service, acceptable use and the API's rate limits, the data's
   own terms with the New York Fed's and the OECD's conditions passed through, the

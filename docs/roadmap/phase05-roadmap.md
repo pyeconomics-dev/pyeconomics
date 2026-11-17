@@ -10264,6 +10264,8 @@ the same `_headers` as Cloudflare. No production deploy.
 Ranked for multimodal, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
 
+> Ran 2026-11-16: Quality Pick — Fable 5.2 · XHigh.
+
 **Conversation:** New
 
 **Model rationale:** Multimodal is PRIMARY and agentic SECONDARY: the work
@@ -10524,7 +10526,12 @@ platform allows. New conversation per phase-boundary hygiene.
       L1 to L3 and L8 to L10) are this step's starting
       backlog: fix them, or file each one, before round 1's
       implementer pass closes. #343 (formula symbols in the
-      model cards) stays an issue for a later phase.
+      model cards) was to stay an issue for a later phase;
+      it was fixed in this step instead (spec-rot, recorded
+      2026-11-16): round 1's evaluators rated the undefined
+      symbols High, which the stopping rule cannot pass, and
+      the fix is card text only (no schema, description,
+      output or hash changes).
     - Step 17's evaluators ran as Claude Code subagents,
       which offer Claude models only (Sonnet 5.5 beside the
       implementer's Opus 5.5). Where this step's platform
