@@ -24,7 +24,7 @@ import {
   variables,
   type VariableTable,
 } from "@/lib/models";
-import { PROFILE_NAMES, profileLabel, profileName } from "@/lib/profiles";
+import { PROFILE_NAMES, REGIONS, profileLabel, profileName, profileRegion } from "@/lib/profiles";
 import { COST, EVIDENCE, parseModels } from "@/lib/registry-schema";
 import { conceptData, registryData, sourceData } from "@/lib/site-data";
 
@@ -270,6 +270,21 @@ describe("the live-data notice (Phase 5 Step 18)", () => {
     expect(profileLabel("nominal")).toBe("Nominal");
     expect(profileLabel("gb")).toBe("United Kingdom (gb)");
     expect(profileLabel("us_output_gap")).toBe("US output gap");
+    // A profile whose name says nothing of where its data is from says so (round 3).
+    expect(profileRegion(["us.inflation.cpi.yoy", "us.unemployment.rate"])).toBe("United States");
+    expect(profileRegion(["us.inflation.cpi.yoy", "ea.inflation.hicp.yoy"])).toBeNull();
+    expect(profileRegion(["pwt.rgdpna.ca.annual"])).toBeNull();
+    expect(profileRegion([])).toBeNull();
+    expect(profileLabel("default", "United States")).toBe("Default (United States data)");
+    expect(profileLabel("ea", "Euro area")).toBe("Euro area (ea)");
+    for (const model of registryData.models) {
+      const concepts = (model.bindings as { profile: string; concept: string }[]).filter((binding) => binding.profile === "default");
+      // Every region a default profile reads is one the table names.
+      const prefix = new Set(concepts.map((binding) => binding.concept.split(".")[0] ?? ""));
+      if (prefix.size === 1 && REGIONS.has([...prefix][0] ?? "")) {
+        expect(profileRegion(concepts.map((binding) => binding.concept)), model.id).not.toBeNull();
+      }
+    }
   });
 
   it("says so plainly when no profile runs here", () => {

@@ -707,7 +707,8 @@ describe("calculators (Phase 5 Step 18)", () => {
     const text = notice.replace(/<[^>]+>/g, " ").replaceAll("&quot;", '"').replace(/\s+/g, " ");
     expect(text).toContain("Live data: some profiles run here, the rest on your own computer");
     // Each profile by its name, its id beside a name that does not spell it (round 2).
-    expect(text).toMatch(/On this site, "Live data" runs with the profiles Default, US output gap,/);
+    // The default profile says whose data it reads (round 3).
+    expect(text).toMatch(/On this site, "Live data" runs with the profiles Default \(United States data\), US output gap,/);
     expect(text).toContain("Euro area (ea)");
     expect(text).toContain("The profile US forecasters&#39; survey (us_spf) reads");
     expect(text.indexOf("The profile US forecasters")).toBeGreaterThan(text.indexOf("On this site"));

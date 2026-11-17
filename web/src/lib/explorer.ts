@@ -73,7 +73,7 @@ export const TRANSFORM_LABELS: ReadonlyMap<TransformName, string> = new Map([
   ["pct_change", "Change, as a decimal"],
   ["yoy", "Year-over-year change"],
   ["diff", "Difference"],
-  ["lag", "Earlier value (lag)"],
+  ["lag", "Earlier value"],
   ["log", "Natural logarithm"],
   ["convert", "Convert the frequency"],
 ]);

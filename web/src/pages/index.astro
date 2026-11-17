@@ -70,7 +70,7 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
       <p class="hero-lead">
         {models} free models with their formulas, sources and <a href="/about/#tested">tested values</a>, and{" "}
         {conceptData.length} data series, for students, analysts and developers. Run them here, or from{" "}
-        <a href="#code">Python, the command line, a REST API</a> or <a href="/assistants/">your AI assistant</a>.
+        <a href="#code">Python, the command line, a REST API or your AI assistant</a>.
       </p>
       <div class="hero-actions">
         <a href="#try" class={buttonVariants({ size: "lg", className: "no-underline" })}>Try a model</a>
@@ -85,7 +85,7 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
       {
         prerelease && (
           <p class="note" data-preview-note>
-            This is a preview of version 1.0 (<span class="whitespace-nowrap">{version}</span>).{" "}
+            This is a preview of version 1.0 (<code class="whitespace-nowrap">{version}</code>).{" "}
             <a href="/newsletter/">Get an email when 1.0 ships</a>.
           </p>
         )
@@ -133,8 +133,8 @@ const featuredTool = surface.mcp_tool ?? ownTools[0]?.mcp_tool ?? null;
       <li class={card}>
         <h3 class="card-title"><a href="/data/">Data</a></h3>
         <p>
-          {conceptData.length} series from {publishers} sources, with each one's licence and attribution. Chart
-          them, and download them as CSV or Excel.
+          {conceptData.length} series from {publishers} sources, from unemployment and inflation to interest rates and
+          yield curves, each with its licence and attribution. Chart them, and download them as CSV or Excel.
         </p>
       </li>
       <li class={card}>

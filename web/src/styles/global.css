@@ -609,8 +609,10 @@
     text-align: right;
   }
 
+  /* A symbol's field: the name the API takes, a quieter second to its meaning (round 3). */
   .symbol-field {
     color: var(--muted-foreground);
+    font-size: 0.8125em;
   }
 
   /* Model page */

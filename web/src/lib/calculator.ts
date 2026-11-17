@@ -10,6 +10,7 @@ import { bounds, cardOrder, dataProfiles, isNode, members, unit, variables, type
 import type { ChartSpec } from "@/lib/figure";
 import type { Model } from "@/lib/registry-schema";
 import type { ConceptEntry, ProblemEntry, SourceEntry, SurfaceEntry } from "@/lib/site-data";
+import { profileRegion } from "@/lib/profiles";
 import { pythonSnippet } from "@/lib/snippets";
 
 /** A data profile's bound fields, as surfaces.json says hosted mode can serve them. */
@@ -53,6 +54,13 @@ export interface CalculatorProps {
    * page, whose next section is the same model from code, turns it off.
    */
   snippets?: boolean;
+  /** The command that installs the package, shown beside the Python and command-line snippets. */
+  install?: string;
+  /**
+   * For each profile whose bound series all belong to one country or area,
+   * its name ("United States"), so the picker can say what "Default" reads.
+   */
+  profileRegions?: Record<string, string>;
 }
 
 /** One profile's fields the hosted site may not serve, and the sources that would fill them. */
@@ -95,12 +103,19 @@ export function calculatorProps(
     model.bindings.flatMap((binding) => byConcept.get(binding.concept)?.candidates.map((c) => c.provider) ?? []),
   );
   const local = problems.filter((problem) => problem.local_command !== null);
+  const bound = dataProfiles(model.bindings, concepts, sources);
   return {
     modelId: model.id,
     outputs: variables(model.output_schema, cardOrder(model.card, "Outputs")),
     charts: model.charts as unknown as ChartSpec[],
     profiles: surface.profiles,
-    liveNotes: liveNotes(dataProfiles(model.bindings, concepts, sources)),
+    liveNotes: liveNotes(bound),
+    profileRegions: Object.fromEntries(
+      bound.flatMap((profile) => {
+        const region = profileRegion(profile.rows.map((row) => row.concept));
+        return region === null ? [] : [[profile.profile, region]];
+      }),
+    ),
     sourceNames: Object.fromEntries(sources.filter((s) => providers.has(s.id)).map((s) => [s.id, s.name])),
     localSlugs: local.map((problem) => problem.slug),
     localCommand: (local[0]?.local_command ?? `pyeconomics models run ${MODEL_PLACEHOLDER} --inputs FILE`).replace(
@@ -131,14 +146,14 @@ const ROOM = {
 /**
  * What the run-as-code section adds to a card around its code box, in pixels:
  * the gap above it, its heading and sentence, the choices and the copy
- * control, which wrap onto more lines on a phone. Measured, not fitted: every
- * model's is the same.
+ * control, which wrap onto more lines on a phone, and the line that says how
+ * to install the package. Measured, not fitted: every model's is the same.
  */
-const CODE_FRAME = { narrow: 262, wide: 140 } as const;
+const CODE_FRAME = { narrow: 302, wide: 164 } as const;
 
-/** A code box's height for a snippet of so many lines: 16 pixels a line and 24 of padding, up to its maximum (max-h-80). */
+/** A code box's height for a snippet of so many lines: 16 pixels a line and 24 of padding, up to its maximum (max-h-[30rem]). */
 function codeBox(lines: number): number {
-  return Math.min(320, 24 + 16 * lines);
+  return Math.min(480, 24 + 16 * lines);
 }
 
 /** The characters of a field's description a line holds, about, under a field. */
@@ -232,6 +247,7 @@ export function calculations(schema: Node): { value: string; label: string }[] {
 
 /** The field help the form shows under a field: its unit and bounds; a choice, a flag or a date has no unit to show. */
 export function fieldHelp(node: Node): string {
+  if (isNode(node.items) && !isNode(node.items.items)) return listHelp(node, node.items);
   const kind = unit(node);
   const parts =
     kind === "text" || kind === "flag" || kind === "date"
@@ -241,6 +257,27 @@ export function fieldHelp(node: Node): string {
         : [`Unit: ${kind}`];
   const range = boundsInWords(bounds(node));
   if (range) parts.push(range);
+  return parts.join("; ");
+}
+
+/**
+ * A list field's help in words (round 3: "Unit: return (array); length min 2,
+ * max 10080; each [-1, 100]" read as machine text): what the values are, how
+ * many the model takes, and the range of each.
+ */
+function listHelp(node: Node, items: Node): string {
+  const kind = unit(items);
+  const parts = [
+    DECIMAL_UNITS.has(kind) ? `A list of ${kind}s, as decimals (0.05 is 5%)` : kind === "text" || kind === "flag" ? "A list" : `A list; unit: ${kind}`,
+  ];
+  const least = typeof node.minItems === "number" ? node.minItems : null;
+  const most = typeof node.maxItems === "number" ? node.maxItems : null;
+  const count = (value: number) => value.toLocaleString("en-US");
+  if (least !== null && most !== null) parts.push(`${count(least)} to ${count(most)} values`);
+  else if (least !== null) parts.push(`${count(least)} values or more`);
+  else if (most !== null) parts.push(`up to ${count(most)} values`);
+  const each = boundsInWords(bounds(items));
+  if (each) parts.push(`each ${each}`);
   return parts.join("; ");
 }
 

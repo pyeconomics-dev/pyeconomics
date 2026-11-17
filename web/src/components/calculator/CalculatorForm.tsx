@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ChartPanel from "@/components/calculator/ChartPanel";
 import CopyButton from "@/components/calculator/CopyButton";
 import CopyCommand from "@/components/calculator/CopyCommand";
+import FieldError from "@/components/calculator/FieldError";
 import FieldsTemplate from "@/components/calculator/FieldsTemplate";
 import ListWidget from "@/components/calculator/ListWidget";
 import ProblemPanel, {
@@ -56,7 +57,7 @@ import { report } from "@/lib/error-reporting";
 import { track } from "@/lib/events";
 import { LOCAL_APP } from "@/lib/explorer";
 import { applicable } from "@/lib/figure";
-import { decode, parseResult, type Result } from "@/lib/results";
+import { decode, outputCount, parseResult, type Result } from "@/lib/results";
 import { RUN_FORMATS, runModel, type RunAnswer, type RunFormat, type RunOptions } from "@/lib/run-request";
 import { serverMode, type ServerMode } from "@/lib/series-request";
 import type { LoadedModel } from "@/lib/validators";
@@ -70,7 +71,7 @@ import stylesheet from "@/styles/calculator.css?inline";
 if (typeof document !== "undefined") adoptStyles(stylesheet);
 
 const WIDGETS = { list: ListWidget, SelectWidget };
-const TEMPLATES = { ObjectFieldTemplate: FieldsTemplate };
+const TEMPLATES = { ObjectFieldTemplate: FieldsTemplate, FieldErrorTemplate: FieldError };
 
 /** The downloads beside a result, each the same run with ?format=. */
 const DOWNLOADS: readonly { format: Exclude<RunFormat, "json">; label: string; extension: string }[] = [
@@ -180,6 +181,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
   const [mode, setMode] = useState<ServerMode>("hosted");
   const resultHeading = useRef<HTMLHeadingElement>(null);
 
+  const regions = useMemo(() => new Map(Object.entries(props.profileRegions ?? {})), [props.profileRegions]);
   const calculation = formData.calculation;
   const fields = propertiesFor(schema, calculation);
   const chosen = props.profiles.find((entry) => entry.profile === profile);
@@ -262,7 +264,9 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
         setOutcome({ kind: "result", answer, result });
         track("calculator_run", { model: props.modelId });
         const warnings = result.warnings.length;
-        setAnnouncement(`Done. The result has ${String(Object.keys(result.outputs).length)} outputs and ${String(warnings)} warning${warnings === 1 ? "" : "s"}.`);
+        // The same count the result's own summary gives (round 3: this line said 6, the summary 5).
+        const outputs = outputCount(result);
+        setAnnouncement(`Done. The result has ${String(outputs)} output${outputs === 1 ? "" : "s"} and ${String(warnings)} warning${warnings === 1 ? "" : "s"}.`);
       } else {
         const problem = problemOf(answer);
         setOutcome({ kind: "problem", answer, problem });
@@ -346,7 +350,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                 </span>
               </span>
             ) : (
-              <span>Live data: fill the model's data from its sources, then the form's other values</span>
+              <span>Live data: read the model's data from its sources</span>
             )}
           </label>
           {source === "data" && (
@@ -357,7 +361,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
                   <select className={CONTROL} value={profile} onChange={(event) => setProfile(event.target.value)}>
                     {props.profiles.map((entry) => (
                       <option key={entry.profile} value={entry.profile}>
-                        {profileLabel(entry.profile)}
+                        {profileLabel(entry.profile, regions.get(entry.profile) ?? null)}
                         {offSite(entry.profile).length > 0 ? ": your own computer only" : ""}
                       </option>
                     ))}
@@ -534,7 +538,7 @@ export default function CalculatorForm({ model, ...props }: CalculatorProps & { 
           <p className="text-sm text-muted-foreground">
             These inputs as Python, a command, a request or an MCP call: each gives the same result, byte for byte.
           </p>
-          <SnippetsPanel run={{ modelId: props.modelId, inputs, options }} mcpTool={props.mcpTool} />
+          <SnippetsPanel run={{ modelId: props.modelId, inputs, options }} mcpTool={props.mcpTool} install={props.install} />
         </section>
       )}
     </>

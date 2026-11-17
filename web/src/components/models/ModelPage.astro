@@ -54,7 +54,8 @@ import { cliSnippet, pythonSnippet } from "@/lib/snippets";
 import { conceptPath } from "@/lib/paths";
 import { profileLabel, profileName } from "@/lib/profiles";
 import type { Model } from "@/lib/registry-schema";
-import { conceptData, problemData, sourceData, syllabusData, type SurfaceEntry } from "@/lib/site-data";
+import { prerelease } from "@/lib/mcp";
+import { conceptData, problemData, sourceData, syllabusData, version, type SurfaceEntry } from "@/lib/site-data";
 import { modelPage, type Crumb } from "@/lib/structured-data";
 
 interface Props {
@@ -82,6 +83,8 @@ const profiles = dataProfiles(model.bindings, conceptData, sourceData);
 // What the page says when the hosted site may not serve some of the model's data (issue #320).
 const notice = liveNotice(profiles);
 const calculator = calculatorProps(model, surface, problemData, sourceData, conceptData);
+// The package's install command, beside the calculator's Python and command-line snippets.
+const install = prerelease(version) ? "pip install --pre pyeconomics" : "pip install pyeconomics";
 // The room the loaded form takes, held before it loads so the page does not shift.
 const room = formRoom(model, surface.profiles.length);
 const topics = topicsOf(model.id, syllabusData);
@@ -250,7 +253,7 @@ const preClass = "code-box overflow-x-auto rounded-md px-4 py-3 text-sm";
       }
       <div class="calculator-card">
         <div class="calculator-slot">
-          <Calculator client:visible {...calculator} />
+          <Calculator client:visible {...calculator} install={install} />
         </div>
         <svg class="calculator-room calculator-room-narrow" aria-hidden="true" focusable="false" width="0" height={room.narrow}></svg>
         <svg class="calculator-room calculator-room-wide" aria-hidden="true" focusable="false" width="0" height={room.wide}></svg>

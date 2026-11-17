@@ -478,6 +478,12 @@ function Explorer(props: SeriesExplorerProps) {
             column={column}
             labels={sent?.transform || props.unit === "" ? { title: props.title } : { title: props.title, unit: props.unit }}
           />
+          {/* Beside the chart, where the two are compared (round 3: under the downloads it was missed). */}
+          {/^decimal\b/i.test(props.unit) && !sent?.transform && (
+            <p className="text-sm" data-percent-note="">
+              The chart shows percents; the series and every file hold the same values as decimals (0.042 is 4.2%).
+            </p>
+          )}
           <div className="flex flex-col gap-2 rounded-md border p-3" data-cite="">
             <h3 className="font-medium">Cite this series</h3>
             <p className="text-sm wrap-anywhere" data-citation="">
@@ -513,12 +519,7 @@ function Explorer(props: SeriesExplorerProps) {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Every file carries the data's attributions, notices and source records.
-              {/^decimal\b/i.test(props.unit) && !sent?.transform
-                ? " The chart shows percents; the files hold the values as decimals (0.042 is 4.2%)."
-                : ""}
-            </p>
+            <p className="text-xs text-muted-foreground">Every file carries the data's attributions, notices and source records.</p>
           </div>
           <div className="flex flex-col gap-2">
             <h3 className="font-medium">Sources</h3>

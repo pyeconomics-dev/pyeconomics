@@ -8,7 +8,7 @@
 // browser.
 import { jsonText } from "@/lib/json-text";
 import { DOCUMENTATION } from "@/lib/links";
-import { profileLabel } from "@/lib/profiles";
+import { profileLabel, profileRegion } from "@/lib/profiles";
 export {
   DOMAINS,
   ORIGIN,
@@ -391,9 +391,11 @@ export interface LiveNotice {
 export function liveNotice(profiles: readonly DataProfile[]): LiveNotice | null {
   const unserved = unservedSources(profiles);
   if (unserved.length === 0) return null;
+  const regions = new Map(profiles.map((profile) => [profile.profile, profileRegion(profile.rows.map((row) => row.concept))]));
+  const label = (id: string) => profileLabel(id, regions.get(id) ?? null);
   const here = profiles
     .filter((profile) => profile.rows.length > 0 && profile.rows.every((row) => row.hosted))
-    .map((profile) => profileLabel(profile.profile));
+    .map((profile) => label(profile.profile));
   const some = here.length > 0;
   return {
     title: some
@@ -405,7 +407,7 @@ export function liveNotice(profiles: readonly DataProfile[]): LiveNotice | null 
     local: unserved.map((source) => {
       const one = source.profiles.length === 1;
       const subject = some
-        ? `${one ? "The profile" : "The profiles"} ${sentenceList(source.profiles.map(profileLabel))} ${one ? "reads" : "read"}`
+        ? `${one ? "The profile" : "The profiles"} ${sentenceList(source.profiles.map(label))} ${one ? "reads" : "read"}`
         : "This model reads";
       return (
         `${subject} ${sentenceList(source.labels)}. ${source.labels.length === 1 ? "Its" : "Their"} source, ` +

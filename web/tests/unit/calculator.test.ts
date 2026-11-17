@@ -144,6 +144,13 @@ describe("the form's uiSchema", () => {
     expect(fieldHelp({ type: "string", enum: ["a"] })).toBe("");
     expect(fieldHelp({ type: "string", format: "date", "x-unit": "date" })).toBe("");
     expect(fieldHelp({ type: "number", "x-unit": "money", minimum: 0 })).toBe("Unit: money; 0 or more");
+    // A list says what its values are, how many the model takes and the range of each (round 3).
+    expect(
+      fieldHelp({ type: "array", minItems: 2, maxItems: 10080, items: { type: "number", "x-unit": "return", minimum: -1, maximum: 100 } }),
+    ).toBe("A list of returns, as decimals (0.05 is 5%); 2 to 10,080 values; each from -1 to 100");
+    expect(fieldHelp({ type: "array", maxItems: 60, items: { type: "number", "x-unit": "years", minimum: 0 } })).toBe(
+      "A list; unit: years; up to 60 values; each 0 or more",
+    );
   });
 });
 

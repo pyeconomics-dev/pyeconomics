@@ -64,6 +64,14 @@ function ArrayValue({ name, values }: { name: string; values: readonly unknown[]
   );
 }
 
+/**
+ * A result of more outputs than this lists them without their descriptions
+ * until a visitor asks: sixteen described rows were a dozen screens on a phone,
+ * and the figure looked for was several screens down (Phase 5 Step 18's rounds
+ * 2 and 3). Each output keeps its name in words, its id, its value and unit.
+ */
+const DESCRIBED_ROWS = 8;
+
 function OutputsTable({ table, outputs }: { table: VariableTable | undefined; outputs: Record<string, unknown> }) {
   const known = new Set(table?.rows.map((row) => row.name) ?? []);
   const rows = [
@@ -72,7 +80,17 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
       .filter((name) => !known.has(name))
       .map((name) => ({ name, unit: "", bounds: "", description: "" })),
   ].filter((row) => row.name !== "calculation");
+  // A long result lists its outputs without their descriptions until asked.
+  const [described, setDescribed] = useState(rows.length <= DESCRIBED_ROWS);
+  const long = rows.length > DESCRIBED_ROWS && rows.some((row) => row.description !== "");
   return (
+    <div className="flex flex-col gap-2">
+      {long && (
+        <label className="flex items-center gap-2 text-sm" data-describe="">
+          <input type="checkbox" checked={described} onChange={(event) => setDescribed(event.target.checked)} />
+          Say what each of the {rows.length} outputs is
+        </label>
+      )}
     <table className="w-full table-fixed border-collapse text-left text-sm" data-outputs="">
       <caption className="mb-2 text-left">
         <span className="font-medium">Outputs of this run</span>
@@ -98,7 +116,7 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
               <th scope="row" className={`${CELL} font-normal`}>
                 <span className="block font-medium">{fieldTitle(row.name)}</span>
                 <code className="block text-xs text-muted-foreground">{row.name}</code>
-                {row.description && <span className="mt-1 block text-muted-foreground">{row.description}</span>}
+                {described && row.description && <span className="mt-1 block text-muted-foreground">{row.description}</span>}
               </th>
               <td className={`${CELL} pr-0`}>
                 <span className="font-mono">
@@ -115,6 +133,7 @@ function OutputsTable({ table, outputs }: { table: VariableTable | undefined; ou
         })}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -223,7 +242,7 @@ export default function ResultPanel({ result, table, sourceNames }: ResultPanelP
           <div className="mt-2 flex flex-col gap-3 text-sm">
             <p className="text-muted-foreground">
               The same model version and inputs give the same result hash on every surface: the website, Python, the
-              command line, the REST API and MCP.
+              command line, the REST API and MCP. In Python it is <code>result.manifest.result_sha256</code>.
             </p>
             <dl className="grid grid-cols-1 gap-x-4 gap-y-1 @xl:grid-cols-[auto_1fr]">
               {facts.map((fact) => (

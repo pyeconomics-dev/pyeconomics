@@ -358,6 +358,19 @@ test("a run says it finished, shows the manifest's hashes, and names the model's
   await run(page);
   const result = page.locator("#calculator [data-outcome=result]");
   await expect(result.locator("[data-run-summary]")).toHaveText("The run finished: 16 outputs, no warnings.");
+  // Round 3: the line under the form gives the same count as the result's summary
+  // (it said one more, counting a family's calculation), and a result of more
+  // than eight outputs lists them without their descriptions until asked.
+  await expect(page.locator("#calculator p[role=status]").filter({ hasText: "Done." })).toHaveText(
+    "Done. The result has 16 outputs and 0 warnings.",
+  );
+  const outputs = result.locator("[data-outputs]");
+  await expect(outputs.locator("tbody tr")).toHaveCount(16);
+  await expect(outputs).not.toContainText("Mean excess return over its standard deviation");
+  await result.locator("[data-describe] input").check();
+  await expect(outputs).toContainText("Mean excess return over its standard deviation");
+  // The package's install line is beside the Python snippet.
+  await expect(page.locator("#calculator [data-install-note]")).toContainText("pip install");
   // The hashes are in view beside the result, not behind a disclosure (round 2).
   const manifest = result.locator("[data-manifest]");
   await expect(manifest).toContainText("Inputs SHA-256");

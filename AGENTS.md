@@ -1145,6 +1145,15 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   estimate fails it only now and then, on whichever page scrolls at the wrong
   moment. The home page's card is a phone's width beside its introduction, so
   it holds the phone's room there.
+- A result of more than eight outputs lists them by name, id, value and unit,
+  with a box to tick for what each is (`ResultPanel.tsx DESCRIBED_ROWS`); the
+  line under the form and the result's summary count outputs with one function
+  (`results.ts outputCount`: a family's calculation is not one). A list field's
+  help is words (`calculator.ts listHelp`). A profile whose name says nothing of
+  where its data is from says so from its series' ids (`profiles.ts
+  profileRegion`). The code box's height limit is in two places that move
+  together: `SnippetsPanel.tsx PRE` and `calculator.ts codeBox`, with
+  `CODE_FRAME` measured, not fitted.
 - The harness chooses a select's option with `support.ts choose` (a key press
   first), so a visitor's own choice is not scored as a layout shift.
 - An evaluator is an Agent subagent on another model than the implementer's, given
@@ -1153,6 +1162,10 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   and read no memory, handoff or source file); `docs/design/rounds/round-1.md`
   records them. It is shown the previous round's list only after it has returned
   its scores, through `SendMessage`.
+- The loop stopped at round 3 (`docs/design/rounds/summary.md`: medians 5.75,
+  7.00, 7.50 and 7.38; no High since round 2). Step 20's round is held to round
+  3's. What returned each round and belongs to the models is issues #350 and
+  #351; what was disputed each time is listed in the summary, with its reason.
 
 ## Documentation rules
 

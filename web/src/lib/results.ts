@@ -116,8 +116,13 @@ export function sourceRecords(result: Result): SourceRecord[] {
  * and warnings, and, for a run on live data, how many series it read and the
  * date of the latest observation among them.
  */
+/** How many outputs a result holds, as its table lists them: a family's calculation is not one. */
+export function outputCount(result: Result): number {
+  return Object.keys(result.outputs).filter((name) => name !== "calculation").length;
+}
+
 export function runSummary(result: Result): string {
-  const outputs = Object.keys(result.outputs).filter((name) => name !== "calculation").length;
+  const outputs = outputCount(result);
   const warnings = result.warnings.length;
   const parts = [
     `The run finished: ${String(outputs)} ${outputs === 1 ? "output" : "outputs"}, ` +

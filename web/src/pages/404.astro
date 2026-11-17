@@ -19,8 +19,11 @@ import Base from "@/layouts/Base.astro";
     <p class="max-w-2xl text-lg">
       There is no page at this address. It may have moved, or the link may have a typing error.
     </p>
-    <div>
-      <a href="/" class={buttonVariants({ className: "no-underline" })}>Go to the home page</a>
+    <div class="flex flex-wrap gap-3">
+      <a href="/search/" class={buttonVariants({ className: "no-underline" })}>Search the site</a>
+      <a href="/models/" class={buttonVariants({ variant: "outline", className: "no-underline" })}>Browse the models</a>
+      <a href="/data/" class={buttonVariants({ variant: "outline", className: "no-underline" })}>Explore the data</a>
+      <a href="/" class={buttonVariants({ variant: "outline", className: "no-underline" })}>Go to the home page</a>
     </div>
   </section>
 </Base>

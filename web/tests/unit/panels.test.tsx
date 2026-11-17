@@ -113,6 +113,30 @@ describe("the result panel", () => {
   });
 });
 
+describe("a long result (Phase 5 Step 18's rounds 2 and 3)", () => {
+  const rows = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({ name: `output_${String(index)}`, unit: "ratio", bounds: "", description: `What output ${String(index)} is` }));
+  const result = (count: number): Result =>
+    ({
+      model: { id: "toy.long", version: 1 },
+      inputs: {},
+      outputs: Object.fromEntries(rows(count).map((row, index) => [row.name, index])),
+      warnings: [],
+      manifest: {},
+    }) as unknown as Result;
+
+  it("lists more than eight outputs without their descriptions until asked, and fewer with them", () => {
+    const long = renderToString(<ResultPanel result={result(9)} table={{ calculation: null, rows: rows(9) }} sourceNames={{}} />);
+    expect(long).toContain("Say what each of the <!-- -->9<!-- --> outputs is");
+    expect(long).not.toContain("What output 0 is");
+    // Every output is still there by name, with its id and value.
+    expect(long.split("data-output=").length - 1).toBe(9);
+    const short = renderToString(<ResultPanel result={result(8)} table={{ calculation: null, rows: rows(8) }} sourceNames={{}} />);
+    expect(short).not.toContain("data-describe");
+    expect(short).toContain("What output 0 is");
+  });
+});
+
 describe("a problem's field errors in a reader's words (Phase 5 Step 18)", () => {
   it("drops the library's prefix and the calculation's name, and says each error once", () => {
     expect(plainMessage("Value error, settlement must be before maturity")).toBe("Settlement must be before maturity");

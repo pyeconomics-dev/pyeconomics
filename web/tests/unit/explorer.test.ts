@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   SERIES_TRANSFORMS,
+  TRANSFORM_LABELS,
   availability,
   chartNote,
   citation,
@@ -168,6 +169,12 @@ describe("what a concept page offers", () => {
 describe("transforms", () => {
   it("offers yoy only for month-based series and convert only to a lower frequency", () => {
     expect(transformsFor("monthly", "series")).toEqual([...SERIES_TRANSFORMS]);
+    // The picker shows each transform as its words with its name beside them, so no label ends in its own name (round 3: "Earlier value (lag) (lag)").
+    for (const name of SERIES_TRANSFORMS) {
+      const label = TRANSFORM_LABELS.get(name) ?? "";
+      expect(label, name).not.toBe("");
+      expect(label.endsWith(`(${name})`), name).toBe(false);
+    }
     expect(transformsFor("daily", "series")).not.toContain("yoy");
     expect(transformsFor("daily", "series")).toContain("convert");
     expect(transformsFor("annual", "series")).toEqual(["pct_change", "yoy", "diff", "lag", "log"]);

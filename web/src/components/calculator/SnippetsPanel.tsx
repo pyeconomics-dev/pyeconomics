@@ -23,15 +23,20 @@ const TAB =
   "rounded-md border px-3 py-1.5 text-sm hover:bg-accent aria-pressed:border-primary aria-pressed:bg-primary " +
   "aria-pressed:text-primary-foreground";
 // The site's one look for a block of code (.code-box, src/styles/global.css).
-const PRE = "code-box max-h-80 overflow-auto rounded-md px-4 py-3 text-xs";
+// Tall enough for a typical snippet whole, its call included (round 3: at 20rem
+// the run call was below the fold of the box); src/lib/calculator.ts codeBox
+// holds the same limit.
+const PRE = "code-box max-h-[30rem] overflow-auto rounded-md px-4 py-3 text-xs";
 
 export interface SnippetsPanelProps {
   run: SnippetRun;
+  /** The command that installs the package, for those who arrive at a model's page first. */
+  install?: string | undefined;
   /** The model's own MCP tool, beside the generic run_model the snippet calls. */
   mcpTool?: string | null;
 }
 
-export default function SnippetsPanel({ run, mcpTool = null }: SnippetsPanelProps) {
+export default function SnippetsPanel({ run, mcpTool = null, install }: SnippetsPanelProps) {
   const [kind, setKind] = useState<SnippetKind>("python");
   let texts: ReadonlyMap<SnippetKind, string>;
   try {
@@ -67,6 +72,11 @@ export default function SnippetsPanel({ run, mcpTool = null }: SnippetsPanelProp
         <pre className={PRE} role="region" aria-label={`${label} snippet`} tabIndex={0}>
           <code>{text}</code>
         </pre>
+        {(kind === "python" || kind === "cli") && install && (
+          <p className="text-xs text-muted-foreground" data-install-note="">
+            Install the package first: <code>{install}</code>
+          </p>
+        )}
         {kind === "mcp" && (
           <p className="text-xs text-muted-foreground" data-mcp-note="">
             This calls <code>run_model</code>, the MCP server's tool that runs any model by its id.
