@@ -10266,6 +10266,12 @@ out), the output part scaled by the tokens the model writes at that level.
 
 > Ran 2026-11-16: Quality Pick — Fable 5.2 · XHigh.
 
+> Deployed & verified, as of 2026-11-17: the staging deploys of #352 and of
+> its fix #355 succeeded, and the confirmation round's harness passes on
+> staging. The round's evaluators' pass has not been run (they could not be
+> shown screenshots on the maintainer's machine) and waits on the
+> maintainer: `docs/design/rounds/confirmation.md`. Step 19 starts after it.
+
 **Conversation:** New
 
 **Model rationale:** Multimodal is PRIMARY and agentic SECONDARY: the work
@@ -10974,6 +10980,13 @@ hygiene.
       freezes are unchanged by them, and Step 18 added two
       pages the freeze takes in with the rest: `/about/` and
       `/assistants/` (recorded 2026-11-16).
+    - Before anything else (recorded 2026-11-17): read
+      docs/design/rounds/confirmation.md. Step 18's
+      confirmation round on staging must have its evaluators'
+      pass recorded there, with no Blocker or High finding
+      and a median no lower than 7.38. If the record still
+      says the pass has not been run, stop and tell the
+      maintainer: this step does not start before it.
     - Step 13 note: deploy-production.yml copies the image
       tagged with the commit from staging's registry, which
       keeps its two newest images and deletes the others
