@@ -21,7 +21,9 @@ export const WEB = fileURLToPath(new URL("../../", import.meta.url));
 
 /** The local build's address, and the API its pages' requests go to. */
 export const LOCAL_ORIGIN = "http://127.0.0.1:8788";
-export const API_ORIGIN = "http://127.0.0.1:8799";
+/** The local API's port: 8799, or E2E_API_PORT where another program on the machine holds it. */
+export const API_PORT = Number(process.env.E2E_API_PORT ?? "8799");
+export const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
 
 /** The site under test. */
 export const BASE_URL = (process.env.DOGFOOD_BASE_URL ?? LOCAL_ORIGIN).replace(/\/$/, "");

@@ -725,7 +725,8 @@ From Phase 5 Step 6, which builds the calculators:
   `pyeconomics serve` and runs every snippet kind for one model per domain. A
   difference is a bug in the side that changed the bytes.
 - Playwright's calculator tests forward `/v1/` to `tests/web/e2e_api.py`
-  (hosted mode over the catalog world, port 8799); never point it at a real
+  (hosted mode over the catalog world, port 8799, or `E2E_API_PORT` on a
+  machine where another program holds it); never point it at a real
   cache. `scripts/parity/check_deployed.py` checks a deployed API from the
   same commit's wheel with the container's extras (`deploy-staging.yml`):
   the same bytes, or the same JSON in which only numbers differ, within a
@@ -1017,6 +1018,15 @@ From Phase 5 Step 17, which gave the site its design (ADR-0013 decisions 2, 9 an
   `FONTS` and listed on `/legal/licence/`) and by name in `security.yml`'s
   dependency-review exceptions; a new font moves all three. Never serve a font whose file declares a
   Reserved Font Name: a package's subset is a Modified Version under the licence.
+- A font that arrives after the first paint moves nothing (issue #354): `global.css`
+  declares fallback faces over the system serifs (Georgia; Times New Roman and
+  Liberation Serif; Noto Serif) with Literata's metrics, for text, for headings
+  and, in `--font-label`, for the header's words, each through `local()`, so no
+  file is fetched. The numbers are Chromium's own measurements
+  (`node scripts/fallback-metrics.ts`; refit when the font package or the
+  header's words change), and `layout-shift.spec.ts` holds every font file back
+  ("late fonts") and requires each page to stay put. A new text font, weight
+  class or system fallback gets its face there, never a guess.
 - Motion is CSS: transitions and keyframes in `global.css` (`.motion-rise`, the
   menu panel, a card's or a control's hover), smooth scrolling for jump links only under
   `prefers-reduced-motion: no-preference`, and the reduced-motion rule that ends

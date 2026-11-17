@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 
-import { expect, test } from "./support.ts";
+import { API_ORIGIN, expect, test } from "./support.ts";
 
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const DURATION = "/models/fixed-income/duration/";
@@ -132,7 +132,7 @@ test("every download format answers a file under the response's name", async ({ 
     expect(bytes.length, label).toBeGreaterThan(0);
     if (label === "JSON") {
       // The JSON download is the run's own bytes, as received.
-      const first = await page.request.post("http://127.0.0.1:8799/v1/models/fixed_income.duration/run", {
+      const first = await page.request.post(`${API_ORIGIN}/v1/models/fixed_income.duration/run`, {
         headers: { "Content-Type": "application/json" },
         data: api.requests[0]?.body ?? "",
       });

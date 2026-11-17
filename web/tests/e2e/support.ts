@@ -19,9 +19,13 @@ import { test as base, expect, type Page } from "@playwright/test";
 
 export const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 
-/** The port of the API the calculators' requests are forwarded to. */
-export const API_PORT = 8799;
-const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
+/**
+ * The port of the API the calculators' requests are forwarded to: 8799, or
+ * E2E_API_PORT on a machine where another program holds that port.
+ */
+export const API_PORT = Number(process.env.E2E_API_PORT ?? "8799");
+/** That API's own address, for a test that asks it directly. */
+export const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
 
 /** The policy dist/_headers sends on every path. */
 export function headerPolicy(): string {

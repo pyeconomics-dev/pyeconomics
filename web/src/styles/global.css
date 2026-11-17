@@ -60,9 +60,125 @@
   src: url("../../node_modules/@fontsource/stix-two-math/files/stix-two-math-latin-400-normal.woff2") format("woff2");
 }
 
+/*
+ * Fallback faces for the text font (issue #354). Literata is `swap`, so a page
+ * whose font arrives after its first paint is drawn in a system serif first.
+ * Each face below is a system serif given Literata's own metrics: scaled so a
+ * line of text is as wide as Literata sets it, with Literata's ascent and
+ * descent, at the text's weight and at the headings'. When Literata arrives,
+ * the letters change shape and nothing changes place. The numbers are what
+ * Chromium measures (`node scripts/fallback-metrics.ts` prints them; refit
+ * when the font package changes), and tests/e2e/layout-shift.spec.ts holds
+ * every font file back and requires the page to stay put. Georgia is on
+ * Windows, macOS and iOS; Times New Roman is where Georgia is not, and
+ * Liberation Serif is its metric-compatible stand-in on Linux; Noto Serif is
+ * Android's serif. A machine with none of them falls through to its own
+ * serif, unadjusted, as before. No file is fetched: each source is `local()`.
+ */
+@font-face {
+  font-family: "Literata Fallback Georgia";
+  font-weight: 200 599;
+  src: local("Georgia");
+  size-adjust: 106.76%;
+  ascent-override: 110.25%;
+  descent-override: 28.85%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Georgia";
+  font-weight: 600 900;
+  src: local("Georgia Bold"), local("Georgia-Bold");
+  size-adjust: 96.71%;
+  ascent-override: 121.71%;
+  descent-override: 31.85%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Times";
+  font-weight: 200 599;
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif");
+  size-adjust: 117.33%;
+  ascent-override: 100.32%;
+  descent-override: 26.25%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Times";
+  font-weight: 600 900;
+  src: local("Times New Roman Bold"), local("TimesNewRomanPS-BoldMT"), local("Liberation Serif Bold");
+  size-adjust: 116.63%;
+  ascent-override: 100.91%;
+  descent-override: 26.41%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Noto";
+  font-weight: 200 599;
+  src: local("Noto Serif"), local("NotoSerif");
+  size-adjust: 98.42%;
+  ascent-override: 119.59%;
+  descent-override: 31.29%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Noto";
+  font-weight: 600 900;
+  src: local("Noto Serif Bold"), local("NotoSerif-Bold");
+  size-adjust: 97.66%;
+  ascent-override: 120.52%;
+  descent-override: 31.54%;
+  line-gap-override: 0%;
+}
+
+/*
+ * The header's labels have fallback faces of their own. How much wider
+ * Literata is than a system serif depends on the letters: it sets the
+ * header's capitalised words a few thousandths wider, against Georgia, than
+ * it sets prose, and with the text's face one more link fitted on the domain
+ * row's first line at 1440 pixels, so the row moved when the font arrived.
+ */
+@font-face {
+  font-family: "Literata Label Georgia";
+  src: local("Georgia");
+  size-adjust: 107.07%;
+  ascent-override: 109.93%;
+  descent-override: 28.77%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Label Times";
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif");
+  size-adjust: 116.95%;
+  ascent-override: 100.64%;
+  descent-override: 26.34%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Label Noto";
+  src: local("Noto Serif"), local("NotoSerif");
+  size-adjust: 99.73%;
+  ascent-override: 118.02%;
+  descent-override: 30.88%;
+  line-gap-override: 0%;
+}
+
 :root {
-  --font-text: "Literata Variable", Georgia, "Times New Roman", serif;
-  --font-heading: "Literata Variable", Georgia, "Times New Roman", serif;
+  --font-text:
+    "Literata Variable", "Literata Fallback Georgia", "Literata Fallback Times", "Literata Fallback Noto", Georgia,
+    "Times New Roman", serif;
+  --font-label:
+    "Literata Variable", "Literata Label Georgia", "Literata Label Times", "Literata Label Noto", Georgia,
+    "Times New Roman", serif;
+  --font-heading:
+    "Literata Variable", "Literata Fallback Georgia", "Literata Fallback Times", "Literata Fallback Noto", Georgia,
+    "Times New Roman", serif;
   --font-code: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
   --font-math: "STIX Two Math", math;
   --font-features: "kern", "liga";
@@ -384,6 +500,8 @@
 
   /* Header */
   .site-header {
+    /* The labels' own fallback faces, so the rows keep their breaks while the font is on its way. */
+    font-family: var(--font-label);
     background: var(--header-bg);
     border-bottom: 1px solid var(--header-border);
     color: var(--header-fg);
