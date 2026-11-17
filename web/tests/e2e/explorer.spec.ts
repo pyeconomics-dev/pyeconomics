@@ -187,10 +187,18 @@ for (const [width, height, spare] of [
 ] as const) {
   test(`a series at ${String(width)} wide fits the room held for it, with space for a longer record`, async ({ page, api }) => {
     await page.setViewportSize({ width, height });
+    // Hold the series back for a moment, so the placeholder is there to measure whatever the machine's speed
+    // (registered after the api fixture's route, so it runs first, then lets the request through).
+    await page.route("**/v1/series/**", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fallback();
+    });
     await page.goto(UNEMPLOYMENT);
     const room = page.locator("[data-chart-room]");
     await page.locator("#chart").scrollIntoViewIfNeeded();
+    await expect(room).toBeVisible();
     const held = (await room.boundingBox())?.height ?? 0;
+    expect(held).toBeGreaterThan(500);
     const series = page.locator("[data-series]");
     await expect(series.locator("[data-cite]")).toBeVisible();
     await expect(room).toHaveCount(0);
