@@ -68,12 +68,23 @@
  * descent, at the text's weight and at the headings'. When Literata arrives,
  * the letters change shape and nothing changes place. The numbers are what
  * Chromium measures (`node scripts/fallback-metrics.ts` prints them; refit
- * when the font package changes), and tests/e2e/layout-shift.spec.ts holds
+ * when the font package changes), and tests/e2e/late-fonts.spec.ts holds
  * every font file back and requires the page to stay put. Georgia is on
  * Windows, macOS and iOS; Times New Roman is where Georgia is not, and
- * Liberation Serif is its metric-compatible stand-in on Linux; Noto Serif is
- * Android's serif. A machine with none of them falls through to its own
- * serif, unadjusted, as before. No file is fetched: each source is `local()`.
+ * Liberation Serif, with the same widths, is what Linux gives for it; Noto
+ * Serif is Android's serif. A machine with none of them falls through to its
+ * own serif, unadjusted, as before. No file is fetched: each source is
+ * `local()`.
+ *
+ * What this does not reach. One scale fits a face only where a letter's
+ * width grows with its size, as it does on Windows, macOS, a phone and any
+ * dense screen. Chromium on a Linux desktop at ordinary density rounds each
+ * letter to whole pixels, so there the two fonts differ by up to 7% at one
+ * size and 2% the other way at the next, and a late font can still rewrap a
+ * paragraph (measured in a container: `docs/design/direction.md`, "Late
+ * fonts"; issue #359). And a face matches a line's width, not each word's:
+ * where the header's row of links breaks can differ by one link in Times New
+ * Roman.
  */
 @font-face {
   font-family: "Literata Fallback Georgia";
@@ -98,7 +109,7 @@
 @font-face {
   font-family: "Literata Fallback Times";
   font-weight: 200 599;
-  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif");
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("LiberationSerif");
   size-adjust: 117.33%;
   ascent-override: 100.32%;
   descent-override: 26.25%;
@@ -108,7 +119,7 @@
 @font-face {
   font-family: "Literata Fallback Times";
   font-weight: 600 900;
-  src: local("Times New Roman Bold"), local("TimesNewRomanPS-BoldMT"), local("Liberation Serif Bold");
+  src: local("Times New Roman Bold"), local("TimesNewRomanPS-BoldMT"), local("Liberation Serif Bold"), local("LiberationSerif-Bold");
   size-adjust: 116.63%;
   ascent-override: 100.91%;
   descent-override: 26.41%;
@@ -118,7 +129,7 @@
 @font-face {
   font-family: "Literata Fallback Noto";
   font-weight: 200 599;
-  src: local("Noto Serif"), local("NotoSerif");
+  src: local("Noto Serif"), local("Noto Serif Regular"), local("NotoSerif-Regular"), local("NotoSerif");
   size-adjust: 98.42%;
   ascent-override: 119.59%;
   descent-override: 31.29%;
@@ -153,7 +164,7 @@
 
 @font-face {
   font-family: "Literata Label Times";
-  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif");
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("LiberationSerif");
   size-adjust: 116.95%;
   ascent-override: 100.64%;
   descent-override: 26.34%;
@@ -162,7 +173,7 @@
 
 @font-face {
   font-family: "Literata Label Noto";
-  src: local("Noto Serif"), local("NotoSerif");
+  src: local("Noto Serif"), local("Noto Serif Regular"), local("NotoSerif-Regular"), local("NotoSerif");
   size-adjust: 99.73%;
   ascent-override: 118.02%;
   descent-override: 30.88%;

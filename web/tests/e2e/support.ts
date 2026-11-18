@@ -153,3 +153,41 @@ export async function useColorScheme(page: Page, colorScheme: "light" | "dark"):
 }
 
 export { expect };
+
+/** Core Web Vitals' "good" limit for cumulative layout shift. */
+export const SHIFT_LIMIT = 0.1;
+
+/** The page's cumulative layout shift so far, leaving out shifts just after an input. */
+export async function layoutShift(page: Page): Promise<{ total: number; worst: string[] }> {
+  return page.evaluate(
+    () =>
+      new Promise<{ total: number; worst: string[] }>((resolve) => {
+        const entries: PerformanceEntry[] = [];
+        const observer = new PerformanceObserver((list) => entries.push(...list.getEntries()));
+        observer.observe({ type: "layout-shift", buffered: true });
+        setTimeout(() => {
+          observer.disconnect();
+          const shifts = entries
+            .map(
+              (entry) =>
+                entry as PerformanceEntry & {
+                  value: number;
+                  hadRecentInput: boolean;
+                  sources?: { node?: Node | null }[];
+                },
+            )
+            .filter((entry) => !entry.hadRecentInput);
+          const name = (node: Node | null | undefined): string => {
+            if (!(node instanceof Element)) return "(text)";
+            return `${node.tagName.toLowerCase()}${node.id ? `#${node.id}` : ""}.${[...node.classList].slice(0, 2).join(".")}`;
+          };
+          resolve({
+            total: Math.round(shifts.reduce((sum, entry) => sum + entry.value, 0) * 1000) / 1000,
+            worst: shifts
+              .filter((entry) => entry.value > 0.02)
+              .map((entry) => `${entry.value.toFixed(3)} at ${String(Math.round(entry.startTime))} ms: ${(entry.sources ?? []).map((source) => name(source.node)).join(", ")}`),
+          });
+        }, 100);
+      }),
+  );
+}

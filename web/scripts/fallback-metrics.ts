@@ -17,7 +17,7 @@
 // letters: Literata sets a row of capitalised words a hundredth wider,
 // against Georgia, than it sets prose, and a face fitted to prose put one
 // more link on the header's first line, which moved the row when the font
-// arrived. tests/e2e/layout-shift.spec.ts is the gate (a page whose fonts
+// arrived. tests/e2e/late-fonts.spec.ts is the gate (a page whose fonts
 // arrive late must not move); this is the instrument for refitting the
 // numbers when the font package or the header's words change.
 //

@@ -11,10 +11,7 @@
 // calculator.ts formRoom), so a form that outgrows the estimate fails here.
 import type { Page } from "@playwright/test";
 
-import { expect, test } from "./support.ts";
-
-/** Core Web Vitals' "good" limit for cumulative layout shift. */
-const LIMIT = 0.1;
+import { SHIFT_LIMIT as LIMIT, expect, layoutShift, test } from "./support.ts";
 
 const VIEWPORTS = [
   { name: "phone", width: 390, height: 844 },
@@ -49,41 +46,6 @@ async function scrollThrough(page: Page, step: number): Promise<void> {
   }
   await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
   await page.waitForTimeout(300);
-}
-
-/** The page's cumulative layout shift so far, leaving out shifts just after an input. */
-async function layoutShift(page: Page): Promise<{ total: number; worst: string[] }> {
-  return page.evaluate(
-    () =>
-      new Promise<{ total: number; worst: string[] }>((resolve) => {
-        const entries: PerformanceEntry[] = [];
-        const observer = new PerformanceObserver((list) => entries.push(...list.getEntries()));
-        observer.observe({ type: "layout-shift", buffered: true });
-        setTimeout(() => {
-          observer.disconnect();
-          const shifts = entries
-            .map(
-              (entry) =>
-                entry as PerformanceEntry & {
-                  value: number;
-                  hadRecentInput: boolean;
-                  sources?: { node?: Node | null }[];
-                },
-            )
-            .filter((entry) => !entry.hadRecentInput);
-          const name = (node: Node | null | undefined): string => {
-            if (!(node instanceof Element)) return "(text)";
-            return `${node.tagName.toLowerCase()}${node.id ? `#${node.id}` : ""}.${[...node.classList].slice(0, 2).join(".")}`;
-          };
-          resolve({
-            total: Math.round(shifts.reduce((sum, entry) => sum + entry.value, 0) * 1000) / 1000,
-            worst: shifts
-              .filter((entry) => entry.value > 0.02)
-              .map((entry) => `${entry.value.toFixed(3)} at ${String(Math.round(entry.startTime))} ms: ${(entry.sources ?? []).map((source) => name(source.node)).join(", ")}`),
-          });
-        }, 100);
-      }),
-  );
 }
 
 for (const viewport of VIEWPORTS) {
@@ -142,45 +104,6 @@ for (const viewport of VIEWPORTS.filter((entry) => entry.name !== "tablet")) {
         await page.waitForTimeout(700);
         const after = await layoutShift(page);
         expect(Math.round((after.total - before.total) * 1000) / 1000, after.worst.join(" | ")).toBeLessThan(LIMIT);
-      });
-    }
-  });
-}
-
-// Issue #354, from the confirmation round on staging: the text font is
-// declared `font-display: swap`, so where it arrives after the first paint the
-// page is drawn in a system serif and then again in Literata. With fallback
-// faces that carry Literata's metrics (src/styles/global.css; the numbers are
-// scripts/fallback-metrics.ts's), the second drawing changes the letters and
-// not where anything is. Here every font file is held back for a second and a
-// half, on pages whose first screen is text, formulas, a form and a list.
-const LATE_FONT = ["/", "/models/", "/models/fixed-income/duration/", "/search/?q=sharpe", "/sources/", "/legal/privacy/"];
-
-for (const viewport of VIEWPORTS.filter((entry) => entry.name !== "tablet")) {
-  test.describe(`late fonts at a ${viewport.name}'s size`, () => {
-    test.use({ viewport: { width: viewport.width, height: viewport.height } });
-    for (const path of LATE_FONT) {
-      test(`page ${path} does not move when its fonts arrive after its first paint`, async ({ page, api }) => {
-        let held = 0;
-        await page.route("**/*.woff2", async (route) => {
-          held += 1;
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          await route.continue();
-        });
-        await page.goto(path, { waitUntil: "domcontentloaded" });
-        // The page is painted in the fallback face first, which is what this check is about.
-        const painted = await page.evaluate(
-          () => new Promise<boolean>((resolve) => requestAnimationFrame(() => resolve(!document.fonts.check('1rem "Literata Variable"')))),
-        );
-        expect(painted, "the page painted before its font arrived").toBe(true);
-        await page.evaluate(() => document.fonts.ready.then(() => undefined));
-        await expect.poll(() => page.evaluate(() => document.fonts.check('1rem "Literata Variable"')), { timeout: 10_000 }).toBe(true);
-        await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
-        await page.waitForTimeout(400);
-        expect(held).toBeGreaterThan(0);
-        const shift = await layoutShift(page);
-        expect(shift.total, shift.worst.join(" | ")).toBeLessThan(LIMIT);
-        expect(api.requests.every((request) => request.method === "GET")).toBe(true);
       });
     }
   });
