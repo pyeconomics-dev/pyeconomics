@@ -133,6 +133,20 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Changed
 
+- The bond models open on a bond a reader recognises (issue #351, from the
+  dogfooding rounds). `fixed_income.bond_pricing`, `fixed_income.duration` and
+  `fixed_income.convexity` each gain a first example, `five_year_annual`: a
+  five-year bond with a 4% annual coupon at a 5% yield, settled on a coupon
+  date, whose note gives the answer (a price of 95.6705 per 100 of face value).
+  A calculator on the site starts from it. Their descriptions say what a price
+  is per: `face_value` (at 100, a price is per 100 of face value), `maturity`
+  (n years after settlement for a bond with n years left), and `price`,
+  `full_price` and `flat_price` (per 100 by default). Changed schemas, in
+  descriptions and examples only: the input and output schemas of the three
+  models, and with them the OpenAPI document and the MCP tools
+  `fixed_income_bond_pricing` and `fixed_income_duration`, whose agent
+  evaluation was rerun (`docs/mcp-evaluations.md`). No output, id, field, unit,
+  model version or result hash changes.
 - The site's design (Phase 5 Step 17; `docs/design/direction.md`): five AI evaluators,
   one per visitor persona, audited every page type in round 0 of a dogfooding
   protocol (`docs/design/dogfooding.md`, `docs/design/audit-round-0.md`), and a panel

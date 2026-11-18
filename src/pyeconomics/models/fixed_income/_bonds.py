@@ -152,7 +152,10 @@ class BondTerms(ModelInputs):
     maturity: DateValue = Field(
         ge=EARLIEST,
         le=LATEST,
-        description="Maturity date: the last coupon and redemption",
+        description=(
+            "Maturity date: the last coupon and redemption (for a bond with n "
+            "years left, n years after settlement)"
+        ),
     )
     coupon_rate: Rate = Field(
         ge=0.0, le=1.0, description="Annual coupon rate, paid in equal parts"
@@ -164,7 +167,10 @@ class BondTerms(ModelInputs):
         "act_act_icma", description="Day count for accrued interest and stubs"
     )
     face_value: Money = Field(
-        100.0, ge=FACE_MIN, le=FACE_MAX, description="Face (par) value held"
+        100.0,
+        ge=FACE_MIN,
+        le=FACE_MAX,
+        description="Face (par) value held: at 100, a price is per 100 of face value",
     )
     redemption: Money = Field(
         100.0,

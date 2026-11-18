@@ -32,7 +32,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -70,7 +70,7 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
@@ -185,7 +185,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -223,7 +223,7 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
@@ -297,7 +297,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -335,7 +335,7 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
@@ -397,6 +397,20 @@
     "propertyName": "calculation"
   },
   "examples": [
+    {
+      "calculation": "analytical",
+      "coupon_rate": 0.04,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "annual",
+      "issue_date": null,
+      "maturity": "2031-01-15",
+      "redemption": 100.0,
+      "settlement": "2026-01-15",
+      "yield_to_maturity": 0.05
+    },
     {
       "calculation": "analytical",
       "coupon_rate": 0.045,

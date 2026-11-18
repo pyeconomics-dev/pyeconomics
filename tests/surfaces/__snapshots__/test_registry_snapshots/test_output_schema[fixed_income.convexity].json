@@ -19,7 +19,7 @@
           "x-unit": "ratio"
         },
         "full_price": {
-          "description": "Full (dirty) price at settlement",
+          "description": "Full (dirty) price at settlement, of the face value held (per 100 by default)",
           "maximum": 1000000000000000.0,
           "minimum": 0.0,
           "title": "Full Price",
@@ -53,7 +53,7 @@
           "x-unit": "ratio"
         },
         "full_price": {
-          "description": "Full (dirty) price at settlement",
+          "description": "Full (dirty) price at settlement, of the face value held (per 100 by default)",
           "maximum": 1000000000000000.0,
           "minimum": 0.0,
           "title": "Full Price",

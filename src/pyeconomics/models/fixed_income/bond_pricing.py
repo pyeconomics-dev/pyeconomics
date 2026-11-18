@@ -89,7 +89,11 @@ def _convention() -> Any:  # noqa: ANN401 - pydantic's Field
 
 
 def _price() -> Any:  # noqa: ANN401 - pydantic's Field
-    return Field(gt=0.0, le=MONEY_OUT, description="Price of the face value held")
+    return Field(
+        gt=0.0,
+        le=MONEY_OUT,
+        description="Price of the face value held (per 100 by default)",
+    )
 
 
 def _price_type() -> Any:  # noqa: ANN401 - pydantic's Field
@@ -206,14 +210,24 @@ BondPricingInputs = Annotated[
 
 
 def _full() -> Any:  # noqa: ANN401 - pydantic's Field
-    return Field(ge=0.0, le=MONEY_OUT, description="Full (dirty) price at settlement")
+    return Field(
+        ge=0.0,
+        le=MONEY_OUT,
+        description=(
+            "Full (dirty) price at settlement, of the face value held (per 100 by "
+            "default)"
+        ),
+    )
 
 
 def _flat() -> Any:  # noqa: ANN401 - pydantic's Field
     return Field(
         ge=-MONEY_OUT,
         le=MONEY_OUT,
-        description="Flat (clean) price: the full price less accrued interest",
+        description=(
+            "Flat (clean) price, of the face value held (per 100 by default): the "
+            "full price less accrued interest"
+        ),
     )
 
 
@@ -384,6 +398,13 @@ _QUANTLIB = Reference(
     url="https://www.quantlib.org/reference/struct_quant_lib_1_1_bond_functions.html",
     locator="BondFunctions::cleanPrice, dirtyPrice, accruedAmount and yield",
 )
+_FIVE_YEAR = {
+    "settlement": "2026-01-15",
+    "maturity": "2031-01-15",
+    "coupon_rate": 0.04,
+    "frequency": "annual",
+    "yield_to_maturity": 0.05,
+}
 _BOND = {
     "settlement": "2026-01-15",
     "maturity": "2036-01-15",
@@ -519,6 +540,14 @@ _BOND = {
         ),
     ),
     examples=(
+        Example(
+            name="five_year_annual",
+            inputs={"calculation": "price_from_yield", **_FIVE_YEAR},
+            note=(
+                "A five-year bond with a 4% annual coupon at a 5% yield, settled on "
+                "a coupon date: a price of 95.6705 per 100 of face value."
+            ),
+        ),
         Example(
             name="treasury_thirty_year",
             inputs={

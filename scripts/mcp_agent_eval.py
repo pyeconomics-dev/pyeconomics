@@ -26,6 +26,14 @@ arguments and answers only; the script refuses to write one that holds a path of
 this machine or the value of a key variable. Step 14 reruns it on the release
 candidate.
 
+On a machine whose model requests pass a de-identifying gateway on loopback
+(``ANTHROPIC_BASE_URL`` on 127.0.0.1), the agent is shown a long number in a
+tool's answer as a placeholder in double square brackets, and the gateway puts
+the number back in what the agent writes. Without a word about it the agent
+reads the placeholder as missing data and answers "unavailable" (2026-11-17).
+There the agent is told one thing more, :data:`GATEWAY_NOTE`, which says nothing
+of pyeconomics or its tools, and the page records that it was.
+
     uv run python scripts/mcp_agent_eval.py --markdown docs/mcp-evaluations.md
     uv run python scripts/mcp_agent_eval.py --task bond_duration --task option_price
 """
@@ -47,6 +55,7 @@ import tempfile
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
+from urllib.parse import urlsplit
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
@@ -68,6 +77,20 @@ ANSWER_RULE: Final = (
     "provide it."
 )
 _ANSWER: Final = re.compile(r"^\W*ANSWER:\s*(.+?)\W*$", re.MULTILINE)
+#: What the agent is also told where a gateway shows it placeholders.
+GATEWAY_NOTE: Final = (
+    "Some values in a tool's answer may be shown to you as a placeholder in double "
+    "square brackets, such as [[NUMBER_ABCDE]]. A placeholder stands for the real "
+    "value, and the real value replaces it in what you write: repeat a placeholder "
+    "exactly where its value belongs, the ANSWER line included."
+)
+#: How the page says so.
+GATEWAY_LINE: Final = (
+    "- Gateway: the agent's requests passed a de-identifying gateway on the "
+    "machine, which shows the agent a long number as a placeholder and puts the "
+    "number back in what the agent writes; the agent was told to repeat a "
+    "placeholder as written, and nothing else"
+)
 
 
 def _load_tasks() -> ModuleType:
@@ -111,7 +134,15 @@ def _claude() -> str:
     return found
 
 
-def _command(claude: str, config: Path, model: str) -> list[str]:
+def gateway() -> bool:
+    """Return whether the agent's requests pass a gateway on this machine."""
+    host = urlsplit(os.environ.get("ANTHROPIC_BASE_URL", "")).hostname
+    return host in {"127.0.0.1", "localhost", "::1"}
+
+
+def agent_command(claude: str, config: Path, model: str) -> list[str]:
+    """Return the command line that starts the headless agent."""
+    note = ["--append-system-prompt", GATEWAY_NOTE] if gateway() else []
     return [
         claude,
         "-p",
@@ -133,6 +164,7 @@ def _command(claude: str, config: Path, model: str) -> list[str]:
         "project",
         "--disable-slash-commands",
         "--no-session-persistence",
+        *note,
     ]
 
 
@@ -285,7 +317,7 @@ def run_task(task: Any, claude: str, model: str) -> dict[str, Any]:  # noqa: ANN
         config.write_bytes(json.dumps({"mcpServers": {SERVER: server}}).encode())
         started = time.monotonic()
         completed = subprocess.run(  # noqa: S603 # nosec B603 - fixed arguments
-            _command(claude, config, model),
+            agent_command(claude, config, model),
             input=task.prompt + ANSWER_RULE,
             capture_output=True,
             text=True,
@@ -391,6 +423,7 @@ def markdown(record: dict[str, Any]) -> str:
         "",
         f"- Date: {record['date']}",
         f"- Agent: {record['agent']}",
+        *([GATEWAY_LINE] if record.get("gateway") else []),
         f"- Model: `{record['model']}`",
         (
             f"- Server: pyeconomics {record['server_version']}, from the working "
@@ -439,7 +472,7 @@ def _baseline_tokens(claude: str, model: str) -> int:
         config = Path(scratch) / "mcp.json"
         config.write_bytes(b'{"mcpServers": {}}')
         completed = subprocess.run(  # noqa: S603 # nosec B603 - fixed arguments
-            _command(claude, config, model),
+            agent_command(claude, config, model),
             input="Reply with the word OK.",
             capture_output=True,
             text=True,
@@ -489,6 +522,7 @@ def evaluate(args: argparse.Namespace) -> int:
     record = {
         "date": dt.datetime.now(dt.UTC).date().isoformat(),
         "agent": agent,
+        "gateway": gateway(),
         "model": next((run["model"] for run in runs if run["model"]), args.model),
         "server_version": pyeconomics.__version__,
         "commit": _commit(),

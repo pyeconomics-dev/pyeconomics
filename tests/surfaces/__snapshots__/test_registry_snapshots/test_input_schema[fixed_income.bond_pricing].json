@@ -61,7 +61,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -99,7 +99,7 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
@@ -176,7 +176,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -214,14 +214,14 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
           "x-unit": "date"
         },
         "price": {
-          "description": "Price of the face value held",
+          "description": "Price of the face value held (per 100 by default)",
           "exclusiveMinimum": 0.0,
           "maximum": 1000000000000000.0,
           "title": "Price",
@@ -316,7 +316,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -354,14 +354,14 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
           "x-unit": "date"
         },
         "price": {
-          "description": "Price of the face value held",
+          "description": "Price of the face value held (per 100 by default)",
           "exclusiveMinimum": 0.0,
           "maximum": 1000000000000000.0,
           "title": "Price",
@@ -468,7 +468,7 @@
         },
         "face_value": {
           "default": 100.0,
-          "description": "Face (par) value held",
+          "description": "Face (par) value held: at 100, a price is per 100 of face value",
           "maximum": 1000000000.0,
           "minimum": 0.01,
           "title": "Face Value",
@@ -506,14 +506,14 @@
           "title": "Issue Date"
         },
         "maturity": {
-          "description": "Maturity date: the last coupon and redemption",
+          "description": "Maturity date: the last coupon and redemption (for a bond with n years left, n years after settlement)",
           "format": "date",
           "title": "Maturity",
           "type": "string",
           "x-unit": "date"
         },
         "price": {
-          "description": "Price of the face value held",
+          "description": "Price of the face value held (per 100 by default)",
           "exclusiveMinimum": 0.0,
           "maximum": 1000000000000000.0,
           "title": "Price",
@@ -572,6 +572,21 @@
     "propertyName": "calculation"
   },
   "examples": [
+    {
+      "calculation": "price_from_yield",
+      "convention": "street",
+      "coupon_rate": 0.04,
+      "day_count": "act_act_icma",
+      "end_of_month": true,
+      "face_value": 100.0,
+      "first_period": "short",
+      "frequency": "annual",
+      "issue_date": null,
+      "maturity": "2031-01-15",
+      "redemption": 100.0,
+      "settlement": "2026-01-15",
+      "yield_to_maturity": 0.05
+    },
     {
       "calculation": "price_from_yield",
       "convention": "treasury",

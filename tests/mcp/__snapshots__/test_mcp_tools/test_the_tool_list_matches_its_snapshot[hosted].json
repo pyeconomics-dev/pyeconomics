@@ -552,9 +552,9 @@
       "readOnlyHint": true
     },
     "description": "Full and flat price and accrued interest of a fixed-coupon bond from its yield, and its yield to maturity, to a call and to worst from its price. Runs Bond price and yield (fixed_income.bond_pricing, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: price_from_yield, yield_from_price, yield_to_call, yield_to_worst. Every number carries its unit in the input schema; rates are decimals.",
-    "inputSchema": "sha256:d217ca24ffb497eddc13a6081f4e102618d1d4d6ff507cbcbadfd8daf53b136d",
+    "inputSchema": "sha256:fc755926ffbb1f73f6fbf02c1be1f3d05f1c03355943c91b406827689944cb09",
     "name": "fixed_income_bond_pricing",
-    "outputSchema": "sha256:7d03a76f4f4b126981d2dc17621ac1fa7c00ec0dd00d6ead361dc558969d190e",
+    "outputSchema": "sha256:fc11c6daacc3be736b1d4b65fa017dec75609fd93a8e59706a1bac1357a053d9",
     "title": "Bond price and yield"
   },
   {
@@ -588,9 +588,9 @@
       "readOnlyHint": true
     },
     "description": "Macaulay and modified duration from a yield, effective and key-rate duration off a spot curve, and DV01 of a fixed-coupon bond. Runs Bond duration (fixed_income.duration, version 2) on the given inputs and returns its canonical result: the validated inputs, the outputs, the warnings and the manifest. The required calculation field selects one of: dv01, effective, key_rate, macaulay_modified. Every number carries its unit in the input schema; rates are decimals.",
-    "inputSchema": "sha256:072755153ac590d560cbde21d85eb48070a6c933d2dbbd5aa38bdcc2452b61fc",
+    "inputSchema": "sha256:695e00ea34b1fd363d8a08ab4ef6546a22133d3082483dc9e9cc08c390ca1706",
     "name": "fixed_income_duration",
-    "outputSchema": "sha256:30bdecc8f80c911f96deea850702461002d0fb826478a778bf1cd38c8ac5069d",
+    "outputSchema": "sha256:b5a22f795bb9c8288e1fc51bdf74645818ff27080bb5ecaef430e9d914ff5adc",
     "title": "Bond duration"
   },
   {

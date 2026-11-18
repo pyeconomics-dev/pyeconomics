@@ -264,3 +264,8 @@ issue and raises the median by less than 0.5 over the round before, and at round
   - A note for whoever runs a round, with no change to the rules: an evaluator
     that could not see its screenshots is not counted, whatever it returns
     (`docs/design/rounds/confirmation.md`).
+- 2026-11-17 (issue #351): the harness keeps capturing what section 5 lists, "a
+  family's calculation switched". Its task chose the duration model's second
+  example, which was another calculation. The model now opens on a five-year
+  annual bond, and its second example is the same calculation as its first, so
+  the task chooses the third. No persona, task, rubric, severity or page changes.

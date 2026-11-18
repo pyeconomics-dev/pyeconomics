@@ -89,7 +89,14 @@ def _duration(description: str) -> Any:  # noqa: ANN401 - pydantic's Field
 
 
 def _full() -> Any:  # noqa: ANN401 - pydantic's Field
-    return Field(ge=0.0, le=MONEY_OUT, description="Full (dirty) price at settlement")
+    return Field(
+        ge=0.0,
+        le=MONEY_OUT,
+        description=(
+            "Full (dirty) price at settlement, of the face value held (per 100 by "
+            "default)"
+        ),
+    )
 
 
 # --- inputs ------------------------------------------------------------------
@@ -309,6 +316,13 @@ _HO = Reference(
     doi="10.3905/jfi.1992.408049",
     locator="Key rate shifts (triangular shifts that sum to a parallel shift)",
 )
+_FIVE_YEAR = {
+    "settlement": "2026-01-15",
+    "maturity": "2031-01-15",
+    "coupon_rate": 0.04,
+    "frequency": "annual",
+    "yield_to_maturity": 0.05,
+}
 _BOND = {
     "settlement": "2026-01-15",
     "maturity": "2036-01-15",
@@ -445,6 +459,15 @@ _CURVE = {
         ),
     ),
     examples=(
+        Example(
+            name="five_year_annual",
+            inputs={"calculation": "macaulay_modified", **_FIVE_YEAR},
+            note=(
+                "A five-year bond with a 4% annual coupon at a 5% yield, settled on "
+                "a coupon date: a Macaulay duration of 4.6203 years and a modified "
+                "duration of 4.4003."
+            ),
+        ),
         Example(
             name="ten_year_note",
             inputs={

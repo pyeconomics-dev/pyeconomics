@@ -315,10 +315,12 @@ test("the form asks first for what a run needs, names its options, and keeps opt
   // An option reads as words, with its id beside a name that does not spell it.
   await expect(form.getByLabel("Day count").locator("option").first()).toHaveText("Actual/Actual ICMA (act_act_icma)");
   await expect(form.getByLabel("Frequency").locator("option").first()).toHaveText("Annual");
-  // An example is named in words, and its note sits under the picker.
+  // An example is named in words, and its note sits under the picker. The first is a bond a reader
+  // recognises (issue #351), and its note gives the answer and what the price is per.
   const picker = page.locator("#calculator").getByLabel("Start from an example");
-  await expect(picker.locator("option").first()).toHaveText("Treasury thirty year");
-  await expect(page.locator("#calculator [data-example-note]")).toContainText("31 CFR Part 356");
+  await expect(picker.locator("option").first()).toHaveText("Five year annual");
+  await expect(page.locator("#calculator [data-example-note]")).toContainText("95.6705 per 100 of face value");
+  await expect(form.getByLabel("Frequency").locator("option:checked")).toHaveText("Annual");
   // A field that may be left out waits in a disclosure that names it.
   const optional = form.locator("[data-optional-fields]");
   await expect(optional.locator("summary")).toContainText("1 optional input");
