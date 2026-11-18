@@ -114,6 +114,13 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
   Chromium measures a few pixels wider than Windows'. A symbol must still appear
   in a formula exactly as written, so an alignment `&` goes after it, never
   inside it.
+- A model's first example is the one its calculator opens on (issue #351): make
+  it a case a reader recognises, round numbers on a regular schedule, with a
+  note that gives the answer, and hold the note's numbers to the model in a
+  test (`tests/models/fixed_income/test_bond_first_examples.py`). Say in a
+  field's description what a number is per (a price per 100 of face value). An
+  example is part of the input schema, so adding one to a headline model
+  changes its MCP tool: rerun the agent evaluation (MCP rules).
 - Declare a model with `@model` from `pyeconomics.core`, list the `Model` object
   in its module's `__all__`, and name the module in
   `[project.entry-points."pyeconomics.models"]`. `registry.validate()` must pass

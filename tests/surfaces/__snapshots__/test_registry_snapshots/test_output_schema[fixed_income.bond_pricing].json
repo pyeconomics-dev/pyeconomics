@@ -19,7 +19,7 @@
           "type": "string"
         },
         "flat_price": {
-          "description": "Flat (clean) price: the full price less accrued interest",
+          "description": "Flat (clean) price, of the face value held (per 100 by default): the full price less accrued interest",
           "maximum": 1000000000000000.0,
           "minimum": -1000000000000000.0,
           "title": "Flat Price",
@@ -27,7 +27,7 @@
           "x-unit": "money"
         },
         "full_price": {
-          "description": "Full (dirty) price at settlement",
+          "description": "Full (dirty) price at settlement, of the face value held (per 100 by default)",
           "maximum": 1000000000000000.0,
           "minimum": 0.0,
           "title": "Full Price",
@@ -79,7 +79,7 @@
           "type": "string"
         },
         "flat_price": {
-          "description": "Flat (clean) price: the full price less accrued interest",
+          "description": "Flat (clean) price, of the face value held (per 100 by default): the full price less accrued interest",
           "maximum": 1000000000000000.0,
           "minimum": -1000000000000000.0,
           "title": "Flat Price",
@@ -87,7 +87,7 @@
           "x-unit": "money"
         },
         "full_price": {
-          "description": "Full (dirty) price at settlement",
+          "description": "Full (dirty) price at settlement, of the face value held (per 100 by default)",
           "maximum": 1000000000000000.0,
           "minimum": 0.0,
           "title": "Full Price",
@@ -123,7 +123,7 @@
           "type": "string"
         },
         "full_price": {
-          "description": "Full (dirty) price at settlement",
+          "description": "Full (dirty) price at settlement, of the face value held (per 100 by default)",
           "maximum": 1000000000000000.0,
           "minimum": 0.0,
           "title": "Full Price",
@@ -157,7 +157,7 @@
           "type": "string"
         },
         "full_price": {
-          "description": "Full (dirty) price at settlement",
+          "description": "Full (dirty) price at settlement, of the face value held (per 100 by default)",
           "maximum": 1000000000000000.0,
           "minimum": 0.0,
           "title": "Full Price",

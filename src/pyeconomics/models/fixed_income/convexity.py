@@ -85,7 +85,14 @@ def _effect(description: str) -> Any:  # noqa: ANN401 - pydantic's Field
 
 
 def _full() -> Any:  # noqa: ANN401 - pydantic's Field
-    return Field(ge=0.0, le=MONEY_OUT, description="Full (dirty) price at settlement")
+    return Field(
+        ge=0.0,
+        le=MONEY_OUT,
+        description=(
+            "Full (dirty) price at settlement, of the face value held (per 100 by "
+            "default)"
+        ),
+    )
 
 
 # --- inputs ------------------------------------------------------------------
@@ -252,6 +259,13 @@ _QUANTLIB = Reference(
     url="https://www.quantlib.org/reference/struct_quant_lib_1_1_bond_functions.html",
     locator="BondFunctions::convexity",
 )
+_FIVE_YEAR = {
+    "settlement": "2026-01-15",
+    "maturity": "2031-01-15",
+    "coupon_rate": 0.04,
+    "frequency": "annual",
+    "yield_to_maturity": 0.05,
+}
 _BOND = {
     "settlement": "2026-01-15",
     "maturity": "2036-01-15",
@@ -346,6 +360,14 @@ _BOND = {
         ),
     ),
     examples=(
+        Example(
+            name="five_year_annual",
+            inputs={"calculation": "analytical", **_FIVE_YEAR},
+            note=(
+                "A five-year bond with a 4% annual coupon at a 5% yield, settled on "
+                "a coupon date: a convexity of 24.4724 years squared."
+            ),
+        ),
         Example(
             name="ten_year_note",
             inputs={"calculation": "analytical", **_BOND, "yield_to_maturity": 0.045},

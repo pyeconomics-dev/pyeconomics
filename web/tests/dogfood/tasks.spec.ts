@@ -60,11 +60,12 @@ const TASKS: readonly Task[] = [
   {
     id: "family-example",
     path: "/models/fixed-income/duration/",
-    label: "A family's second example",
+    label: "A family's example of another calculation",
     run: async (page, shot) => {
       const section = await calculator(page);
       const picker = section.getByLabel("Start from an example");
-      if ((await picker.count()) > 0) await choose(page, picker, { index: 1 });
+      // The third: the first two are the same calculation since issue #351 gave the model a five-year bond first.
+      if ((await picker.count()) > 0) await choose(page, picker, { index: 2 });
       await shot("second-example");
     },
   },
