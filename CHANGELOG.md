@@ -171,6 +171,14 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- A page holds its place when its text font arrives after the first paint (issue
+  #354): the site declares fallback faces over the system serifs with the text
+  font's own metrics, so on a slow connection the letters change shape and the
+  lines stay where they are. With every font held back a second and a half, pages
+  that shifted by 0.15 to 0.31 on Windows now shift by 0.004 at most. On a Linux
+  desktop at ordinary density, where letters are rounded to whole pixels, pages
+  that shifted by up to 0.38 now shift by up to 0.23, and by 0.005 at most at a
+  phone's width (issue #359).
 - Three defects the dogfooding loop's confirmation round found on staging, where
   the API is a network away and the data is real (Phase 5 Step 18): choosing live
   data on a phone pushed the page past the screen's edge, because the profile

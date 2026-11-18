@@ -11,10 +11,7 @@
 // calculator.ts formRoom), so a form that outgrows the estimate fails here.
 import type { Page } from "@playwright/test";
 
-import { expect, test } from "./support.ts";
-
-/** Core Web Vitals' "good" limit for cumulative layout shift. */
-const LIMIT = 0.1;
+import { SHIFT_LIMIT as LIMIT, expect, layoutShift, test } from "./support.ts";
 
 const VIEWPORTS = [
   { name: "phone", width: 390, height: 844 },
@@ -49,41 +46,6 @@ async function scrollThrough(page: Page, step: number): Promise<void> {
   }
   await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
   await page.waitForTimeout(300);
-}
-
-/** The page's cumulative layout shift so far, leaving out shifts just after an input. */
-async function layoutShift(page: Page): Promise<{ total: number; worst: string[] }> {
-  return page.evaluate(
-    () =>
-      new Promise<{ total: number; worst: string[] }>((resolve) => {
-        const entries: PerformanceEntry[] = [];
-        const observer = new PerformanceObserver((list) => entries.push(...list.getEntries()));
-        observer.observe({ type: "layout-shift", buffered: true });
-        setTimeout(() => {
-          observer.disconnect();
-          const shifts = entries
-            .map(
-              (entry) =>
-                entry as PerformanceEntry & {
-                  value: number;
-                  hadRecentInput: boolean;
-                  sources?: { node?: Node | null }[];
-                },
-            )
-            .filter((entry) => !entry.hadRecentInput);
-          const name = (node: Node | null | undefined): string => {
-            if (!(node instanceof Element)) return "(text)";
-            return `${node.tagName.toLowerCase()}${node.id ? `#${node.id}` : ""}.${[...node.classList].slice(0, 2).join(".")}`;
-          };
-          resolve({
-            total: Math.round(shifts.reduce((sum, entry) => sum + entry.value, 0) * 1000) / 1000,
-            worst: shifts
-              .filter((entry) => entry.value > 0.02)
-              .map((entry) => `${entry.value.toFixed(3)} at ${String(Math.round(entry.startTime))} ms: ${(entry.sources ?? []).map((source) => name(source.node)).join(", ")}`),
-          });
-        }, 100);
-      }),
-  );
 }
 
 for (const viewport of VIEWPORTS) {

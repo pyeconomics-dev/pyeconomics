@@ -130,6 +130,52 @@ italic (about 55 KB) loads only where italic text appears. STIX Two Math's latin
 a formula; text never waits for it (`font-display: swap`). Lighthouse's sample holds
 the result at 90 or more (the pull request records the run).
 
+### Late fonts
+
+The text face is `swap` too, so a page whose font arrives after its first paint is
+drawn in a system serif and then in Literata. The confirmation round on staging
+caught a page moving when that happened (issue #354). `global.css` now declares
+fallback faces over the system serifs, each scaled to Literata's width and given its
+ascent and descent, so the letters change shape and the lines stay where they are.
+
+Measured on 2026-11-17 with every font file held back a second and a half, on six
+pages (home, the model list, a model, search, sources, the privacy policy) at 390 and
+1440 pixels wide. The figure is the cumulative layout shift; 0.1 is the limit Core
+Web Vitals call good.
+
+| Where | Before | After |
+| --- | --- | --- |
+| Windows, Chromium (Georgia) | 0.146 to 0.314 on 7 of the 12 | 0.004 at most |
+| Linux, Chromium, 390 wide (Liberation Serif) | 0.032 to 0.221 | 0.005 at most |
+| Linux, Chromium, 1440 wide (Liberation Serif) | 0.147 to 0.383 | 0.041 to 0.228 |
+| The same, letter widths in proportion to size | not measured | 0.031 to 0.054 |
+
+What the faces do not reach:
+
+- **A Linux desktop at ordinary density.** Chromium there rounds each letter to
+  whole pixels, so the two fonts' widths are not in one proportion: against
+  Literata, the scaled Liberation Serif is 7% narrower at 14 pixels and 2% wider
+  at 17. A late font still rewraps some paragraphs; the privacy policy at 1440
+  wide is the one page of the six over the limit (0.228). The last row of the
+  table is the same machine with that rounding off
+  (`--font-render-hinting=none`), which is how `tests/e2e/late-fonts.spec.ts`
+  runs, because CI's runner is such a desktop and the check is of the faces'
+  fit.
+- **Each word.** A face matches a line's width, not every word's, so where the
+  header's row of links breaks can differ by one link in Times New Roman or
+  Liberation Serif. That is the 0.03 to 0.05 left in the last row.
+- **What was not measured.** macOS, iOS and Android: no session had one. Georgia
+  is the same font on macOS and iOS as on Windows. Android's serif is Noto Serif,
+  whose numbers were measured from its files on Windows; whether Chrome on
+  Android finds it by `local()` is not known, and where it does not, a page is as
+  it was before.
+
+`font-display: optional` would end the swap everywhere: a font that misses the first
+paint is not used on that page at all. It was not chosen, because a first visit on a
+slow connection would then never show the face the design is built on, and because a
+test or a baseline would be drawn in whichever font won a race of a tenth of a
+second. Issue #359 keeps the question open with these numbers.
+
 ## Screenshots
 
 Each image shows a page's first screen at 390, 820 and 1440 wide, light above dark.

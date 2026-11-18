@@ -19,9 +19,13 @@ import { test as base, expect, type Page } from "@playwright/test";
 
 export const DIST = fileURLToPath(new URL("../../dist/", import.meta.url));
 
-/** The port of the API the calculators' requests are forwarded to. */
-export const API_PORT = 8799;
-const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
+/**
+ * The port of the API the calculators' requests are forwarded to: 8799, or
+ * E2E_API_PORT on a machine where another program holds that port.
+ */
+export const API_PORT = Number(process.env.E2E_API_PORT ?? "8799");
+/** That API's own address, for a test that asks it directly. */
+export const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
 
 /** The policy dist/_headers sends on every path. */
 export function headerPolicy(): string {
@@ -149,3 +153,41 @@ export async function useColorScheme(page: Page, colorScheme: "light" | "dark"):
 }
 
 export { expect };
+
+/** Core Web Vitals' "good" limit for cumulative layout shift. */
+export const SHIFT_LIMIT = 0.1;
+
+/** The page's cumulative layout shift so far, leaving out shifts just after an input. */
+export async function layoutShift(page: Page): Promise<{ total: number; worst: string[] }> {
+  return page.evaluate(
+    () =>
+      new Promise<{ total: number; worst: string[] }>((resolve) => {
+        const entries: PerformanceEntry[] = [];
+        const observer = new PerformanceObserver((list) => entries.push(...list.getEntries()));
+        observer.observe({ type: "layout-shift", buffered: true });
+        setTimeout(() => {
+          observer.disconnect();
+          const shifts = entries
+            .map(
+              (entry) =>
+                entry as PerformanceEntry & {
+                  value: number;
+                  hadRecentInput: boolean;
+                  sources?: { node?: Node | null }[];
+                },
+            )
+            .filter((entry) => !entry.hadRecentInput);
+          const name = (node: Node | null | undefined): string => {
+            if (!(node instanceof Element)) return "(text)";
+            return `${node.tagName.toLowerCase()}${node.id ? `#${node.id}` : ""}.${[...node.classList].slice(0, 2).join(".")}`;
+          };
+          resolve({
+            total: Math.round(shifts.reduce((sum, entry) => sum + entry.value, 0) * 1000) / 1000,
+            worst: shifts
+              .filter((entry) => entry.value > 0.02)
+              .map((entry) => `${entry.value.toFixed(3)} at ${String(Math.round(entry.startTime))} ms: ${(entry.sources ?? []).map((source) => name(source.node)).join(", ")}`),
+          });
+        }, 100);
+      }),
+  );
+}

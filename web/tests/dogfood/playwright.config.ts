@@ -12,7 +12,7 @@
 //     npm run build && npm run dogfood
 import { defineConfig, devices } from "@playwright/test";
 
-import { API_ORIGIN, BASE_URL, LAUNCH, LOCAL, LOCAL_ORIGIN, accessHeaders } from "./support.ts";
+import { API_ORIGIN, API_PORT, BASE_URL, LAUNCH, LOCAL, LOCAL_ORIGIN, accessHeaders } from "./support.ts";
 
 // One name for the run, read by every worker from the environment.
 process.env.DOGFOOD_RUN ??= new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
@@ -45,7 +45,7 @@ export default defineConfig({
           timeout: 120_000,
         },
         {
-          command: "uv run --project .. --locked --all-extras python -I ../tests/web/e2e_api.py --port 8799",
+          command: `uv run --project .. --locked --all-extras python -I ../tests/web/e2e_api.py --port ${String(API_PORT)}`,
           url: `${API_ORIGIN}/healthz`,
           cwd: "../..",
           reuseExistingServer: !process.env.CI,
