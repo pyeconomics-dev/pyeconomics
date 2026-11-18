@@ -117,19 +117,23 @@ repos:
   # Dependency audit of the Node workspace (tools/node, Phase 4 Step 7):
   # known vulnerabilities of High severity or above in its lockfile. Like
   # pip-audit it asks an advisory database, so it runs on every commit.
+  # scripts/checks/npm_audit.py runs `npm audit` and applies the reviewed,
+  # dated entries of scripts/checks/audit_exceptions.toml, for an advisory
+  # with no patched release (issue #360): never for what ships, never past
+  # its date, and never once it matches nothing.
   - repo: local
     hooks:
       - id: npm-audit
         name: npm audit (tools/node, high and above)
         language: system
-        entry: npm audit --prefix tools/node --audit-level=high
+        entry: uv run --locked python scripts/checks/npm_audit.py tools/node
         pass_filenames: false
         always_run: true
       # The web app's own lockfile (web/, Phase 5 Step 3), the same way.
       - id: npm-audit-web
         name: npm audit (web, high and above)
         language: system
-        entry: npm audit --prefix web --audit-level=high
+        entry: uv run --locked python scripts/checks/npm_audit.py web
         pass_filenames: false
         always_run: true
 
