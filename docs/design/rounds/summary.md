@@ -80,8 +80,13 @@ counted. That pass waits on the maintainer, and Step 19 waits on it.
 
 ## What is left
 
+All three issues below were fixed on 2026-11-17 and 18, after the loop and before
+the confirmation round's evaluators ([confirmation.md](confirmation.md)): #351 in
+pull request #365, #350 in #363 and #354 in #358. What #358 does not reach is issue
+[#359](https://github.com/pyeconomics-dev/pyeconomics/issues/359).
+
 Two findings came back in more than one round and belong to the models, not the
-pages, so each is an issue:
+pages, so each was an issue:
 
 - [#351](https://github.com/pyeconomics-dev/pyeconomics/issues/351): the bond
   models take dates and open on a thirty-year Treasury; a learner thinks in "five

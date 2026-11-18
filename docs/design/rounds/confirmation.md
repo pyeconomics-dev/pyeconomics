@@ -5,12 +5,14 @@ Phase 5 Step 18 ends with one round of the protocol in
 Access: the harness, then five fresh evaluators. It passes with no Blocker or High
 finding and a median no lower than [round 3](round-3.md)'s 7.38.
 
-**Where it stands (2026-11-17): the harness passes on staging; the evaluators' pass
+**Where it stands (2026-11-18): the harness passes on staging; the evaluators' pass
 has not been run.** The harness found three defects that no local run had shown;
 they were fixed and the harness is clean on the fixed deployment. The evaluators
 were started and could not be shown the site's screenshots, so nothing they returned
 is counted, and their pass waits on the maintainer (below). Step 18's "Deployed &
-verified" criterion is therefore met for the deploy and not yet for the round.
+verified" criterion is therefore met for the deploy and not yet for the round. The
+three issues the loop left open have since been fixed, and the harness is clean on
+the deployment that holds them (below).
 
 ## The harness on the merge commit's deployment
 
@@ -42,6 +44,32 @@ all 138 states passed, none scrolled sideways, none had a stray scroll box, a co
 error or a policy violation, and no capture or task state shifted by more than 0.011
 (before the fix: seven above 0.1). The run's 1,359 output files were searched for the
 Access service token's two values, and none holds either.
+
+## The three issues the loop filed, fixed
+
+The loop left three findings as issues ([summary](summary.md), "What is left"). The
+maintainer asked for all three to be fixed before the evaluators' pass, each in a
+pull request of its own:
+
+| Issue | What changed | Pull request |
+| --- | --- | --- |
+| #354, a late text font moves the page | Fallback faces over the system serifs with the text font's metrics, and a check that holds every font file back | #358 |
+| #350, the formulas' typography | A word in a subscript or superscript is upright; no formula is wider than a phone's screen | #363 |
+| #351, the bond models' first example | Each opens on a five-year bond with a 4% annual coupon at a 5% yield, and a price says it is per 100 of face value | #365 |
+
+What the first of them does not reach is written down, with its measurements, in
+[direction.md](../direction.md) ("Late fonts") and issue #359: a late font can still
+rewrap a paragraph on a Linux desktop at ordinary density, and macOS, iOS and Android
+were not measured.
+
+Staging's deploy of #365's merge commit (638696e) succeeded. Run `staging-confirm-3`,
+on 2026-11-18: all 138 states passed, none scrolled sideways, none had a stray scroll
+box, a console error or a policy violation, and no capture or task state shifted by
+more than 0.013. Its 1,358 output files hold neither value of the Access service
+token. Measured on the same deployment at a phone's width, all 247 display formulas
+fit the plate that holds them; before #363, 54 of 194 did not.
+
+The evaluators' pass, when it runs, runs on a deployment that holds these.
 
 ## The evaluators
 
@@ -92,11 +120,20 @@ means that need no eye:
 
 So no baseline holds personal data. Whether each picture looks right is still for an
 eye, the maintainer's or an agent's once images may be read. #355 changed no first
-screen (the web job's comparison passed on it), so the baselines stand as committed.
+screen (the web job's comparison passed on it), so the baselines stood as committed.
+
+#363 changed how formulas are written, and so 14 of the 52: the first screens of the
+bond pricing, policy rule and time value pages at both widths in both themes, and
+the GARCH page at 1440 wide. They were redrawn by the web job and committed unseen,
+checked the same two ways: every pixel that differs from the earlier picture lies
+inside the page's formula plate, whose box was read from the built page in the
+runner's own Linux image, and on the two pages whose first formula was not rewritten
+that formula is the same in every pixel. The pull request says so and asks the
+maintainer to look. #358 and #365 changed no first screen.
 
 ## Cost
 
-- **Harness:** 4.6 and 4.5 minutes for the two runs of 138 states on staging.
+- **Harness:** 4.6, 4.5 and 4.9 minutes for the three runs of 138 states on staging.
 - **Evaluators:** about 257,000 tokens for the three that reported (81,164, 86,493
   and 89,633), none of it a counted evaluation; the two that were stopped reported no
   figure.
