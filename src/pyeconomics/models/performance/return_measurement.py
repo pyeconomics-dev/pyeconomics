@@ -516,13 +516,14 @@ _XIRR = Reference(
         "with external cash flows, optionally annualized."
     ),
     formula=(
-        r"r_k = \frac{V_k}{V_{k-1} + F_{k-1}} - 1, \quad TWR = \prod_k (1 + r_k) - 1",
+        r"r_k = \frac{V_k}{V_{k-1} + F_{k-1}} - 1",
+        r"TWR = \prod_k (1 + r_k) - 1",
         r"V_0 (1 + r)^T + \sum_k F_k (1 + r)^{T - t_k} = V_T",
         (
-            r"R_{MD} = \frac{V_1 - V_0 - \sum_i F_i}{V_0 + \sum_i W_i F_i}, \quad "
-            r"W_i = \frac{CD - D_i}{CD}"
+            r"R_{\mathrm{MD}} = \frac{V_1 - V_0 - \sum_i F_i}{V_0 + \sum_i W_i F_i}, "
+            r"\quad W_i = \frac{CD - D_i}{CD}"
         ),
-        r"R_{annual} = (1 + R)^{m / k} - 1",
+        r"R_{\mathrm{annual}} = (1 + R)^{m / k} - 1",
     ),
     symbols=(
         Symbol("r_k", "The return of sub-period k", "sub_period_returns"),
@@ -538,7 +539,9 @@ _XIRR = Reference(
         Symbol("r", "The money-weighted return per period", "money_weighted_return"),
         Symbol("T", "The length of the whole period"),
         Symbol("t_k", "The time of flow k", "flow_times"),
-        Symbol("R_{MD}", "The modified Dietz return", "modified_dietz_return"),
+        Symbol(
+            r"R_{\mathrm{MD}}", "The modified Dietz return", "modified_dietz_return"
+        ),
         Symbol(
             "V_1",
             "The value at the end, in the modified Dietz return",
@@ -548,7 +551,7 @@ _XIRR = Reference(
         Symbol("W_i", "The weight of flow i: the share of the period it was invested"),
         Symbol("CD", "Calendar days in the period"),
         Symbol("D_i", "Days from the start of the period to flow i"),
-        Symbol("R_{annual}", "The return for a year", "annualized_return"),
+        Symbol(r"R_{\mathrm{annual}}", "The return for a year", "annualized_return"),
         Symbol("R", "The return over the whole span"),
         Symbol("m", "Periods in a year", "periods_per_year"),
         Symbol(

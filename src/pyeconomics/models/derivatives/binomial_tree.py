@@ -222,14 +222,18 @@ _HULL = Reference(
     ),
     formula=(
         (
-            r"u = e^{\sigma\sqrt{\Delta t}}, \quad d = 1/u, \quad "
-            r"p = \frac{e^{(r - q)\Delta t} - d}{u - d}"
+            r"u = e^{\sigma\sqrt{\Delta t}}, \quad d = 1/u, \quad p = \frac{e^{(r - "
+            r"q)\Delta t} - d}{u - d}"
         ),
         r"V_{i,j} = e^{-r\Delta t}\left[p V_{i+1,j+1} + (1 - p) V_{i+1,j}\right]",
-        r"V_{i,j}^{American} = \max\left(V_{i,j}, \text{payoff}(S u^{2j - i})\right)",
+        (
+            r"V_{i,j}^{\mathrm{American}} = \max\left(V_{i,j}, \text{payoff}(S u^{2j - "
+            r"i})\right)"
+        ),
         (
             r"\Delta = \frac{V_{1,1} - V_{1,0}}{S u - S d}, \quad \Gamma = "
-            r"\frac{\Delta_{2,up} - \Delta_{2,down}}{(S u^2 - S d^2)/2}"
+            r"\frac{\Delta_{2,\mathrm{up}} - \Delta_{2,\mathrm{down}}}{(S u^2 - S "
+            r"d^2)/2}"
         ),
     ),
     symbols=(

@@ -314,7 +314,7 @@ _FABOZZI = Reference(
         r"EL = PD \times LGD \times EAD",
         r"s = \lambda (1 - R), \quad \lambda = \frac{s}{1 - R}",
         r"S(T) = e^{-\lambda T}, \quad PD(T) = 1 - e^{-\lambda T}",
-        r"r_{excess} \approx s\,t - D_s\,\Delta s - PD \times LGD",
+        r"r_{\mathrm{excess}} \approx s\,t - D_s\,\Delta s - PD \times LGD",
     ),
     symbols=(
         Symbol("EL", "Expected loss", "expected_loss"),
@@ -336,7 +336,7 @@ _FABOZZI = Reference(
         Symbol("PD(T)", "Probability of defaulting by time T", "default_probability"),
         Symbol("T", "Horizon, in years", "horizon"),
         Symbol(
-            "r_{excess}",
+            r"r_{\mathrm{excess}}",
             "Approximate excess return of the bond over a matched government bond",
             "spread_return",
         ),

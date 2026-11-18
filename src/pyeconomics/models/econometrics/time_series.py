@@ -1077,25 +1077,23 @@ _STATSMODELS = Reference(
     ),
     formula=(
         (
-            r"\phi(L)\Phi(L^s)(1-L)^d(1-L^s)^D y_t = c + \theta(L)\Theta(L^s)"
-            r"\varepsilon_t, \quad \varepsilon_t \sim N(0, \sigma^2)"
+            r"\begin{aligned} & \phi(L)\Phi(L^s)(1-L)^d(1-L^s)^D y_t \\ & \quad = c + "
+            r"\theta(L)\Theta(L^s)\varepsilon_t \end{aligned}"
         ),
+        r"\varepsilon_t \sim N(0, \sigma^2)",
+        r"y_t = \nu + A_1 y_{t-1} + \dots + A_p y_{t-p} + u_t",
+        r"\Sigma_u = P P', \quad \Theta_h = \Phi_h P",
         (
-            r"y_t = \nu + A_1 y_{t-1} + \dots + A_p y_{t-p} + u_t, \quad "
-            r"\Sigma_u = P P', \quad \Theta_h = \Phi_h P"
+            r"\omega_{ij,h} = \frac{\sum_{s<h} (e_i' \Theta_s e_j)^2}{\sum_{s<h} e_i' "
+            r"\Phi_s \Sigma_u \Phi_s' e_i}"
         ),
+        r"y_t = \alpha + \beta' x_t + e_t",
         (
-            r"\omega_{ij,h} = \frac{\sum_{s<h} (e_i' \Theta_s e_j)^2}"
-            r"{\sum_{s<h} e_i' \Phi_s \Sigma_u \Phi_s' e_i}"
+            r"\Delta\hat e_t = \rho\,\hat e_{t-1} + \sum_{j=1}^{k} \delta_j \Delta\hat "
+            r"e_{t-j} + v_t"
         ),
-        (
-            r"y_t = \alpha + \beta' x_t + e_t, \quad \Delta\hat e_t = \rho\,"
-            r"\hat e_{t-1} + \sum_{j=1}^{k} \delta_j \Delta\hat e_{t-j} + v_t"
-        ),
-        (
-            r"\lambda_{\text{trace}}(r) = -T \sum_{i=r+1}^{K}\ln(1-\hat\lambda_i), "
-            r"\quad \lambda_{\max}(r) = -T\ln(1 - \hat\lambda_{r+1})"
-        ),
+        r"\lambda_{\text{trace}}(r) = -T \sum_{i=r+1}^{K}\ln(1-\hat\lambda_i)",
+        r"\lambda_{\max}(r) = -T\ln(1 - \hat\lambda_{r+1})",
     ),
     symbols=(
         Symbol(

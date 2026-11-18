@@ -326,10 +326,13 @@ _BIS = Reference(
     ),
     formula=(
         r"F = (S - I + U)\,e^{(r - q + u - y)T}",
-        r"f_{long} = (F - K)\,e^{-rT}, \quad f_{short} = -f_{long}",
         (
-            r"F_{fx} = S\,\frac{1 + r_q\,d/B_q}{1 + r_b\,d/B_b}, "
-            r"\quad \text{points} = F_{fx} - S"
+            r"f_{\mathrm{long}} = (F - K)\,e^{-rT}, \quad f_{\mathrm{short}} = "
+            r"-f_{\mathrm{long}}"
+        ),
+        (
+            r"F_{\mathrm{fx}} = S\,\frac{1 + r_q\,d/B_q}{1 + r_b\,d/B_b}, \quad "
+            r"\text{points} = F_{\mathrm{fx}} - S"
         ),
     ),
     symbols=(
@@ -354,10 +357,10 @@ _BIS = Reference(
         Symbol("u", "Storage cost per year, as a rate", "storage_cost_rate"),
         Symbol("y", "Convenience yield per year", "convenience_yield"),
         Symbol("T", "Time to delivery, in years", "years"),
-        Symbol("f_{long}", "Value of a long forward position", "value"),
-        Symbol("f_{short}", "Value of a short forward position", "value"),
+        Symbol(r"f_{\mathrm{long}}", "Value of a long forward position", "value"),
+        Symbol(r"f_{\mathrm{short}}", "Value of a short forward position", "value"),
         Symbol("K", "Delivery price agreed in the contract", "delivery_price"),
-        Symbol("F_{fx}", "Forward exchange rate", "forward_rate"),
+        Symbol(r"F_{\mathrm{fx}}", "Forward exchange rate", "forward_rate"),
         Symbol("r_q", "Money-market rate of the quote currency", "quote_rate"),
         Symbol("r_b", "Money-market rate of the base currency", "base_rate"),
         Symbol("d", "Days to delivery", "days"),

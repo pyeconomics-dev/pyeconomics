@@ -674,16 +674,18 @@ def _bindings(
     formula=(
         r"r_t - r_{f,t} = \alpha + \sum_{k} \beta_k f_{k,t} + e_t",
         (
-            r"\hat\beta = (X'X)^{-1} X'y, \quad V_{NW} = (X'X)^{-1} \hat S "
-            r"(X'X)^{-1}, \quad \alpha_{\text{annual}} = P\,\alpha"
+            r"\hat\beta = (X'X)^{-1} X'y, \quad V_{\mathrm{NW}} = (X'X)^{-1} \hat S "
+            r"(X'X)^{-1}"
         ),
+        r"\alpha_{\text{annual}} = P\,\alpha",
         (
-            r"\text{CAPM: } \hat\beta_m = \frac{\widehat{\mathrm{Cov}}(r - r_f, f_m)}"
-            r"{\widehat{\mathrm{Var}}(f_m)}, \quad E[r] = r_f + \hat\beta_m \lambda_m"
+            r"\text{CAPM: } \hat\beta_m = \frac{\widehat{\mathrm{Cov}}(r - r_f, "
+            r"f_m)}{\widehat{\mathrm{Var}}(f_m)}"
         ),
+        r"\text{CAPM: } E[r] = r_f + \hat\beta_m \lambda_m",
         (
-            r"\sigma_e = \sqrt{e'e / (T - k)}, \quad "
-            r"\sigma_{e,\text{annual}} = \sqrt{P}\,\sigma_e"
+            r"\sigma_e = \sqrt{e'e / (T - k)}, \quad \sigma_{e,\text{annual}} = "
+            r"\sqrt{P}\,\sigma_e"
         ),
     ),
     symbols=(
@@ -700,7 +702,9 @@ def _bindings(
         Symbol(r"\hat\beta", "The estimated coefficients: alpha and the betas"),
         Symbol("X", "The regressors: a constant and the factors' returns"),
         Symbol("y", "The asset's excess returns"),
-        Symbol("V_{NW}", "The Newey-West covariance matrix of the coefficients"),
+        Symbol(
+            r"V_{\mathrm{NW}}", "The Newey-West covariance matrix of the coefficients"
+        ),
         Symbol(
             r"\hat S",
             (

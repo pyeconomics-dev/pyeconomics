@@ -276,12 +276,16 @@ _WINDOW: Final = 120
         "growth, with the growth that holds unemployment constant)."
     ),
     formula=(
-        r"y_t = a + b\,(u_t - u^*_t) + e_t \quad \text{(gap; Okun's coefficient } -b)",
         (
-            r"u_t - u_{t-k} = a + b\,g_t + e_t, \quad g_t = "
-            r"\left(\frac{Y_t}{Y_{t-k}}\right)^{m/k} - 1 \quad "
-            r"\text{(difference; constant-unemployment growth } -a/b)"
+            r"\begin{aligned} & y_t = a + b\,(u_t - u^*_t) + e_t \quad \text{(gap)} \\ "
+            r"& \text{Okun's coefficient: } -b \end{aligned}"
         ),
+        (
+            r"\begin{aligned} & u_t - u_{t-k} = a + b\,g_t + e_t \quad "
+            r"\text{(difference)} \\ & \text{constant-unemployment growth: } -a/b "
+            r"\end{aligned}"
+        ),
+        r"g_t = \left(\frac{Y_t}{Y_{t-k}}\right)^{m/k} - 1",
     ),
     symbols=(
         Symbol("y_t", "The output gap in period t", "output_gap"),

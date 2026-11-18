@@ -90,7 +90,7 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
 - Model ids are permanent (ADR-0003). Never copy CFA Program curriculum text,
   questions or worked examples.
 - A model says what its formulas' symbols stand for (issue #343):
-  `symbols=(Symbol(r"D_{Mac}", "Macaulay duration, in years",
+  `symbols=(Symbol(r"D_{\mathrm{Mac}}", "Macaulay duration, in years",
   "macaulay_duration"), ...)` on `@model`, each symbol written as a formula
   writes it, its meaning a phrase with no full stop, and its field named when
   it stands for one. `registry.validate()` reports a symbol no formula holds,
@@ -100,6 +100,20 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
   only with `tests/registry/test_formula_symbols.py` and the web's tests. The
   description (`registry.describe`, the registry export, the REST and MCP
   schemas) has no key for them: the card carries them.
+- A formula sets a word upright and fits a phone (issue #350). A subscript or
+  superscript that is a word or an abbreviation is `\mathrm{...}`
+  (`D_{\mathrm{Mac}}`, `R^{\mathrm{T93}}`); a variable or an index stays italic
+  (`t_j`, `\sigma_{ij}`). `tests/registry/test_formula_typography.py` fails on
+  a bare run of letters in a script unless its `PRODUCTS` lists the run as a
+  product of variables or a pair of indices. A display formula is no wider than
+  the plate a phone gives it (324 pixels at 390 wide): write a chain of
+  definitions as separate formulas, and a long equation over two lines in
+  `\begin{aligned}`, broken before an operator.
+  `web/tests/e2e/pages.spec.ts` opens every model's page at that width and fails
+  on a wider one; keep a formula a dozen pixels inside, because the runner's
+  Chromium measures a few pixels wider than Windows'. A symbol must still appear
+  in a formula exactly as written, so an alignment `&` goes after it, never
+  inside it.
 - Declare a model with `@model` from `pyeconomics.core`, list the `Model` object
   in its module's `__all__`, and name the module in
   `[project.entry-points."pyeconomics.models"]`. `registry.validate()` must pass

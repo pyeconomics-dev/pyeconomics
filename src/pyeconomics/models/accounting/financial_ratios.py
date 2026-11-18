@@ -235,16 +235,27 @@ class Outputs(ModelOutputs):
         "five-step DuPont ratios."
     ),
     formula=(
-        r"ROE=NI/E_{avg}",
-        r"ROE=(NI/S)(S/A_{avg})(A_{avg}/E_{avg})",
-        r"ROE=(NI/EBT)(EBT/EBIT)(EBIT/S)(S/A_{avg})(A_{avg}/E_{avg})",
+        r"ROE=NI/E_{\mathrm{avg}}",
+        r"ROE=(NI/S)(S/A_{\mathrm{avg}})(A_{\mathrm{avg}}/E_{\mathrm{avg}})",
+        (
+            r"\begin{aligned} ROE &= (NI/EBT)(EBT/EBIT)(EBIT/S) \\ &\quad \times "
+            r"(S/A_{\mathrm{avg}})(A_{\mathrm{avg}}/E_{\mathrm{avg}}) \end{aligned}"
+        ),
     ),
     symbols=(
         Symbol("ROE", "Return on equity", "roe"),
         Symbol("NI", "Net income attributable to common shareholders", "net_income"),
-        Symbol("E_{avg}", "Average common equity over the period", "average_equity"),
+        Symbol(
+            r"E_{\mathrm{avg}}",
+            "Average common equity over the period",
+            "average_equity",
+        ),
         Symbol("S", "Revenue (sales) for the period", "revenue"),
-        Symbol("A_{avg}", "Average total assets over the period", "average_assets"),
+        Symbol(
+            r"A_{\mathrm{avg}}",
+            "Average total assets over the period",
+            "average_assets",
+        ),
         Symbol("EBT", "Income before taxes", "pretax_income"),
         Symbol("EBIT", "Operating income before interest and taxes", "ebit"),
     ),

@@ -310,12 +310,12 @@ describe("formula symbols (issue #343)", () => {
       "## Formula",
       "",
       "$$",
-      "D_{Mac} = \\frac{1}{P}",
+      "D_{\\mathrm{Mac}} = \\frac{1}{P}",
       "$$",
       "",
       "Where:",
       "",
-      "- $D_{Mac}$: Macaulay duration, in years (`macaulay_duration`)",
+      "- $D_{\\mathrm{Mac}}$: Macaulay duration, in years (`macaulay_duration`)",
       "- $t_j$: Time to cash flow j, in coupon periods (from settlement)",
       "- $\\frac{\\Delta P}{P}$: The relative change in price (`estimated_change`)",
       "",
@@ -324,7 +324,7 @@ describe("formula symbols (issue #343)", () => {
       "- $x$: not a symbol of the formula section",
     ].join("\n");
     expect(symbolsOf(card)).toEqual([
-      { symbol: "D_{Mac}", meaning: "Macaulay duration, in years", field: "macaulay_duration" },
+      { symbol: "D_{\\mathrm{Mac}}", meaning: "Macaulay duration, in years", field: "macaulay_duration" },
       { symbol: "t_j", meaning: "Time to cash flow j, in coupon periods (from settlement)", field: null },
       { symbol: "\\frac{\\Delta P}{P}", meaning: "The relative change in price", field: "estimated_change" },
     ]);

@@ -704,17 +704,17 @@ _JAMSHIDIAN = Reference(
     formula=(
         r"r_{t,j} = r_{t,0}\, e^{2 \sigma \sqrt{\Delta} j}",
         (
-            r"V_{t,j} = \frac{\tfrac12 (V_{t+1,j} + C) + \tfrac12 (V_{t+1,j+1} + C)}"
-            r"{1 + (r_{t,j} + s) \Delta}, \quad V \leftarrow \min(V, K) "
-            r"\text{ (call)}, \ \max(V, K) \text{ (put)}"
+            r"V_{t,j} = \frac{\tfrac12 (V_{t+1,j} + C) + \tfrac12 (V_{t+1,j+1} + C)}{1 "
+            r"+ (r_{t,j} + s) \Delta}"
+        ),
+        r"V \leftarrow \min(V, K) \text{ (call)}, \ \max(V, K) \text{ (put)}",
+        (
+            r"\sum_j \frac{q_{t,j}}{1 + r_{t,j}\Delta} = d_{t+1} = \frac{1 - c_{t+1} "
+            r"\Delta \sum_{k \le t} d_k}{1 + c_{t+1} \Delta}"
         ),
         (
-            r"\sum_j \frac{q_{t,j}}{1 + r_{t,j}\Delta} = d_{t+1} = "
-            r"\frac{1 - c_{t+1} \Delta \sum_{k \le t} d_k}{1 + c_{t+1} \Delta}"
-        ),
-        (
-            r"D_{eff} = \frac{V_- - V_+}{2 V_0 \Delta y}, \quad "
-            r"C_{eff} = \frac{V_- + V_+ - 2 V_0}{V_0 \Delta y^2}"
+            r"D_{\mathrm{eff}} = \frac{V_- - V_+}{2 V_0 \Delta y}, \quad "
+            r"C_{\mathrm{eff}} = \frac{V_- + V_+ - 2 V_0}{V_0 \Delta y^2}"
         ),
     ),
     symbols=(
@@ -733,8 +733,8 @@ _JAMSHIDIAN = Reference(
             "discount_factors",
         ),
         Symbol("c_{t+1}", "Par yield of the bond maturing at step t + 1", "par_yields"),
-        Symbol("D_{eff}", "Effective duration", "effective_duration"),
-        Symbol("C_{eff}", "Effective convexity", "effective_convexity"),
+        Symbol(r"D_{\mathrm{eff}}", "Effective duration", "effective_duration"),
+        Symbol(r"C_{\mathrm{eff}}", "Effective convexity", "effective_convexity"),
         Symbol("V_0", "The bond's value on the tree", "value"),
         Symbol("V_-", "Its value with the curve shifted down", "value_down"),
         Symbol("V_+", "Its value with the curve shifted up", "value_up"),

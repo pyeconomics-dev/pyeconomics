@@ -660,14 +660,21 @@ _XNPV = Reference(
     ),
     formula=(
         (
-            r"PV = \frac{FV}{(1+r)^n}"
-            r" + PMT\,\frac{1 - \left(\frac{1+g}{1+r}\right)^n}{r - g}\,(1+r)^{d}"
+            r"PV = \frac{FV}{(1+r)^n} + PMT\,\frac{1 - "
+            r"\left(\frac{1+g}{1+r}\right)^n}{r - g}\,(1+r)^{d}"
         ),
-        r"FV = PV (1+r)^n + PMT\,\frac{(1+r)^n - (1+g)^n}{r - g}\,(1+r)^{d}",
+        (
+            r"\begin{aligned} FV &= PV (1+r)^n \\ &\quad + PMT\,\frac{(1+r)^n - "
+            r"(1+g)^n}{r - g}\,(1+r)^{d} \end{aligned}"
+        ),
         r"PV_{\infty} = \frac{PMT}{r - g}\,(1+r)^{d}, \quad r > g",
-        r"PV (1+r)^n + PMT (1 + r d) \frac{(1+r)^n - 1}{r} + FV = 0",
+        (
+            r"\begin{aligned} & PV (1+r)^n + PMT (1 + r d) \frac{(1+r)^n - 1}{r} \\ & "
+            r"\quad + FV = 0 \end{aligned}"
+        ),
         r"NPV = \sum_{t=0}^{T} \frac{C_t}{(1+r)^t}, \quad NPV(IRR) = 0",
-        r"XNPV = \sum_i \frac{C_i}{(1+r)^{(d_i - d_0)/365}}, \quad XNPV(XIRR) = 0",
+        r"XNPV = \sum_i \frac{C_i}{(1+r)^{(d_i - d_0)/365}}",
+        r"XNPV(XIRR) = 0",
         r"PMT = \frac{P\,r}{1 - (1+r)^{-n}}, \quad B_k = P\,\frac{a_{n-k}}{a_n}",
     ),
     symbols=(

@@ -438,9 +438,13 @@ _ISDA = Reference(
     ),
     formula=(
         r"A = \sum_{i=1}^{n} \alpha_i d_i",
-        r"V_{float} = N (d_0 - d_n), \quad V_{fixed} = c N A",
-        r"s_{par} = \frac{d_0 - d_n}{A}",
-        r"V_{payer} = V_{float} - V_{fixed} = N A (s_{par} - c) = -V_{receiver}",
+        r"V_{\mathrm{float}} = N (d_0 - d_n), \quad V_{\mathrm{fixed}} = c N A",
+        r"s_{\mathrm{par}} = \frac{d_0 - d_n}{A}",
+        (
+            r"\begin{aligned} V_{\mathrm{payer}} &= V_{\mathrm{float}} - "
+            r"V_{\mathrm{fixed}} \\ &= N A (s_{\mathrm{par}} - c) = "
+            r"-V_{\mathrm{receiver}} \end{aligned}"
+        ),
     ),
     symbols=(
         Symbol(
@@ -454,16 +458,20 @@ _ISDA = Reference(
         Symbol("d_n", "Discount factor at the last payment"),
         Symbol("N", "Notional", "notional"),
         Symbol("c", "Fixed rate of the swap", "fixed_rate"),
-        Symbol("V_{float}", "Value of the floating leg", "floating_leg_value"),
-        Symbol("V_{fixed}", "Value of the fixed leg", "fixed_leg_value"),
         Symbol(
-            "s_{par}",
+            r"V_{\mathrm{float}}", "Value of the floating leg", "floating_leg_value"
+        ),
+        Symbol(r"V_{\mathrm{fixed}}", "Value of the fixed leg", "fixed_leg_value"),
+        Symbol(
+            r"s_{\mathrm{par}}",
             "Par swap rate: the fixed rate that makes the swap worth nothing",
             "par_swap_rate",
         ),
-        Symbol("V_{payer}", "Value to the payer of the fixed rate", "payer_value"),
         Symbol(
-            "V_{receiver}",
+            r"V_{\mathrm{payer}}", "Value to the payer of the fixed rate", "payer_value"
+        ),
+        Symbol(
+            r"V_{\mathrm{receiver}}",
             "Value to the receiver of the fixed rate",
             "receiver_value",
         ),

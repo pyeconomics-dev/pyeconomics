@@ -403,15 +403,11 @@ _HULL = Reference(
         "currency options, with Greeks and implied volatilities."
     ),
     formula=(
-        (
-            r"d_1 = \frac{\ln(F/K) + \sigma^2 T/2}{\sigma\sqrt{T}}, \quad "
-            r"c = e^{-rT}\left[F N(d_1) - K N(d_2)\right]"
-        ),
+        r"d_1 = \frac{\ln(F/K) + \sigma^2 T/2}{\sigma\sqrt{T}}",
+        r"c = e^{-rT}\left[F N(d_1) - K N(d_2)\right]",
         r"p = e^{-rT}\left[K N(-d_2) - F N(-d_1)\right]",
-        (
-            r"d_1 = \frac{\ln(S/K) + (r_d - r_f + \sigma^2/2)T}{\sigma\sqrt{T}}, "
-            r"\quad c = S e^{-r_f T} N(d_1) - K e^{-r_d T} N(d_2)"
-        ),
+        r"d_1 = \frac{\ln(S/K) + (r_d - r_f + \sigma^2/2)T}{\sigma\sqrt{T}}",
+        r"c = S e^{-r_f T} N(d_1) - K e^{-r_d T} N(d_2)",
         r"p = K e^{-r_d T} N(-d_2) - S e^{-r_f T} N(-d_1)",
     ),
     symbols=(

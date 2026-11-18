@@ -512,17 +512,18 @@ def _pwt_bindings(economy: str) -> tuple[Binding, ...]:
     ),
     formula=(
         (
-            r"k^* = \left(\frac{s}{n + g + \delta}\right)^{\frac{1}{1-\alpha}}, "
-            r"\quad y^* = k^{*\alpha}, \quad c^* = (1 - s)\,y^*, \quad "
-            r"s_{gold} = \alpha"
+            r"k^* = \left(\frac{s}{n + g + \delta}\right)^{\frac{1}{1-\alpha}}, \quad "
+            r"y^* = k^{*\alpha}"
+        ),
+        r"c^* = (1 - s)\,y^*, \quad s_{\mathrm{gold}} = \alpha",
+        (
+            r"\lambda = (1 - \alpha)(n + g + \delta), \quad t_{1/2} = \frac{\ln "
+            r"2}{\lambda}"
         ),
         (
-            r"\lambda = (1 - \alpha)(n + g + \delta), \quad "
-            r"t_{1/2} = \frac{\ln 2}{\lambda}"
-        ),
-        (
-            r"\Delta \ln Y = \alpha\,\Delta \ln K + (1 - \alpha)(\Delta \ln L + "
-            r"\Delta \ln h) + \Delta \ln A"
+            r"\begin{aligned} \Delta \ln Y &= \alpha\,\Delta \ln K + (1 - "
+            r"\alpha)(\Delta \ln L + \Delta \ln h) \\ &\quad + \Delta \ln A "
+            r"\end{aligned}"
         ),
     ),
     symbols=(
@@ -547,7 +548,7 @@ def _pwt_bindings(economy: str) -> tuple[Binding, ...]:
             "consumption_per_effective_worker",
         ),
         Symbol(
-            "s_{gold}",
+            r"s_{\mathrm{gold}}",
             "The golden-rule saving rate, which makes steady-state consumption largest",
             "golden_rule_saving_rate",
         ),

@@ -329,14 +329,17 @@ _CURVE = {
         "duration off a spot curve, and DV01 of a fixed-coupon bond."
     ),
     formula=(
-        r"D_{Mac} = \frac{1}{P}\sum_j \frac{t_j}{f}\,\frac{CF_j}{(1 + y/f)^{t_j}}",
-        r"D_{mod} = \frac{D_{Mac}}{1 + y/f}",
-        r"D_{eff} = \frac{P(z - h) - P(z + h)}{2 P(z) h}",
+        (
+            r"D_{\mathrm{Mac}} = \frac{1}{P}\sum_j \frac{t_j}{f}\,\frac{CF_j}{(1 + "
+            r"y/f)^{t_j}}"
+        ),
+        r"D_{\mathrm{mod}} = \frac{D_{\mathrm{Mac}}}{1 + y/f}",
+        r"D_{\mathrm{eff}} = \frac{P(z - h) - P(z + h)}{2 P(z) h}",
         r"KRD_k = \frac{P(z - h s_k) - P(z + h s_k)}{2 P(z) h}, \quad \sum_k s_k = 1",
-        r"DV01 = D_{mod}\,P \times 0.0001",
+        r"DV01 = D_{\mathrm{mod}}\,P \times 0.0001",
     ),
     symbols=(
-        Symbol("D_{Mac}", "Macaulay duration, in years", "macaulay_duration"),
+        Symbol(r"D_{\mathrm{Mac}}", "Macaulay duration, in years", "macaulay_duration"),
         Symbol("P", "Full price of the bond", "full_price"),
         Symbol("t_j", "Time to cash flow j, in coupon periods from settlement"),
         Symbol("f", "Coupons per year", "frequency"),
@@ -353,11 +356,15 @@ _CURVE = {
             "yield_to_maturity",
         ),
         Symbol(
-            "D_{mod}",
+            r"D_{\mathrm{mod}}",
             "Modified duration: the relative fall in price for a rise of one in yield",
             "modified_duration",
         ),
-        Symbol("D_{eff}", "Effective duration, off a spot curve", "effective_duration"),
+        Symbol(
+            r"D_{\mathrm{eff}}",
+            "Effective duration, off a spot curve",
+            "effective_duration",
+        ),
         Symbol("P(z)", "The price off the spot curve z"),
         Symbol("z", "The spot curve", "curve_rates"),
         Symbol("h", "The shift of the curve, up and down", "bump"),

@@ -545,14 +545,15 @@ _EXAMPLE_ASSETS: Final = {
             r"w_g = \frac{\Sigma^{-1}\mathbf{1}}{A}, \quad A = "
             r"\mathbf{1}'\Sigma^{-1}\mathbf{1}, \quad \sigma_g^2 = \frac{1}{A}"
         ),
+        r"\sigma^2(m) = \frac{1}{A} + \frac{(m - \mu_g)^2}{q}",
+        r"q = d'\Sigma^{-1} d, \quad d = \mu - \mu_g \mathbf{1}",
         (
-            r"\sigma^2(m) = \frac{1}{A} + \frac{(m - \mu_g)^2}{q}, \quad q = d'"
-            r"\Sigma^{-1} d, \quad d = \mu - \mu_g \mathbf{1}"
+            r"w_T = \frac{\Sigma^{-1}(\mu - r_f "
+            r"\mathbf{1})}{\mathbf{1}'\Sigma^{-1}(\mu - r_f\mathbf{1})}"
         ),
         (
-            r"w_T = \frac{\Sigma^{-1}(\mu - r_f \mathbf{1})}{\mathbf{1}'\Sigma^{-1}"
-            r"(\mu - r_f\mathbf{1})}, \quad \text{slope} = \sqrt{(\mu - r_f "
-            r"\mathbf{1})'\Sigma^{-1}(\mu - r_f \mathbf{1})}"
+            r"\text{slope} = \sqrt{(\mu - r_f \mathbf{1})'\Sigma^{-1}(\mu - r_f "
+            r"\mathbf{1})}"
         ),
     ),
     symbols=(

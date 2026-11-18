@@ -95,8 +95,13 @@ def test_the_where_list_sits_between_the_formulas_and_the_variables() -> None:
 
 
 def test_a_symbol_is_positional_and_frozen() -> None:
-    symbol = Symbol(r"D_{Mac}", "Macaulay duration, in years", "macaulay_duration")
-    assert (symbol.symbol, symbol.field) == (r"D_{Mac}", "macaulay_duration")
+    symbol = Symbol(
+        r"D_{\mathrm{Mac}}", "Macaulay duration, in years", "macaulay_duration"
+    )
+    assert (symbol.symbol, symbol.field) == (
+        r"D_{\mathrm{Mac}}",
+        "macaulay_duration",
+    )
     assert Symbol("y", "Yield").field is None
     with pytest.raises(dataclasses.FrozenInstanceError):
         symbol.meaning = "other"  # type: ignore[misc]

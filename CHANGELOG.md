@@ -16,8 +16,8 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 ### Added
 
 - What each formula's symbols stand for (Phase 5 Step 18; issue #343): a model
-  declares them on `@model` (`symbols=(Symbol(r"D_{Mac}", "Macaulay duration, in
-  years", "macaulay_duration"), ...)`, exported as `pyeconomics.core.Symbol`), each
+  declares them on `@model` (`symbols=(Symbol(r"D_{\mathrm{Mac}}", "Macaulay
+  duration, in years", "macaulay_duration"), ...)`, exported as `pyeconomics.core.Symbol`), each
   written as its formulas write it, with its meaning and the field it stands for.
   All 50 models declare theirs (756 definitions); `registry.validate()` holds each
   to a formula and a field under the new `symbols` rule; a model card lists them
@@ -179,6 +179,15 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   desktop at ordinary density, where letters are rounded to whole pixels, pages
   that shifted by up to 0.38 now shift by up to 0.23, and by 0.005 at most at a
   phone's width (issue #359).
+- Formulas set a word upright and fit a phone (issue #350, from the dogfooding
+  rounds). A subscript or superscript that is a word or an abbreviation is now
+  upright (`D_{\mathrm{Mac}}`, not `D_{Mac}`: 156 of them, with the symbols that
+  name them), and a variable or an index stays italic. On a phone, 54 of the 194
+  formulas were wider than the screen and were read by swiping; those, and ten
+  within a few pixels of its edge, are written over two lines or as separate
+  formulas, so 33 models now show 247 formulas, none wider than a phone's
+  screen. A model's description (`registry.describe`, the registry export)
+  carries the new text; no schema, output or result hash changes.
 - Three defects the dogfooding loop's confirmation round found on staging, where
   the API is a network away and the data is real (Phase 5 Step 18): choosing live
   data on a phone pushed the page past the screen's edge, because the profile

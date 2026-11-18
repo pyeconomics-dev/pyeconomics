@@ -229,10 +229,8 @@ def _bindings(
     ),
     formula=(
         r"\pi_t - \pi^e_t = \alpha + \beta\,(u_t - u^*_t) + \gamma' z_t + e_t",
-        (
-            r"\hat\beta, \hat\alpha \text{ by least squares}; \quad "
-            r"V_{NW} = (X'X)^{-1} \hat S (X'X)^{-1}"
-        ),
+        r"\hat\beta, \hat\alpha \text{ by least squares}",
+        r"V_{\mathrm{NW}} = (X'X)^{-1} \hat S (X'X)^{-1}",
     ),
     symbols=(
         Symbol(r"\pi_t", "Inflation in period t", "inflation"),
@@ -256,7 +254,9 @@ def _bindings(
         ),
         Symbol("z_t", "The supply shocks in period t", "supply_shocks"),
         Symbol("e_t", "The residual in period t"),
-        Symbol("V_{NW}", "The Newey-West covariance matrix of the coefficients"),
+        Symbol(
+            r"V_{\mathrm{NW}}", "The Newey-West covariance matrix of the coefficients"
+        ),
         Symbol(
             r"\hat S",
             (

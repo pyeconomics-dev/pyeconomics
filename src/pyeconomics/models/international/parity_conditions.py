@@ -482,22 +482,18 @@ _FAMA = Reference(
         "power parity, the international Fisher effect and real exchange rates."
     ),
     formula=(
-        (
-            r"F = S\,\frac{G_q(T)}{G_b(T)}, \quad "
-            r"G(T) \in \{1 + iT,\ (1 + i/m)^{mT},\ e^{iT}\}"
-        ),
+        r"F = S\,\frac{G_q(T)}{G_b(T)}",
+        r"G(T) \in \{1 + iT,\ (1 + i/m)^{mT},\ e^{iT}\}",
         r"E[S_T] = S\,\frac{G_q(T)}{G_b(T)}",
         (
             r"E[S_T] = S \left(\frac{1 + \pi_q}{1 + \pi_b}\right)^T, \quad "
-            r"S_{PPP} = \frac{P_q}{P_b}"
+            r"S_{\mathrm{PPP}} = \frac{P_q}{P_b}"
         ),
+        r"1 + i = (1 + r)(1 + \pi)",
+        r"\frac{E[S_1]}{S_0} - 1 = \frac{1 + i_q}{1 + i_b} - 1",
         (
-            r"1 + i = (1 + r)(1 + \pi), \quad "
-            r"\frac{E[S_1]}{S_0} - 1 = \frac{1 + i_q}{1 + i_b} - 1"
-        ),
-        (
-            r"q = S\,\frac{P_b}{P_q}, \quad "
-            r"\Delta q = \frac{(1 + s)(1 + \pi_b)}{1 + \pi_q} - 1"
+            r"q = S\,\frac{P_b}{P_q}, \quad \Delta q = \frac{(1 + s)(1 + \pi_b)}{1 + "
+            r"\pi_q} - 1"
         ),
     ),
     symbols=(
@@ -525,7 +521,7 @@ _FAMA = Reference(
         Symbol(r"\pi_q", "Inflation rate of the quote currency", "quote_inflation"),
         Symbol(r"\pi_b", "Inflation rate of the base currency", "base_inflation"),
         Symbol(
-            "S_{PPP}",
+            r"S_{\mathrm{PPP}}",
             "The exchange rate at which a basket costs the same in both currencies",
             "ppp_rate",
         ),

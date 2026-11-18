@@ -232,7 +232,7 @@ class ChangelogEntry:
 
 @dataclass(frozen=True, slots=True)
 class Symbol:
-    """One symbol of a model's formulas, and what it stands for.
+    r"""One symbol of a model's formulas, and what it stands for.
 
     A card lists its model's symbols under the formulas, so a reader can tell
     what each letter means and which field holds its value (issue #343).
@@ -240,13 +240,16 @@ class Symbol:
     Examples
     --------
     >>> from pyeconomics.core import Symbol
-    >>> Symbol("D_{Mac}", "Macaulay duration, in years", "macaulay_duration").field
+    >>> symbol = Symbol(
+    ...     r"D_{\mathrm{Mac}}", "Macaulay duration, in years", "macaulay_duration"
+    ... )
+    >>> symbol.field
     'macaulay_duration'
 
     """
 
     symbol: str
-    """The symbol as the formulas write it, in LaTeX: ``D_{Mac}``."""
+    r"""The symbol as the formulas write it, in LaTeX: ``D_{\mathrm{Mac}}``."""
     meaning: str
     """What it stands for, in words."""
     field: str | None = None

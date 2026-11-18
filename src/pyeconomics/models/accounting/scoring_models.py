@@ -222,7 +222,11 @@ Outputs = Annotated[
     ),
     formula=(
         r"Z=1.2X_1+1.4X_2+3.3X_3+0.6X_4+0.999X_5",
-        r"M=-4.84+.920DSRI+.528GMI+.404AQI+.892SGI+.115DEPI-.172SGAI+4.679TATA-.327LVGI",
+        (
+            r"\begin{aligned} M &= -4.84 + .920DSRI + .528GMI \\ &\quad + .404AQI + "
+            r".892SGI + .115DEPI \\ &\quad - .172SGAI + 4.679TATA - .327LVGI "
+            r"\end{aligned}"
+        ),
         r"F=\sum_{j=1}^9 I_j",
     ),
     symbols=(
