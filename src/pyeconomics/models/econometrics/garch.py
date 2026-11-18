@@ -813,24 +813,28 @@ _KEN_FRENCH = Reference(
     formula=(
         r"r_t = \mu + \varepsilon_t, \quad \varepsilon_t = \sigma_t z_t",
         (
-            r"\sigma^2_t = \omega + \sum_{i=1}^{p} \alpha_i \varepsilon^2_{t-i}"
-            r" + \sum_{j=1}^{o} \gamma_j \varepsilon^2_{t-j} 1[\varepsilon_{t-j} < 0]"
-            r" + \sum_{k=1}^{q} \beta_k \sigma^2_{t-k}"
+            r"\begin{aligned} \sigma^2_t &= \omega + \sum_{i=1}^{p} \alpha_i "
+            r"\varepsilon^2_{t-i} \\ &\quad + \sum_{j=1}^{o} \gamma_j "
+            r"\varepsilon^2_{t-j} 1[\varepsilon_{t-j} < 0] + \sum_{k=1}^{q} \beta_k "
+            r"\sigma^2_{t-k} \end{aligned}"
         ),
         (
-            r"\ln\sigma^2_t = \omega + \sum_{i} \alpha_i (|z_{t-i}| - \sqrt{2/\pi})"
-            r" + \sum_{j} \gamma_j z_{t-j} + \sum_{k} \beta_k \ln\sigma^2_{t-k}"
+            r"\begin{aligned} \ln\sigma^2_t &= \omega + \sum_{i} \alpha_i (|z_{t-i}| - "
+            r"\sqrt{2/\pi}) \\ &\quad + \sum_{j} \gamma_j z_{t-j} + \sum_{k} \beta_k "
+            r"\ln\sigma^2_{t-k} \end{aligned}"
         ),
         (
-            r"E_T[\sigma^2_{T+h}] - \bar\sigma^2 = \pi^{h-1}"
-            r"(E_T[\sigma^2_{T+1}] - \bar\sigma^2), \quad "
-            r"\bar\sigma^2 = \frac{\omega}{1 - \pi}, \quad "
-            r"\pi = \alpha + \tfrac{\gamma}{2} + \beta \text{ (order one)}"
+            r"E_T[\sigma^2_{T+h}] - \bar\sigma^2 = \pi^{h-1}(E_T[\sigma^2_{T+1}] - "
+            r"\bar\sigma^2)"
         ),
         (
-            r"\sigma_{\text{annual},h} = \sqrt{P\,E_T[\sigma^2_{T+h}]}, \quad "
-            r"\sigma_{\text{term},h} = \sqrt{\tfrac{P}{h}\sum_{i \le h}"
-            r"E_T[\sigma^2_{T+i}]}"
+            r"\bar\sigma^2 = \frac{\omega}{1 - \pi}, \quad \pi = \alpha + "
+            r"\tfrac{\gamma}{2} + \beta \text{ (order one)}"
+        ),
+        r"\sigma_{\text{annual},h} = \sqrt{P\,E_T[\sigma^2_{T+h}]}",
+        (
+            r"\sigma_{\text{term},h} = \sqrt{\tfrac{P}{h}\sum_{i \le "
+            r"h}E_T[\sigma^2_{T+i}]}"
         ),
     ),
     symbols=(

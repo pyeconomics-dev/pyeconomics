@@ -425,23 +425,19 @@ _TWO_SECTORS: Final = {
         "Carino's method."
     ),
     formula=(
-        (
-            r"A^{BHB}_i = (w^p_i - w^b_i) r^b_i, \quad A^{BF}_i = (w^p_i - w^b_i)"
-            r"(r^b_i - B)"
-        ),
+        r"A^{\mathrm{BHB}}_i = (w^p_i - w^b_i) r^b_i",
+        r"A^{\mathrm{BF}}_i = (w^p_i - w^b_i)(r^b_i - B)",
         r"S_i = w^b_i (r^p_i - r^b_i), \quad I_i = (w^p_i - w^b_i)(r^p_i - r^b_i)",
-        (
-            r"k_t = \frac{\ln(1 + R_t) - \ln(1 + B_t)}{R_t - B_t}, \quad "
-            r"E^{linked} = \sum_t \frac{k_t}{k} E_t"
-        ),
+        r"k_t = \frac{\ln(1 + R_t) - \ln(1 + B_t)}{R_t - B_t}",
+        r"E^{\mathrm{linked}} = \sum_t \frac{k_t}{k} E_t",
     ),
     symbols=(
         Symbol(
-            "A^{BHB}_i",
+            r"A^{\mathrm{BHB}}_i",
             "Allocation effect of sector i, by Brinson, Hood and Beebower",
         ),
         Symbol(
-            "A^{BF}_i",
+            r"A^{\mathrm{BF}}_i",
             "Allocation effect of sector i, by Brinson and Fachler",
             "sector_allocation",
         ),
@@ -458,7 +454,7 @@ _TWO_SECTORS: Final = {
         ),
         Symbol("R_t", "The portfolio's return in period t", "period_portfolio_returns"),
         Symbol("B_t", "The benchmark's return in period t", "period_benchmark_returns"),
-        Symbol("E^{linked}", "An effect linked over the periods"),
+        Symbol(r"E^{\mathrm{linked}}", "An effect linked over the periods"),
         Symbol("E_t", "The effect in period t"),
     ),
     assumptions=(

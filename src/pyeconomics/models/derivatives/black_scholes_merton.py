@@ -266,18 +266,16 @@ _HULL = Reference(
         "asset with a continuous dividend yield."
     ),
     formula=(
-        (
-            r"d_1 = \frac{\ln(S/K) + (r - q + \sigma^2/2)T}{\sigma\sqrt{T}}, "
-            r"\quad d_2 = d_1 - \sigma\sqrt{T}"
-        ),
+        r"d_1 = \frac{\ln(S/K) + (r - q + \sigma^2/2)T}{\sigma\sqrt{T}}",
+        r"d_2 = d_1 - \sigma\sqrt{T}",
         r"c = S e^{-qT} N(d_1) - K e^{-rT} N(d_2)",
         r"p = K e^{-rT} N(-d_2) - S e^{-qT} N(-d_1)",
         r"c - p = S e^{-qT} - K e^{-rT}",
         (
-            r"\Delta_c = e^{-qT} N(d_1), \quad "
-            r"\Gamma = \frac{e^{-qT} n(d_1)}{S \sigma \sqrt{T}}, \quad "
-            r"\nu = S e^{-qT} n(d_1) \sqrt{T}"
+            r"\Delta_c = e^{-qT} N(d_1), \quad \Gamma = \frac{e^{-qT} n(d_1)}{S \sigma "
+            r"\sqrt{T}}"
         ),
+        r"\nu = S e^{-qT} n(d_1) \sqrt{T}",
     ),
     symbols=(
         Symbol("S", "Price of the underlying asset now", "spot"),

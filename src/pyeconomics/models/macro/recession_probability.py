@@ -154,8 +154,12 @@ _NYFED = Reference(
         "spread of the 10-year Treasury yield over the 3-month bill."
     ),
     formula=(
-        r"P = \Phi(-0.5333 - 0.6330\,S), \quad S = 100\,(y_{10} - y_{3m})",
-        r"y_{3m} = \frac{365\,d}{360 - 91\,d} \ \text{(from a discount rate } d)",
+        r"P = \Phi(-0.5333 - 0.6330\,S)",
+        r"S = 100\,(y_{10} - y_{\mathrm{3m}})",
+        (
+            r"y_{\mathrm{3m}} = \frac{365\,d}{360 - 91\,d} \ \text{(from a discount "
+            r"rate } d)"
+        ),
     ),
     symbols=(
         Symbol(
@@ -167,7 +171,7 @@ _NYFED = Reference(
         Symbol("S", "The term spread, in percentage points", "spread"),
         Symbol("y_{10}", "The ten-year Treasury yield", "ten_year_yield"),
         Symbol(
-            "y_{3m}",
+            r"y_{\mathrm{3m}}",
             "The three-month Treasury bill's bond-equivalent yield",
             "bill_bond_equivalent",
         ),

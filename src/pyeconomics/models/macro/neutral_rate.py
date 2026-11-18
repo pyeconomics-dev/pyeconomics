@@ -12,7 +12,7 @@ cannot be observed; it is estimated. Four calculations, discriminated on
   2003; Holston, Laubach and Williams 2017), which a binding reads from the
   current file;
 - ``sep_longer_run``: the FOMC's median longer-run federal funds rate less the
-  inflation objective, :math:`r^* = i^{LR} - \pi^*`;
+  inflation objective, :math:`r^* = i^{\mathrm{LR}} - \pi^*`;
 - ``constant``: a rate the caller chooses.
 
 The nominal neutral rate is :math:`r^* + \pi^*`. Given a policy rate :math:`i` and
@@ -304,21 +304,23 @@ _SEP = Reference(
     ),
     formula=(
         (
-            r"r^* = \hat r^*_{LW} \text{ or } \hat r^*_{HLW}, \quad "
-            r"r^* = i^{LR}_{SEP} - \pi^*"
+            r"r^* = \hat r^*_{\mathrm{LW}} \text{ or } \hat r^*_{\mathrm{HLW}}, \quad "
+            r"r^* = i^{\mathrm{LR}}_{\mathrm{SEP}} - \pi^*"
         ),
         r"i^* = r^* + \pi^*, \quad \text{gap} = (i - \pi) - r^*",
     ),
     symbols=(
         Symbol("r^*", "The real neutral rate of interest", "real_neutral_rate"),
-        Symbol(r"\hat r^*_{LW}", "The Laubach-Williams estimate", "lw_estimate"),
         Symbol(
-            r"\hat r^*_{HLW}",
+            r"\hat r^*_{\mathrm{LW}}", "The Laubach-Williams estimate", "lw_estimate"
+        ),
+        Symbol(
+            r"\hat r^*_{\mathrm{HLW}}",
             "The Holston-Laubach-Williams estimate",
             "hlw_estimate",
         ),
         Symbol(
-            "i^{LR}_{SEP}",
+            r"i^{\mathrm{LR}}_{\mathrm{SEP}}",
             "The longer-run policy rate of the Summary of Economic Projections",
             "longer_run_policy_rate",
         ),

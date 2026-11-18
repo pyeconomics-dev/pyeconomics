@@ -163,7 +163,7 @@ Outputs = Annotated[
     ),
     formula=(
         r"k_e=r_f+\beta ERP",
-        r"WACC=(Ek_e+Dk_d(1-t)+Pk_p)/(E+D+P)",
+        r"WACC=\frac{Ek_e+Dk_d(1-t)+Pk_p}{E+D+P}",
         r"\beta_L=\beta_U[1+(1-t)D/E]",
         r"CRP=s\sigma_e/\sigma_b",
     ),

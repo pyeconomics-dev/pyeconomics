@@ -574,31 +574,28 @@ _MANISTRE = Reference(
         "Cornish-Fisher, historical, Monte Carlo and RiskMetrics EWMA methods."
     ),
     formula=(
+        r"\mathrm{VaR} = -\mu h + z_c \sigma\sqrt{h}",
+        r"\mathrm{ES} = -\mu h + \sigma\sqrt{h}\,\frac{\varphi(z_c)}{1 - c}",
         (
-            r"\mathrm{VaR} = -\mu h + z_c \sigma\sqrt{h}, \quad "
-            r"\mathrm{ES} = -\mu h + \sigma\sqrt{h}\,\frac{\varphi(z_c)}{1 - c}"
+            r"g = z + \tfrac{(z^2 - 1)S}{6} + \tfrac{(z^3 - 3z)K}{24} - \tfrac{(2z^3 - "
+            r"5z)S^2}{36}"
         ),
+        r"z = \Phi^{-1}(1 - c)",
         (
-            r"g = z + \tfrac{(z^2 - 1)S}{6} + \tfrac{(z^3 - 3z)K}{24} - "
-            r"\tfrac{(2z^3 - 5z)S^2}{36}, \quad z = \Phi^{-1}(1 - c)"
+            r"\begin{aligned} \mathrm{mES} &= -\mu - \frac{\sigma}{1 - "
+            r"c}\int_{-\infty}^{g} x\,\varphi(x)\Big[1 + \tfrac{S}{6}He_3(x) \\ &\quad "
+            r"+ \tfrac{K}{24}He_4(x) + \tfrac{S^2}{72}He_6(x)\Big]dx \end{aligned}"
         ),
+        r"\mathrm{VaR} = -\sqrt{h}\,\hat{q}_{1 - c}",
+        r"\mathrm{ES} = -\sqrt{h}\,\overline{r_t \mid r_t \le \hat{q}_{1 - c}}",
         (
-            r"\mathrm{mES} = -\mu - \frac{\sigma}{1 - c}\int_{-\infty}^{g} "
-            r"x\,\varphi(x)\left[1 + \tfrac{S}{6}He_3(x) + \tfrac{K}{24}He_4(x) + "
-            r"\tfrac{S^2}{72}He_6(x)\right]dx"
+            r"\sigma_t^2 = \lambda\sigma_{t-1}^2 + (1 - \lambda) r_t^2, \quad "
+            r"\sigma_1^2 = r_1^2"
         ),
+        r"\mathrm{SE}(\widehat{\mathrm{VaR}}) = \frac{\sqrt{c(1 - c)/N}}{f(\hat{q})}",
         (
-            r"\mathrm{VaR} = -\sqrt{h}\,\hat{q}_{1 - c}, \quad "
-            r"\mathrm{ES} = -\sqrt{h}\,\overline{r_t \mid r_t \le \hat{q}_{1 - c}}"
-        ),
-        (
-            r"\sigma_t^2 = \lambda\sigma_{t-1}^2 + (1 - \lambda) r_t^2, "
-            r"\quad \sigma_1^2 = r_1^2"
-        ),
-        (
-            r"\mathrm{SE}(\widehat{\mathrm{VaR}}) = \frac{\sqrt{c(1 - c)/N}}"
-            r"{f(\hat{q})}, \quad \mathrm{SE}(\widehat{\mathrm{ES}}) = "
-            r"\sqrt{\frac{s^2_{tail} + c(\mathrm{ES} - \mathrm{VaR})^2}{N(1 - c)}}"
+            r"\mathrm{SE}(\widehat{\mathrm{ES}}) = \sqrt{\frac{s^2_{\mathrm{tail}} + "
+            r"c(\mathrm{ES} - \mathrm{VaR})^2}{N(1 - c)}}"
         ),
     ),
     symbols=(
@@ -644,7 +641,7 @@ _MANISTRE = Reference(
         Symbol(r"\sigma_t^2", "The exponentially weighted variance in period t"),
         Symbol("N", "Number of returns, or of simulations", "observations"),
         Symbol(r"f(\hat{q})", "The density of the returns at the quantile"),
-        Symbol("s^2_{tail}", "Variance of the losses beyond value-at-risk"),
+        Symbol(r"s^2_{\mathrm{tail}}", "Variance of the losses beyond value-at-risk"),
     ),
     assumptions=(
         (

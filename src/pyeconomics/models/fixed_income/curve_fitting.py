@@ -695,10 +695,10 @@ _ECB = Reference(
     ),
     formula=(
         (
-            r"y(n) = \beta_0 + \beta_1 L_1 + \beta_2 (L_1 - e^{-n/\tau_1}) + "
-            r"\beta_3 (L_2 - e^{-n/\tau_2}), \quad L_k = \frac{1 - e^{-n/\tau_k}}"
-            r"{n/\tau_k}"
+            r"\begin{aligned} y(n) &= \beta_0 + \beta_1 L_1 + \beta_2 (L_1 - "
+            r"e^{-n/\tau_1}) \\ &\quad + \beta_3 (L_2 - e^{-n/\tau_2}) \end{aligned}"
         ),
+        r"L_k = \frac{1 - e^{-n/\tau_k}}{n/\tau_k}",
         (
             r"f(n) = \beta_0 + \beta_1 e^{-n/\tau_1} + \beta_2 \frac{n}{\tau_1} "
             r"e^{-n/\tau_1} + \beta_3 \frac{n}{\tau_2} e^{-n/\tau_2}"

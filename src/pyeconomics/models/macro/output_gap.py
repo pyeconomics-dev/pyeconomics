@@ -691,24 +691,22 @@ _GDP: Final = (
             r"\quad\text{or}\quad \ln y_t - \ln \bar y_t \ \text{(log)}"
         ),
         (
-            r"\tau^{HP} = \arg\min_\tau \sum_t (x_t - \tau_t)^2 + \lambda \sum_t "
-            r"(\tau_{t+1} - 2\tau_t + \tau_{t-1})^2, \quad \lambda = 1600 (f/4)^4"
+            r"\begin{aligned} \tau^{\mathrm{HP}} &= \arg\min_\tau \sum_t (x_t - "
+            r"\tau_t)^2 \\ &\quad + \lambda \sum_t (\tau_{t+1} - 2\tau_t + "
+            r"\tau_{t-1})^2 \end{aligned}"
         ),
-        (
-            r"x_{t+h} = \beta_0 + \beta_1 x_t + \cdots + \beta_p x_{t-p+1} + "
-            r"v_{t+h}, \quad \text{cycle}_{t+h} = \hat v_{t+h}"
-        ),
-        (
-            r"c^{BK}_t = \sum_{j=-K}^{K} a_j x_{t-j}, \quad a_j = b_j - "
-            r"\frac{1}{2K+1}\sum_{i=-K}^{K} b_i, \quad b_j = \frac{\sin(j\omega_2) - "
-            r"\sin(j\omega_1)}{\pi j}"
-        ),
+        r"\lambda = 1600 (f/4)^4",
+        r"x_{t+h} = \beta_0 + \beta_1 x_t + \cdots + \beta_p x_{t-p+1} + v_{t+h}",
+        r"\text{cycle}_{t+h} = \hat v_{t+h}",
+        r"c^{\mathrm{BK}}_t = \sum_{j=-K}^{K} a_j x_{t-j}",
+        r"a_j = b_j - \frac{1}{2K+1}\sum_{i=-K}^{K} b_i",
+        r"b_j = \frac{\sin(j\omega_2) - \sin(j\omega_1)}{\pi j}",
     ),
     symbols=(
         Symbol(r"\text{gap}_t", "The output gap in period t", "gap"),
         Symbol("y_t", "Actual output", "actual"),
         Symbol(r"\bar y_t", "Potential output", "potential"),
-        Symbol(r"\tau^{HP}", "The Hodrick-Prescott trend", "trend"),
+        Symbol(r"\tau^{\mathrm{HP}}", "The Hodrick-Prescott trend", "trend"),
         Symbol("x_t", "The series being filtered", "series"),
         Symbol(r"\lambda", "The smoothing parameter", "smoothing"),
         Symbol("f", "Observations in a year", "frequency"),
@@ -723,7 +721,7 @@ _GDP: Final = (
             "The cycle: the part of the series the projection misses",
             "cycle",
         ),
-        Symbol("c^{BK}_t", "The Baxter-King cycle", "cycle"),
+        Symbol(r"c^{\mathrm{BK}}_t", "The Baxter-King cycle", "cycle"),
         Symbol(
             "K",
             "Leads and lags the Baxter-King filter uses on each side",

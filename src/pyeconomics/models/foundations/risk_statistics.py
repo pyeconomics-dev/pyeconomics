@@ -290,12 +290,10 @@ _SORTINO = Reference(
     formula=(
         (
             r"s = \sqrt{\frac{1}{n-1}\sum (r_t - \bar{r})^2}, \quad "
-            r"\sigma_{annual} = s \sqrt{m}"
+            r"\sigma_{\mathrm{annual}} = s \sqrt{m}"
         ),
-        (
-            r"SD_{\bar{r}} = \sqrt{\frac{1}{n-1}\sum \min(r_t - \bar{r}, 0)^2}, \quad "
-            r"DD_T = \sqrt{\frac{1}{n}\sum \min(r_t - T, 0)^2}"
-        ),
+        r"SD_{\bar{r}} = \sqrt{\frac{1}{n-1}\sum \min(r_t - \bar{r}, 0)^2}",
+        r"DD_T = \sqrt{\frac{1}{n}\sum \min(r_t - T, 0)^2}",
         r"G_1 = \frac{\sqrt{n(n-1)}}{n-2}\,\frac{m_3}{m_2^{3/2}}",
         r"G_2 = \frac{n-1}{(n-2)(n-3)}\left[(n+1)\frac{m_4}{m_2^2} - 3(n-1)\right]",
         r"MDD = \max_j \left(1 - \frac{V_j}{\max_{i \le j} V_i}\right)",
@@ -305,7 +303,11 @@ _SORTINO = Reference(
         Symbol("r_t", "The return in period t", "returns"),
         Symbol(r"\bar{r}", "Mean return", "mean"),
         Symbol("n", "Number of returns", "observations"),
-        Symbol(r"\sigma_{annual}", "Volatility for a year", "annualized_volatility"),
+        Symbol(
+            r"\sigma_{\mathrm{annual}}",
+            "Volatility for a year",
+            "annualized_volatility",
+        ),
         Symbol("m", "Periods in a year", "periods_per_year"),
         Symbol(
             r"SD_{\bar{r}}",

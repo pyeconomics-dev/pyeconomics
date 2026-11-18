@@ -697,19 +697,20 @@ def _bindings(
     formula=(
         r"r_{it} = \alpha_i + \beta_i' f_t + e_{it}",
         (
-            r"W = \frac{T - N - L}{N} \frac{\hat\alpha' \hat\Sigma^{-1} \hat\alpha}"
-            r"{1 + \bar f' \hat\Omega^{-1} \bar f} \sim F(N, T - N - L)"
+            r"W = \frac{T - N - L}{N} \frac{\hat\alpha' \hat\Sigma^{-1} \hat\alpha}{1 "
+            r"+ \bar f' \hat\Omega^{-1} \bar f} \sim F(N, T - N - L)"
         ),
+        r"r_t = \gamma_{0t} + \hat B \gamma_t + \eta_t",
         (
-            r"r_t = \gamma_{0t} + \hat B \gamma_t + \eta_t, \quad \hat\gamma = "
-            r"\frac{1}{T}\sum_t \hat\gamma_t, \quad s(\hat\gamma) = "
+            r"\hat\gamma = \frac{1}{T}\sum_t \hat\gamma_t, \quad s(\hat\gamma) = "
             r"\frac{\mathrm{sd}(\hat\gamma_t)}{\sqrt{T}}"
         ),
         (
-            r"\hat V_S = \tfrac{1}{T}\left[(1 + \hat\gamma'\hat\Sigma_f^{-1}"
-            r"\hat\gamma)\, A \hat\Sigma A' + \hat\Sigma_f^*\right], \quad A = "
-            r"(X'X)^{-1}X'"
+            r"\hat V_S = \tfrac{1}{T}\left[(1 + "
+            r"\hat\gamma'\hat\Sigma_f^{-1}\hat\gamma)\, A \hat\Sigma A' + "
+            r"\hat\Sigma_f^*\right]"
         ),
+        r"A = (X'X)^{-1}X'",
     ),
     symbols=(
         Symbol("r_{it}", "Excess return of test asset i in period t", "returns"),

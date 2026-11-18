@@ -318,14 +318,12 @@ _HARDY = Reference(
     ),
     formula=(
         r"HPR = \frac{V_1 - V_0 + D}{V_0}",
-        (
-            r"\bar{r}_A = \frac{1}{n}\sum r_t, \quad "
-            r"\bar{r}_G = \Big(\prod (1 + r_t)\Big)^{1/n} - 1, \quad "
-            r"\bar{r}_H = \frac{n}{\sum (1 + r_t)^{-1}} - 1"
-        ),
-        r"r_{annual} = (1 + R)^{m / k} - 1",
+        r"\bar{r}_A = \frac{1}{n}\sum r_t",
+        r"\bar{r}_G = \Big(\prod (1 + r_t)\Big)^{1/n} - 1",
+        r"\bar{r}_H = \frac{n}{\sum (1 + r_t)^{-1}} - 1",
+        r"r_{\mathrm{annual}} = (1 + R)^{m / k} - 1",
         r"\ell = \ln(1 + r), \quad r = e^{\ell} - 1",
-        r"1 + r_{real} = \frac{1 + i}{1 + \pi}",
+        r"1 + r_{\mathrm{real}} = \frac{1 + i}{1 + \pi}",
     ),
     symbols=(
         Symbol("HPR", "Holding-period return", "holding_period_return"),
@@ -337,13 +335,13 @@ _HARDY = Reference(
         Symbol(r"\bar{r}_H", "Harmonic mean return", "harmonic"),
         Symbol("r_t", "The return in period t", "returns"),
         Symbol("n", "Number of returns", "observations"),
-        Symbol("r_{annual}", "The return for a year", "annualized_return"),
+        Symbol(r"r_{\mathrm{annual}}", "The return for a year", "annualized_return"),
         Symbol("R", "The return over the whole span", "period_return"),
         Symbol("m", "Periods in a year", "periods_per_year"),
         Symbol("k", "Periods the return spans", "periods"),
         Symbol(r"\ell", "Log (continuously compounded) return"),
         Symbol("r", "Simple return"),
-        Symbol("r_{real}", "Real return", "real"),
+        Symbol(r"r_{\mathrm{real}}", "Real return", "real"),
         Symbol("i", "Nominal return", "nominal"),
         Symbol(r"\pi", "Inflation over the same period", "inflation"),
     ),

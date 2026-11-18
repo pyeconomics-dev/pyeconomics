@@ -4,7 +4,7 @@
 r"""The Black-Litterman model: ``portfolio.black_litterman``.
 
 Black and Litterman (1992) start from the expected returns that make the market
-portfolio optimal, the equilibrium :math:`\Pi = \delta \Sigma w_{mkt}` for a
+portfolio optimal, the equilibrium :math:`\Pi = \delta \Sigma w_{\mathrm{mkt}}` for a
 risk aversion :math:`\delta`, and blend in views: :math:`K` portfolios
 :math:`P` (the pick matrix, one row per view) with expected returns :math:`Q`
 and uncertainty :math:`\Omega`. With :math:`\tau` scaling the uncertainty of
@@ -28,11 +28,11 @@ linear in :math:`1/(1 + \omega_k / p_k\tau\Sigma p_k')`, so
 :math:`\omega_k = \frac{1 - c_k}{c_k} p_k \tau\Sigma p_k'` solves it exactly.
 
 The unconstrained optimal weights against the covariance of returns,
-:math:`w = (\delta\Sigma)^{-1}\mu = w_{mkt} + \frac{\tau}{\delta} P'
+:math:`w = (\delta\Sigma)^{-1}\mu = w_{\mathrm{mkt}} + \frac{\tau}{\delta} P'
 (P\tau\Sigma P' + \Omega)^{-1}(Q - P\Pi)`, are the market's with no views (as
 in Idzorek, formula 2), and need no inverse of :math:`\Sigma`. He and Litterman
 (2002) optimize against the posterior covariance instead,
-:math:`(\delta(\Sigma + M))^{-1}\mu = (w_{mkt} + P'\Lambda)/(1 + \tau)`, which
+:math:`(\delta(\Sigma + M))^{-1}\mu = (w_{\mathrm{mkt}} + P'\Lambda)/(1 + \tau)`, which
 scales the market weights by :math:`1/(1 + \tau)` with no views; both are
 reported.
 """
@@ -507,21 +507,19 @@ _EXAMPLE: Final = {
         "covariance, and the unconstrained optimal weights."
     ),
     formula=(
-        r"\Pi = \delta \Sigma w_{mkt}",
+        r"\Pi = \delta \Sigma w_{\mathrm{mkt}}",
+        r"\mu = \Pi + \tau\Sigma P'(P\tau\Sigma P' + \Omega)^{-1}(Q - P\Pi)",
+        r"M = \tau\Sigma - \tau\Sigma P'(P\tau\Sigma P' + \Omega)^{-1}P\tau\Sigma",
         (
-            r"\mu = \Pi + \tau\Sigma P'(P\tau\Sigma P' + \Omega)^{-1}(Q - P\Pi), "
-            r"\quad M = \tau\Sigma - \tau\Sigma P'(P\tau\Sigma P' + \Omega)^{-1}"
-            r"P\tau\Sigma"
-        ),
-        (
-            r"\Omega_{HL} = \mathrm{diag}(P\tau\Sigma P'), \quad \omega_k = "
+            r"\Omega_{\mathrm{HL}} = \mathrm{diag}(P\tau\Sigma P'), \quad \omega_k = "
             r"\frac{1 - c_k}{c_k}\, p_k \tau\Sigma p_k'"
         ),
         (
-            r"w = (\delta\Sigma)^{-1}\mu = w_{mkt} + \tfrac{\tau}{\delta} P'"
-            r"(P\tau\Sigma P' + \Omega)^{-1}(Q - P\Pi), \quad w_{HL} = "
-            r"(\delta(\Sigma + M))^{-1}\mu"
+            r"\begin{aligned} w &= (\delta\Sigma)^{-1}\mu \\ &= w_{\mathrm{mkt}} + "
+            r"\tfrac{\tau}{\delta} P'(P\tau\Sigma P' + \Omega)^{-1}(Q - P\Pi) "
+            r"\end{aligned}"
         ),
+        r"w_{\mathrm{HL}} = (\delta(\Sigma + M))^{-1}\mu",
     ),
     symbols=(
         Symbol(
@@ -531,7 +529,7 @@ _EXAMPLE: Final = {
         ),
         Symbol(r"\delta", "Risk aversion of the market", "risk_aversion"),
         Symbol(r"\Sigma", "Covariance matrix of the assets' returns", "covariance"),
-        Symbol("w_{mkt}", "The market's weights", "market_weights"),
+        Symbol(r"w_{\mathrm{mkt}}", "The market's weights", "market_weights"),
         Symbol(r"\mu", "Posterior expected excess returns", "posterior_returns"),
         Symbol(
             r"\tau",
@@ -551,7 +549,7 @@ _EXAMPLE: Final = {
         ),
         Symbol("M", "The uncertainty left in the expected returns after the views"),
         Symbol(
-            r"\Omega_{HL}",
+            r"\Omega_{\mathrm{HL}}",
             "He and Litterman's view uncertainty, in proportion to the prior's",
         ),
         Symbol(r"\omega_k", "Idzorek's variance of view k, from the confidence in it"),
@@ -559,7 +557,7 @@ _EXAMPLE: Final = {
         Symbol("p_k", "Row k of the pick matrix"),
         Symbol("w", "The weights the posterior returns imply", "weights"),
         Symbol(
-            "w_{HL}",
+            r"w_{\mathrm{HL}}",
             "He and Litterman's weights, under the posterior covariance",
             "posterior_weights",
         ),

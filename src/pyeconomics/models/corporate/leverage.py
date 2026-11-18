@@ -74,7 +74,8 @@ class Outputs(ModelOutputs):
     ),
     formula=(
         r"EBIT=Q(P-v)-F",
-        r"DOL=Q(P-v)/EBIT,\quad DFL=EBIT/(EBIT-I)",
+        r"DOL=Q(P-v)/EBIT",
+        r"DFL=EBIT/(EBIT-I)",
         r"DTL=DOL\,DFL",
         r"Q_O=F/(P-v),\quad Q_T=(F+I)/(P-v)",
     ),

@@ -397,11 +397,14 @@ _FABOZZI = Reference(
     ),
     formula=(
         r"d_k = \frac{1 - \frac{c_k}{f}\sum_{j<k} d_j}{1 + \frac{c_k}{f}}",
-        r"s_k = f\left(d_k^{-1/k} - 1\right), \quad s_k^{cont} = -\frac{f}{k}\ln d_k",
+        (
+            r"s_k = f\left(d_k^{-1/k} - 1\right), \quad s_k^{\mathrm{cont}} = "
+            r"-\frac{f}{k}\ln d_k"
+        ),
         r"c_k = f\,\frac{1 - d_k}{\sum_{j \le k} d_j}",
         (
-            r"\left(1 + \frac{F_{1,2}}{f}\right)^{f (T_2 - T_1)} = "
-            r"\frac{(1 + s_2/f)^{f T_2}}{(1 + s_1/f)^{f T_1}}"
+            r"\left(1 + \frac{F_{1,2}}{f}\right)^{f (T_2 - T_1)} = \frac{(1 + "
+            r"s_2/f)^{f T_2}}{(1 + s_1/f)^{f T_1}}"
         ),
     ),
     symbols=(
@@ -417,7 +420,7 @@ _FABOZZI = Reference(
             "Spot rate for k periods, compounded f times a year",
             "spot_rates",
         ),
-        Symbol("s_k^{cont}", "The same spot rate, continuously compounded"),
+        Symbol(r"s_k^{\mathrm{cont}}", "The same spot rate, continuously compounded"),
         Symbol(
             "F_{1,2}",
             "Forward rate between the near and the far date",

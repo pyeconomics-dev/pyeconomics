@@ -431,23 +431,23 @@ _BASEL_2019 = Reference(
     ),
     formula=(
         (
-            r"LR_{POF} = -2\ln\frac{(1 - p)^{n - x} p^{x}}"
-            r"{(1 - x/n)^{n - x}(x/n)^{x}}, \quad p = 1 - c"
+            r"LR_{\mathrm{POF}} = -2\ln\frac{(1 - p)^{n - x} p^{x}}{(1 - x/n)^{n - "
+            r"x}(x/n)^{x}}"
         ),
+        r"p = 1 - c",
         (
-            r"LR_{IND} = -2\ln\frac{(1 - \hat\pi)^{n_{00} + n_{10}}\hat\pi^{n_{01} + "
-            r"n_{11}}}{(1 - \hat\pi_{01})^{n_{00}}\hat\pi_{01}^{n_{01}}"
-            r"(1 - \hat\pi_{11})^{n_{10}}\hat\pi_{11}^{n_{11}}}"
+            r"LR_{\mathrm{IND}} = -2\ln\frac{(1 - \hat\pi)^{n_{00} + "
+            r"n_{10}}\hat\pi^{n_{01} + n_{11}}}{(1 - "
+            r"\hat\pi_{01})^{n_{00}}\hat\pi_{01}^{n_{01}}(1 - "
+            r"\hat\pi_{11})^{n_{10}}\hat\pi_{11}^{n_{11}}}"
         ),
-        r"LR_{CC} = LR_{UC} + LR_{IND} \sim \chi^2_2",
-        (
-            r"F(x) = \sum_{k \le x}\binom{n}{k}p^k(1 - p)^{n - k}: "
-            r"\text{yellow from } F \ge 0.95, \text{ red from } F \ge 0.9999"
-        ),
+        r"LR_{\mathrm{CC}} = LR_{\mathrm{UC}} + LR_{\mathrm{IND}} \sim \chi^2_2",
+        r"F(x) = \sum_{k \le x}\binom{n}{k}p^k(1 - p)^{n - k}",
+        r"\text{yellow from } F \ge 0.95, \quad \text{red from } F \ge 0.9999",
     ),
     symbols=(
         Symbol(
-            "LR_{POF}",
+            r"LR_{\mathrm{POF}}",
             "Kupiec's proportion-of-failures likelihood ratio",
             "likelihood_ratio",
         ),
@@ -466,7 +466,7 @@ _BASEL_2019 = Reference(
             "exceptions",
         ),
         Symbol(
-            "LR_{IND}",
+            r"LR_{\mathrm{IND}}",
             "Christoffersen's likelihood ratio for independent exceptions",
             "lr_independence",
         ),
@@ -488,12 +488,12 @@ _BASEL_2019 = Reference(
         Symbol("n_{10}", "Days without an exception that follow a day with one", "n10"),
         Symbol("n_{11}", "Days with an exception that follow a day with one", "n11"),
         Symbol(
-            "LR_{CC}",
+            r"LR_{\mathrm{CC}}",
             "The conditional-coverage likelihood ratio",
             "lr_conditional_coverage",
         ),
         Symbol(
-            "LR_{UC}",
+            r"LR_{\mathrm{UC}}",
             (
                 "The unconditional-coverage likelihood ratio: the proportion-of- "
                 "failures test's"

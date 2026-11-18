@@ -400,13 +400,19 @@ _BOND = {
         "yield, and its yield to maturity, to a call and to worst from its price."
     ),
     formula=(
-        r"P_{full} = \sum_{j} \frac{CF_j}{(1 + y/f)^{w + j - 1}}",
-        r"P_{full}^{treasury} = \frac{\sum_j CF_j (1 + y/f)^{-(j - 1)}}{1 + w y / f}",
-        r"AI = F\,c\,\tau(t_{prev}, t_{settle}), \quad P_{flat} = P_{full} - AI",
+        r"P_{\mathrm{full}} = \sum_{j} \frac{CF_j}{(1 + y/f)^{w + j - 1}}",
+        (
+            r"P_{\mathrm{full}}^{\mathrm{treasury}} = \frac{\sum_j CF_j (1 + y/f)^{-(j "
+            r"- 1)}}{1 + w y / f}"
+        ),
+        (
+            r"AI = F\,c\,\tau(t_{\mathrm{prev}}, t_{\mathrm{settle}}), \quad "
+            r"P_{\mathrm{flat}} = P_{\mathrm{full}} - AI"
+        ),
         r"YTW = \min\left(YTM, \min_k YTC_k\right)",
     ),
     symbols=(
-        Symbol("P_{full}", "Full (dirty) price at settlement", "full_price"),
+        Symbol(r"P_{\mathrm{full}}", "Full (dirty) price at settlement", "full_price"),
         Symbol(
             "CF_j",
             (
@@ -428,14 +434,14 @@ _BOND = {
         Symbol("F", "Face value", "face_value"),
         Symbol("c", "Annual coupon rate", "coupon_rate"),
         Symbol(
-            r"\tau(t_{prev}, t_{settle})",
+            r"\tau(t_{\mathrm{prev}}, t_{\mathrm{settle}})",
             (
                 "The year fraction from the previous coupon date to settlement, by "
                 "the day count"
             ),
         ),
         Symbol(
-            "P_{flat}",
+            r"P_{\mathrm{flat}}",
             "Flat (clean) price: the full price less accrued interest",
             "flat_price",
         ),

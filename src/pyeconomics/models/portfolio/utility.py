@@ -494,14 +494,13 @@ _PRATT = Reference(
     formula=(
         r"U = E[r] - \tfrac{1}{2} A \sigma^2",
         r"y^* = \frac{E[r] - r_f}{A \sigma^2}",
+        r"1 + CE = \Big(\sum_i p_i (1 + r_i)^{1 - \gamma}\Big)^{1/(1 - \gamma)}",
+        r"\gamma = 1:\ 1 + CE = e^{\sum_i p_i \ln(1 + r_i)}",
         (
-            r"1 + CE = \Big(\sum_i p_i (1 + r_i)^{1 - \gamma}\Big)^{1/(1 - \gamma)}, "
-            r"\quad \gamma = 1:\ 1 + CE = e^{\sum_i p_i \ln(1 + r_i)}"
+            r"f^*_{\mathrm{bet}} = p - \frac{1 - p}{b}, \quad f^*_{\mathrm{asset}} = "
+            r"\frac{\mu - r}{\sigma^2}"
         ),
-        (
-            r"f^*_{bet} = p - \frac{1 - p}{b}, \quad f^*_{asset} = \frac{\mu - r}"
-            r"{\sigma^2}, \quad g = r + f(\mu - r) - \tfrac{1}{2} f^2 \sigma^2"
-        ),
+        r"g = r + f(\mu - r) - \tfrac{1}{2} f^2 \sigma^2",
     ),
     symbols=(
         Symbol("U", "Mean-variance utility", "utility"),
@@ -522,10 +521,12 @@ _PRATT = Reference(
         Symbol("p_i", "Probability of outcome i", "probabilities"),
         Symbol("r_i", "Return in outcome i", "outcomes"),
         Symbol(r"\gamma", "Relative risk aversion", "relative_risk_aversion"),
-        Symbol("f^*_{bet}", "The Kelly fraction of a bet", "full_kelly"),
+        Symbol(r"f^*_{\mathrm{bet}}", "The Kelly fraction of a bet", "full_kelly"),
         Symbol("p", "Probability of winning", "win_probability"),
         Symbol("b", "Net odds: what a winning bet of 1 pays", "odds"),
-        Symbol("f^*_{asset}", "The Kelly fraction of a risky asset", "full_kelly"),
+        Symbol(
+            r"f^*_{\mathrm{asset}}", "The Kelly fraction of a risky asset", "full_kelly"
+        ),
         Symbol(r"\mu", "The asset's expected return per year", "drift"),
         Symbol(
             "r",

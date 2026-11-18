@@ -240,6 +240,35 @@ test("display formulas never scroll vertically and are not clipped", async ({ pa
   }
 });
 
+// Issue #350, from round 3's phone evaluator: a formula wider than a phone's
+// screen was read by swiping it sideways in its own box, and 54 of the 194
+// were. A browser breaks no line of MathML, so where a formula breaks is its
+// author's choice: a long one is written over two lines (an `aligned`
+// environment) or as two formulas. Every model's page is opened at a phone's
+// width, and no display formula may need more than the plate that holds it.
+// The runner's Chromium rounds letters to whole pixels and Windows' does not,
+// so a formula a few pixels inside the plate on one is outside it on the
+// other: keep one a dozen pixels inside.
+test("no model's formula is wider than a phone's screen", async ({ page }) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const models = pages().filter((path) => /^\/models\/[^/]+\/[^/]+\/$/.test(path));
+  expect(models.length).toBeGreaterThan(0);
+  const wide: string[] = [];
+  for (const path of models) {
+    await page.goto(path, { waitUntil: "load" });
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    const boxes = await page
+      .locator("#formula .katex:has(> math[display='block'])")
+      .evaluateAll((elements) => elements.map((element) => ({ needs: element.scrollWidth, has: element.clientWidth })));
+    expect(boxes.length, path).toBeGreaterThan(0);
+    boxes.forEach((box, index) => {
+      if (box.needs > box.has) wide.push(`${path} formula ${String(index + 1)}: ${String(box.needs)} of ${String(box.has)} pixels`);
+    });
+  }
+  expect(wide).toEqual([]);
+});
+
 test("a model page loads no script file until its calculator is in view, and its JSON-LD is not executed", async ({
   page,
   watch,

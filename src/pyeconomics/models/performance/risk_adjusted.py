@@ -401,10 +401,9 @@ _BACON = Reference(
         "error, M², Calmar and up- and down-capture ratios from return series."
     ),
     formula=(
-        (
-            r"S = \frac{\bar{e}}{s_e}\sqrt{m}, \quad Sortino = \frac{\bar{r} - MAR}"
-            r"{DD}\sqrt{m}, \quad DD = \sqrt{\tfrac{1}{n}\sum \min(r_t - MAR, 0)^2}"
-        ),
+        r"S = \frac{\bar{e}}{s_e}\sqrt{m}",
+        r"Sortino = \frac{\bar{r} - MAR}{DD}\sqrt{m}",
+        r"DD = \sqrt{\tfrac{1}{n}\sum \min(r_t - MAR, 0)^2}",
         (
             r"\beta = \frac{\operatorname{cov}(e, e^b)}{\operatorname{var}(e^b)}, "
             r"\quad T = \frac{m\bar{e}}{\beta}, \quad \alpha = m(\bar{e} - \beta "

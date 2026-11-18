@@ -814,23 +814,21 @@ _NIST = Reference(
     ),
     formula=(
         r"\hat\beta = (X'X)^{-1}X'y, \quad e = y - X\hat\beta",
+        r"V_{\mathrm{HC}} = (X'X)^{-1}X'\,\mathrm{diag}(\omega_i e_i^2)\,X(X'X)^{-1}",
+        r"\omega_i \in \{1, \tfrac{n}{n-k}, \tfrac{1}{1-h_i}, \tfrac{1}{(1-h_i)^2}\}",
         (
-            r"V_{HC} = (X'X)^{-1}X'\,\mathrm{diag}(\omega_i e_i^2)"
-            r"\,X(X'X)^{-1}, \quad \omega_i \in \{1, \tfrac{n}{n-k}, "
-            r"\tfrac{1}{1-h_i}, \tfrac{1}{(1-h_i)^2}\}"
+            r"\begin{aligned} V_{\mathrm{HAC}} &= (X'X)^{-1}\Big[\sum_{l=-L}^{L}\Big(1 "
+            r"- \tfrac{|l|}{L+1}\Big) \\ &\quad \times \sum_t x_t e_t e_{t-l} "
+            r"x_{t-l}'\Big](X'X)^{-1} \end{aligned}"
         ),
         (
-            r"V_{HAC} = (X'X)^{-1}\left[\sum_{l=-L}^{L}"
-            r"\left(1 - \tfrac{|l|}{L+1}\right)"
-            r"\sum_t x_t e_t e_{t-l} x_{t-l}'\right](X'X)^{-1}"
+            r"R^2 = 1 - \frac{SSR}{TSS}, \quad d = \frac{\sum (e_t - e_{t-1})^2}{\sum "
+            r"e_t^2}"
         ),
+        r"VIF_j = \frac{1}{1 - R_j^2}",
         (
-            r"R^2 = 1 - \frac{SSR}{TSS}, \quad d = \frac{\sum (e_t - e_{t-1})^2}"
-            r"{\sum e_t^2}, \quad VIF_j = \frac{1}{1 - R_j^2}"
-        ),
-        (
-            r"JB = \frac{n}{6}\left(S^2 + \frac{(K - 3)^2}{4}\right), "
-            r"\quad LM_{BP} = n R^2_{e^2}"
+            r"JB = \frac{n}{6}\left(S^2 + \frac{(K - 3)^2}{4}\right), \quad "
+            r"LM_{\mathrm{BP}} = n R^2_{e^2}"
         ),
     ),
     symbols=(
@@ -846,7 +844,7 @@ _NIST = Reference(
         Symbol("y", "The response", "response"),
         Symbol("e", "The residuals", "residuals"),
         Symbol(
-            "V_{HC}",
+            r"V_{\mathrm{HC}}",
             "A heteroskedasticity-consistent covariance matrix of the coefficients",
         ),
         Symbol(
@@ -860,7 +858,7 @@ _NIST = Reference(
         Symbol("n", "Number of observations", "observations"),
         Symbol("k", "Number of coefficients"),
         Symbol(
-            "V_{HAC}",
+            r"V_{\mathrm{HAC}}",
             (
                 "The heteroskedasticity- and autocorrelation-consistent covariance "
                 "matrix (Newey-West)"
@@ -880,7 +878,7 @@ _NIST = Reference(
         Symbol("JB", "The Jarque-Bera statistic", "jarque_bera"),
         Symbol("S", "Skewness of the residuals"),
         Symbol("K", "Kurtosis of the residuals"),
-        Symbol("LM_{BP}", "The Breusch-Pagan statistic", "breusch_pagan"),
+        Symbol(r"LM_{\mathrm{BP}}", "The Breusch-Pagan statistic", "breusch_pagan"),
         Symbol("R^2_{e^2}", "R-squared of the squared residuals on the regressors"),
     ),
     assumptions=(

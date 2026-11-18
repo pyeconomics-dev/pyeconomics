@@ -533,14 +533,14 @@ _EXAMPLE: Final = {
         "asset's risk contribution and the portfolio's volatility."
     ),
     formula=(
-        r"w_i^{IV} = \frac{1/\sigma_i}{\sum_j 1/\sigma_j}",
+        r"w_i^{\mathrm{IV}} = \frac{1/\sigma_i}{\sum_j 1/\sigma_j}",
         (
-            r"RC_i = \frac{w_i (\Sigma w)_i}{\sigma_p}, \quad \sum_i RC_i = "
-            r"\sigma_p = \sqrt{w'\Sigma w}"
+            r"RC_i = \frac{w_i (\Sigma w)_i}{\sigma_p}, \quad \sum_i RC_i = \sigma_p = "
+            r"\sqrt{w'\Sigma w}"
         ),
         (
-            r"w^{ERC} = \frac{y^*}{\mathbf{1}'y^*}, \quad y^* = \arg\min_{y > 0} "
-            r"\tfrac{1}{2} y'\Sigma y - \tfrac{1}{N}\sum_i \log y_i"
+            r"w^{\mathrm{ERC}} = \frac{y^*}{\mathbf{1}'y^*}, \quad y^* = \arg\min_{y > "
+            r"0} \tfrac{1}{2} y'\Sigma y - \tfrac{1}{N}\sum_i \log y_i"
         ),
         (
             r"d_{ij} = \sqrt{\tfrac{1}{2}(1 - \rho_{ij})}, \quad \alpha = 1 - "
@@ -548,7 +548,7 @@ _EXAMPLE: Final = {
         ),
     ),
     symbols=(
-        Symbol("w_i^{IV}", "Asset i's inverse-volatility weight", "weights"),
+        Symbol(r"w_i^{\mathrm{IV}}", "Asset i's inverse-volatility weight", "weights"),
         Symbol(r"\sigma_i", "Volatility of asset i", "volatilities"),
         Symbol(
             "RC_i",
@@ -558,7 +558,7 @@ _EXAMPLE: Final = {
         Symbol(r"\Sigma", "Covariance matrix of the assets' returns", "covariance"),
         Symbol(r"\sigma_p", "The portfolio's volatility", "volatility"),
         Symbol(
-            "w^{ERC}",
+            r"w^{\mathrm{ERC}}",
             "The equal-risk-contribution (risk parity) weights",
             "weights",
         ),

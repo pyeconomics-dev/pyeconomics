@@ -269,12 +269,15 @@ _BOND = {
     ),
     formula=(
         (
-            r"C = \frac{1}{P}\frac{\partial^2 P}{\partial y^2} = "
-            r"\frac{1}{P f^2 (1 + y/f)^2}"
-            r"\sum_j t_j (t_j + 1) \frac{CF_j}{(1 + y/f)^{t_j}}"
+            r"\begin{aligned} C &= \frac{1}{P}\frac{\partial^2 P}{\partial y^2} \\ &= "
+            r"\frac{1}{P f^2 (1 + y/f)^2}\sum_j t_j (t_j + 1) \frac{CF_j}{(1 + "
+            r"y/f)^{t_j}} \end{aligned}"
         ),
-        r"C_{eff} = \frac{P(z - h) + P(z + h) - 2 P(z)}{P(z) h^2}",
-        r"\frac{\Delta P}{P} \approx -D_{mod}\,\Delta y + \tfrac{1}{2} C\,(\Delta y)^2",
+        r"C_{\mathrm{eff}} = \frac{P(z - h) + P(z + h) - 2 P(z)}{P(z) h^2}",
+        (
+            r"\frac{\Delta P}{P} \approx -D_{\mathrm{mod}}\,\Delta y + \tfrac{1}{2} "
+            r"C\,(\Delta y)^2"
+        ),
     ),
     symbols=(
         Symbol("C", "Convexity, in years squared", "convexity"),
@@ -287,12 +290,12 @@ _BOND = {
         Symbol("f", "Coupons per year", "frequency"),
         Symbol("t_j", "Time to cash flow j, in coupon periods from settlement"),
         Symbol("CF_j", "The j-th remaining cash flow"),
-        Symbol("C_{eff}", "Effective convexity", "effective_convexity"),
+        Symbol(r"C_{\mathrm{eff}}", "Effective convexity", "effective_convexity"),
         Symbol("P(z)", "The price off the spot curve z"),
         Symbol("z", "The spot curve", "curve_rates"),
         Symbol("h", "The parallel shift of the curve, up and down", "bump"),
         Symbol(r"\Delta y", "The change in yield", "yield_change"),
-        Symbol("D_{mod}", "Modified duration", "modified_duration"),
+        Symbol(r"D_{\mathrm{mod}}", "Modified duration", "modified_duration"),
         Symbol(
             r"\frac{\Delta P}{P}",
             "The estimated relative change in price",
