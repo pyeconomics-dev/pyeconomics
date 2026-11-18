@@ -499,6 +499,10 @@ From Phase 4 Step 8, which builds the MCP server (ADR-0012 decisions 13 and 14):
   (`scripts/mcp_agent_eval.py`, the maintainer's machine only), which writes
   `docs/mcp-evaluations.md`. After changing a tool's name, description or schema,
   rerun the evaluation and commit its page.
+  Where the agent's requests pass a de-identifying gateway on loopback, a long
+  number in a tool's answer reaches the agent as a placeholder, which it takes
+  for missing data; the script then tells it `GATEWAY_NOTE`, one sentence that
+  names no tool, and the page says so (`tests/mcp/test_mcp_agent_eval.py`).
 - The stand-in world (`tests/data/catalog/catalog_world.py`) answers synthetic
   data and refuses to unless `PYECONOMICS_CACHE_DIR` is set: never run it outside
   pytest, where its answers would land in the user's cache and be served later
