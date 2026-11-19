@@ -100,6 +100,25 @@ test("a served concept charts with its attribution and as-of date drawn on the c
   expect(watch.errors).toEqual([]);
 });
 
+// The confirmation round on staging (2026-11-18): the page asked for ten years of
+// the unemployment rate, the site's copy held under three, and the page said
+// only "Done: 34 observations." The line now gives the dates the series runs
+// between, and says so when the start asked for is earlier than anything held.
+test("a series says the dates it runs between, and when the start asked for is earlier than anything held", async ({ page, api, watch }) => {
+  await openConcept(page, UNEMPLOYMENT, "fetch");
+  const status = page.locator("#chart").getByRole("status");
+  await expect(status).toContainText(/Done: \d+ observations, from \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2}\./);
+  await page.getByLabel("From (optional)").fill("1900-01-01");
+  await draw(page);
+  expect(api.requests.at(-1)?.url).toContain("start=1900-01-01");
+  await expect(status).toContainText(/Nothing before \d{4}-\d{2}-\d{2} is held here: the start you asked for, 1900-01-01, is earlier\./);
+  // The longest line stands in the room held for it: the chart under it has not moved.
+  const room = await status.evaluate((element) => ({ needs: element.scrollHeight, has: element.clientHeight }));
+  expect(room.needs).toBeLessThanOrEqual(room.has);
+  expect(watch.violations).toEqual([]);
+  expect(watch.errors).toEqual([]);
+});
+
 test("a transform reaches the series route and is recorded in the sources", async ({ page, api, watch }) => {
   await openConcept(page, UNEMPLOYMENT, "fetch");
   await page.getByLabel("Transform").selectOption("diff");

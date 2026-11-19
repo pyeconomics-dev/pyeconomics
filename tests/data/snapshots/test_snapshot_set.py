@@ -11,6 +11,7 @@ policy" rules 3 and 4).
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
@@ -25,6 +26,7 @@ from pyeconomics.data.catalog.definitions import Candidate, Concept, Derived, Ti
 from pyeconomics.data.providers.base import Capability
 from pyeconomics.data.registry import ProviderRegistry
 from pyeconomics.data.snapshots.set import (
+    HISTORY_SPANS,
     HISTORY_STARTS,
     SEP_MEETINGS,
     bound_concepts,
@@ -183,6 +185,23 @@ def test_series_served_by_window_carry_their_declared_start() -> None:
     for entry in chosen.entries:
         if any(catalog.get(c).needs_window for c in entry.concepts):
             assert entry.start is not None, entry.target
+
+
+def test_a_bls_series_is_read_from_its_first_year_twenty_years_a_run() -> None:
+    # BLS answers a read without dates with its latest three years, so the hosted
+    # unemployment rate held 34 months (the confirmation round, 2026-11-18).
+    bls = snapshot_set().of("bls")
+    assert bls
+    for entry in bls:
+        assert entry.start is not None, entry.target
+        assert entry.start.month == entry.start.day == 1, entry.target
+    starts = {entry.series: entry.start for entry in bls}
+    assert starts["LNS14000000"] == dt.date(1948, 1, 1)
+    assert HISTORY_SPANS["bls"] == dt.timedelta(days=20 * 366)
+
+
+def test_a_declared_span_belongs_to_a_source_read_by_window() -> None:
+    assert set(HISTORY_SPANS) <= {provider for provider, _ in HISTORY_STARTS}
 
 
 def test_a_source_that_keeps_vintages_is_kept_at_every_vintage() -> None:

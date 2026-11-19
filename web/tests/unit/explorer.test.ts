@@ -21,6 +21,7 @@ import {
   modelsReading,
   parseSeries,
   plotlyLines,
+  readSummary,
   searchConcepts,
   seriesFigure,
   seriesPath,
@@ -205,6 +206,32 @@ describe("the request", () => {
     expect(defaultRange("monthly", today)).toEqual({ start: "2016-11-03", end: "2026-11-03" });
     expect(defaultRange("business_daily", today)).toEqual({ start: "2024-11-03", end: "2026-11-03" });
     expect(defaultRange("irregular", today)).toEqual({ start: "", end: "2026-11-03" });
+  });
+
+  // The confirmation round on staging (2026-11-18): the unemployment rate's page
+  // asked for ten years, drew under three and said only "Done: 34 observations."
+  it("says how many observations a read gave and the days they run between", () => {
+    const months = ["2024-01-31", "2024-02-29", "2024-03-31"];
+    expect(readSummary(months, { start: "2024-01-01" }, "monthly")).toBe("Done: 3 observations, from 2024-01-31 to 2024-03-31.");
+    expect(readSummary(["2024-01-31"], { start: "" }, "monthly")).toBe("Done: 1 observation, on 2024-01-31.");
+    expect(readSummary([], { start: "2024-01-01" }, "monthly")).toBe("Done: no observations in these dates.");
+  });
+
+  it("says so when the start asked for is earlier than anything held, by more than a period", () => {
+    const months = ["2024-01-31", "2024-02-29"];
+    expect(readSummary(months, { start: "2016-11-19" }, "monthly")).toBe(
+      "Done: 2 observations, from 2024-01-31 to 2024-02-29. Nothing before 2024-01-31 is held here: the start you asked for, 2016-11-19, is earlier.",
+    );
+    // A period's own gap is not a shortfall: a month asked from its first day ends on its last.
+    expect(readSummary(months, { start: "2023-12-20" }, "monthly")).not.toContain("Nothing before");
+    expect(readSummary(["2024-03-31", "2024-06-30"], { start: "2024-01-01" }, "quarterly")).not.toContain("Nothing before");
+    expect(readSummary(["2024-03-31", "2024-06-30"], { start: "2023-06-01" }, "quarterly")).toContain("Nothing before 2024-03-31");
+    expect(readSummary(["2024-01-08"], { start: "2024-01-02" }, "business_daily")).not.toContain("Nothing before");
+    expect(readSummary(["2024-01-31"], { start: "2023-12-01" }, "business_daily")).toContain("Nothing before");
+    // An irregular series, or no start, promises nothing.
+    expect(readSummary(months, { start: "" }, "monthly")).not.toContain("Nothing before");
+    expect(readSummary(["2024-12-31"], { start: "2024-01-01" }, "irregular")).not.toContain("Nothing before");
+    expect(readSummary(["2025-12-31"], { start: "2024-01-01" }, "irregular")).toContain("Nothing before");
   });
 
   it("names the series route and asks only for what is given, each checked", () => {

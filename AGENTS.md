@@ -255,6 +255,12 @@ From Phase 5 Step 8, which builds the hosted data plane (ADR-0013 decision 6):
   terms allow storage. Never edit it by hand: change the catalog, or the
   declared `SEP_MEETINGS` and `HISTORY_STARTS` (a source that serves a series
   only by window). `tests/data/snapshots/test_snapshot_set.py` pins its size.
+- A source that answers a read without dates with less than its history is
+  read by window too: BLS gives its latest three years, so each BLS series has
+  its first year in `HISTORY_STARTS` (checked against the source), and
+  `HISTORY_SPANS` says how far one run reaches where one request serves more
+  than the writer's year. A hosted-safe source joins the snapshot only after
+  its whole-history read has been compared with the history its own site shows.
 - The writer (`python -m pyeconomics.data.snapshots write`) runs only in hosted
   mode, inside `cache.bypass()`, checks the provider's and each series' own
   terms before it keeps anything, never overwrites an object, and writes

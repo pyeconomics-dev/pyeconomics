@@ -739,6 +739,13 @@ Cloud Run service  pyeconomics-api-staging  (as pyeconomics-staging-runtime,
   therefore holds a year of each curve and gains a year a day; the nominal
   curve reaches 1990 in about five weeks. A request whose window ends before
   the history held so far answers `not-in-snapshot`.
+- **BLS is read by window too.** BLS answers a read without dates with its
+  latest three years only, so until 2026-11-18 the site's copy of each BLS
+  series held 34 months (the unemployment rate's page asked for ten years and
+  drew under three). Each BLS series now has its first year in
+  `HISTORY_STARTS`, and `HISTORY_SPANS` lets a run reach twenty years, which is
+  one BLS request with a key and two without: a new history holds twenty years
+  after its first run and is whole within five.
 - **Failures degrade.** A series that fails keeps its last good frame (and its
   old retrieval time); a provider none of whose series succeeded keeps its last
   good object; `current.json` marks each with the failure's problem slug. The

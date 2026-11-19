@@ -21,8 +21,10 @@ is fetched, are checked again by the writer, which keeps nothing they forbid.
 Each entry is one provider series, fetched at ``latest``, or at ``all`` from a
 source that keeps that series' vintages, so the reader can still answer a
 real-time request. It is fetched whole, except where its source serves it only
-by window: then from the first day :data:`HISTORY_STARTS` declares to the day of
-the run. A concept that needs a window and has no declared start is left out.
+by window, or answers a read without dates with less than its history: then
+from the first day :data:`HISTORY_STARTS` declares to the day of the run, a year
+a run or the span :data:`HISTORY_SPANS` declares. A concept that needs a window
+and has no declared start is left out.
 
 This module is pure: it reads metadata only.
 
@@ -61,6 +63,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "DECLARED_VALUES",
+    "HISTORY_SPANS",
     "HISTORY_STARTS",
     "SEP_MEETINGS",
     "Entry",
@@ -92,11 +95,25 @@ DECLARED_VALUES: Final[Mapping[str, tuple[str, ...]]] = {"meeting": SEP_MEETINGS
 #: only by window. Treasury's curves are one file a month, from each curve's first
 #: month. NY Fed answers a whole-history EFFR read with HTTP 400 (#135), and its
 #: history holds a Sunday, 2003-07-20, that a business-day frame refuses (#196),
-#: so its history starts the day after.
+#: so its history starts the day after. BLS answers a read without dates with its
+#: latest three years only, so each of its series is read from its first year
+#: (each first observation checked against BLS on 2026-11-18).
 HISTORY_STARTS: Final[Mapping[tuple[str, str], dt.date]] = {
+    ("bls", "CUSR0000SA0"): dt.date(1947, 1, 1),
+    ("bls", "CUSR0000SA0L1E"): dt.date(1957, 1, 1),
+    ("bls", "CUUR0000SA0"): dt.date(1913, 1, 1),
+    ("bls", "CUUR0000SA0L1E"): dt.date(1957, 1, 1),
+    ("bls", "LNS14000000"): dt.date(1948, 1, 1),
     ("treasury", "par_nominal"): dt.date(1990, 1, 1),
     ("treasury", "par_real"): dt.date(2003, 1, 1),
     ("nyfed", "effr"): dt.date(2003, 7, 21),
+}
+#: How far back one run reaches for a source's series read by window, where one
+#: request serves more than the writer's year. BLS serves twenty years a request
+#: with a key and ten without (its API FAQ), so twenty years is one request or
+#: two, and a new history is whole in a few runs, not a few months.
+HISTORY_SPANS: Final[Mapping[str, dt.timedelta]] = {
+    "bls": dt.timedelta(days=20 * 366),
 }
 
 _PLACEHOLDER: Final = re.compile(r"\{([a-z_][a-z0-9_]*)\}")
