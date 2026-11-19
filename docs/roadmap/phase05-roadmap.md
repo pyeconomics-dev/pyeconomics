@@ -10709,9 +10709,9 @@ the soak runs for seven days from that deploy.
 |               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | XHigh              |
@@ -10720,22 +10720,18 @@ the soak runs for seven days from that deploy.
 
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
-from the model's measured levels.
+from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
-**Model rationale:** Agentic is PRIMARY and coding SECONDARY: a release
-run across TestPyPI, PyPI, GitHub, the MCP Registry and production, with
-maintainer approvals at three gates, around a public-API inventory and its
-test. Complexity is High — every upload is permanent, and the inventory
-fixes what 2.0.0 alone may break — but the step is not novel: it repeats
-Phase 4's rehearse-then-release pattern with a second distribution. The
-ladder's Balanced column runs: Sonnet 5.5 on Claude Code at Effort XHigh
-(claude.ai Max; AA Intelligence Index 51.9), Runner-up GPT-6.1 Sol on
-Codex at Intelligence High, Backup Gemini 4 Argon on Antigravity at Effort
-Medium. Cost runs GPT-6.1 Sol at Intelligence Medium (47.8) and Quality
-Opus 5.5 at Effort XHigh (56.0). New conversation per phase-boundary
-hygiene.
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
+
+**Model rationale:** Primary category agentic, high complexity. On the step
+alone, the Balanced Pick fits best: Sonnet 5.5 on Claude Code at XHigh. It
+balances the reasoning demands of this classification with estimated token cost.
+The Cost Pick is GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Opus
+5.5 on Claude Code at XHigh.
 
 ```xml
 <task>
@@ -11251,9 +11247,9 @@ test runs against staging; neither changes what is released.
 |               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | XHigh              |
@@ -11262,22 +11258,18 @@ test runs against staging; neither changes what is released.
 
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
-from the model's measured levels.
+from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
-**Model rationale:** Agentic is PRIMARY and knowledge SECONDARY: a long
-evidence-gathering run across production, staging, PyPI, the registries,
-the vendors' dashboards and the scanners, three deliberate production
-rollbacks, a load test, and a record that must hold the maintainer's
-decision up to scrutiny. Complexity is High — the gate guards an
-irreversible public launch — and it is not novel: it repeats Phase 4's
-readiness pattern with launch-specific sections. The ladder's Balanced
-column runs: Sonnet 5.5 on Claude Code at Effort XHigh (claude.ai Max; AA
-Intelligence Index 51.9), Runner-up GPT-6.1 Sol on Codex at Intelligence
-High, Backup Gemini 4 Argon on Antigravity at Effort Medium. Cost runs
-GPT-6.1 Sol at Intelligence Medium (47.8) and Quality Opus 5.5 at Effort
-XHigh (56.0). New conversation per phase-boundary hygiene.
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
+
+**Model rationale:** Primary category agentic, high complexity. On the step
+alone, the Balanced Pick fits best: Sonnet 5.5 on Claude Code at XHigh. It
+balances the reasoning demands of this classification with estimated token cost.
+The Cost Pick is GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Opus
+5.5 on Claude Code at XHigh.
 
 ```xml
 <task>
@@ -11787,9 +11779,9 @@ token.
 |               | Price    | $2.50/1M           | $3.72/1M           | $8.29/1M           |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6 Astra**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | XHigh              |
@@ -11798,23 +11790,18 @@ token.
 
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
-from the model's measured levels.
+from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
-**Model rationale:** Agentic is PRIMARY and knowledge SECONDARY: the
-release and cutover run — version files, cross-phase narrowings, a tag,
-four approved deployments, edge, documentation-host and repository
-settings — then a post-launch verification of every public surface.
-Complexity is High: the stable upload, the end of 0.2.x and the opening
-of the site cannot be undone, only rolled back around. It is not novel:
-Step 20's GO rests on a rehearsed candidate, and every action has a
-runbook. The ladder's Balanced column runs: Sonnet 5.5 on Claude Code at
-Effort XHigh (claude.ai Max; AA Intelligence Index 51.9), Runner-up
-GPT-6.1 Sol on Codex at Intelligence High, Backup Gemini 4 Argon on
-Antigravity at Effort Medium. Cost runs GPT-6.1 Sol at Intelligence Medium
-(47.8) and Quality Opus 5.5 at Effort XHigh (56.0). New conversation per
-phase-boundary hygiene.
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
+
+**Model rationale:** Primary category agentic, high complexity. On the step
+alone, the Balanced Pick fits best: Sonnet 5.5 on Claude Code at XHigh. It
+balances the reasoning demands of this classification with estimated token cost.
+The Cost Pick is GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Opus
+5.5 on Claude Code at XHigh.
 
 ```xml
 <task>
@@ -12318,42 +12305,41 @@ phase-boundary hygiene.
 the required-check update and the alarm re-fire are part of the step, and
 staging redeploys on the merge as on every merge.
 
-|               |          | Cost                 | Balanced             | Quality            |
-| ------------- | -------- | -------------------- | -------------------- | ------------------ |
-| **Pick**      | Model    | **Gemini 3.8 Flash** | **GPT-6.1 Sol**      | **Gemini 4 Argon** |
-|               | Platform | Antigravity          | Codex                | Antigravity        |
-|               | Level    | Medium               | High                 | High               |
-|               | AA       | 39.8                 | 50.2                 | 52.6               |
-|               | Price    | $1.90/1M             | $2.86/1M             | $6.13/1M           |
-| **Runner‑up** | Model    | **GPT-6.1 Sol**      | **Sonnet 5.5**       | **Opus 5.5**       |
-|               | Platform | Codex                | Claude Code          | Claude Code        |
-|               | Level    | Low                  | High                 | High               |
-|               | AA       | 42.1                 | 46.8                 | 53.6               |
-|               | Price    | $2.35/1M             | $3.40/1M             | $6.76/1M           |
-| **Backup**    | Model    | **Sonnet 5.5**       | **Gemini 3.8 Flash** | **GPT-6.1 Sol**    |
-|               | Platform | Claude Code          | Antigravity          | Codex              |
-|               | Level    | Medium               | High                 | High               |
-|               | AA       | 40.8                 | 40.9                 | 50.2               |
-|               | Price    | $3.18/1M             | $2.98/1M             | $2.86/1M           |
+|               |          | Cost               | Balanced             | Quality            |
+| ------------- | -------- | ------------------ | -------------------- | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **GPT-6.1 Sol**      | **Gemini 4 Argon** |
+|               | Platform | Codex              | Codex                | Antigravity        |
+|               | Level    | Medium             | High                 | High               |
+|               | AA       | 47.8               | 50.2                 | 52.6               |
+|               | Price    | $2.50/1M           | $2.86/1M             | $6.13/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **Gemini 4 Carbon**  | **Opus 5.5**       |
+|               | Platform | Claude Code        | Google AI Studio API | Claude Code        |
+|               | Level    | High               | Medium               | High               |
+|               | AA       | 46.8               | ≈50.8                | 53.6               |
+|               | Price    | $3.40/1M           | ≈$3.50/1M            | $6.76/1M           |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Opus 5.5**         | **GPT-6.1 Sol**    |
+|               | Platform | Antigravity        | Claude Code          | Codex              |
+|               | Level    | Low                | Medium               | High               |
+|               | AA       | ≈45.2              | 51.2                 | 50.2               |
+|               | Price    | $2.31/1M           | $6.39/1M             | $2.86/1M           |
 
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
-out), the output part scaled by the tokens the model writes at that level.
+out), the output part scaled by the tokens the model writes at that level. ≈
+estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
+> Settings updated 2026-11-17 (refresh): Cost Pick was Gemini 3.8 Flash · Medium, Cost Runner-up was
+> GPT-6.1 Sol · Low, Balanced Runner-up was Sonnet 5.5 · High, Cost Backup was Sonnet 5.5 · Medium,
+> Balanced Backup was Gemini 3.8 Flash · High. Re-ranked against the current roadmodel catalog.
+
 > Settings updated 2026-10-30 (rerank, roadmodel 0.2.108): Cost Pick was GPT-6.1 Sol · Low; Cost Runner-up was Gemini 3.8 Flash.
 
-**Model rationale:** Coding is PRIMARY and agentic SECONDARY: the
-mechanical translation of `verify-phase04.sh` into this phase's
-deliverables, a wider `--node` and `--live`, a QA rollup, one alarm re-fire
-and a required-check update. Complexity is Medium — the template, the
-check list and the V-matrix are fixed here — and it is not novel. The
-ladder's Balanced column runs: GPT-6.1 Sol on Codex at Intelligence High
-(ChatGPT Pro; AA Intelligence Index 50.2), Runner-up Sonnet 5.5 on Claude
-Code at Effort High, Backup Gemini 3.8 Flash on Antigravity. Cost runs
-GPT-6.1 Sol at Intelligence Low (42.1) and Quality Gemini 4 Argon on
-Antigravity at Effort High (52.6). New conversation per phase-boundary
-hygiene.
+**Model rationale:** Primary category coding, medium complexity. On the step
+alone, the Balanced Pick fits best: GPT-6.1 Sol on Codex at High. It balances
+the reasoning demands of this classification with estimated token cost. The Cost
+Pick is GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Gemini 4 Argon
+on Antigravity at High.
 
 ```xml
 <task>
@@ -13460,51 +13446,56 @@ ladder's Balanced column for multimodal at High (AA Intelligence Index
 
 PROMPT: Step 19 — Public-API Freeze, Release Candidate and Production Soak
 MODEL: Sonnet 5.5
-BACKUP: Gemini 4 Argon
+BACKUP: Gemini 4 Argon — Antigravity · Effort Medium
 PLATFORM: Claude Code
 EFFORT: XHigh
 ORCHESTRATION: None
 CONVERSATION: New
 RATIONALE: TASK: agentic, coding secondary — a release run across four
-registries and production around an inventory test. PICK: the ladder's
-Balanced column for agentic at High (AA Intelligence Index 51.9). EFFORT:
-XHigh, the ladder's value, because every upload is permanent.
+registries and production around an inventory test. On the step alone, the
+Balanced Pick fits best: Sonnet 5.5 on Claude Code at XHigh. It balances the
+reasoning demands of this classification with estimated token cost. The Cost
+Pick is GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Opus 5.5 on
+Claude Code at XHigh.
 
 PROMPT: Step 20 — Launch Readiness Gate
 MODEL: Sonnet 5.5
-BACKUP: Gemini 4 Argon
+BACKUP: Gemini 4 Argon — Antigravity · Effort Medium
 PLATFORM: Claude Code
 EFFORT: XHigh
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: agentic, knowledge secondary — evidence across every
-surface, three production rollbacks and a load test. PICK: the ladder's
-Balanced column for agentic at High (AA Intelligence Index 51.9). EFFORT:
-XHigh, the ladder's value, for a gate before an irreversible launch.
+RATIONALE: TASK: agentic, knowledge secondary — evidence across every surface,
+three production rollbacks and a load test. On the step alone, the Balanced Pick
+fits best: Sonnet 5.5 on Claude Code at XHigh. It balances the reasoning demands
+of this classification with estimated token cost. The Cost Pick is GPT-6.1 Sol
+on Codex at Medium, and the Quality Pick is Opus 5.5 on Claude Code at XHigh.
 
 PROMPT: Step 21 — Cutover and the 1.0.0 Release
 MODEL: Sonnet 5.5
-BACKUP: Gemini 4 Argon
+BACKUP: Gemini 4 Argon — Antigravity · Effort Medium
 PLATFORM: Claude Code
 EFFORT: XHigh
 ORCHESTRATION: None
 CONVERSATION: New
-RATIONALE: TASK: agentic, knowledge secondary — the stable release, the
-cutover and the post-launch verification. PICK: the ladder's Balanced
-column for agentic at High (AA Intelligence Index 51.9). EFFORT: XHigh,
-the ladder's value, for actions that cannot be undone.
+RATIONALE: TASK: agentic, knowledge secondary — the stable release, the cutover
+and the post-launch verification. On the step alone, the Balanced Pick fits
+best: Sonnet 5.5 on Claude Code at XHigh. It balances the reasoning demands of
+this classification with estimated token cost. The Cost Pick is GPT-6.1 Sol on
+Codex at Medium, and the Quality Pick is Opus 5.5 on Claude Code at XHigh.
 
 PROMPT: Step 22 — QA and Verification Script
 MODEL: GPT-6.1 Sol
-BACKUP: Gemini 3.8 Flash
+BACKUP: Opus 5.5 — Claude Code · Effort Medium
 PLATFORM: Codex
 EFFORT: High
-THINKING: On
 CONVERSATION: New
-RATIONALE: TASK: mechanical translation of the prior verify-script
-template into this phase's deliverables, plus the alarm re-fire. PICK:
-known pattern, no novel reasoning — the ladder's Balanced column for coding
-at Medium (AA Intelligence Index 50.2). EFFORT: High, the ladder's value.
+RATIONALE: TASK: mechanical translation of the prior verify-script template into
+this phase's deliverables, plus the alarm re-fire. On the step alone, the
+Balanced Pick fits best: GPT-6.1 Sol on Codex at High. It balances the reasoning
+demands of this classification with estimated token cost. The Cost Pick is
+GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Gemini 4 Argon on
+Antigravity at High.
 ```
 
 ---
