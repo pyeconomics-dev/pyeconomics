@@ -745,7 +745,13 @@ Cloud Run service  pyeconomics-api-staging  (as pyeconomics-staging-runtime,
   drew under three). Each BLS series now has its first year in
   `HISTORY_STARTS`, and `HISTORY_SPANS` lets a run reach twenty years, which is
   one BLS request with a key and two without: a new history holds twenty years
-  after its first run and is whole within five.
+  after its first run and is whole within five. A BLS frame's notice carries the
+  day it was read, as BLS's terms ask, so the writer joins the parts of a
+  history whatever their terms say (each part's terms are checked where it is
+  fetched). The first staging run after `HISTORY_STARTS` gained BLS did not: it
+  took each day's notice for another series and left each BLS history at two
+  observations, until `current.json` was pointed back at the previous object
+  ("Rolling back to a previous run") and the writer was fixed.
 - **Failures degrade.** A series that fails keeps its last good frame (and its
   old retrieval time); a provider none of whose series succeeded keeps its last
   good object; `current.json` marks each with the failure's problem slug. The

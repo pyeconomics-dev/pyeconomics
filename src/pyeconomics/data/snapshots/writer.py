@@ -491,9 +491,17 @@ def _fetch(
     return codec.Entry(spliced, entry.vintage, start)
 
 
-def _shape(frame: Series | Table) -> tuple[object, ...]:
-    """Return what two parts of one history share: kind, metadata, columns."""
-    meta = replace(frame.meta, retrieved_at=None, notes=())
+def _shape(frame: Series | Table, terms: Terms) -> tuple[object, ...]:
+    """Return what two parts of one history share: kind, what its numbers are, columns.
+
+    Not their terms, which the caller sets alike on every part. A notice may
+    carry the day of the read (BLS's does: its terms ask for the date the data
+    were accessed), and a terms page read again moves a date; neither makes a
+    series another series, and taking it for one restarted each BLS history at
+    its last 45 days on every run (staging, 2026-11-19). Each part's own terms
+    were checked where it was fetched, and the splice carries the newest part's.
+    """
+    meta = replace(frame.meta, retrieved_at=None, notes=(), terms=terms)
     columns = frame.columns if isinstance(frame, Table) else ()
     return (type(frame), meta, columns, frame.realtime is None)
 
@@ -501,10 +509,13 @@ def _shape(frame: Series | Table) -> tuple[object, ...]:
 def _splice(parts: Sequence[Series | Table]) -> Series | Table | None:
     """Join parts of one history by day, the later part winning; ``None`` if unlike.
 
-    The result carries the newest part's metadata, so its retrieval time.
+    The result carries the newest part's metadata, so its retrieval time and its
+    terms.
     """
     newest = parts[-1]
-    if any(_shape(part) != _shape(newest) or part.realtime for part in parts):
+    terms = newest.meta.terms
+    shape = _shape(newest, terms)
+    if any(_shape(part, terms) != shape or part.realtime for part in parts):
         return None
     if isinstance(newest, Series):
         values: dict[dt.date, float | None] = {}

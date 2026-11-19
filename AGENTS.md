@@ -264,6 +264,13 @@ From Phase 5 Step 8, which builds the hosted data plane (ADR-0013 decision 6):
   `HISTORY_SPANS` says how far one run reaches where one request serves more
   than the writer's year. A hosted-safe source joins the snapshot only after
   its whole-history read has been compared with the history its own site shows.
+- The writer joins the parts of a windowed history by what its numbers are
+  (`writer._shape`), never by its terms: a notice may carry the day of the read
+  (BLS's does), and a history that restarts keeps only its last 45 days. Before
+  a source is first read by window, rehearse the writer against the source
+  itself into a temporary directory: a run as the series is held now, then two
+  by window, with the observation counts in the pull request. Unit tests with
+  scripted providers did not show what the first staging run did.
 - The writer (`python -m pyeconomics.data.snapshots write`) runs only in hosted
   mode, inside `cache.bypass()`, checks the provider's and each series' own
   terms before it keeps anything, never overwrites an object, and writes

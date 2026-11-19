@@ -313,6 +313,53 @@ def test_a_failed_refresh_keeps_the_history_and_a_failed_backfill_is_skipped(
     assert index[0] == "2025-10-31"
 
 
+def test_a_notice_that_carries_the_day_of_the_read_keeps_the_history(
+    snapshot: Path,
+) -> None:
+    # BLS's terms ask for the date the data were accessed, so each read's notice
+    # differs from the last. The writer took that for another series and started
+    # each BLS history again at its last 45 days (staging, 2026-11-19).
+    def read_on(day: str) -> type[DataProvider]:
+        terms = HOSTED_TERMS.with_overrides(notice=f"Data accessed on {day}.")
+        long = frame("alpha", "A", 81, first=(2020, 1), terms=terms)
+        return windowed("alpha", {"A": long})
+
+    run(snapshot, read_on("2026-10-15"), entries=WINDOWED)
+    report = run(
+        snapshot,
+        read_on("2026-10-16"),
+        entries=WINDOWED,
+        started=NEXT_DAY,
+        nonce="0000000b",
+    )
+    assert report.series_failed == 0
+    kept = object_of(snapshot, "alpha")["series"]["A"]["frame"]
+    index = kept["index"]
+    assert (index[0], index[-1], len(index)) == ("2024-10-31", "2026-09-30", 24)
+    # The history carries the newest read's terms.
+    assert kept["meta"]["terms"]["notice"] == "Data accessed on 2026-10-16."
+
+
+def test_a_series_held_whole_gains_its_history_once_it_is_read_by_window(
+    snapshot: Path,
+) -> None:
+    # BLS's path: held from a read without dates, which gives its latest three
+    # years, then declared a start. The history it holds is kept and extended.
+    recent = frame("alpha", "A", 33, first=(2024, 1))
+    run(snapshot, scripted("alpha", {"A": recent}), entries=(entry("alpha", "A"),))
+    alpha = windowed("alpha", {"A": LONG})
+    report = run(snapshot, alpha, entries=WINDOWED, started=NEXT_DAY, nonce="0000000b")
+    assert report.series_failed == 0
+    assert _windows(alpha) == [
+        (dt.date(2026, 8, 16), NEXT_DAY.date()),
+        (dt.date(2023, 1, 30), dt.date(2024, 1, 30)),
+    ]
+    kept = object_of(snapshot, "alpha")["series"]["A"]
+    index = kept["frame"]["index"]
+    assert (index[0], index[-1], len(index)) == ("2023-01-31", "2026-09-30", 45)
+    assert kept["start"] == "2020-01-01"
+
+
 def test_a_history_whose_shape_changed_starts_again(snapshot: Path) -> None:
     run(snapshot, windowed("alpha", {"A": LONG}), entries=WINDOWED)
     renamed = frame("alpha", "A", 81, first=(2020, 1), title="Renamed")
