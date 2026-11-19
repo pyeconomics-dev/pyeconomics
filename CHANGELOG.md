@@ -13,8 +13,53 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+## [1.0.0rc1] - 2026-11-19
+
+The release candidate for 1.0.0 (Phase 5 Step 19; ADR-0013 decisions 17 and 18):
+the public API is frozen, both distributions are published together, and the
+candidate runs in production behind Access for a seven-day soak before the
+launch gate. It was rehearsed as `1.0.0rc1.dev1` on TestPyPI. Release notes:
+`docs/releases/1.0.0rc1.md`.
+
 ### Added
 
+- The public API inventory (ADR-0013 decision 17): `docs/public-api.md` lists
+  everything 1.0.0 promises (the Python API's `__all__` lists, the command
+  tree and its options, the REST operations, the MCP tools, the problem slugs
+  and exit codes, the formats, the settings and environment variables, the
+  distributions and extras, the web app's page addresses and the permanent
+  ids), and `tests/repo/test_public_api.py` derives each list from the code
+  and fails on a difference. The inventory's fingerprint must appear in this
+  changelog, so a later change to the public surface is recorded here too.
+  Public API inventory: `sha256:03888242a827b3a4`.
+- The released-page ledger, `web/released-pages.json`, holds the candidate's
+  285 pages: from now on a build fails when one of them neither builds nor
+  redirects.
+- The web app (Phase 5 Steps 3 to 7; ADR-0013): an Astro site under `web/`,
+  generated from the registry and the catalog, with no page written by hand
+  for one model. Every model has a page (its formulas as MathML, the symbols'
+  meanings, variables, citations, examples, the bound data and a calculator
+  that runs through the REST API and downloads the canonical bytes unchanged);
+  every problem type has the page its `type` URI names (`/problems/<slug>/`);
+  fifteen domain sections, Pagefind search, the coverage matrix (`/coverage/`)
+  and a syllabus seed (`syllabi/`, the 2027 CFA® Program's topics mapped to
+  model ids) filter the catalog. One Content Security Policy built from hashes
+  covers every page, with no third-party script. The site and the API share
+  one host and one Cloudflare Worker; staging (`staging.pyeconomics.dev`) runs
+  behind Access. The web parity suite holds every golden case's bytes equal
+  between the site and the Python API.
+- The data explorer and user data (Phase 5 Step 9; ADR-0013 decision 11):
+  `/data/` and a page per catalog concept chart a series with its attribution
+  and as-of date, and `data.get(..., transform=)` takes a series transform,
+  which the command line (`--transform`), the REST API (`?transform=`) and MCP's
+  `get_series` take too. A calculator reads a user's CSV or XLSX file in the
+  browser and sends only the values mapped into the form.
+- Guides (Phase 5 Steps 11 and 12; ADR-0007): a six-part tutorial track, how-to
+  guides (pandas, R, Excel and Power Query, xlwings Lite, series, the local
+  app), study paths generated from the syllabus seed, a migration guide from
+  0.2.x checked against the 0.2.x fixtures, a gallery with a script for every
+  domain, three in-browser examples that run the published wheel in Pyodide,
+  and four finance tutorials.
 - What each formula's symbols stand for (Phase 5 Step 18; issue #343): a model
   declares them on `@model` (`symbols=(Symbol(r"D_{\mathrm{Mac}}", "Macaulay
   duration, in years", "macaulay_duration"), ...)`, exported as `pyeconomics.core.Symbol`), each
@@ -180,6 +225,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 - The version on `main` moves to `1.0.0rc1.dev1`, the first development build
   towards the 1.0.0 release candidate; `CITATION.cff` and the MCP Registry entry
   (`server.json`) follow it.
+- The version is `1.0.0rc1` for both distributions, `pyeconomics` and
+  `pyeconomics-app`; `[app]`'s pin, `CITATION.cff` and the MCP Registry entry
+  (`server.json`, stdio only until production is public) follow it.
 - GitHub Sponsors joins thanks.dev in `.github/FUNDING.yml` and `funding.json`,
   now that the `pyeconomics-dev` listing is live.
 
@@ -1264,7 +1312,8 @@ The 1.0 skeleton and its publishing pipeline, released to TestPyPI only.
 
 - The 0.2.x code from `main`; it continues on `legacy/0.2.x`.
 
-[Unreleased]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0b1...HEAD
+[Unreleased]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0rc1...HEAD
+[1.0.0rc1]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0b1...v1.0.0rc1
 [1.0.0b1]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0a2...v1.0.0b1
 [1.0.0a2]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0a1...v1.0.0a2
 [1.0.0a1]: https://github.com/pyeconomics-dev/pyeconomics/compare/v1.0.0.dev1...v1.0.0a1
