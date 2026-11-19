@@ -10995,6 +10995,13 @@ hygiene.
       (the time-value model's first example is part of its
       input schema and of a headline MCP tool) and #376 (the
       curl and install snippets a release candidate shows).
+    - Production's snapshot still holds three years of each
+      BLS series: #370 and #378 reach it with this step's
+      production deploy. After that deploy, run the production
+      snapshot job once (docs/operations/production.md) and
+      read us.unemployment.rate from 2000 through the edge: it
+      must answer about 274 observations from 2004, not 34,
+      and its log must not say a history started again.
     - Step 13 note: deploy-production.yml copies the image
       tagged with the commit from staging's registry, which
       keeps its two newest images and deletes the others

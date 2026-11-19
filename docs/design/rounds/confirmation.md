@@ -232,6 +232,11 @@ below.
   among them, hold no value of the Access token.
 - The deployed check added for this class passes there
   (`tests/staging/explorer.spec.ts`, four of four).
+- **Production is as it was.** Its copy job runs its own image, which production's
+  next deploy replaces: until then its BLS series hold their latest three years, as
+  staging's did. Production is behind Access until the cutover, and Step 19's
+  release candidate carries both fixes there; its note in the roadmap says to run
+  the job once after that deploy and read the series' span.
 - **A fresh evaluator in the student's persona**, on Claude Sonnet 5.5, with the
   round's own prompt and no knowledge of the round, did the four tasks on the fixed
   site in 31 visits. All four passed; of the first it wrote: "The series page draws a
