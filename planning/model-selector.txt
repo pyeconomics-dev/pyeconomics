@@ -1002,17 +1002,6 @@
     - D — not suited; do not select for this category
 
     <tier cost="very-high">
-      <model id="claude-fable-5.1" name="Fable 5.1"
-             input-price-per-1m="$10.00" output-price-per-1m="$50.00"
-             jurisdiction="us"
-             always-thinks="yes"
-             tier-coding="S" tier-planning="S" tier-agentic="S"
-             tier-multimodal="S" tier-long-context="S" tier-knowledge="S"
-             tier-speed="D"
-             headline-benchmarks="AA Intelligence Index 53.4 (max); HLE 59.1% (max); Terminal-Bench 2.1 91.4 (max); τ²-bench banking pass_1 47.2%"
-             pricing-notes="Requires data retention approval for Enterprise customers, Teams and individual customers with Privacy Mode enabled; Anthropic stores agent input and output data for harm-prevention processes; this data is not used to train or improve Anthropic models or products; Requests that trip a security guardrail are automatically routed to Claude Opus; Prompt-cache reads are $0.25/M, 75% below the standard cache-read rate; About 2.5x the cost of Claude Opus 5.5 on input and output; Requires Max Mode on legacy request-based plans"
-             prose-generated="best-for"
-             best-for="Frontier-class coding, planning, agentic work, multimodal input, long context and knowledge at a very high price. Its AA Intelligence Index of 53.4 ranks 3rd of 35 measured models. Weakest at speed (D)." />
       <model id="claude-fable-5.2" name="Fable 5.2"
              input-price-per-1m="$8.00" output-price-per-1m="$40.00"
              jurisdiction="us"
@@ -1034,6 +1023,16 @@
              pricing-notes="Provider-direct OpenAI API per-token pricing (not via the Cursor pool)"
              prose-generated="best-for headline-benchmarks"
              best-for="Frontier-class planning and agentic work, plus strong coding, long context and knowledge, at a very high price. Its AA Intelligence Index of 52.7 ranks 4th of 35 measured models." />
+      <model id="gpt-6.2-astra" name="GPT-6.2 Astra"
+             input-price-per-1m="$8.00" output-price-per-1m="$40.00"
+             jurisdiction="us"
+             tier-coding="A" tier-planning="S" tier-agentic="S"
+             tier-multimodal="B" tier-long-context="S" tier-knowledge="A"
+             tier-speed="B"
+             headline-benchmarks="Artificial Analysis has not measured GPT-6.2 Astra yet, so its letters are estimates"
+             pricing-notes="Provider-direct OpenAI API per-token pricing (not via the Cursor pool)"
+             prose-generated="best-for headline-benchmarks"
+             best-for="Frontier-class planning, agentic work and long context, plus strong coding and knowledge, at a very high price." added-on="2026-11-18"/>
     </tier>
     <tier cost="high">
       <model id="claude-opus-5-5" name="Opus 5.5"
@@ -1077,6 +1076,16 @@
              pricing-notes="Up to 1M tokens in Max Mode at the same per-token rates (no long-context surcharge); Cached input is billed at $0.20 per million tokens with no separate cache-write charge"
              prose-generated="best-for headline-benchmarks"
              best-for="Frontier-class coding and agentic work, plus strong planning, long context and knowledge, at a high price. Its AA Intelligence Index of 52.4 ranks 6th of 35 measured models." added-on="2026-10-20"/>
+      <model id="gemini-4-neon" name="Gemini 4 Neon"
+             input-price-per-1m="$3.00" output-price-per-1m="$15.00"
+             jurisdiction="us"
+             tier-coding="S" tier-planning="S" tier-agentic="S"
+             tier-multimodal="A" tier-long-context="A" tier-knowledge="S"
+             tier-speed="B"
+             headline-benchmarks="Artificial Analysis has not measured Gemini 4 Neon yet, so its letters are estimates"
+             pricing-notes="Provider-direct Google API per-token pricing (not via the Cursor pool)"
+             prose-generated="best-for headline-benchmarks"
+             best-for="Frontier-class coding, planning, agentic work and knowledge, plus strong multimodal input and long context, at a high price." added-on="2026-11-18"/>
     </tier>
     <tier cost="medium">
       <model id="claude-sonnet-5-5" name="Sonnet 5.5"
@@ -1114,22 +1123,22 @@
              input-price-per-1m="$1.25" output-price-per-1m="$10.00"
              jurisdiction="us"
              tier-coding="A" tier-planning="B" tier-agentic="A"
-             tier-multimodal="D" tier-long-context="B" tier-knowledge="B"
+             tier-multimodal="D" tier-long-context="B" tier-knowledge="C"
              tier-speed="B"
              headline-benchmarks="GPT-5.1 Codex Max variant at the same medium-tier pricing as gpt-5.1-codex; Codex-lineage terminal / tool-use profile; Artificial Analysis has not measured GPT-5.1 Codex Max yet, so its letters are estimates"
              pricing-notes="Hidden by default"
              prose-generated="best-for headline-benchmarks"
-             best-for="Strong coding and agentic work at a medium price. Weakest at multimodal input (D)." />
-      <model id="gpt-6.1-sol" name="GPT-6.1 Sol"
+             best-for="Strong coding and agentic work at a medium price. Weakest at multimodal input (D), then knowledge (C)." />
+      <model id="gpt-6.2-sol" name="GPT-6.2 Sol"
              input-price-per-1m="$2.00" output-price-per-1m="$10.00"
              jurisdiction="us"
-             tier-coding="A" tier-planning="A" tier-agentic="S"
+             tier-coding="A" tier-planning="S" tier-agentic="S"
              tier-multimodal="A" tier-long-context="A" tier-knowledge="A"
              tier-speed="D"
-             headline-benchmarks="AA Intelligence Index 51.8 (max); HLE 52.9%; SciCode 54.2; Terminal-Bench 4.0 56.1; AA-LCR 0.830; LMArena WebDev #4 (Elo 1757.8)"
+             headline-benchmarks="Artificial Analysis has not measured GPT-6.2 Sol yet, so its letters are estimates"
              pricing-notes="Provider-direct OpenAI API per-token pricing (not via the Cursor pool)"
              prose-generated="best-for headline-benchmarks"
-             best-for="Frontier-class agentic work, plus strong coding, planning, multimodal input, long context and knowledge, at a medium price. Its AA Intelligence Index of 51.8 ranks 7th of 35 measured models. Weakest at speed (D)." added-on="2026-10-01"/>
+             best-for="Frontier-class planning and agentic work, plus strong coding, multimodal input, long context and knowledge, at a medium price. Weakest at speed (D)." added-on="2026-11-18"/>
       <model id="gemini-4-argon" name="Gemini 4 Argon"
              input-price-per-1m="$2.00" output-price-per-1m="$10.00"
              jurisdiction="us"
@@ -1144,12 +1153,12 @@
              input-price-per-1m="$2.00" output-price-per-1m="$10.00"
              jurisdiction="us"
              tier-coding="S" tier-planning="S" tier-agentic="S"
-             tier-multimodal="B" tier-long-context="S" tier-knowledge="S"
+             tier-multimodal="A" tier-long-context="S" tier-knowledge="S"
              tier-speed="B"
              headline-benchmarks="Artificial Analysis has not measured Gemini 4 Carbon yet, so its letters are estimates"
              pricing-notes="Provider-direct Google API per-token pricing (not via the Cursor pool)"
              prose-generated="best-for headline-benchmarks"
-             best-for="Frontier-class coding, planning, agentic work, long context and knowledge at a medium price." added-on="2026-11-12"/>
+             best-for="Frontier-class coding, planning, agentic work, long context and knowledge, plus strong multimodal input, at a medium price." added-on="2026-11-12"/>
     </tier>
     <tier cost="low">
       <model id="mistral-medium-3.5" name="Mistral Medium 3.5"
@@ -1190,16 +1199,6 @@
              pricing-notes="Jointly trained by Cursor and SpaceXAI; Long context (>256k input tokens) is billed at 2x standard rates, up to 500k; Fast mode is available at 2x pricing; Fast mode for long context (>256k) is billed at 3x standard rates"
              prose-generated="best-for"
              best-for="Strong coding, planning, agentic work, long context and knowledge at a low price. Its AA Intelligence Index of 46.4 ranks 11th of 35 measured models." />
-      <model id="claude-4.5-haiku" name="Haiku 4.5"
-             input-price-per-1m="$1.00" output-price-per-1m="$5.00"
-             jurisdiction="us"
-             tier-coding="C" tier-planning="C" tier-agentic="D"
-             tier-multimodal="B" tier-long-context="A" tier-knowledge="D"
-             tier-speed="S"
-             headline-benchmarks="AA Intelligence Index 16.9 (reasoning); HLE 10.4%; SciCode 42.2; Terminal-Bench 4.0 0.0; AA-LCR 0.743; Output Speed 97.2 tokens/s; AA-Omniscience -4.2; latency leader among Claude family"
-             pricing-notes="Hidden by default; Bedrock/Vertex: regional endpoints +10% surcharge; Cache: writes 1.25x, reads 0.1x"
-             prose-generated="best-for headline-benchmarks"
-             best-for="Strong long context, with very fast output, at a low price. Its AA Intelligence Index of 16.9 ranks 28th of 35 measured models. Weakest at agentic work and knowledge (D), then coding and planning (C)." />
       <model id="claude-haiku-5-5" name="Haiku 5.5"
              input-price-per-1m="$0.10" output-price-per-1m="$0.50"
              jurisdiction="us"
@@ -1363,13 +1362,13 @@
       <model id="gemini-4-hydrogen" name="Gemini 4 Hydrogen"
              input-price-per-1m="$1.50" output-price-per-1m="$7.50"
              jurisdiction="us"
-             tier-coding="B" tier-planning="B" tier-agentic="B"
-             tier-multimodal="B" tier-long-context="B" tier-knowledge="B"
-             tier-speed="B"
+             tier-coding="S" tier-planning="S" tier-agentic="S"
+             tier-multimodal="A" tier-long-context="A" tier-knowledge="A"
+             tier-speed="A"
              headline-benchmarks="Artificial Analysis has not measured Gemini 4 Hydrogen yet, so its letters are estimates"
              pricing-notes="Provider-direct Google API per-token pricing (not via the Cursor pool)"
              prose-generated="best-for headline-benchmarks"
-             best-for="Competent coding, planning, agentic work, multimodal input, long context and knowledge at a low price." added-on="2026-11-13"/>
+             best-for="Frontier-class coding, planning and agentic work, plus strong multimodal input, long context and knowledge, with fast output, at a low price. It is the cheapest model in the catalog rated S for coding, planning and agentic work." added-on="2026-11-13"/>
     </tier>
   </model-options>
 
@@ -1425,7 +1424,7 @@
             provider="anthropic" billing="subscription-included"
             provider-jurisdiction="us"
             requires="claude-max-subscription"
-            supports-models="claude-sonnet-5-5,claude-opus-5-5,claude-fable-5.1,claude-4.5-haiku"
+            supports-models="claude-fable-5.2,claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="Chat-driven Claude use (no terminal, no codebase tool use) under the same Max budget that funds Claude Code — pick when the task is conversational rather than code-editing." />
@@ -1433,7 +1432,7 @@
             provider="openai" billing="per-token"
             provider-jurisdiction="us"
             requires="openai-api-key"
-            supports-models="gpt-6-astra,gpt-6.1-sol,gpt-6-luna,gpt-5.1-codex-max,gpt-5.1-codex,gpt-6.1-terra"
+            supports-models="gpt-6-luna,gpt-5.1-codex-max,gpt-5.1-codex,gpt-6.1-terra,gpt-6.2-astra,gpt-6.2-sol"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="Programmatic / scripted GPT use when an OpenAI API key is configured. Pay-per-token at OpenAI's published rates. Exposes the full Codex/OpenAI `reasoning_effort` dial (`low`, `medium`, `high`, `xhigh`, `max`, `ultra` — the top `ultra` step is a session-wide multi-agent orchestration mode analogous to Claude Code's `ultracode`)." />
@@ -1441,7 +1440,7 @@
             provider="openai" billing="subscription-included"
             provider-jurisdiction="us"
             requires="chatgpt-subscription"
-            supports-models="gpt-6.1-terra,gpt-6-astra,gpt-6.1-sol,gpt-6-luna"
+            supports-models="gpt-6.2-astra,gpt-6.2-sol,gpt-6.1-terra,gpt-6-luna"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="Default for GPT-driven autonomous coding sessions when a ChatGPT Plus/Pro subscription is active — pays from the ChatGPT budget instead of the per-token API rate, in the CLI and the IDE extension. A ChatGPT-account sign-in CANNOT run the `-codex` model variants: Codex answers 400 &quot;The &apos;gpt-5.3-codex&apos; model is not supported when using Codex with a ChatGPT account.&quot; Those variants are reachable only through `codex-api` (an OpenAI API key), so recommending one here would name a model the operator&apos;s subscription cannot run. Exposes the full Codex `reasoning_effort` dial (`low`, `medium`, `high`, `xhigh`, `max`, `ultra` — the top `ultra` step is session-wide multi-agent orchestration on par with Claude Code&apos;s `ultracode`) and no Max Mode." />
@@ -1449,7 +1448,7 @@
             provider="openai" billing="per-token"
             provider-jurisdiction="us"
             requires="openai-api-key"
-            supports-models="gpt-6.1-terra,gpt-6-astra,gpt-6.1-sol,gpt-6-luna,gpt-5.1-codex-max,gpt-5.1-codex"
+            supports-models="gpt-6.2-astra,gpt-6.2-sol,gpt-6.1-terra,gpt-6-luna,gpt-5.1-codex-max,gpt-5.1-codex"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="The same Codex surface driven by an OpenAI API key instead of a ChatGPT sign-in: the ONLY way to run the coding-specialised `-codex` variants (gpt-5.3-codex and the gpt-5.1-codex family), and the fallback for GPT work once the ChatGPT plan&apos;s limits bind. Billed per token at list price, so prefer `codex-cli` while the subscription still has headroom. Exposes the full Codex `reasoning_effort` dial (`low`, `medium`, `high`, `xhigh`, `max`, `ultra`)." />
@@ -1465,7 +1464,7 @@
             provider="google" billing="per-token"
             provider-jurisdiction="us"
             requires="google-api-key"
-            supports-models="gemini-3.8-flash,gemini-3.5-flash-lite,gemini-4-argon,gemini-4-carbon,gemini-4-hydrogen"
+            supports-models="gemini-3.8-flash,gemini-3.5-flash-lite,gemini-4-argon,gemini-4-carbon,gemini-4-hydrogen,gemini-4-neon"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="Programmatic / scripted Gemini use with a Google API key. Pay-per-token at Google's published rates. Exposes the discrete Gemini thinking-level dial (`minimal`, `low`, `medium`, `high`, `xhigh`) shared across the 3.x and 2.5 generations — per-model support varies (Gemini 3 Pro is low/high only; Gemini 3.1 Pro / 3.7 Flash / 3.8 Flash / 2.5 Pro / 2.5 Flash / 2.5 Flash-Lite are low/medium/high without `minimal`; `minimal` appears on Flash-line models such as 3.6 Flash, 3.5 Flash, 3.5 Flash-Lite, 3.1 Flash-Lite Image, and 3 Flash). Powers the roadmodel SaaS free-tier surfaces (/recommend on Gemini 2.5 Flash; /roadmap on Gemini 2.5 Flash with 3.1 Pro escalation)." />
@@ -1537,7 +1536,7 @@
             provider="cursor" billing="subscription-pool"
             provider-jurisdiction="us"
             requires="cursor-pro-or-ultra-subscription"
-            supports-models="claude-sonnet-5-5,glm-5.3,glm-5.3-flash,claude-opus-5-5,claude-fable-5.1,gpt-5.6-sol,kimi-k3,gpt-5.6-terra,gpt-5.1-codex-max,gpt-5.1-codex,muse-spark-1.3,grok-4.7,kimi-k2.7-code,gemini-3.8-flash,composer-2.5,gpt-5.6-luna,claude-haiku-5-5,gemini-4-argon,muse-wonder"
+            supports-models="claude-fable-5.2,gemini-3.5-flash-lite,gemini-4-carbon,gemini-4-hydrogen,claude-sonnet-5-5,glm-5.3,glm-5.3-flash,claude-opus-5-5,gpt-5.6-sol,kimi-k3,gpt-5.6-terra,gpt-5.1-codex-max,gpt-5.1-codex,muse-spark-1.3,grok-4.7,kimi-k2.7-code,gemini-3.8-flash,composer-2.5,gpt-5.6-luna,claude-haiku-5-5,gemini-4-argon,muse-wonder"
             exposes-max-mode="yes" exposes-thinking="no"
             exposes-orchestration="no"
             best-for="Cursor IDE — single Platform covering both UI modes (Composer for multi-file autonomous editing; Chat for interactive model-picker). The operator picks the mode at task time based on the chosen Model: composer-2 / composer-2.5 imply Composer mode; frontier models (opus-4.7, gpt-5.5, sonnet-4.6, etc.) imply Chat mode. Cursor's own Auto and Premium routing modes are deliberately NOT enumerated as roadmodel-recommendable models because their routing is opaque (see `jurisdiction-context` for the rationale) — operators who want routing behavior pick a specific fixed model and let Cursor's pool handle the call. All routes through the $0-marginal Cursor pool. Defer to claude-code when the chosen model is Claude and claude.ai Max is active (Max budget is cheaper marginal cost than burning Cursor pool tokens on Claude calls that have a dedicated Anthropic subscription path)." />
@@ -1553,7 +1552,7 @@
             provider="openrouter" billing="per-token"
             provider-jurisdiction="us"
             requires="openrouter-api-key"
-            supports-models="gemini-4-hydrogen,gemini-4-carbon,claude-fable-5.2,gpt-6.1-terra,gemini-3.5-flash-lite,claude-sonnet-5-5,claude-opus-5-5,gpt-6-astra,gpt-6.1-sol,gpt-6-luna,gpt-5.1-codex-max,gpt-5.1-codex,gemini-3.8-flash,grok-4.7,deepseek-flash,mistral-medium-3.5,mistral-small-4,codestral,glm-5.3,glm-5.3-flash,glm-4.5-air,gpt-oss-120b,gpt-oss-20b,kimi-k3,kimi-k2.7-code,muse-spark-1.3,claude-haiku-5-5,gemini-4-argon,muse-wonder"
+            supports-models="gemini-4-neon,gpt-6.2-astra,gpt-6.2-sol,gemini-4-hydrogen,gemini-4-carbon,claude-fable-5.2,gpt-6.1-terra,gemini-3.5-flash-lite,claude-sonnet-5-5,claude-opus-5-5,gpt-6-luna,gpt-5.1-codex-max,gpt-5.1-codex,gemini-3.8-flash,grok-4.7,deepseek-flash,mistral-medium-3.5,mistral-small-4,codestral,glm-5.3,glm-5.3-flash,glm-4.5-air,gpt-oss-120b,gpt-oss-20b,kimi-k3,kimi-k2.7-code,muse-spark-1.3,claude-haiku-5-5,gemini-4-argon,muse-wonder"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="Per-token AGGREGATOR that resells other makers' models behind one OpenAI-format endpoint and one key (openrouter.ai) — like Cursor's pool but paid per call, not a subscription. Reaches most of the catalog: supports-models is synced daily from openrouter.ai/models (OpenRouter's public model list): each catalogued model it lists as a text chat route, matched by name (absent today: composer-2.5, which is Cursor-only, and gemini-3-pro, which OpenRouter serves only as an image model). The operator should trust it LESS than a provider-direct method — prefer the maker's own method when the operator holds that key. BILLING: OpenRouter charges the maker's list price plus its platform fee (~5% on credit purchases at authoring), so the catalog price is a FLOOR for this method, never an exact estimate. ROUTING: a request may be served by any of OpenRouter's upstream hosts for that model; the MODEL-level jurisdiction filter (Step 0b) still governs which models are eligible, and this method's `us` code is OpenRouter's own (the operator's counterparty), NOT the upstream host's. Exposes the maker's reasoning dial where the routed model documents one (`reasoning_effort` on OpenAI / gpt-oss / GLM / DeepSeek families). Never the maker of any model it resells: the cross-provider BACKUP guard resolves makers through provider-direct methods, exactly as it does for Cursor." />
@@ -1690,13 +1689,13 @@
       - Never sacrifice quality to save cost — the cost step is a true-tie
         resolver, not a downgrade trigger.
       - For PRIMARY = `multimodal`, only consider models with tier-multimodal
-        of S or A (currently: gemini-3-flash, gemini-3.8-flash, claude-fable-5.2, claude-fable-5.1 at S; gemini-2.5-flash, gpt-6.1-terra, claude-sonnet-5-5, gpt-6-sol, gpt-6.1-sol, gpt-5.6-terra, claude-opus-5-5, gpt-5.6-sol at A).
+        of S or A (currently: gemini-3-flash, gemini-3.8-flash, claude-fable-5.2, claude-fable-5.1 at S; gemini-2.5-flash, gpt-6.1-terra, gemini-4-hydrogen, claude-sonnet-5-5, gemini-4-carbon, gpt-6-sol, gpt-6.1-sol, gpt-6.2-sol, gpt-5.6-terra, gemini-4-neon, claude-opus-5-5, gpt-5.6-sol at A).
       - For PRIMARY = `long-context`, prefer models with native large
         context (opus-4.7 1M, opus-4.8 1M, claude-opus-5 1M, claude-opus-5-5 1M, gemini-3.1-pro 1M, gemini-3.5-flash-lite 1M) over forcing
         a smaller-context model into Max Mode truncation.
       - For PRIMARY = `coding` at S-tier requirement, the candidate set is
-        claude-sonnet-5-5, gemini-4-argon, gemini-4-carbon, claude-opus-5-5, muse-wonder, claude-fable-5.2, claude-fable-5.1; cost tie-breaker favors
-        claude-sonnet-5-5 when the ratings are equivalent for the prompt.
+        gemini-4-hydrogen, claude-sonnet-5-5, gemini-4-argon, gemini-4-carbon, gemini-4-neon, claude-opus-5-5, muse-wonder, claude-fable-5.2, claude-fable-5.1; cost tie-breaker favors
+        gemini-4-hydrogen when the ratings are equivalent for the prompt.
       - Default to composer-2.5 for routine multi-file implementation when a
         coding-A rating suffices; escalate only on a concrete capability
         gap.
