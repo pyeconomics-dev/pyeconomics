@@ -610,9 +610,9 @@ roadmap. The ones this roadmap foresees:
 | --- | --- | --- |
 | Phase 3 check 78, 4 check 64 | workflows reading secrets | 4, 13–15, 18 |
 | Phase 2 and 4 package checks | one wheel and one sdist | 10 |
-| Phase 4 check 58 | the README names `1.0.0b1` | 19 |
-| Phase 1 V4.4, 2 V7.3, 3 V11.3, 4 V15.2 | `stable` docs are 0.2.6 | 19 |
-| Phase 2 V14.3, 3 V21.3, 4 V15.3 | a plain install gets 0.2.6 | 19 |
+| Phase 4 check 58 | the README names `1.0.0b1` | 19, 21 |
+| Phase 1 V4.4, 2 V7.3, 3 V11.3, 4 V15.2 | `stable` docs are 0.2.6 | 21 |
+| Phase 2 V14.3, 3 V21.3, 4 V15.3 | a plain install gets 0.2.6 | 21 |
 | Phase 1 check 36 | id-token on two publish jobs | none |
 | Phase 1 checks 17, 18 and 21 | ADR index; no `cfa` names | none |
 | Phase 1 V10.5 | no repository secret | none |
@@ -10668,9 +10668,9 @@ platform allows. New conversation per phase-boundary hygiene.
 
 ---
 
-## Step 19 — Public-API Freeze, Release Candidate and Production Soak
+## Step 19 — Public-API Freeze, Release Candidate and Production Soak ✅
 
-**Status:** Not started
+**Status:** Complete — PR #382 (2026-11-19)
 
 > **Goal:** Freeze what 1.0.0 promises and put the exact candidate into
 > production for its soak (ADR-0013 decisions 17 and 18). Write
@@ -10721,6 +10721,8 @@ the soak runs for seven days from that deploy.
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-19: Quality Pick — Opus 5.5 · XHigh.
 
 **Conversation:** New
 
@@ -12111,8 +12113,11 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       preview" (Phase 1 V4.4, Phase 2 V7.3, Phase 3 V11.3,
       Phase 4 V15.2); a plain `pip install pyeconomics`
       resolving 0.2.6 (Phase 2 V14.3, Phase 3 V21.3, Phase 4
-      V15.3); the README naming `1.0.0b1` (Phase 4 check 58,
-      a static check every pull request runs).
+      V15.3); the README pinning a 1.0 pre-release behind
+      `--pre` (Phase 4 check 58, a static check every pull
+      request runs; Step 19 narrowed it from `1.0.0b1` to
+      `1.0.0b1` or a release candidate, recorded in Phase 4's
+      addendum).
     - server.json's remote entry: `"remotes": [{"type":
       "streamable-http", "url": ".../mcp"}]`; a remote must
       be publicly reachable (registry docs, read
@@ -13197,7 +13202,7 @@ workflow above maps directly to the corresponding row below.
 | 16   | Legal, trust + brand           | Gemini 4 Argon | Complete — PR #318 |
 | 17   | Design direction + system      | Opus 5.5       | Complete — PR #344 |
 | 18   | AI dogfooding loop             | GPT-6.1 Sol    | Complete — PR #352 |
-| 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Not started        |
+| 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Complete — PR #382 |
 | 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |
 | 21   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |
 | 22   | QA + verify-phase05.sh         | Gemini 4 Hydrogen | Not started        |
