@@ -210,6 +210,11 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   formulas, so 33 models now show 247 formulas, none wider than a phone's
   screen. A model's description (`registry.describe`, the registry export)
   carries the new text; no schema, output or result hash changes.
+- A formula written over two lines is aligned at its relation. Chromium's MathML
+  centres every cell of the table such a formula is, so on the 14 model pages
+  that have one the left side stood apart from its "=" and the second line began
+  to the left of the first. The stylesheet now aligns the cells as the formula
+  asks, and a check measures every such row on every model's page.
 - Three defects the dogfooding loop's confirmation round found on staging, where
   the API is a network away and the data is real (Phase 5 Step 18): choosing live
   data on a phone pushed the page past the screen's edge, because the profile

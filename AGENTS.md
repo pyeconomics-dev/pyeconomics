@@ -113,7 +113,10 @@ From Phase 2, which builds the registry (ROADMAP §3; ADR-0001):
   on a wider one; keep a formula a dozen pixels inside, because the runner's
   Chromium measures a few pixels wider than Windows'. A symbol must still appear
   in a formula exactly as written, so an alignment `&` goes after it, never
-  inside it.
+  inside it. A formula over two lines is a table, and Chromium's MathML has no
+  `columnalign`: `web/src/styles/global.css` aligns the cells of `aligned`
+  (`right left`), and the same test measures every row, so another environment
+  (`cases`, an `array` with its own columns) needs its rule there first.
 - A model's first example is the one its calculator opens on (issue #351): make
   it a case a reader recognises, round numbers on a regular schedule, with a
   note that gives the answer, and hold the note's numbers to the model in a
