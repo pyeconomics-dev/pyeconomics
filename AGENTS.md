@@ -1122,7 +1122,7 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   address in it (the privacy policy's first lines) is masked. Whoever commits a
   baseline says how it was checked: by eye, or, where a session cannot see an
   image, by the page's text and the mask's pixels (the first 52 were checked
-  that way and the maintainer was asked to look), never "looked at" when it was
+  that way, and looked at on 2026-11-18), never "looked at" when it was
   not. To change one on purpose: push the change; the web job's
   comparison fails, draws all 52 again and uploads them as the `visual-baselines`
   artifact; run `gh run download <run-id> -n visual-baselines -D
@@ -1243,7 +1243,10 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   it, a retrieval time to the minute (`results.ts retrievedText`); the JSON
   holds the code and the source's own timestamp.
 - The harness chooses a select's option with `support.ts choose` (a key press
-  first), so a visitor's own choice is not scored as a layout shift.
+  first), so a visitor's own choice is not scored as a layout shift, and takes a
+  picture only once the page has stopped scrolling (`support.ts settled`): a
+  control given focus is scrolled into view smoothly, and a picture on the way
+  showed the unpainted part of a phone's screen as a blank strip.
 - An evaluator is an Agent subagent on another model than the implementer's, given
   the protocol's prompt word for word and, after it, working notes that change no
   rule (where to run `visit`, which run folder, to skip the session-start routine
@@ -1254,7 +1257,19 @@ From Phase 5 Step 18, which ran the dogfooding loop and locked its result in
   before any evaluator starts: latency and a real record's length show only
   there (`docs/design/rounds/confirmation.md`). An evaluator that could not see
   its screenshots is not counted, whatever it returns, and nothing works around
-  what kept it from seeing them: that is the maintainer's to lift.
+  what kept it from seeing them: that is the maintainer's to lift. Since
+  2026-11-18 the maintainer's machine lets an agent read the pictures under
+  `web/dogfood-out/` and `web/tests/visual/baselines/`, and no others: read one,
+  in a throwaway subagent too, before a round's evaluators start.
+- A picture is looked at, not only measured (the confirmation round): #363's
+  two-line formulas passed every measurement of width and stood misaligned in
+  14 model pages' pictures until the first look. A change to how a page is drawn
+  ends with its picture, by whoever made it.
+- A series' page says the dates it drew (`explorer.ts readSummary`), and says so
+  when the start asked for is earlier than anything held by more than a period;
+  its status line holds room for three lines on a phone. A deployed copy's
+  history is held by `tests/staging/explorer.spec.ts`: the local build's
+  stand-in data cannot show a copy cut short.
 - The loop stopped at round 3 (`docs/design/rounds/summary.md`: medians 5.75,
   7.00, 7.50 and 7.38; no High since round 2). Step 20's round is held to round
   3's. What returned each round and belongs to the models is issues #350 and

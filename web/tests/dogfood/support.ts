@@ -136,6 +136,13 @@ export async function choose(page: Page, picker: Locator, option: Parameters<Loc
  * (Phase 5 Step 18's round 1: the phone menu was captured mid-fade, once
  * half-transparent and once not at all). A looping animation is not waited
  * for, and the wait gives up after two seconds.
+ *
+ * Then wait until the page has stopped scrolling (the confirmation round on
+ * staging): a control that takes focus is scrolled into view smoothly, over
+ * about a second, and a picture taken on the way showed the part of the page
+ * the browser had not painted yet as a blank strip, 360 pixels of a phone's
+ * screen in five captures of six. The page is still when its scroll position
+ * has not changed for five frames; this wait gives up after three seconds.
  */
 export async function settled(page: Page): Promise<void> {
   await page
@@ -150,6 +157,23 @@ export async function settled(page: Page): Promise<void> {
           ),
           new Promise((resolve) => setTimeout(resolve, 2000)),
         ]).then(() => undefined),
+    )
+    .catch(() => undefined);
+  await page
+    .evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          const deadline = performance.now() + 3000;
+          let last = window.scrollY;
+          let still = 0;
+          const frame = (): void => {
+            still = window.scrollY === last ? still + 1 : 0;
+            last = window.scrollY;
+            if (still >= 5 || performance.now() > deadline) resolve();
+            else requestAnimationFrame(frame);
+          };
+          requestAnimationFrame(frame);
+        }),
     )
     .catch(() => undefined);
 }

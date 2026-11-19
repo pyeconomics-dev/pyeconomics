@@ -269,3 +269,17 @@ issue and raises the median by less than 0.5 over the round before, and at round
   example, which was another calculation. The model now opens on a five-year
   annual bond, and its second example is the same calculation as its first, so
   the task chooses the third. No persona, task, rubric, severity or page changes.
+- 2026-11-18 (Phase 5 Step 18, the confirmation round's evaluators' pass): a
+  fifth fault of the harness, which one evaluator suspected and did not charge
+  to the site. It changes no persona, task, rubric, severity or page.
+  - A capture waits until the page has stopped scrolling (`support.ts settled`).
+    A control that takes focus is scrolled into view smoothly, over about a
+    second, and the task that chooses a family's example took its picture on the
+    way: the part of the page not yet painted showed as a blank strip, 360
+    pixels of a phone's screen in five captures of six. A visitor sees the page
+    arrive whole.
+  - A note for whoever runs a round, with no change to the rules: the
+    maintainer's machine now lets an agent read the pictures under
+    `web/dogfood-out/` and `web/tests/visual/baselines/`, and nothing else.
+    Check that one picture can be seen, in a throwaway subagent too, before the
+    evaluators start.

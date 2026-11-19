@@ -23,6 +23,25 @@ test("the series route applies a transform and records it", async ({ request }) 
   expect(body.attributions).toContain(BLS);
 });
 
+// Phase 5 Step 18's confirmation round (2026-11-18): the site's copy of each BLS
+// series held 34 months, because BLS answers a request without dates with its
+// latest three years and the daily copy asked without dates. The unemployment
+// rate's page opens on ten years; the copy must hold them. A new copy holds twenty
+// years after its first run (docs/operations/staging.md, "BLS is read by window").
+test("the unemployment rate's copy holds the ten years its page opens on", async ({ request }) => {
+  const start = new Date();
+  start.setUTCFullYear(start.getUTCFullYear() - 10);
+  const response = await request.get(`/v1/series/${CONCEPT}`, { params: { start: start.toISOString().slice(0, 10) } });
+  expect(response.status()).toBe(200);
+  const body = (await response.json()) as { frame: { index: string[] } };
+  // Monthly, dated by its last day: the first observation is the month asked for or the next.
+  const limit = new Date(start);
+  limit.setUTCDate(limit.getUTCDate() + 45);
+  const first = body.frame.index.at(0) ?? "9999-12-31";
+  expect(first <= limit.toISOString().slice(0, 10), `the first observation held is ${first}`).toBe(true);
+  expect(body.frame.index.length).toBeGreaterThanOrEqual(110);
+});
+
 test("the explorer charts the concept with its attribution drawn on the chart", async ({ page, watch }) => {
   await page.goto("/data/us/unemployment/rate/");
   const section = page.locator("#chart");
@@ -31,6 +50,8 @@ test("the explorer charts the concept with its attribution drawn on the chart", 
   await page.getByLabel("Transform").selectOption("yoy");
   await page.getByRole("button", { name: "Draw the chart" }).click();
   await expect(section.getByRole("status")).toContainText("Done:", { timeout: 60_000 });
+  // The window the page opens on is held: nothing says the start asked for is too early.
+  await expect(section.getByRole("status")).not.toContainText("Nothing before");
   await expect(page.locator("[data-series-chart] .annotation-text")).toContainText(BLS);
   await expect(page.locator("[data-series-chart] .annotation-text")).toContainText("Data as of");
   expect(watch.violations).toEqual([]);
