@@ -20,12 +20,7 @@
 # issue = 1                             # the issue that tracks the advisory
 # reason = "Why it cannot be fixed yet, and why it does not reach users."
 
-# Approved by the maintainer on 2026-11-17 (pull request #361).
-[[exception]]
-advisory = "GHSA-fc5q-39xc-vjpf"
-package = "picomatch"
-projects = ["tools/node", "web"]
-added = 2026-11-17
-expires = 2026-12-17
-issue = 360
-reason = "CVE-2026-112366: a glob pattern such as +(*a) makes picomatch backtrack exponentially. Every release is affected (<= 4.0.7) and none is patched; the fix is micromatch/picomatch#237, open since 2026-10-22. Here picomatch is a transitive dependency of build and test tools only (vite, vitest, tinyglobby, typescript-eslint, astro's tooling, the MCP Inspector), which match the project's own patterns against its own files; `npm audit --omit=dev` is clean in both projects."
+# No entry today. The one entry this file has held, for picomatch's
+# GHSA-fc5q-39xc-vjpf (pull request #361, issue #360), was removed on
+# 2026-11-18, the day the advisory was withdrawn and the audit stopped
+# reporting it.

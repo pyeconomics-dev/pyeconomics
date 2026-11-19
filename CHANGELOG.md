@@ -287,7 +287,9 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   `scripts/checks/npm_audit.py` now runs `npm audit` for the gate and applies
   `scripts/checks/audit_exceptions.toml`: an entry never covers what ships,
   lasts 45 days at most, fails after its date and fails once it matches nothing.
-  The one entry, approved by the maintainer, expires on 2026-12-17.
+  The one entry, approved by the maintainer, was removed on 2026-11-18, when
+  the advisory was withdrawn and the audit stopped reporting it: the file
+  holds no exception.
 - actionlint, pinned by commit, checks every GitHub Actions workflow in the
   pre-commit gate and in CI's `zizmor` job, so a workflow GitHub would reject at
   load time fails before it merges (#212).
