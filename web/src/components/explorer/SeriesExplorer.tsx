@@ -34,6 +34,7 @@ import {
   convertTargets,
   defaultRange,
   parseSeries,
+  readSummary,
   seriesFigure,
   transformText,
   transformsFor,
@@ -326,7 +327,7 @@ function Explorer(props: SeriesExplorerProps) {
         }
         setColumn(0);
         setOutcome({ kind: "series", answer, document });
-        setAnnouncement(`Done: ${String(document.frame.index.length)} observations.`);
+        setAnnouncement(readSummary(document.frame.index, request, props.frequency));
       } else {
         const problem = problemOf(answer);
         setOutcome({ kind: "problem", answer, problem });
@@ -448,7 +449,8 @@ function Explorer(props: SeriesExplorerProps) {
         </form>
       )}
 
-      <p role="status" aria-live="polite" className="text-sm">
+      {/* Room for the longest thing said here, three lines on a phone, so the chart under it does not move. */}
+      <p role="status" aria-live="polite" className="min-h-15 text-sm sm:min-h-10">
         {announcement}
       </p>
 

@@ -262,6 +262,37 @@ export function defaultRange(frequency: string, today: Date): { start: string; e
   return { start: isoDay(start), end: isoDay(today) };
 }
 
+/** The most days between the start asked for and a first observation that one period of the frequency explains. */
+const PERIOD_DAYS = new Map([
+  ["daily", 7],
+  ["business_daily", 7],
+  ["weekly", 14],
+  ["biweekly", 21],
+  ["monthly", 45],
+  ["quarterly", 100],
+  ["semiannual", 190],
+  ["annual", 370],
+]);
+
+/**
+ * What the explorer says when a read is done: how many observations, the days
+ * they run from and to, and, where the visitor asked for a start earlier than
+ * the first observation by more than a period, that nothing earlier is held
+ * here. Phase 5 Step 18's confirmation round (2026-11-18): a page that asked
+ * for ten years drew under three and said only "Done: 34 observations."
+ */
+export function readSummary(index: readonly string[], asked: { start: string }, frequency: string): string {
+  const first = index.at(0);
+  const last = index.at(-1);
+  if (first === undefined || last === undefined) return "Done: no observations in these dates.";
+  const count = index.length === 1 ? "1 observation" : `${String(index.length)} observations`;
+  const done = `Done: ${count}, ${first === last ? `on ${first}` : `from ${first} to ${last}`}.`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(asked.start) || !/^\d{4}-\d{2}-\d{2}$/.test(first)) return done;
+  const days = (Date.parse(first) - Date.parse(asked.start)) / 86_400_000;
+  if (days <= (PERIOD_DAYS.get(frequency) ?? 370)) return done;
+  return `${done} Nothing before ${first} is held here: the start you asked for, ${asked.start}, is earlier.`;
+}
+
 /** The formats the series route answers (server/formats.py SERIES_FORMATS). */
 export const SERIES_FORMATS = ["json", "csv", "xlsx", "parquet", "arrow"] as const;
 export type SeriesFormat = (typeof SERIES_FORMATS)[number];

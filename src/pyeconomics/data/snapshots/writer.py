@@ -83,7 +83,7 @@ from pyeconomics.data.errors import (
 from pyeconomics.data.modes import Mode, current_mode
 from pyeconomics.data.providers.base import ProviderInfo, RateLimit
 from pyeconomics.data.snapshots import codec
-from pyeconomics.data.snapshots.set import snapshot_set
+from pyeconomics.data.snapshots.set import HISTORY_SPANS, snapshot_set
 from pyeconomics.data.terms import CachePolicy, Terms
 from pyeconomics.data.transport import default_transport
 from pyeconomics.data.transport import files as spreadsheets
@@ -162,7 +162,8 @@ FAILURE_SLUGS: Final[Mapping[type[BaseException], str]] = {
 REFRESH: Final = dt.timedelta(days=45)
 #: How far back one run extends a windowed series' history towards its declared
 #: start; a source that answers slowly by month (Treasury's curves) stays inside
-#: the job's time.
+#: the job's time. A source one request of which serves many years declares a
+#: longer span (``snapshots.set.HISTORY_SPANS``).
 BACKFILL: Final = dt.timedelta(days=366)
 # A history whose first observation lies this close to its declared start is whole.
 _WHOLE: Final = dt.timedelta(days=31)
@@ -451,22 +452,24 @@ def _fetch(
     its start). With a kept history it is fetched again from :data:`REFRESH`
     before its last observation, and, until its history is whole, over the year
     before its first; the parts are spliced, the newest winning on a shared day.
-    A failed backfill keeps the history as it was; a failed refresh fails the
+    A source that declares a span reaches that far in place of the year. A
+    failed backfill keeps the history as it was; a failed refresh fails the
     series, which then keeps its last good frame.
     """
     if entry.start is None:
         return codec.Entry(_get(entry, registry, transport), entry.vintage)
     start = entry.start
+    span = HISTORY_SPANS.get(entry.provider, BACKFILL)
     held = None if old is None or old.vintage != entry.vintage else old.frame
     if held is None or not held.index or held.realtime is not None:
-        frame = _get(entry, registry, transport, max(start, today - BACKFILL), today)
+        frame = _get(entry, registry, transport, max(start, today - span), today)
         return codec.Entry(frame, entry.vintage, start)
     first, last = held.index[0], held.index[-1]
     parts = [held, _get(entry, registry, transport, max(start, last - REFRESH), today)]
     if first - start > _WHOLE:
         try:
             older = _get(
-                entry, registry, transport, max(start, first - BACKFILL), first - _DAY
+                entry, registry, transport, max(start, first - span), first - _DAY
             )
         except Exception as error:  # noqa: BLE001 - a backfill never fails the series
             _LOG.warning(

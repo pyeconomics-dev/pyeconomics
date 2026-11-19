@@ -252,6 +252,31 @@ def test_each_run_refreshes_its_end_and_reaches_a_year_further_back(
     assert (index[0], index[-1], len(index)) == ("2024-10-31", "2026-09-30", 24)
 
 
+def test_a_source_that_declares_a_span_reaches_that_far_each_run(
+    snapshot: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # BLS serves twenty years a request, so its history is whole in a few runs;
+    # here three years a run over a history of six and three quarters.
+    span = dt.timedelta(days=3 * 366)
+    monkeypatch.setattr(writer, "HISTORY_SPANS", {"alpha": span})
+    alpha = windowed("alpha", {"A": LONG})
+    run(snapshot, alpha, entries=WINDOWED)
+    assert _windows(alpha) == [(STARTED.date() - span, STARTED.date())]
+    index = object_of(snapshot, "alpha")["series"]["A"]["frame"]["index"]
+    assert index[0] == "2023-10-31"
+
+    run(snapshot, alpha, entries=WINDOWED, started=NEXT_DAY, nonce="0000000b")
+    assert _windows(alpha)[1:] == [
+        (dt.date(2026, 8, 16), NEXT_DAY.date()),
+        (dt.date(2023, 10, 31) - span, dt.date(2023, 10, 30)),
+    ]
+    later = NEXT_DAY + dt.timedelta(days=1)
+    run(snapshot, alpha, entries=WINDOWED, started=later, nonce="0000000c")
+    assert _windows(alpha)[-1] == (dt.date(2020, 1, 1), dt.date(2020, 10, 30))
+    index = object_of(snapshot, "alpha")["series"]["A"]["frame"]["index"]
+    assert (index[0], index[-1], len(index)) == ("2020-01-31", "2026-09-30", 81)
+
+
 def test_a_whole_history_is_only_refreshed(snapshot: Path) -> None:
     alpha = windowed("alpha", {"A": LONG})
     near = (entry("alpha", "A", start=dt.date(2025, 10, 1)),)
