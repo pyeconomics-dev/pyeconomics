@@ -10266,11 +10266,16 @@ out), the output part scaled by the tokens the model writes at that level.
 
 > Ran 2026-11-16: Quality Pick — Fable 5.2 · XHigh.
 
-> Deployed & verified, as of 2026-11-17: the staging deploys of #352 and of
-> its fix #355 succeeded, and the confirmation round's harness passes on
-> staging. The round's evaluators' pass has not been run (they could not be
-> shown screenshots on the maintainer's machine) and waits on the
-> maintainer: `docs/design/rounds/confirmation.md`. Step 19 starts after it.
+> Deployed & verified, 2026-11-19: the staging deploys of #352 and of its
+> fixes succeeded, and the confirmation round ran there on 2026-11-18 and 19
+> (`docs/design/rounds/confirmation.md`): a median of 7.38, round 3's; 20 of
+> 21 tasks passed and none failed; no Blocker; one High finding (the site's
+> copy of each BLS series held under three years), fixed on its own
+> branches in #370 and #378 as the step's task says. Verified on
+> staging on 2026-11-19: the copy holds 274 months of each BLS series, and a
+> fresh evaluator in the student's persona passed all four tasks on the fixed
+> site with no Blocker or High finding. Step 19 may start. The round's Medium
+> and Low findings are issues #371 to #377 and #359.
 
 **Conversation:** New
 
@@ -10980,13 +10985,16 @@ hygiene.
       freezes are unchanged by them, and Step 18 added two
       pages the freeze takes in with the rest: `/about/` and
       `/assistants/` (recorded 2026-11-16).
-    - Before anything else (recorded 2026-11-17): read
-      docs/design/rounds/confirmation.md. Step 18's
-      confirmation round on staging must have its evaluators'
-      pass recorded there, with no Blocker or High finding
-      and a median no lower than 7.38. If the record still
-      says the pass has not been run, stop and tell the
-      maintainer: this step does not start before it.
+    - Step 18's confirmation round on staging is recorded in
+      docs/design/rounds/confirmation.md (2026-11-19): a
+      median of 7.38, no Blocker, and one High finding, fixed
+      in #370 and #378 and checked again on staging. Its Medium and
+      Low findings are issues #371 to #377 and #359: read the
+      ones that touch a page before freezing its address or
+      its API. Two of them reach this step's surface: #377
+      (the time-value model's first example is part of its
+      input schema and of a headline MCP tool) and #376 (the
+      curl and install snippets a release candidate shows).
     - Step 13 note: deploy-production.yml copies the image
       tagged with the commit from staging's registry, which
       keeps its two newest images and deletes the others
