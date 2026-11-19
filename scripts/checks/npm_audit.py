@@ -6,7 +6,8 @@
 `npm audit --audit-level=high` fails on any advisory of High severity or above
 in a lockfile, and has no way to accept one. An advisory with no patched
 release then fails every commit and every pull request until its maintainers
-publish one: picomatch's GHSA-fc5q-39xc-vjpf did from 2026-11-17 (issue #360).
+publish one: picomatch's GHSA-fc5q-39xc-vjpf did from 2026-11-17 until it was
+withdrawn the next day (issue #360).
 This check runs the same audit and applies
 scripts/checks/audit_exceptions.toml, the audit's only escape hatch:
 
