@@ -10700,29 +10700,32 @@ ignores), the GitHub pre-release, the MCP Registry entry at `1.0.0rc1`,
 and production through `deploy-production.yml` on the tag, behind Access;
 the soak runs for seven days from that deploy.
 
-|               |          | Cost                  | Balanced              | Quality            |
-| ------------- | -------- | --------------------- | --------------------- | ------------------ |
-| **Pick**      | Model    | **Gemini 4 Hydrogen** | **Sonnet 5.5**        | **Opus 5.5**       |
-|               | Platform | Gemini (web / app)    | Claude Code           | Claude Code        |
-|               | Level    | Medium                | XHigh                 | XHigh              |
-|               | AA       | ≈48.8                 | 51.9                  | 56                 |
-|               | Price    | ≈$2.62/1M             | $3.72/1M              | $8.29/1M           |
-| **Runner‑up** | Model    | **Sonnet 5.5**        | **Gemini 4 Hydrogen** | **Gemini 4 Neon**  |
-|               | Platform | Claude Code           | Gemini (web / app)    | Gemini (web / app) |
-|               | Level    | High                  | High                  | XHigh              |
-|               | AA       | 46.8                  | ≈51.6                 | ≈56.9              |
-|               | Price    | $3.40/1M              | ≈$3.00/1M             | ≈$8.25/1M          |
-| **Backup**    | Model    | **GPT-6.2 Sol**       | **GPT-6.2 Sol**       | **GPT-6.2 Astra**  |
-|               | Platform | Codex                 | Codex                 | Codex              |
-|               | Level    | Medium                | XHigh                 | XHigh              |
-|               | AA       | ≈49.8                 | ≈53                   | ≈54.7              |
-|               | Price    | ≈$3.50/1M             | ≈$5.50/1M             | ≈$22.00/1M         |
+|               |          | Cost                  | Balanced              | Quality           |
+| ------------- | -------- | --------------------- | --------------------- | ----------------- |
+| **Pick**      | Model    | **Gemini 4 Hydrogen** | **Sonnet 5.5**        | **Opus 5.5**      |
+|               | Platform | Antigravity           | Claude Code           | Claude Code       |
+|               | Level    | Medium                | XHigh                 | XHigh             |
+|               | AA       | ≈48.8                 | 51.9                  | 56                |
+|               | Price    | ≈$2.62/1M             | $3.72/1M              | $8.29/1M          |
+| **Runner‑up** | Model    | **Sonnet 5.5**        | **Gemini 4 Hydrogen** | **Gemini 4 Neon** |
+|               | Platform | Claude Code           | Antigravity           | Antigravity       |
+|               | Level    | High                  | High                  | XHigh             |
+|               | AA       | 46.8                  | ≈51.6                 | ≈56.9             |
+|               | Price    | $3.40/1M              | ≈$3.00/1M             | ≈$8.25/1M         |
+| **Backup**    | Model    | **GPT-6.2 Sol**       | **GPT-6.2 Sol**       | **GPT-6.2 Astra** |
+|               | Platform | Codex                 | Codex                 | Codex             |
+|               | Level    | Medium                | XHigh                 | XHigh             |
+|               | AA       | ≈49.8                 | ≈53                   | ≈54.7             |
+|               | Price    | ≈$3.50/1M             | ≈$5.50/1M             | ≈$22.00/1M        |
 
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
 
 **Conversation:** New
+
+> Platform corrected 2026-11-19. The Gemini options use their published
+> Antigravity settings.
 
 > Settings updated 2026-11-19 (refresh): Cost Pick was GPT-6.1 Sol · Medium, Balanced Runner-up was
 > GPT-6.1 Sol · XHigh, Quality Runner-up was Gemini 4 Argon · High, Cost Backup was Gemini 4 Argon ·
@@ -10732,8 +10735,8 @@ from the model's measured levels or its previous version's.
 **Model rationale:** Primary category agentic, high complexity. On the step
 alone, the Balanced Pick fits best: Sonnet 5.5 on Claude Code at XHigh. It
 balances the reasoning demands of this classification with estimated token cost.
-The Cost Pick is Gemini 4 Hydrogen on Gemini (web / app) at Medium, and the
-Quality Pick is Opus 5.5 on Claude Code at XHigh.
+The Cost Pick is Gemini 4 Hydrogen on Antigravity at Medium, and the Quality
+Pick is Opus 5.5 on Claude Code at XHigh.
 
 ```xml
 <task>
