@@ -192,7 +192,10 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   and said only "Done: 34 observations" (the confirmation round's one High
   finding). Each series is now read from its first year (1913 to 1957), twenty
   years a run. The series page says the dates a series runs between, and says
-  so when the start asked for is earlier than anything held.
+  so when the start asked for is earlier than anything held. The writer joins
+  the parts of such a history whatever their terms say: a BLS notice carries the
+  day of its read, and the first run took each day's notice for another series
+  and kept two observations of each (staging only, restored the same hour).
 - A page holds its place when its text font arrives after the first paint (issue
   #354): the site declares fallback faces over the system serifs with the text
   font's own metrics, so on a slow connection the letters change shape and the
