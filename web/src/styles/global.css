@@ -434,6 +434,25 @@
       font-size: 1em;
     }
   }
+
+  /*
+   * A formula over two lines (KaTeX's aligned) is a table whose columnalign
+   * says "right left": the left side ends at the relation, and each line
+   * begins at it. Chromium lays MathML out by MathML Core, which has no
+   * columnalign and centres every cell, so a left side stood apart from its
+   * "=" and the second line began to the left of the first (seen 2026-11-18,
+   * when the visual baselines were first looked at). text-align aligns a
+   * cell: it is what the browser's own sheet centres one with.
+   * pages.spec.ts measures every such row, so an alignment with no rule here
+   * fails there.
+   */
+  math mtable[columnalign="right left"] > mtr > mtd:nth-child(odd) {
+    text-align: right;
+  }
+
+  math mtable[columnalign="right left"] > mtr > mtd:nth-child(even) {
+    text-align: left;
+  }
 }
 
 @layer components {

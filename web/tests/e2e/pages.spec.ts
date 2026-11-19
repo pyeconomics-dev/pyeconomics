@@ -249,12 +249,22 @@ test("display formulas never scroll vertically and are not clipped", async ({ pa
 // The runner's Chromium rounds letters to whole pixels and Windows' does not,
 // so a formula a few pixels inside the plate on one is outside it on the
 // other: keep one a dozen pixels inside.
-test("no model's formula is wider than a phone's screen", async ({ page }) => {
+//
+// A formula over two lines is a table, and its rows line up only where the
+// stylesheet says how (2026-11-18, when the visual baselines were first looked
+// at): Chromium's MathML has no `columnalign` and centres every cell, so a
+// left side stood apart from its "=" and the second line began to the left of
+// the first. Each cell of each such table is measured against the alignment
+// KaTeX wrote for its column, so an alignment global.css has no rule for
+// fails here.
+test("no model's formula is wider than a phone's screen, and a formula over two lines is aligned", async ({ page }) => {
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 390, height: 844 });
   const models = pages().filter((path) => /^\/models\/[^/]+\/[^/]+\/$/.test(path));
   expect(models.length).toBeGreaterThan(0);
   const wide: string[] = [];
+  const crooked: string[] = [];
+  let tables = 0;
   for (const path of models) {
     await page.goto(path, { waitUntil: "load" });
     await page.evaluate(() => document.fonts.ready.then(() => undefined));
@@ -265,8 +275,36 @@ test("no model's formula is wider than a phone's screen", async ({ page }) => {
     boxes.forEach((box, index) => {
       if (box.needs > box.has) wide.push(`${path} formula ${String(index + 1)}: ${String(box.needs)} of ${String(box.has)} pixels`);
     });
+    const rows = await page.locator("#formula mtable[columnalign]").evaluateAll((found) =>
+      found.map((table) => {
+        const wanted = (table.getAttribute("columnalign") ?? "").split(/\s+/).filter(Boolean);
+        const off: string[] = [];
+        table.querySelectorAll(":scope > mtr").forEach((row, rowIndex) => {
+          row.querySelectorAll(":scope > mtd").forEach((cell, column) => {
+            const content = cell.firstElementChild?.getBoundingClientRect();
+            if (!content || content.width === 0) return;
+            const style = getComputedStyle(cell);
+            const box = cell.getBoundingClientRect();
+            const left = box.left + Number.parseFloat(style.paddingLeft);
+            const right = box.right - Number.parseFloat(style.paddingRight);
+            // KaTeX repeats the last alignment for any column past the list.
+            const align = wanted[Math.min(column, wanted.length - 1)] ?? "center";
+            const gap = align === "left" ? content.left - left : align === "right" ? right - content.right : (content.left + content.right - left - right) / 2;
+            if (Math.abs(gap) > 1.5) off.push(`row ${String(rowIndex + 1)} column ${String(column + 1)} is ${String(Math.round(gap))} pixels off ${align}`);
+          });
+        });
+        return off;
+      }),
+    );
+    tables += rows.length;
+    rows.forEach((off, index) => {
+      off.forEach((line) => crooked.push(`${path} table ${String(index + 1)}: ${line}`));
+    });
   }
   expect(wide).toEqual([]);
+  // Some model writes a formula over two lines, or this measures nothing.
+  expect(tables).toBeGreaterThan(0);
+  expect(crooked).toEqual([]);
 });
 
 test("a model page loads no script file until its calculator is in view, and its JSON-LD is not executed", async ({
