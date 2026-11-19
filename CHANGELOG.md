@@ -185,6 +185,14 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ### Fixed
 
+- The hosted site's copy of a Bureau of Labor Statistics series holds its
+  history. BLS answers a request without dates with its latest three years, and
+  the daily copy asked without dates, so the unemployment rate and the four CPI
+  series each held 34 months: a page that asked for ten years drew under three
+  and said only "Done: 34 observations" (the confirmation round's one High
+  finding). Each series is now read from its first year (1913 to 1957), twenty
+  years a run. The series page says the dates a series runs between, and says
+  so when the start asked for is earlier than anything held.
 - A page holds its place when its text font arrives after the first paint (issue
   #354): the site declares fallback faces over the system serifs with the text
   font's own metrics, so on a slow connection the letters change shape and the
@@ -202,14 +210,6 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
   formulas, so 33 models now show 247 formulas, none wider than a phone's
   screen. A model's description (`registry.describe`, the registry export)
   carries the new text; no schema, output or result hash changes.
-- The hosted site's copy of a Bureau of Labor Statistics series holds its
-  history. BLS answers a request without dates with its latest three years, and
-  the daily copy asked without dates, so the unemployment rate and the four CPI
-  series each held 34 months: a page that asked for ten years drew under three
-  and said only "Done: 34 observations" (the confirmation round's one High
-  finding). Each series is now read from its first year (1913 to 1957), twenty
-  years a run. The series page says the dates a series runs between, and says
-  so when the start asked for is earlier than anything held.
 - Three defects the dogfooding loop's confirmation round found on staging, where
   the API is a network away and the data is real (Phase 5 Step 18): choosing live
   data on a phone pushed the page past the screen's edge, because the profile
