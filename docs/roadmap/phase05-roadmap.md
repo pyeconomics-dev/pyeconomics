@@ -12040,6 +12040,12 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       in version metadata, and production promotes the
       digest staging verified; anything else is explained in
       the PR before the tag.
+    - The home page's preview note prints the version and
+      goes when the version is final, so the bump changes
+      the four `home-*` visual baselines: the web job fails,
+      and they are redrawn from its `visual-baselines`
+      artifact, looked at and committed as the Design rules
+      say (Step 19 met this moving rc1.dev1 to rc1).
     - Opening the site removes Access and nothing else: the
       origin still refuses requests without the edge
       credential, the rate rule and the managed WAF stay on,
