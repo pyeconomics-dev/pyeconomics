@@ -2610,6 +2610,11 @@ Engineering rules, not legal advice; counsel reviews them before the Phase
   futures); the data notices above; the CFA marks notice.
 - **Affiliate disclosure.** Every referral link is labelled as one (FTC
   endorsement guides; Standard VI(C)).
+- **No securities referrals.** No referral link goes to a broker-dealer,
+  an investment adviser or an issuer of securities, and no fee depends on
+  a securities transaction (the maintainer's rule, 2026-11-20). A data
+  provider that is also a broker (Interactive Brokers) is documented
+  without one.
 - **Privacy.** GDPR applies to EU users whether or not they pay: a privacy
   policy, data-processing agreements with every processor, cookie-less
   analytics so no consent banner is needed, and encryption for any stored
@@ -2663,7 +2668,7 @@ Principles:
 | Line                     | What is sold                                                                    | 2026 price anchors                                              | Unlocked by |
 |--------------------------|---------------------------------------------------------------------------------|-----------------------------------------------------------------|-------------|
 | Sponsorship & grants     | GitHub Sponsors and thanks.dev now; FLOSS/fund ($10k–$100k) and GitHub's Secure Open Source Fund once usage grows | Supplementary only: the median Sponsors profile had two sponsors (2021 study) | G1 |
-| Affiliate links          | Disclosed referral links in the data-provider docs                              | Finviz 30% recurring; TradingView $10–$400 per signup; IBKR $200 per referral | Phase 6 |
+| Affiliate links          | Disclosed referral links in the data-provider docs, to data and software companies only | Finviz 30% recurring; TradingView $10–$400 per signup | Phase 6 |
 | Pro web tier             | Saved models and scenarios, batch runs and exports, higher API quotas, a commercial-use licence | Portfolio Visualizer $30 personal / $55 commercial a month; Koyfin $39–$79 a month | G3 |
 | Metered API & remote MCP | Computation over hosted-safe data and the user's own inputs                    | Set against the Pro tier                                        | G3 |
 | Excel add-in             | Office.js custom functions over the API; free download, unlocked by the account | Wisesheets $60–$120, Macabacus $200–$360, MarketXLS $850–$2,400 a year | G4 |
