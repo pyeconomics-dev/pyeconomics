@@ -11,10 +11,12 @@
 [![Licence](https://img.shields.io/github/license/pyeconomics-dev/pyeconomics)](https://github.com/pyeconomics-dev/pyeconomics/blob/main/LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/pyeconomics-dev/pyeconomics/badge)](https://scorecard.dev/viewer/?uri=github.com/pyeconomics-dev/pyeconomics)
 
-> **Status: 1.0.0b1 is a beta pre-release on PyPI.** Install explicitly with
-> `pip install --pre pyeconomics==1.0.0b1` (Python 3.12 or later).
-> Plain `pip install pyeconomics` still installs **0.2.6**, the stable release.
-> Pre-releases carry no stability promise until 1.0.0.
+> **Status: 1.0.0rc1 is the release candidate for 1.0.0, a pre-release on
+> PyPI.** Install explicitly with `pip install --pre pyeconomics==1.0.0rc1`
+> (Python 3.12 or later). Plain `pip install pyeconomics` still installs
+> **0.2.6**, the stable release, until 1.0.0. The
+> [public API](https://docs.pyeconomics.dev/en/main/public-api.html) is frozen:
+> 1.0.0 is this candidate with its version changed.
 
 pyeconomics provides 50 tested, cited economics and finance model
 families across 13 domains: foundations, fixed income, derivatives,
@@ -30,7 +32,7 @@ a reproducible provenance manifest. Rates and percentages are decimals:
 
 Use the [1.0 documentation preview](https://docs.pyeconomics.dev/en/main/)
 for formulas, assumptions and examples, and the
-[beta release notes](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/releases/1.0.0b1.md)
+[release candidate's notes](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/releases/1.0.0rc1.md)
 for the shipped surfaces and known limitations. See the
 [CLI guide](https://docs.pyeconomics.dev/en/main/cli.html),
 [REST API guide](https://docs.pyeconomics.dev/en/main/api.html),
@@ -40,16 +42,18 @@ for the shipped surfaces and known limitations. See the
 [data guide](https://docs.pyeconomics.dev/en/main/data/index.html) and
 [keys guide](https://docs.pyeconomics.dev/en/main/data/keys.html) to get
 started. Install optional econometrics, plotting, REST API and MCP support
-with `pip install --pre "pyeconomics[econometrics,plot,server,mcp]==1.0.0b1"`,
+with `pip install --pre "pyeconomics[econometrics,plot,server,mcp]==1.0.0rc1"`,
 or run the MCP server directly with
-`uvx --from "pyeconomics[mcp]==1.0.0b1" pyeconomics mcp`.
+`uvx --from "pyeconomics[mcp]==1.0.0rc1" pyeconomics mcp`. The web app runs on
+your own machine with `pip install --pre "pyeconomics[app]==1.0.0rc1"` and
+`pyeconomics serve`.
 
-This beta replaces the 0.2.x API and adds the command line, exports and
-reproducibility bundles, REST API, MCP server and optional AI narrative on top
-of the model engine and data platform. The web app arrives in Phase 5; the
+This release candidate replaces the 0.2.x API: the model engine and data
+platform, the command line, exports and reproducibility bundles, the REST API,
+the MCP server, the optional AI narrative and the web app. The
 [project roadmap](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap/ROADMAP.md)
 and [architecture decisions](https://github.com/pyeconomics-dev/pyeconomics/tree/main/docs/adr)
-record that plan. Keep legacy workloads in a separate environment.
+record the plan. Keep legacy workloads in a separate environment.
 
 ## pyeconomics 0.2.x
 

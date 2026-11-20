@@ -1,4 +1,4 @@
-# tests/data/catalog/test_public_api.py
+# tests/data/catalog/test_data_api.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
 """``pyeconomics.data.get``, ``search``, ``describe``, ``vintages`` and ``sources``.

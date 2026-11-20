@@ -419,7 +419,11 @@ elif n == 57:
     contains("docs/releases/1.0.0b1.md", "# pyeconomics 1.0.0b1", "50 model", "31 provider", "171 concept",
              "pip install --pre 'pyeconomics==1.0.0b1'", "uvx --from 'pyeconomics[mcp]==1.0.0b1' pyeconomics mcp")
 elif n == 58:
-    contains("README.md", "pip install --pre pyeconomics==1.0.0b1", "0.2.6", "pyeconomics serve", "pyeconomics mcp")
+    # The README tells a reader to install a 1.0 pre-release explicitly, pinned
+    # (1.0.0b1, then each release candidate: Phase 5 Step 19), keeps 0.2.6 as
+    # the stable line, and names the surfaces.
+    contains("README.md", "0.2.6", "pyeconomics serve", "pyeconomics mcp")
+    assert re.search(r"pip install --pre pyeconomics==1\.0\.0(?:b1|rc[1-9][0-9]*)\b", text("README.md"))
     contains("docs/index.md", *("{doc}`" + page + "`" for page in "cli exports api mcp ai".split()))
 elif n == 59:
     # Every id an earlier phase's release shipped is still in the ledger,

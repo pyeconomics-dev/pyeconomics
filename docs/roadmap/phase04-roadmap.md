@@ -9783,3 +9783,10 @@ alert with a proven alarm; and `verify-phase04.sh` as the template for
   own read-only `GITHUB_TOKEN`. The check now admits that one name for that one
   workflow, requires it to run in `growth` and never in `production`,
   `production-health` or `staging`; every other workflow's rule is unchanged.
+
+- Static check 58 (Phase 5 Step 19): the README names the release candidate,
+  `pip install --pre pyeconomics==1.0.0rc1`, in place of `1.0.0b1`. The check
+  now holds the invariant it protected: the README pins a 1.0 pre-release
+  (`1.0.0b1` or a release candidate) behind `--pre`, keeps 0.2.6 as the stable
+  line and names `pyeconomics serve` and `pyeconomics mcp`; its `docs/index.md`
+  half is unchanged.

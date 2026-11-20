@@ -85,6 +85,7 @@ reference/providers/index
 reference/concepts/index
 reference/sources
 problems
+public-api
 registry
 autoapi/index
 errata
