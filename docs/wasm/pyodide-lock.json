@@ -44,13 +44,13 @@
     "rich-rst",
     "rich"
    ],
-   "file_name": "https://files.pythonhosted.org/packages/e7/99/00ce1a4e8b131b0e0a59a882311bcb9f771e7e39004bd19d988f1dddf303/cyclopts-5.3.0-py3-none-any.whl",
+   "file_name": "https://files.pythonhosted.org/packages/71/03/a5b9e6fe5420461af7166e0d9f3b120e42383b14bc84edec9d696439b51d/cyclopts-5.3.3-py3-none-any.whl",
    "imports": [],
    "install_dir": "site",
    "name": "cyclopts",
    "package_type": "package",
-   "sha256": "479f92942ea286b6c132f64262d82f12b4c71d003f3d3691f572cd6ad4528bb2",
-   "version": "5.3.0"
+   "sha256": "b16ae3619f9447f6b7e42834586e2def254b940ce0b39f82eaf3cfee788a924f",
+   "version": "5.3.3"
   },
   "defusedxml": {
    "depends": [],
@@ -100,13 +100,13 @@
    "depends": [
     "python-dateutil"
    ],
-   "file_name": "https://files.pythonhosted.org/packages/a0/f6/59f817df052a81e39bbc23cb10795cf721d14b36a4cf0d897bfe11648a22/holidays-0.106-py3-none-any.whl",
+   "file_name": "https://files.pythonhosted.org/packages/d7/af/cc7abdb463668cf581780fff8636254892139f81fad95977e594cb217bfb/holidays-0.108-py3-none-any.whl",
    "imports": [],
    "install_dir": "site",
    "name": "holidays",
    "package_type": "package",
-   "sha256": "4be3fb5be6a88a232e92f96825e4fab9b80710caabde90b7c476e57ba0ed9f5d",
-   "version": "0.106"
+   "sha256": "5a08fdccd0b8737093d483ba0d0d9696560396d99d3fa6ef9264fd2ac48749c7",
+   "version": "0.108"
   },
   "jedi": {
    "depends": [
@@ -332,13 +332,13 @@
     "urllib3",
     "xlrd"
    ],
-   "file_name": "https://files.pythonhosted.org/packages/1a/ec/81ba39212aacf1dd5c5c5245f6d285efc859c1148a497007659d7a69babe/pyeconomics-1.0.0b1-py3-none-any.whl",
+   "file_name": "https://files.pythonhosted.org/packages/8e/9e/ef221618591d1f548269c6f3a1b192b1e728bc81c84e3bc81a96159df8f0/pyeconomics-1.0.0rc1-py3-none-any.whl",
    "imports": [],
    "install_dir": "site",
    "name": "pyeconomics",
    "package_type": "package",
-   "sha256": "7ff0b9349353e41baee130169426215db4202b1a1536c5cb83192b491f55b7e1",
-   "version": "1.0.0b1"
+   "sha256": "c7e407b7c177e39f9013b493ff2eb5dc6104884d2e74da81655540ec6f38a731",
+   "version": "1.0.0rc1"
   },
   "pygments": {
    "depends": [],
