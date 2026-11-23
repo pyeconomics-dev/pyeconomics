@@ -33,6 +33,7 @@ import {
   type SeriesDocument,
 } from "@/lib/explorer";
 import { DATA_PATH, conceptPath, isConceptId } from "@/lib/paths";
+import { REDIRECTED } from "@/lib/run-request";
 import { forgetServerMode, getSeries, serverMode } from "@/lib/series-request";
 import { conceptData, registryData } from "@/lib/site-data";
 
@@ -263,8 +264,21 @@ describe("the request", () => {
     const answer = await getSeries("us.unemployment.rate", { start: "2024-01-01", transform: "diff(periods=1)", format: "csv" }, { baseUrl: "http://127.0.0.1:1", fetch });
     expect(seen.at(0)?.method).toBe("GET");
     expect(seen.at(0)?.url).toBe("http://127.0.0.1:1/v1/series/us.unemployment.rate?start=2024-01-01&transform=diff(periods%3D1)&format=csv");
+    expect(seen.at(0)?.redirect).toBe("manual");
     expect(answer.bytes).toEqual(body);
     expect(answer.filename).toBe("us.unemployment.rate.csv");
+  });
+
+  it("says a redirected or refused read in words, as a run does", async () => {
+    const redirected = (async () =>
+      new Response(null, { status: 302, headers: { Location: "https://example.cloudflareaccess.com/" } })) as typeof globalThis.fetch;
+    await expect(getSeries("us.unemployment.rate", {}, { baseUrl: "http://127.0.0.1:1", fetch: redirected })).rejects.toThrow(REDIRECTED);
+    const refused = (async () => {
+      throw new TypeError("Failed to fetch");
+    }) as typeof globalThis.fetch;
+    await expect(getSeries("us.unemployment.rate", {}, { baseUrl: "http://127.0.0.1:1", fetch: refused })).rejects.toThrow(
+      "the browser could not connect (Failed to fetch). Check the connection, then try again.",
+    );
   });
 
   it("reads the server's mode once, and takes anything but local mode as hosted", async () => {

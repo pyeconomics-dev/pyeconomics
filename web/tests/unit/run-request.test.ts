@@ -6,7 +6,7 @@
 // download name and Retry-After.
 import { describe, expect, it } from "vitest";
 
-import { filenameOf, runBody, runModel, runPath, runQuery } from "@/lib/run-request";
+import { REDIRECTED, filenameOf, runBody, runModel, runPath, runQuery, unreached } from "@/lib/run-request";
 
 /** A fetch that records the request and answers what it is given. */
 function answering(body: BodyInit, init: ResponseInit = {}) {
@@ -55,6 +55,7 @@ describe("runModel", () => {
     expect(request?.method).toBe("POST");
     expect(request?.url).toBe("http://127.0.0.1:1/v1/models/a.b/run?profile=default");
     expect(request?.headers.get("Content-Type")).toBe("application/json");
+    expect(request?.redirect).toBe("manual");
     expect(await request?.text()).toBe('{"rate":0.05}');
     expect(answer.ok).toBe(true);
     expect(answer.bytes).toEqual(body);
@@ -82,5 +83,34 @@ describe("runModel", () => {
     const answer = await runModel("a.b", {}, { format: "csv" }, { baseUrl: "http://127.0.0.1:1", fetch });
     expect(seen[0]?.url).toBe("http://127.0.0.1:1/v1/models/a.b/run?format=csv");
     expect(answer.filename).toBe("a.b.csv");
+  });
+});
+
+// The 2026-11-23 report: production's Solow page, open after its Access
+// session ran out, said "the run was not sent". The run was sent; Access
+// redirected it to its sign-in on another origin, the policy refused that, and
+// the generated client swallowed the browser's reason.
+describe("a run that gets no answer from the API", () => {
+  const run = (fetch: typeof globalThis.fetch) => runModel("a.b", {}, {}, { baseUrl: "http://127.0.0.1:1", fetch });
+
+  it("says a redirect is one, from Node's fetch (the 3xx itself) and a browser's (an opaque redirect)", async () => {
+    const { fetch } = answering("", { status: 302, headers: { Location: "https://example.cloudflareaccess.com/cdn-cgi/access/login/x" } });
+    await expect(run(fetch)).rejects.toThrow(REDIRECTED);
+    // A browser's manual redirect: type "opaqueredirect", status 0, which no Response can be built with.
+    const opaque = (async () => {
+      const response = new Response(null, { status: 200 });
+      Object.defineProperty(response, "type", { value: "opaqueredirect" });
+      return response;
+    }) as typeof globalThis.fetch;
+    await expect(run(opaque)).rejects.toThrow(REDIRECTED);
+  });
+
+  it("keeps the browser's reason when it could not connect", async () => {
+    const refused = (async () => {
+      throw new TypeError("Failed to fetch");
+    }) as typeof globalThis.fetch;
+    await expect(run(refused)).rejects.toThrow("the browser could not connect (Failed to fetch). Check the connection, then try again.");
+    expect(unreached(undefined)).toBe("the browser could not connect. Check the connection, then try again.");
+    expect(unreached(new Error(""))).toBe("the browser could not connect. Check the connection, then try again.");
   });
 });

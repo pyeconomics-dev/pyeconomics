@@ -9,6 +9,8 @@ import { readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 
+import { REDIRECTED } from "@/lib/run-request";
+
 import { API_ORIGIN, expect, test } from "./support.ts";
 
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -225,6 +227,29 @@ test("a problem that points to local mode gives the command, and a 429 when to r
       await expect(panel.getByText("try again in 7 seconds")).toBeVisible();
     }
   }
+});
+
+// The 2026-11-23 report: production's Solow page, open after its Access
+// session ran out, said "the run was not sent". Access redirects a run to its
+// sign-in on another origin; the run follows no redirect, so it asks nothing
+// of that origin, raises no policy violation, and says what to do.
+test("a run redirected to a sign-in, or refused by the network, says so in words", async ({ page, network, watch }) => {
+  const route = "**/v1/models/fixed_income.duration/run";
+  const calculator = page.locator("#calculator");
+  await openCalculator(page, DURATION);
+  await page.route(route, (request) =>
+    request.fulfill({ status: 302, headers: { Location: "https://sign-in.example/cdn-cgi/access/login/x" } }),
+  );
+  await calculator.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(calculator.getByText(`The run could not reach the server: ${REDIRECTED}`)).toBeVisible();
+  await expect(calculator.getByRole("status")).toHaveText("The run could not reach the server.");
+  expect(network.requests.filter((request) => new URL(request.url).host === "sign-in.example")).toEqual([]);
+  expect(watch.violations).toEqual([]);
+
+  await page.unroute(route);
+  await page.route(route, (request) => request.abort("failed"));
+  await calculator.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(calculator.getByText(/^The run could not reach the server: the browser could not connect \(.+\)\. Check the connection, then try again\.$/)).toBeVisible();
 });
 
 test("a bound model whose data the hosted site cannot serve says which fields, and offers the alternatives", async ({ page, api }) => {

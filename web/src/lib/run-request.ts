@@ -91,37 +91,55 @@ function seconds(value: string | null): number | null {
 }
 
 /**
- * Run a model: post its inputs, return the answer's bytes, status and
- * download name. A problem answers too, with its status; only a network
- * failure throws.
+ * Why a request got no answer from the API when something in front of the
+ * site redirected it, said so a visitor can act on it. The page shows it after
+ * "The run could not reach the server:" (or the series').
  */
-export async function runModel(
-  modelId: string,
-  inputs: Readonly<Record<string, unknown>>,
-  options: RunOptions = {},
-  transport: RunTransport = {},
+export const REDIRECTED = "it was redirected, most likely to a sign-in page. Reload the page, sign in if asked, then try again.";
+
+/** Why a request got no answer when the browser could not connect, with the browser's own reason. */
+export function unreached(error: unknown): string {
+  const said = error instanceof Error && error.message !== "" ? ` (${error.message})` : "";
+  return `the browser could not connect${said}. Check the connection, then try again.`;
+}
+
+/**
+ * Send one request to the API through the generated client and keep its
+ * answer as received: a problem answers too, with its status. `call` makes
+ * the client's request with the fetch it is given, and with
+ * `redirect: "manual"`: no API route redirects, so a redirect comes from
+ * something in front of the site, such as Cloudflare Access's sign-in when a
+ * session has run out (staging, and production until its cutover, sit behind
+ * Access). Followed, it would go to another origin, which `connect-src 'self'`
+ * refuses, and the page could say only that the request failed (the
+ * 2026-11-23 report on production's Solow page). It throws REDIRECTED for a
+ * redirect and `unreached` when the browser could not connect; nothing else
+ * throws.
+ */
+export async function exchange(
+  send: typeof fetch,
+  call: (keep: typeof fetch) => Promise<unknown>,
 ): Promise<RunAnswer> {
-  const send = transport.fetch ?? globalThis.fetch;
   let received: Response | undefined;
   let bytes: Promise<ArrayBuffer> | undefined;
-  // The generated client parses what it receives; a clone keeps the bytes.
+  let failure: unknown;
+  // The generated client parses what it receives and swallows a failure
+  // (throwOnError: false); a clone keeps the bytes, and `failure` the reason.
   const keep: typeof fetch = async (input, init) => {
-    received = await send(input, init);
+    try {
+      received = await send(input, init);
+    } catch (error) {
+      failure = error;
+      throw error;
+    }
     bytes = received.clone().arrayBuffer();
     return received;
   };
-  await (transport.client ?? siteClient).post({
-    url: runPath(modelId),
-    ...(transport.baseUrl === undefined ? {} : { baseUrl: transport.baseUrl }),
-    query: runQuery(options),
-    body: inputs,
-    bodySerializer: (body: unknown) => runBody(body as Record<string, unknown>),
-    headers: { "Content-Type": "application/json" },
-    parseAs: "arrayBuffer",
-    fetch: keep,
-    throwOnError: false,
-  });
-  if (received === undefined || bytes === undefined) throw new Error("the run was not sent");
+  await call(keep);
+  if (received === undefined || bytes === undefined) throw new Error(unreached(failure));
+  // A browser hands back a manual redirect as an opaque response with status 0;
+  // Node's fetch (the parity suite's) hands back the 3xx itself.
+  if (received.type === "opaqueredirect" || (received.status >= 300 && received.status < 400)) throw new Error(REDIRECTED);
   return {
     status: received.status,
     ok: received.ok,
@@ -130,4 +148,31 @@ export async function runModel(
     filename: filenameOf(received.headers.get("Content-Disposition")),
     retryAfter: seconds(received.headers.get("Retry-After")),
   };
+}
+
+/**
+ * Run a model: post its inputs, return the answer's bytes, status and
+ * download name. A problem answers too, with its status; only a redirect or
+ * a network failure throws (`exchange`).
+ */
+export async function runModel(
+  modelId: string,
+  inputs: Readonly<Record<string, unknown>>,
+  options: RunOptions = {},
+  transport: RunTransport = {},
+): Promise<RunAnswer> {
+  return exchange(transport.fetch ?? globalThis.fetch, (keep) =>
+    (transport.client ?? siteClient).post({
+      url: runPath(modelId),
+      ...(transport.baseUrl === undefined ? {} : { baseUrl: transport.baseUrl }),
+      query: runQuery(options),
+      body: inputs,
+      bodySerializer: (body: unknown) => runBody(body as Record<string, unknown>),
+      headers: { "Content-Type": "application/json" },
+      parseAs: "arrayBuffer",
+      redirect: "manual",
+      fetch: keep,
+      throwOnError: false,
+    }),
+  );
 }
