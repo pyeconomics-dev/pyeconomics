@@ -751,6 +751,13 @@ From Phase 5 Step 6, which builds the calculators:
   download hand them over, and every other download is the same POST with
   `?format=`. Server text reaches the page as React text only, and an
   `https://` terms page is the only link a result supplies.
+- A run or a series read reaches the API only through `run-request.ts
+  exchange`, which sends it with `redirect: "manual"`: no API route redirects,
+  so a redirect is something in front of the site (Access's sign-in, on staging
+  and on production before its cutover), and the page says so (`REDIRECTED`)
+  instead of following it into `connect-src`'s refusal. A failure keeps the
+  browser's reason (`unreached`); never replace either with a message of your
+  own, as "the run was not sent" did (2026-11-23).
 - Charts are `src/lib/figure.ts` (held equal to every `example_figure`) on
   Plotly.js's basic bundle, imported only when a chart renders, with
   `plotly.css` as a same-origin link and the no-inline-styles marker in the

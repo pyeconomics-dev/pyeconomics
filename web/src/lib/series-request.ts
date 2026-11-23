@@ -7,7 +7,7 @@
 // as the bytes received, as run-request.ts keeps a run's.
 import { client as siteClient } from "@/client/client.gen";
 import { seriesPath, seriesQuery, type SeriesOptions } from "@/lib/explorer";
-import { filenameOf, type RunAnswer, type RunTransport } from "@/lib/run-request";
+import { exchange, type RunAnswer, type RunTransport } from "@/lib/run-request";
 
 /**
  * Where the server says it runs (GET /version's `mode`, server/settings.py
@@ -18,40 +18,25 @@ export type ServerMode = "hosted" | "local";
 
 /**
  * Read a concept's series: the answer's bytes, status and download name. A
- * problem answers too, with its status; only a network failure throws.
+ * problem answers too, with its status; only a redirect or a network failure
+ * throws (run-request.ts `exchange`).
  */
 export async function getSeries(
   conceptId: string,
   options: SeriesOptions = {},
   transport: RunTransport = {},
 ): Promise<RunAnswer> {
-  const send = transport.fetch ?? globalThis.fetch;
-  let received: Response | undefined;
-  let bytes: Promise<ArrayBuffer> | undefined;
-  // The generated client parses what it receives; a clone keeps the bytes.
-  const keep: typeof fetch = async (input, init) => {
-    received = await send(input, init);
-    bytes = received.clone().arrayBuffer();
-    return received;
-  };
-  await (transport.client ?? siteClient).get({
-    url: seriesPath(conceptId),
-    ...(transport.baseUrl === undefined ? {} : { baseUrl: transport.baseUrl }),
-    query: seriesQuery(options),
-    parseAs: "arrayBuffer",
-    fetch: keep,
-    throwOnError: false,
-  });
-  if (received === undefined || bytes === undefined) throw new Error("the request was not sent");
-  const retry = received.headers.get("Retry-After");
-  return {
-    status: received.status,
-    ok: received.ok,
-    contentType: received.headers.get("Content-Type") ?? "",
-    bytes: new Uint8Array(await bytes),
-    filename: filenameOf(received.headers.get("Content-Disposition")),
-    retryAfter: retry !== null && /^\d+$/.test(retry.trim()) ? Number(retry.trim()) : null,
-  };
+  return exchange(transport.fetch ?? globalThis.fetch, (keep) =>
+    (transport.client ?? siteClient).get({
+      url: seriesPath(conceptId),
+      ...(transport.baseUrl === undefined ? {} : { baseUrl: transport.baseUrl }),
+      query: seriesQuery(options),
+      parseAs: "arrayBuffer",
+      redirect: "manual",
+      fetch: keep,
+      throwOnError: false,
+    }),
+  );
 }
 
 let mode: Promise<ServerMode> | null = null;
