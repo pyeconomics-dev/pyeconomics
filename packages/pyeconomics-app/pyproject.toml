@@ -12,7 +12,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pyeconomics-app"
-version = "1.0.0rc1"
+version = "1.0.0rc2.dev1"
 description = "The pyeconomics web app, built, for pyeconomics serve: install pyeconomics[app]."
 readme = "README.md"
 requires-python = ">=3.12"
