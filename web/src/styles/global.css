@@ -309,6 +309,17 @@
     line-height: 1.6;
   }
 
+  /* A select's open list is drawn by the browser from its options' colours,
+     which Tailwind's preflight leaves transparent with the text colour
+     inherited; Chrome on Windows draws a transparent list over white, so in
+     the dark theme the options were near-white on white (2026-11-23).
+     tests/e2e/select-lists.spec.ts holds every select's options to this. */
+  option,
+  optgroup {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
   h1,
   h2,
   h3,
