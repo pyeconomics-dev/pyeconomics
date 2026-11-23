@@ -1101,6 +1101,13 @@ From Phase 5 Step 17, which gave the site its design (ADR-0013 decisions 2, 9 an
   `minmax(0, 1fr)`, and wide content (a formula, a table, a code sample) scrolls in
   its own box. A box that scrolls vertically has a maximum height (#319's
   stray-scroll check in `pages.spec.ts`; the harness reports both).
+- A select's open list is drawn by the browser from its options' colours, outside
+  the page: no screenshot, axe pass or evaluator sees it (the harness chooses by
+  key). Tailwind's preflight leaves options transparent, which Chrome on Windows
+  drew as near-white on white in the dark theme (2026-11-23). `global.css` gives
+  `option` and `optgroup` the background and foreground tokens, and
+  `tests/e2e/select-lists.spec.ts` holds every select on its `PAGES` to opaque
+  options at 4.5:1 in both themes; a new kind of select joins `PAGES`.
 - Charts take their colours from the tokens through `src/lib/plotly.ts` `themed()`
   (Plotly reads rgb(), which `src/lib/contrast.ts` converts), on a transparent
   background in both themes.
