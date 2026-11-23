@@ -11,6 +11,19 @@
 > before this date use the old numbers: old Step 17 is Step 19, 18 is 20, 19
 > is 21 and 20 is 22.
 
+> Amended 2026-11-23 (the maintainer's decision): `1.0.0rc1`'s soak ended
+> early, at 2026-11-23 22:09 UTC. The maintainer found on production that
+> every select's open list was near-white on white in the dark theme in
+> Chrome on Windows, a High finding (`docs/design/dogfooding.md` §3) that
+> Step 20's design and UX section cannot pass with open, and chose to fix it
+> before launch rather than waive it. So the candidate is `1.0.0rc2`: rc1
+> plus #388 (the select lists) and #387 (the calculator's message for a
+> redirected run), rehearsed as `v1.0.0rc2.dev1` and released as Step 19
+> released rc1, with a three-day soak the maintainer set (Step 20's NO-GO
+> clause). Step 20 runs once, on rc2's soak; Steps 20 and 21 read "the
+> candidate" as `1.0.0rc2`. `docs/releases/1.0.0-readiness.md` sections 1
+> and 2 hold both candidates' records.
+
 ## Overview
 
 Phase 5 opens the launch gate. Phases 6 and 7 build on the stable 1.0.0
@@ -11523,7 +11536,8 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
 
     Current state (post-Phase-5 Step 19):
 
-    - 1.0.0rc1 of both distributions is on PyPI; production
+    - 1.0.0rc2 of both distributions is on PyPI (rc1's soak
+      ended early: the 2026-11-23 amendment); production
       runs it behind Access since the recorded soak start;
       staging runs main; only security fixes have merged
       since the tag.
@@ -12036,7 +12050,7 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       `Decision: GO` in docs/releases/1.0.0-readiness.md
       before any version file changes, and stops otherwise.
     - The release is the soaked candidate: both
-      distributions' archives differ from 1.0.0rc1's only
+      distributions' archives differ from 1.0.0rc2's only
       in version metadata, and production promotes the
       digest staging verified; anything else is explained in
       the PR before the tag.
@@ -12105,7 +12119,7 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       sample of them as part of the Deployed & verified
       check.
     - docs/releases/1.0.0-readiness.md ends in the
-      maintainer's decision. Production runs 1.0.0rc1 behind
+      maintainer's decision. Production runs 1.0.0rc2 behind
       Access; its redirect rules exist, disabled; staging
       runs main; only security fixes merged during the soak.
     - Read the Docs: default branch legacy/0.2.x, default
@@ -12133,8 +12147,8 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       SECURITY.md promises 0.2.x security fixes until then.
 
     Files to read (every file before drafting):
-    - docs/releases/1.0.0-readiness.md (the decision) and
-      1.0.0rc1.md.
+    - docs/releases/1.0.0-readiness.md (the decision),
+      1.0.0rc1.md and 1.0.0rc2.md.
     - pyproject.toml, packages/pyeconomics-app/pyproject.toml,
       CITATION.cff, server.json, README.md, docs/index.md,
       docs/conf.py, SECURITY.md and CHANGELOG.md.
@@ -12210,7 +12224,7 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
     <requirement>
       Release: after the merge, the tag; release.yml
       publishes both distributions with attestations;
-      compare each archive with 1.0.0rc1's (only METADATA,
+      compare each archive with 1.0.0rc2's (only METADATA,
       RECORD, PKG-INFO and the version fields differ, or the
       PR explains why); deploy-production.yml promotes the
       tagged commit's digest (data, API, site; the site
@@ -12260,7 +12274,7 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
   the release notes and the announcement describe the release; the earlier
   checks are narrowed with their addendum lines, and every earlier phase's
   `--fast` passes.
-- Both distributions' 1.0.0 archives differ from 1.0.0rc1's only in
+- Both distributions' 1.0.0 archives differ from 1.0.0rc2's only in
   version metadata, or the PR explains each difference.
 - The Access application on `pyeconomics.dev` is gone, the `production`
   environment's `PRODUCTION_PUBLIC` is `true`, the redirects are
