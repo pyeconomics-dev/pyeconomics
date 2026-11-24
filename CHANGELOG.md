@@ -13,6 +13,27 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+## [1.0.0rc2] - 2026-11-24
+
+The second release candidate for 1.0.0: 1.0.0rc1 with two fixes to the web
+app, found in production during rc1's soak. The maintainer ended that soak on
+2026-11-23 to take them into the release; rc2 soaks for three days before the
+launch gate. The public API is unchanged, and the Python package's code is
+1.0.0rc1's. It was rehearsed as `1.0.0rc2.dev1` on TestPyPI. Release notes:
+`docs/releases/1.0.0rc2.md`.
+
+### Fixed
+
+- Every select's open list was near-white on white in the dark theme in Chrome
+  on Windows: the options were transparent, and the browser draws a
+  transparent list over white. Options now take the theme's background and
+  text colours, and a browser test reads every select's options in both
+  themes (#388).
+- A calculator run or a data explorer read that something in front of the site
+  redirected, such as an expired sign-in, said "the run was not sent". It now
+  says it was redirected and to reload the page, and a request the network
+  refuses keeps the browser's own reason (#387).
+
 ## [1.0.0rc1] - 2026-11-19
 
 The release candidate for 1.0.0 (Phase 5 Step 19; ADR-0013 decisions 17 and 18):
