@@ -332,13 +332,13 @@
     "urllib3",
     "xlrd"
    ],
-   "file_name": "https://files.pythonhosted.org/packages/8e/9e/ef221618591d1f548269c6f3a1b192b1e728bc81c84e3bc81a96159df8f0/pyeconomics-1.0.0rc1-py3-none-any.whl",
+   "file_name": "https://files.pythonhosted.org/packages/03/27/871948390451b8b1974c224f059a75aeb4beefa6b0992184ee8905efcf6f/pyeconomics-1.0.0rc2-py3-none-any.whl",
    "imports": [],
    "install_dir": "site",
    "name": "pyeconomics",
    "package_type": "package",
-   "sha256": "c7e407b7c177e39f9013b493ff2eb5dc6104884d2e74da81655540ec6f38a731",
-   "version": "1.0.0rc1"
+   "sha256": "4fc9c89f2222071a62a6507687b83c5f3005d33a3ac4f5df84b17b5051481f9c",
+   "version": "1.0.0rc2"
   },
   "pygments": {
    "depends": [],
