@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyeconomics==1.0.0rc1"]
+# dependencies = ["pyeconomics==1.0.0rc2"]
 # ///
 """A bond's price and duration, in the browser (scripts/docs/export_wasm.py)."""
 
