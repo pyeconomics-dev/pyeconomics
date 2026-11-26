@@ -11,7 +11,7 @@ version: "1.0.0rc2"
 date-released: "2026-11-24"
 authors:
   - name: "Nathan Ramos, CFA"
-    email: "nathan.ramos.github@gmail.com"
+    email: "hello@pyeconomics.dev"
 license: "Apache-2.0"
 url: "https://github.com/pyeconomics-dev/pyeconomics"
 repository-code: "https://github.com/pyeconomics-dev/pyeconomics"

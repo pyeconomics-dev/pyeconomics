@@ -32,7 +32,7 @@ real dispute or demand letter is the point to hire counsel.
 - Data comes from public agencies and research sources, each under its own terms,
   classified by those terms into where its data may go (ADR-0005).
 - Operated by Nathan Ramos, the maintainer, as an individual, until the project's
-  own company exists; the pages name him and nathan.ramos.github@gmail.com. The
+  own company exists; the pages name him and hello@pyeconomics.dev. The
   maintainer briefs counsel directly on the entity, its timing and his own
   professional obligations; none of that is recorded in this public repository.
 
