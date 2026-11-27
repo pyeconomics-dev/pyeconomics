@@ -17,20 +17,26 @@ stopped, what it cost and what is left.
 | [2](round-2.md) | 2026-11-16 | 7.50 | +0.50 | 0 | 0 | 11 | 17 | 17, 4, 0 |
 | [3](round-3.md) | 2026-11-16 | 7.38 | −0.13 | 0 | 0 | 13 | 19 | 17, 4, 0 |
 | [Confirmation](confirmation.md), on staging | 2026-11-18 | 7.38 | 0.00 | 0 | 1 | 19 | 27 | 20, 1, 0 |
+| [Production](production.md), the readiness gate's | 2026-11-27 | 7.38 | 0.00 | 0 | 0 | 11 | 13 | 18, 3, 0 |
 
 The median is the median of the five evaluators' means over the rubric's eight
 dimensions. By dimension:
 
-| Dimension | Round 0 | Round 1 | Round 2 | Round 3 | Confirmation |
-| --- | --- | --- | --- | --- | --- |
-| D1 First impression and identity | 5 | 8 | 8 | 8 | 8 |
-| D2 Hierarchy and layout | 5 | 7 | 7 | 7 | 7 |
-| D3 Typography and formulas | 6 | 8 | 8 | 8 | 8 |
-| D4 Colour, contrast and theming | 5 | 8 | 8 | 7 | 8 |
-| D5 Interaction, feedback and motion | 6 | 7 | 7 | 7 | 7 |
-| D6 Navigation and findability | 6 | 6 | 7 | 7 | 7 |
-| D7 Content and microcopy | 6 | 6 | 7 | 6 | 7 |
-| D8 Trust and polish | 6 | 7 | 8 | 8 | 7 |
+| Dimension | Round 0 | Round 1 | Round 2 | Round 3 | Confirmation | Production |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1 First impression and identity | 5 | 8 | 8 | 8 | 8 | 8 |
+| D2 Hierarchy and layout | 5 | 7 | 7 | 7 | 7 | 7 |
+| D3 Typography and formulas | 6 | 8 | 8 | 8 | 8 | 8 |
+| D4 Colour, contrast and theming | 5 | 8 | 8 | 7 | 8 | 7 |
+| D5 Interaction, feedback and motion | 6 | 7 | 7 | 7 | 7 | 7 |
+| D6 Navigation and findability | 6 | 6 | 7 | 7 | 7 | 7 |
+| D7 Content and microcopy | 6 | 6 | 7 | 6 | 7 | 7 |
+| D8 Trust and polish | 6 | 7 | 8 | 8 | 7 | 8 |
+
+The readiness gate's round (Phase 5 Step 20) ran on production, on the release
+candidate `1.0.0rc2`, with fresh evaluators: median 7.38, as round 3's, with no
+Blocker or High, so the design and UX criterion passed. Its findings are in issue
+#408 and the issues it names.
 
 ## The trend
 

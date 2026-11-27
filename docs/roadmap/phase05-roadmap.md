@@ -11280,12 +11280,21 @@ Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
 
+> Ran 2026-11-27: Quality Pick — Opus 5.5 · XHigh.
+
 **Conversation:** New
 
 > Settings updated 2026-11-19 (refresh): Cost Pick was GPT-6.1 Sol · Medium, Balanced Runner-up was
 > GPT-6.1 Sol · XHigh, Quality Runner-up was Gemini 4 Argon · High, Cost Backup was Gemini 4 Argon ·
 > Low, Balanced Backup was Gemini 4 Argon · Medium, Quality Backup was GPT-6 Astra · XHigh. Re-
 > ranked against the current roadmodel catalog.
+
+> Amended 2026-11-27 (spec rot, found while running the step): the snapshot
+> bucket keeps no Object Versioning (`docs/operations/production.md` section 10),
+> so the data rollback restores the previous `current.json` from soft delete; and
+> production refuses indexing until the final build (decision 4), so its
+> Lighthouse SEO score leaves out the crawlability audit, and SEO is measured in
+> full on the final-version build the indexing requirement builds.
 
 **Model rationale:** Primary category agentic, high complexity. On the step
 alone, the Balanced Pick fits best: Sonnet 5.5 on Claude Code at XHigh. It
@@ -11615,7 +11624,11 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       Web quality at production (through Access): Lighthouse
       on decision 19's page sample (median of three mobile
       runs, at least 90 in performance, accessibility, best
-      practices and SEO on every page); axe with the WCAG 2.2
+      practices and SEO on every page; SEO there leaves out
+      Lighthouse's crawlability audit, which the pre-release
+      production build fails by design (decision 4), and is
+      measured in full on the final-version build of the
+      indexing requirement); axe with the WCAG 2.2
       AA tags on the same pages with no violation; the
       Playwright CSP-violation run on every sampled page;
       scripts/parity/check_deployed.py for one golden case
@@ -11640,7 +11653,9 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       revision, then restore latest; deploy the same site
       build as a new Worker version, roll back to the
       previous version, then forward again; restore the
-      previous `current.json` from object versioning, then
+      previous `current.json` from soft delete (the bucket
+      keeps no Object Versioning; soft delete keeps each
+      overwritten generation seven days), then
       the newest. Record each command, its duration and the
       green check after it.
     </requirement>
@@ -11733,7 +11748,8 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
   evidence and a verdict, no unresolved FAIL, every WAIVED item's reason,
   and the maintainer's `Decision:` line.
 - The soak met Step 19's criteria; Lighthouse scored at least 90 in all
-  four categories on every sampled page; axe found no WCAG 2.2 AA
+  four categories on every sampled page (SEO as the web-quality requirement
+  reads it); axe found no WCAG 2.2 AA
   violation; no CSP violation occurred; web parity and MCP Inspector
   passed against production.
 - The design-and-UX round on production found no Blocker or High issue and
@@ -12118,6 +12134,35 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
       which answers only from this cutover: click through a
       sample of them as part of the Deployed & verified
       check.
+    - Step 20 notes (2026-11-27):
+      - 1.0.0's site differs from rc2's in text only: Step
+        20's AI legal review rewrote parts of the terms, the
+        privacy policy, the disclaimers, the Pro disclosure,
+        the sign-up forms' acceptance line and the CFA® notice
+        (also in README.md, which PyPI shows), and #400 changes
+        the contact address. Explain both in this step's pull
+        request beside the version, and redraw any visual
+        baseline the dates change, as the Design rules say.
+      - The image: production's rc2 digest carries
+        CVE-2025-6020 (Debian's linux-pam, High, fixed by
+        DLA-4941-1 after rc2's build). The 1.0.0 image is built
+        with `apt-get dist-upgrade`, and deploy-staging.yml's
+        scan refuses a fixable High: read that scan on the
+        tag's commit before promoting it.
+      - After Access goes, dispatch zap-baseline.yml against
+        production again: it sends no Access header once the
+        secrets are gone (an empty replacer file), and a High
+        still fails it. Measure Lighthouse's SEO on the public
+        site: the pre-release build failed only its
+        crawlability audit.
+      - The dogfooding harness and the deployed-site suite
+        send Access headers only where configured: #407 moves
+        the suite to the harness's per-origin way.
+      - #409 (the bond-pricing breadcrumb's late-font
+        rewrap) and the Step 20 decision's record of it.
+      - The load group (scripts/load/locustfile.py) is in
+        pyproject.toml's dependency groups: the sdist's
+        pyproject.toml differs from rc2's by that table too.
     - docs/releases/1.0.0-readiness.md ends in the
       maintainer's decision. Production runs 1.0.0rc2 behind
       Access; its redirect rules exist, disabled; staging
