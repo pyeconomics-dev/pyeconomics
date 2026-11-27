@@ -1,10 +1,12 @@
 ---
 // web/src/components/CounselNote.astro
-// A question counsel has still to answer about the text beside it (Phase 5
-// Step 16: the legal pages mark their open counsel questions). Each one is
-// listed in docs/operations/counsel-review.md; Step 20 records counsel's
-// answers, and the page's text changes and the note goes once counsel has
-// answered. tests/site/ counts them, so none disappears unrecorded.
+// A legal question still open about the text beside it (Phase 5 Step 16: the
+// legal pages mark their open counsel questions). Each one is listed in
+// docs/operations/counsel-review.md. Counsel's review was waived (2026-11-25);
+// Step 20's AI legal review answered the questions in counsel's place, and a
+// note goes once that review's answer is recorded and its change is made.
+// tests/site/ holds each note's words to the packet, so none disappears
+// unrecorded.
 interface Props {
   question: string;
 }
@@ -13,6 +15,6 @@ const { question } = Astro.props;
 ---
 
 <p class="mt-2 max-w-3xl rounded-md border border-dashed p-3 text-sm text-muted-foreground" data-counsel="">
-  <span class="font-medium text-foreground">Under review by counsel before launch:</span>
+  <span class="font-medium text-foreground">An open legal question:</span>
   {question}
 </p>

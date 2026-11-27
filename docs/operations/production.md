@@ -956,9 +956,11 @@ recipients are filtered on that metadata (not yet tried: nothing has been sent).
 
 ### 12.3 A deletion request
 
-A subscriber who asks to be deleted is deleted in Buttondown (Subscribers, the
-address, Delete), which holds the only copy; nothing else holds an address. Reply
-from the maintainer's own mailbox that it is done.
+A subscriber who asks to be deleted is deleted in Buttondown, which holds the only
+copy; nothing else holds an address. The dashboard's Delete (Subscribers, the
+address, Delete) only marks the subscriber, so also erase it permanently through
+Buttondown's API, as section 13.2 says, until hard deletion is on (issue #306).
+Reply from the maintainer's own mailbox that it is done.
 
 ### 12.4 Rotating the Grafana token
 
@@ -982,9 +984,11 @@ them is configured by hand. What each is generated from, and what keeps it true:
 | `security.txt` | `web/src/lib/security-txt.ts`, written by `web/scripts/indexing.ts` | `web/tests/unit/legal.test.ts` |
 
 A change to a processor, a region, a retention period or a log is a change to
-`data-flows.json` in the same pull request, which moves the policy's date; an open
-counsel question stays marked on its page and listed in
-`docs/operations/counsel-review.md` until counsel answers (Step 20).
+`data-flows.json` in the same pull request, which moves the policy's date. An open
+legal question stays marked on its page and listed in
+`docs/operations/counsel-review.md` until it is answered there and its change is
+made. Counsel's review was waived; Step 20's AI legal review answered twelve of the
+thirteen questions, and the analytics question waits on issue #406.
 
 ### 13.1 Renewing security.txt
 

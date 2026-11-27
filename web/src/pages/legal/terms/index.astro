@@ -7,10 +7,12 @@
 // serves linked to its terms (generated from sources.json), the FRED® API's
 // terms for anyone reading FRED through pyeconomics, no warranty, a limit of
 // liability, changes, the governing law and the contact. The New York Fed's
-// and the OECD's words are quoted from their terms as read on 2026-11-12, and
-// the questions still open for counsel are marked (CounselNote).
+// and the OECD's words are quoted from their terms as read on 2026-11-12. The
+// limit of liability, the changes clause and the governing law were rewritten
+// on 2026-11-27 by the AI legal review recorded in
+// docs/operations/counsel-review.md (counsel was waived), which answered their
+// counsel questions.
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
-import CounselNote from "@/components/CounselNote.astro";
 import Base from "@/layouts/Base.astro";
 import {
   CONTACT_EMAIL,
@@ -100,7 +102,9 @@ const quote = "mt-3 max-w-3xl border-l-4 pl-4";
   <p class={p}>
     Content from the Federal Reserve Bank of New York is made available to you with the same permissions, conditions
     and restrictions set forth in the <a href={NYFED_TERMS}>New York Fed's Terms of Use</a>; these terms add none that
-    are more restrictive. Among them, in the New York Fed's words:
+    are more restrictive. The limits in section 3 govern your use of this service, not the content: what you may do
+    with the New York Fed's content, and the OECD's, is what their terms allow. Among them, in the New York Fed's
+    words:
   </p>
   <blockquote class={quote} data-pass-through="nyfed">
     <p>
@@ -209,27 +213,33 @@ const quote = "mt-3 max-w-3xl border-l-4 pl-4";
 
   <h2 id="liability" class={h2}>7. Limitation of liability</h2>
   <p class={p}>
-    To the fullest extent the law allows, we are not liable for any indirect, incidental, special, consequential or
-    punitive damages, or for any loss of profits, revenue, data or opportunity, arising from your use of the service,
-    its results or its data, even if we were told they were possible. Our total liability for all claims about the
-    service is limited to one hundred US dollars (US$100). Some laws do not allow these limits; where they do not, the
-    limits apply only as far as the law allows.
+    We are not liable for any indirect, incidental, special, consequential or punitive damages, or for any loss of
+    profits, revenue, data or opportunity, arising from your use of the service, its results or its data, even if we
+    were told they were possible. Our total liability for all claims about the service, including claims for
+    negligence, is limited to one hundred US dollars (US$100).
   </p>
-  <CounselNote question="the amount of the cap, and whether the limits hold for readers in the EU and the UK." />
+  <p class={p}>
+    These limits do not apply to liability for death or personal injury caused by our negligence, for fraud, or for
+    harm we cause on purpose. They do not apply to any other liability that the law where you live does not allow us to
+    limit. If you are a consumer in the European Union or the United Kingdom, you keep the rights its consumer laws give
+    you.
+  </p>
 
   <h2 id="changes" class={h2}>8. Changes</h2>
   <p class={p}>
     We may change, suspend or end the service, or any part of it, at any time. We may change these terms; the date at
-    the top says when they last changed, and the repository keeps every earlier version. Using the service after a
-    change means you accept the new terms.
+    the top says when they last changed, and the repository keeps every earlier version. A change applies from the
+    date at the top, and never to anything that happened before it.
   </p>
 
-  <h2 id="law" class={h2}>9. Governing law</h2>
+  <h2 id="law" class={h2}>9. Governing law and disputes</h2>
   <p class={p}>
-    These terms are governed by the laws of {GOVERNING_LAW}, without regard to its conflict-of-laws rules. Nothing in
-    them takes away rights the law where you live gives you and that cannot be given up by contract.
+    These terms are governed by the laws of {GOVERNING_LAW}, without regard to its conflict-of-laws rules. Any dispute
+    about these terms or the service is heard only in the state or federal courts located in Florida, and you and we
+    agree to their jurisdiction. If you are a consumer in the European Union or the United Kingdom, you may also bring a
+    claim in the courts where you live. Nothing in these terms takes away rights the law where you live gives you and
+    that cannot be given up by contract.
   </p>
-  <CounselNote question="the governing law, and where a dispute is heard." />
 
   <h2 id="contact" class={h2}>10. Contact</h2>
   <p class={p}>

@@ -542,13 +542,20 @@ complete all six stages before declaring the step done.
    status check must report success. If the PR goes BEHIND
    main, refresh with `gh pr update-branch --rebase` — never
    merge `main` into the branch when the repo enforces linear
-   history. Once green:
+   history. (When a sibling parallel step merged first, rebase
+   onto `origin/main` preserving every other step's
+   `Complete` mark.) Once green:
 
    ```sh
    gh pr merge <PR_NUMBER> --squash --delete-branch
    ```
 
-   Merged is not done for a step that touches a deployed
+   In a linked worktree, omit `--delete-branch` (`gh pr merge
+   <PR_NUMBER> --squash`), because `--delete-branch` tries to
+   check out `main` locally and fails while `main` is checked
+   out in the primary tree; `delete_branch_on_merge: true` (or
+   `git push origin --delete <branch>`) retires the remote
+   branch. Merged is not done for a step that touches a deployed
    surface: complete the post-deploy verification named in the
    step's acceptance criteria (see "Release & deployment
    strategy") before Stage 6.
@@ -567,12 +574,15 @@ complete all six stages before declaring the step done.
      | xargs -r git branch -D
    ```
 
-   If the step ran in its own working tree, remove that
-   worktree FIRST — `git worktree remove <worktree-path>`, then
-   `git worktree prune` — because `git branch -D` refuses to
-   delete a branch that is still checked out in a worktree.
-   Between steps, `git worktree list` shows only the primary
-   tree.
+   If the step ran in its own linked worktree, run cleanup from
+   outside `<worktree-path>`: remove ONLY that step's worktree
+   FIRST — `git worktree remove <worktree-path>`, then `git
+   worktree prune` — before deleting `<branch>` (`git branch -D
+   <branch>` refuses a branch still checked out in a worktree).
+   Leave any active sibling parallel worktree untouched, and
+   fast-forward the primary checkout only if it is already
+   cleanly on `main`. Once no parallel steps are in flight,
+   `git worktree list` shows only the primary tree.
 
 6. **Dispose of every finding, declare completion, then new
    conversation.** Before declaring anything, send every
@@ -649,18 +659,22 @@ Rules that apply to every worktree:
    conversation never touches more than one worktree.
    Parallel steps run as parallel conversations, never as one
    conversation switching trees.
-5. **Merge from the primary tree.** Run the Stage 4 merge
-   command from the primary checkout. Inside a linked
-   worktree, `--delete-branch` tries to check out `main`
-   locally and fails (it is checked out in the primary tree);
-   the merge itself still lands, but the local cleanup is
-   left to Stage 5.
+5. **Merge without disturbing the primary tree.** Inside a
+   linked worktree, merge with `gh pr merge <PR_NUMBER> --squash`
+   — omit `--delete-branch`, because `--delete-branch` tries to
+   check out `main` locally and fails while `main` is checked
+   out in the primary tree — and let `delete_branch_on_merge`
+   (or `git push origin --delete <branch>`) remove the remote
+   branch. If a sibling parallel PR merged first, rebase onto
+   `origin/main` preserving every other step's `Complete` mark.
 6. **Retire with the branch.** No worktree outlives its PR.
-   Stage 5 removes it (`git worktree remove <path>`, then
-   `git worktree prune`) BEFORE the branch prune, because
-   `git branch -D` refuses a branch that is still checked out
-   in a worktree. Between steps, `git worktree list` shows
-   only the primary tree.
+   Stage 5 runs `git worktree remove <path>` and `git worktree
+   prune` from outside `<path>` BEFORE deleting `<branch>` (`git
+   branch -D` refuses a branch still checked out in a worktree).
+   Leave any active sibling parallel worktree untouched, and
+   fast-forward the primary tree only if it is cleanly on
+   `main`. Once no parallel steps are in flight, `git worktree
+   list` shows only the primary tree.
 
 #### Release & tagging
 

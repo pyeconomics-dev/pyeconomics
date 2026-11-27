@@ -2518,7 +2518,7 @@ Engineering rules, not legal advice; counsel reviews them before the Phase
 | Do                                                                                                  | Don't                                                                                                    |
 |-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
 | Say "implements formulas commonly covered in the CFA® Program curriculum", with ® on first use and the mark used as an adjective | Put "CFA" in any package, module, command, repository, product, domain, subdomain or social-handle name |
-| Carry this notice on the README, docs, PyPI page and web app: "CFA® and Chartered Financial Analyst® are trademarks owned by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute." | Use "official", "approved", "endorsed", "certified" or "Prep Provider"; use the CFA Institute logo or badges; make pass claims |
+| Carry this notice on the README, docs, PyPI page and web app: "CFA® and Chartered Financial Analyst® are registered trademarks owned by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute." | Use "official", "approved", "endorsed", "certified" or "Prep Provider"; use the CFA Institute logo or badges; make pass claims |
 | Cite each formula's originators (Macaulay 1938; Black and Scholes 1973; Taylor 1993) and take golden values from independent sources | Copy learning outcome statements, readings, end-of-reading questions, mock-exam or Practical Skills Module content, or curriculum worked examples |
 | Keep syllabus mappings as factual tags that link to cfainstitute.org                                 | Position anything as exam prep (question banks, "pass Level I") without enrolling as a Prep Provider     |
 | Sign as "Nathan Ramos, CFA"                                                                          | Imply the designation guarantees accuracy ("CFA-grade") — Standard VII(B)                                |
@@ -2543,8 +2543,10 @@ Engineering rules, not legal advice; counsel reviews them before the Phase
   any non-personal use; ICE BofA series are cut to three years and S&P series to
   ten; Moody's series count as pre-approval whatever their label says. Whether
   FRED content may reach an LLM at inference time (the AI narrative, a user's
-  assistant through MCP) is a counsel question; until answered the docs warn
-  users and hosted AI features use hosted-safe data only.
+  assistant through MCP) was reviewed by an AI legal review on 2026-11-27,
+  counsel's review being waived: most likely permitted for the key holder, not
+  confirmed by the Bank. FRED stays `forbidden` for language models by policy,
+  the docs warn users, and hosted AI features use hosted-safe data only.
 - Ken French Data Library: copyright Eugene F. Fama and Kenneth R. French;
   fetched at runtime with attribution and never bundled in a wheel.
 - Yahoo data through yfinance is for personal use only: `library-only`.

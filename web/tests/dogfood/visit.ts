@@ -11,7 +11,7 @@ import { parseArgs } from "node:util";
 
 import { chromium, type Locator, type Page } from "@playwright/test";
 
-import { BASE_URL, LAUNCH, accessHeaders, choose, measure, prepare, settled, write } from "./support.ts";
+import { BASE_URL, LAUNCH, choose, measure, prepare, settled, write } from "./support.ts";
 
 const HELP = `Usage: node tests/dogfood/visit.ts --path <page> [options]
 
@@ -149,7 +149,6 @@ async function main(): Promise<number> {
   const browser = await chromium.launch(LAUNCH);
   const context = await browser.newContext({
     baseURL: BASE_URL,
-    extraHTTPHeaders: accessHeaders(),
     viewport: { width, height },
     isMobile: phone,
     hasTouch: phone,

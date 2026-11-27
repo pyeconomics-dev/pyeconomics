@@ -18,6 +18,7 @@ import {
   FORMS_ENABLED,
   PRIVACY_POLICY,
   PROCESSOR_NAME,
+  TERMS_OF_USE,
   PUBLIC_NEWSLETTER,
   PUBLIC_PRO,
   SIGNUP_ACTION,
@@ -108,12 +109,13 @@ const input =
       )}
       <p id={`${id}-notice`} class="text-sm text-muted-foreground" data-signup-notice="">
         {waitlist
-          ? "Joining the waitlist buys nothing and commits you to nothing: we email you if Pro opens. "
+          ? "Joining the waitlist buys nothing and commits you to nothing: we email you if Pro opens, or if we decide not to build it. "
           : "An occasional email about new models, data and releases. "}
         We send your email address{waitlist ? " and the plan you chose" : ""} to {PROCESSOR_NAME}, which holds the list
         and records when you signed up, your IP address and the page you came from. You are added only after you
         confirm by the email it sends you. Every email has an unsubscribe link, and you can ask for your address to be
-        deleted at any time. <a href={PRIVACY_POLICY}>Privacy policy</a>.
+        deleted at any time. By joining, you accept the <a href={TERMS_OF_USE}>terms of use</a> and the{" "}
+        <a href={PRIVACY_POLICY}>privacy policy</a>.
       </p>
     </form>
   ) : (

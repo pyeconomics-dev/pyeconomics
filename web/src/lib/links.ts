@@ -97,7 +97,7 @@ export const FOOTER_LINKS: readonly Link[] = FOOTER_GROUPS.flatMap((group) => gr
  * carries, verbatim.
  */
 export const CFA_NOTICE =
-  "CFA® and Chartered Financial Analyst® are trademarks owned by CFA Institute. " +
+  "CFA® and Chartered Financial Analyst® are registered trademarks owned by CFA Institute. " +
   "pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute.";
 
 /** ROADMAP §5 "Required notices": the notice everything carries. */

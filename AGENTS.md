@@ -1027,9 +1027,12 @@ ROADMAP §4 5.7):
   from the source as read on a date the page or the code records; reread it before
   changing it. Each New York Fed reference rate's notice is built in
   `providers/nyfed.py` (`_reference_notice`, with `DTCC_NOTICE` on SOFR and BGCR).
-- An open question for counsel is shown on its page through `CounselNote.astro`, in
-  words `docs/operations/counsel-review.md` repeats (the dist test holds them equal);
-  it goes only when counsel has answered and Step 20 records the answer.
+- An open legal question is shown on its page through `CounselNote.astro`, in words
+  `docs/operations/counsel-review.md` repeats (the dist test holds them equal). It
+  goes only when it is answered, the answer is recorded in that file's outcome table
+  and the change it asks for is made. The maintainer waived counsel's review
+  (2026-11-25), so Step 20's AI legal review gave those answers; it is recorded as an
+  AI review, never as counsel's.
 - `security.txt` is written by `web/scripts/indexing.ts` from
   `web/src/lib/security-txt.ts` into every build but the app wheel's; never put one
   in `public/`. Its `Expires` stays under a year ahead and the unit test fails 30 days

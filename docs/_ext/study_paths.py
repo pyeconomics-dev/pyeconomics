@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 #: What an issuing body's marks require (ROADMAP section 5, docs/notices.md).
 NOTICES: Final[Mapping[str, str]] = {
     "CFA Institute": (
-        "CFA® and Chartered Financial Analyst® are trademarks owned by CFA "
-        "Institute. pyeconomics is not affiliated with, endorsed by, or a Prep "
+        "CFA® and Chartered Financial Analyst® are registered trademarks owned "
+        "by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep "
         "Provider of CFA Institute."
     ),
 }

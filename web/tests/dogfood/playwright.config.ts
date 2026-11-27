@@ -7,12 +7,13 @@
 // build it starts `wrangler dev` and the e2e API as the end-to-end tests do,
 // or reuses them; with DOGFOOD_BASE_URL it starts nothing and reads that site,
 // through Cloudflare Access when CF_ACCESS_CLIENT_ID and
-// CF_ACCESS_CLIENT_SECRET are set (sent as headers only, never printed).
+// CF_ACCESS_CLIENT_SECRET are set (sent as headers only, to the site's own
+// origin alone, by support.ts prepare; never printed).
 //
 //     npm run build && npm run dogfood
 import { defineConfig, devices } from "@playwright/test";
 
-import { API_ORIGIN, API_PORT, BASE_URL, LAUNCH, LOCAL, LOCAL_ORIGIN, accessHeaders } from "./support.ts";
+import { API_ORIGIN, API_PORT, BASE_URL, LAUNCH, LOCAL, LOCAL_ORIGIN } from "./support.ts";
 
 // One name for the run, read by every worker from the environment.
 process.env.DOGFOOD_RUN ??= new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
@@ -29,7 +30,6 @@ export default defineConfig({
   outputDir: "../../test-results/dogfood",
   use: {
     baseURL: BASE_URL,
-    extraHTTPHeaders: accessHeaders(),
     trace: "off",
     screenshot: "off",
     video: "off",

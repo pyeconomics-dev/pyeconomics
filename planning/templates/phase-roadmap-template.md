@@ -298,9 +298,15 @@ feature/phase{{N}}-step{{M}}-<slug> <worktree-path> origin/main`,
 the worktree is bootstrapped before any test or build (fresh
 dependency install and env files — a worktree has none of the
 primary tree's untracked state, and it must never borrow the
-primary tree's editable install), the Stage 4 merge runs from the
-primary tree, and Stage 5 removes the worktree BEFORE pruning the
-branch. Undeclared parallelism is a lifecycle violation, not a
+primary tree's editable install); Stage 3/4 rebase onto `origin/main`
+preserving every other step's `Complete` mark if a sibling PR merged
+first; Stage 4 merges from inside the worktree with `gh pr merge
+<PR_NUMBER> --squash` (omitting `--delete-branch`, which fails trying
+to check out `main`); and Stage 5 removes ONLY this worktree from
+outside it BEFORE deleting its branch, leaving active sibling
+worktrees untouched and fast-forwarding the primary tree only if it is
+cleanly on `main`. (`/roadmap-step <P> <M> --worktree` executes this
+flow.) Undeclared parallelism is a lifecycle violation, not a
 shortcut. Worktree location for this project: {{sibling directory
 `../<repo>--<slug>` or git-ignored `.worktrees/<slug>/` — one
 convention per project, matching the parent ROADMAP}}.
@@ -437,12 +443,16 @@ before declaring a step complete.
    (`docs: mark Phase {{N}} Step {{M}} complete`), and push — the
    PR now carries its own completion mark, so the roadmap on
    `main` will say the step is complete exactly when the PR
-   merges (Status rule). On the phase's first step, the same
-   commit sets this roadmap's phase-level `**Status:**` (under its
+   merges (Status rule). If a sibling parallel step merged first,
+   rebase onto `origin/main` preserving every other step's
+   `Complete` mark before pushing. On the phase's first step (or
+   while phase status is still `Not started`), the same commit
+   sets this roadmap's phase-level `**Status:**` (under its
    title) and the parent project roadmap's Phase {{N}}
-   `**Status:**` to `In progress`; on the final step, both to
-   `Complete`, with ` ✅` appended to this roadmap's `# ` title
-   and to the parent's `### Phase {{N}}` heading.
+   `**Status:**` to `In progress`; on the final step (once every
+   other step already reads `Complete` on `origin/main`), both
+   flip to `Complete`, with ` ✅` appended to this roadmap's
+   `# ` title and to the parent's `### Phase {{N}}` heading.
 
 4. **Wait for green checks, then squash-merge.** Every required
    status check (lint, type-check, test-matrix, package-smoke,
@@ -457,9 +467,13 @@ before declaring a step complete.
    gh pr merge <PR_NUMBER> --squash --delete-branch
    ```
 
-   If this step's `**Deploys:**` line names a surface, the merge
-   is not the finish line: run the Deployed & verified check from
-   the acceptance criteria against the target environment now
+   In a linked worktree, omit `--delete-branch` (`gh pr merge
+   <PR_NUMBER> --squash`) so `gh` does not try to check out `main`
+   locally while `main` is checked out elsewhere; `delete_branch_on_merge`
+   (or `git push origin --delete <branch>`) retires the remote
+   branch. If this step's `**Deploys:**` line names a surface, the
+   merge is not the finish line: run the Deployed & verified check
+   from the acceptance criteria against the target environment now
    (see the Deploy-and-verify rule) before declaring the step
    complete.
 
@@ -477,13 +491,16 @@ before declaring a step complete.
      | xargs -r git branch -D
    ```
 
-   If this step ran in its own worktree, remove it FIRST —
-   `git worktree remove <worktree-path>`, then `git worktree
-   prune` — because `git branch -D` refuses a branch still
-   checked out in a worktree. Confirm with `git branch -vv` that
-   only `main` and any intentional long-lived branches remain
-   locally, and with `git worktree list` that only the primary
-   tree remains.
+   If this step ran in its own worktree, remove ONLY this
+   worktree from outside it FIRST — `git worktree remove
+   <worktree-path>`, then `git worktree prune` — before deleting
+   `<branch>`, because `git branch -D` refuses a branch still
+   checked out in a worktree. Leave any active sibling parallel
+   worktree untouched, and fast-forward the primary tree only if
+   it is already cleanly on `main`. Confirm with `git branch -vv`
+   that only `main` and intentional active/long-lived branches
+   remain locally, and once no parallel steps are in flight,
+   `git worktree list` shows only the primary tree.
 
 6. **Dispose of every finding, declare completion, then new
    conversation.** Before you declare anything, walk the findings
@@ -1045,7 +1062,11 @@ hygiene").}}
        to the step's `## Step`
        heading, and set its
        Summary Table Status cell to
-       `Complete — PR #<n>`. Commit
+       `Complete — PR #<n>`. If a
+       sibling parallel PR merged
+       first, rebase onto
+       `origin/main` preserving
+       other steps' marks. Commit
        that edit on the step
        branch and push — the PR
        carries its own completion
@@ -1054,16 +1075,19 @@ hygiene").}}
        complete exactly when the PR
        merges (Status rule). Same
        commit: on the phase's first
-       step, set this roadmap's
+       step (while still `Not
+       started`), set this roadmap's
        phase-level `**Status:**`
        (under its title) and the
        parent project roadmap's
        Phase {{N}} `**Status:**` to
        `In progress`; on the final
-       step, both to `Complete`,
-       with ` ✅` appended to this
-       roadmap's `# ` title and to
-       the parent's `### Phase {{N}}`
+       step (all siblings Complete
+       on `origin/main`), both to
+       `Complete`, with ` ✅`
+       appended to this roadmap's
+       `# ` title and to the
+       parent's `### Phase {{N}}`
        heading.
 
     4. WAIT FOR GREEN CHECKS, THEN
@@ -1076,13 +1100,16 @@ hygiene").}}
        (`required_linear_history:
        true`). Once green:
        `gh pr merge <PR> --squash
-       --delete-branch`. If this
-       step's `**Deploys:**` line
-       names a surface, the merge
-       is not the finish line: run
-       the Deployed & verified
-       check against the target
-       environment before
+       --delete-branch` (in a
+       linked worktree, omit
+       `--delete-branch` so git does
+       not try to check out `main`).
+       If this step's `**Deploys:**`
+       line names a surface, the
+       merge is not the finish
+       line: run the Deployed &
+       verified check against the
+       target environment before
        declaring the step complete.
 
     5. RETIRE THE BRANCH. Sync
@@ -1092,10 +1119,13 @@ hygiene").}}
        origin`. Prune any local
        `[gone]` branches. If the
        step ran in a worktree,
-       `git worktree remove <path>`
-       FIRST — the branch prune
-       fails while the branch is
-       checked out there.
+       remove ONLY this worktree
+       from outside it FIRST (`git
+       worktree remove <path>`),
+       leaving sibling worktrees
+       untouched and fast-forwarding
+       the primary tree only when
+       cleanly on `main`.
 
     6. DISPOSE OF EVERY FINDING,
        DECLARE COMPLETION, THEN

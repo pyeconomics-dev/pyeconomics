@@ -178,6 +178,46 @@ Executed:
   POPENOMICS (serial 99104869) and PIPONOMICS (serial 90127347), both
   live. The search's result and any filing counsel advises are recorded
   here when they arrive.
+- 2026-11-27, Phase 5 Step 20: the professional clearance search is
+  **waived**. The maintainer decided on 2026-11-25 to engage no counsel,
+  for cost, so no search is ordered through counsel. In its place an AI
+  knockout search was run on 2026-11-27. It is a knockout search, not a
+  clearance search, and it says nothing a trademark attorney would
+  warrant.
+  - **Registers searched:** the USPTO's own search index (its search
+    backend, which answered automated requests that day: 13,401,213
+    records), Florida's trademark register and entity names on Sunbiz,
+    and TMview (the EU, the UK, WIPO Madrid designations and the USPTO
+    among its offices). WIPO's Global Brand Database answered a bot
+    challenge and the UK IPO's search a 403, so neither was searched
+    directly; TMview covers both offices' records.
+  - **Common law:** a web search, GitHub, PyPI, the app stores, domain
+    records and social handles.
+  - **Result:** no live mark or application identical to PYECONOMICS,
+    or any PY/PI/PIE-ECONOMICS spelling, in any register searched, and
+    no Florida entity with the name. The nearest marks are THE PIE
+    ECONOMICS PODCAST (Reg. 6656587) and THE PIE (Reg. 6439502), both
+    the University of Chicago's, in Classes 9 and 41, for podcasts: said
+    aloud, "Py" sounds like "pie", but their dominant element is THE PIE
+    and "ECONOMICS PODCAST" is disclaimed. "Pieconomics" names an
+    economist's theory in a book, registered nowhere searched. A dormant
+    YouTube channel `@pyeconomics` (created 2024-10-28, no videos) is in
+    the same field, its owner unknown. PIPONOMICS, POPENOMICS and
+    PICANOMICS are live and not close.
+  - **Risk:** conflict risk low, low to moderate in Class 41 only (the
+    University of Chicago's marks). Registrability is the larger risk: an
+    examiner may refuse PYECONOMICS for economics software as merely
+    descriptive (Lanham Act §2(e)(1)), and would likely require ECONOMICS
+    disclaimed.
+  - **Filing:** none is made now. A US-domiciled applicant (the
+    maintainer, or Pyeconomics LLC once formed) may file at the USPTO
+    without an attorney ("No, if you are a trademark applicant,
+    registrant, or party domiciled in the United States or its
+    territories", USPTO, "Why hire a private trademark attorney", read
+    2026-11-27); the fees are $350 a class to file, plus $150 a class for
+    an intent-to-use Statement of Use (USPTO fee page, read 2026-11-27).
+    The readiness record (`docs/releases/1.0.0-readiness.md` section 9)
+    records the waiver.
 
 Good:
 
