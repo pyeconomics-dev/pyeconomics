@@ -11749,7 +11749,8 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
   and the maintainer's `Decision:` line.
 - The soak met Step 19's criteria; Lighthouse scored at least 90 in all
   four categories on every sampled page (SEO as the web-quality requirement
-  reads it); axe found no WCAG 2.2 AA
+  reads it), but for one page's performance the maintainer waived at the gate
+  (bond pricing, 84: a late-font rewrap, #409; 2026-11-27); axe found no WCAG 2.2 AA
   violation; no CSP violation occurred; web parity and MCP Inspector
   passed against production.
 - The design-and-UX round on production found no Blocker or High issue and
