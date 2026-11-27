@@ -9790,3 +9790,12 @@ alert with a proven alarm; and `verify-phase04.sh` as the template for
   (`1.0.0b1` or a release candidate) behind `--pre`, keeps 0.2.6 as the stable
   line and names `pyeconomics serve` and `pyeconomics mcp`; its `docs/index.md`
   half is unchanged.
+
+- Static check 64 (Phase 5 Step 20): `zap-baseline.yml`, the OWASP ZAP baseline
+  scan of staging or production, reads the Access service token under the names
+  `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` from the `staging` or the
+  `production` environment, the one its job runs in, because both hosts sit
+  behind Access until the cutover. The check now admits those two names for that
+  one workflow, requires each of its jobs to run in `staging` or `production`, and
+  never in `production-health` or `growth`; every other workflow's rule is
+  unchanged.

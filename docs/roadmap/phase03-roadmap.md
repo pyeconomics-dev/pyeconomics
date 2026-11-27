@@ -12777,3 +12777,12 @@ as the template for `verify-phase04.sh`._
   own read-only `GITHUB_TOKEN`. The check now admits that one name for that one
   workflow, requires it to run in `growth` and never in `production`,
   `production-health` or `staging`; every other workflow's rule is unchanged.
+
+- Static check 78 (Phase 5 Step 20): `zap-baseline.yml`, the OWASP ZAP baseline
+  scan of staging or production, reads the Access service token under the names
+  `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` from the `staging` or the
+  `production` environment, the one its job runs in, because both hosts sit
+  behind Access until the cutover. The check now admits those two names for that
+  one workflow, requires each of its jobs to run in `staging` or `production`, and
+  never in `production-health` or `growth`; every other workflow's rule is
+  unchanged.
