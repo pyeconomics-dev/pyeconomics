@@ -11220,9 +11220,9 @@ Pick is Opus 5.5 on Claude Code at XHigh.
 
 ---
 
-## Step 20 — Launch Readiness Gate
+## Step 20 — Launch Readiness Gate ✅
 
-**Status:** Not started
+**Status:** Complete — PR #412 (2026-11-27)
 
 > **Goal:** Decide, on evidence, whether 1.0.0 may launch (ROADMAP §4 5.9;
 > §5 "Readiness gate before an irreversible cutover"; ADR-0013 decisions
@@ -13268,7 +13268,7 @@ workflow above maps directly to the corresponding row below.
 | 17   | Design direction + system      | Opus 5.5       | Complete — PR #344 |
 | 18   | AI dogfooding loop             | GPT-6.1 Sol    | Complete — PR #352 |
 | 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Complete — PR #382 |
-| 20   | Launch readiness gate          | Sonnet 5.5     | Not started        |
+| 20   | Launch readiness gate          | Sonnet 5.5     | Complete — PR #412 |
 | 21   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |
 | 22   | QA + verify-phase05.sh         | Gemini 4 Hydrogen | Not started        |
 | V1   | Baseline + carried fixes       | CI             | --                 |
