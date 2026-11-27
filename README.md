@@ -98,4 +98,4 @@ As is; not investment advice. pyeconomics is for educational and informational
 use only, and is not registered with any regulator.
 
 <!-- Keep the CFA notice on one line: it is quoted verbatim from ROADMAP §5. -->
-CFA® and Chartered Financial Analyst® are trademarks owned by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute.
+CFA® and Chartered Financial Analyst® are registered trademarks owned by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute.

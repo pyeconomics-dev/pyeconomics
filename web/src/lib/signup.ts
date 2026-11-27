@@ -39,6 +39,12 @@ export const TIER_FIELD = "metadata__tier";
 /** The privacy policy every form links (Phase 5 Step 16 writes it). */
 export const PRIVACY_POLICY = "/legal/privacy/";
 
+/**
+ * The terms of use, which a sign-up accepts (Phase 5 Step 20's AI legal review:
+ * a sign-up is the one act on the site that can show assent to them).
+ */
+export const TERMS_OF_USE = "/legal/terms/";
+
 /** The public site's pages, which the app wheel's build links to. */
 export const PUBLIC_NEWSLETTER = "https://pyeconomics.dev/newsletter/";
 export const PUBLIC_PRO = "https://pyeconomics.dev/pro/";

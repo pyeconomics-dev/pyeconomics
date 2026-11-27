@@ -5,7 +5,7 @@ use only, provides no personal advice and is not registered with any regulator.
 Models can be wrong or unsuitable for a particular purpose. Read their
 assumptions, limitations and sources, and verify results independently.
 
-CFA® and Chartered Financial Analyst® are trademarks owned by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute.
+CFA® and Chartered Financial Analyst® are registered trademarks owned by CFA Institute. pyeconomics is not affiliated with, endorsed by, or a Prep Provider of CFA Institute.
 
 Data comes from each source under its own terms, and its attribution and required
 notices travel with it into every result, table and file. pyeconomics.dev lists every
@@ -19,6 +19,10 @@ By using pyeconomics to read FRED® or ALFRED® data, you agree to be bound by t
 [FRED® API Terms of Use](https://fred.stlouisfed.org/docs/api/terms_of_use.html).
 This product uses the FRED® API but is not endorsed or certified by the Federal
 Reserve Bank of St. Louis.
+
+FRED's terms forbid storing, caching or archiving FRED content, so pyeconomics
+keeps none. A file you export that holds FRED data is your own copy, kept under
+those terms, for your personal use.
 
 From 1.0, pyeconomics is licensed under the
 [Apache License 2.0](https://github.com/pyeconomics-dev/pyeconomics/blob/main/LICENSE).

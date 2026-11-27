@@ -10,7 +10,8 @@ import type { Tier } from "@/lib/events";
 
 /** The statement the page leads with; a test holds the built page to it. */
 export const PRO_DISCLOSURE =
-  "Pro does not exist yet. Nothing is sold, charged or collected on this page except the optional waitlist below: " +
+  "Pro does not exist yet, and it may never be built. Nothing is sold, charged or collected on this page except " +
+  "the optional waitlist below: " +
   "there is no account, no payment and no checkout. The prices are indicative, may change, and are not an offer.";
 
 /** What stays true whatever Pro becomes. */

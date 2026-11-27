@@ -172,10 +172,13 @@ read from `pyeconomics.toml` or the environment and never from a call's
 arguments. A narrated command-line run binds its data under the same policy,
 so a refused source is passed over for the next candidate where there is one.
 
-FRED and ALFRED are classed `forbidden`. FRED's terms bar machine-learning
-training; whether its data may reach a language model at inference time, as a
-narrative would send it, is a question for counsel, and until it is answered
-pyeconomics does not send it.
+FRED and ALFRED are classed `forbidden`. FRED's terms bar using its content
+"in connection with the development or training" of machine learning. An AI
+legal review on 2026-11-27, done in place of counsel's (which the maintainer
+waived), read that clause as not reaching values sent to a model at the time of
+a request, which the St. Louis Fed's own FRED® MCP Connector does. The Bank has
+not confirmed that reading, so pyeconomics still sends no FRED data to a
+language model; for that, use the FRED® MCP Connector under its own terms.
 
 ## Hosted mode waits for Phase 8
 

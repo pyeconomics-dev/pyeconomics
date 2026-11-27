@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "updated": "2026-11-12",
+  "updated": "2026-11-27",
   "processors": [
     {
       "id": "cloudflare",
@@ -216,7 +216,7 @@
       "basis": "Consent, given by confirming your address; withdraw it by unsubscribing.",
       "processor": "buttondown",
       "location": "The United States (Amazon Web Services, us-west-2)",
-      "retention": "Until you unsubscribe or ask for deletion. Buttondown marks an unsubscribed or deleted address rather than erasing it at once, so a later import cannot sign you up again; on request, pyeconomics has Buttondown erase it.",
+      "retention": "Until you unsubscribe or ask for deletion. Buttondown marks an unsubscribed or deleted address rather than erasing it at once; on request, pyeconomics has Buttondown erase it permanently.",
       "decision": 14,
       "origins": [
         "https://buttondown.com"

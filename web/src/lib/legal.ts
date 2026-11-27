@@ -8,9 +8,10 @@
 //
 // The operator is the maintainer, as an individual, until the project's own
 // company exists; the maintainer chose this, the contact address and Florida
-// law at the step's kickoff (2026-11-12), and counsel reviews every page
-// before launch (docs/operations/counsel-review.md). A text that is still a
-// question for counsel says so on its page, through `counsel` fields.
+// law at the step's kickoff (2026-11-12). Counsel's review was waived by the
+// maintainer (2026-11-25, cost); an AI legal review replaced it on 2026-11-27
+// (docs/operations/counsel-review.md). A text whose question that review left
+// open says so on its page, through `counsel` fields.
 
 import { z } from "astro/zod";
 
@@ -23,7 +24,10 @@ export const OPERATOR = "Nathan Ramos";
 /** The one address for legal, privacy and data-rights requests: the project's published address. */
 export const CONTACT_EMAIL = "nathan.ramos.github@gmail.com";
 
-/** The governing law of the terms of use: counsel confirms it before launch. */
+/**
+ * The governing law of the terms of use, confirmed by the AI legal review of
+ * 2026-11-27 that replaced counsel's (docs/operations/counsel-review.md).
+ */
 export const GOVERNING_LAW = "the State of Florida, United States";
 
 /** The repository, where the site's source and its history are public. */
@@ -42,7 +46,7 @@ export const TERMS: LegalPage = {
   title: "Terms of use",
   description:
     "The terms of pyeconomics.dev, its API and MCP endpoint: the software's licence, acceptable use and rate limits, the data's own terms, no warranty and the limit of liability.",
-  updated: "2026-11-12",
+  updated: "2026-11-27",
 };
 
 export const PRIVACY: LegalPage = {
@@ -58,7 +62,7 @@ export const DISCLAIMERS: LegalPage = {
   title: "Disclaimers",
   description:
     "pyeconomics is for education and information: not investment advice, not registered with any regulator, provided as is, with data that may be delayed or wrong.",
-  updated: "2026-11-12",
+  updated: "2026-11-27",
 };
 
 export const LICENCE_PAGE: LegalPage = {
