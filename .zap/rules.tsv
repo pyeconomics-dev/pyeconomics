@@ -1,0 +1,17 @@
+# .zap/rules.tsv
+# ZAP baseline rules for zap-baseline.yml (Phase 5 Step 20): each recorded
+# false positive or accepted finding, with its reason. Tab-separated: rule id,
+# level, ZAP's name in parentheses, then the reason. A High alert is never
+# recorded here: scripts/zap/no_high.py fails the job on any High regardless.
+# Findings read from the scans of staging and production on 2026-11-27.
+10202	IGNORE	(Absence of Anti-CSRF Tokens)	The only forms are the newsletter and waitlist sign-ups, which post by navigation to Buttondown's endpoint, with double opt-in there; the site has no session and no state of its own to forge.
+10010	IGNORE	(Cookie No HttpOnly Flag)	The cookie is CF_Authorization, Cloudflare Access's own, set only while the hosts sit behind Access (until the cutover); pyeconomics sets no cookie.
+10054	IGNORE	(Cookie with SameSite Attribute None)	The same Access cookie, CF_Authorization; pyeconomics sets no cookie.
+10112	IGNORE	(Session Management Response Identified)	The same Access cookie, CF_Authorization; pyeconomics keeps no session.
+10109	IGNORE	(Modern Web Application)	Informational: the calculators and the explorer are islands that need JavaScript, as their noscript text says.
+10015	IGNORE	(Re-examine Cache-control Directives)	Pages are served public, max-age=0, must-revalidate by Workers static assets on purpose, so a deploy reaches every visitor at once.
+10031	IGNORE	(User Controllable HTML Element Attribute (Potential XSS))	The model filters keep a query value only when a facet offers it (web/src/lib/filters.ts parseFilters) and render it as React text.
+# Application Error Disclosure on the problem pages: each documents its problem
+# type's exit code in words, such as "Exit code 1 (internal error)", which is
+# the text the rule matches. Out of scope on those pages only.
+90022	OUTOFSCOPE	^https://(staging\.)?pyeconomics\.dev/problems/.*$

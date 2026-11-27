@@ -484,6 +484,10 @@ health_sets = {"production-health.yml": staging_secrets}
 # Grafana Cloud metrics:read token, from the growth environment (main only)
 # alone, beside its own read-only GITHUB_TOKEN.
 growth_sets = {"growth-metrics.yml": {"GITHUB_TOKEN", "GRAFANA_READ_TOKEN"}}
+# Phase 5 Step 20: zap-baseline.yml scans staging or production through Access
+# with that environment's service token, in jobs that each run in `staging` or
+# `production` alone, never in another environment.
+zap_sets = {"zap-baseline.yml": staging_secrets}
 for path in Path(".github/workflows").glob("*.yml"):
     if path.name == "providers-live.yml":
         continue
@@ -504,6 +508,11 @@ for path in Path(".github/workflows").glob("*.yml"):
         assert re.search(r"^\s+environment:\s*production-health\s*$", body, re.M), path.name
         assert not re.search(r"^\s+environment:\s*(?:production|staging)\s*$", body, re.M), path.name
         assert not re.search(r"^\s+name:\s*(?:production|staging)\s*$", body, re.M), path.name
+    elif path.name in zap_sets:
+        assert set(names) <= zap_sets[path.name], path.name
+        jobs = re.findall(r"^  [a-z_-]+:\n(?:(?!^  [a-z_-]+:\n).*\n)*", body.split("\njobs:\n", 1)[1] + "\n", re.M)
+        assert jobs and all(re.search(r"^    environment:\n      name: (?:staging|production)$", job, re.M) for job in jobs), path.name
+        assert not re.search(r"^\s+(?:environment|name):\s*(?:production-health|growth)\s*$", body, re.M), path.name
     elif path.name in growth_sets:
         assert set(names) <= growth_sets[path.name], path.name
         assert re.search(r"^\s+environment:\s*growth\s*$", body, re.M), path.name
