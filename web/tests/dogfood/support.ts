@@ -6,9 +6,13 @@
 // requests and GET /version are forwarded as the end-to-end tests forward
 // them), or a deployed site named by DOGFOOD_BASE_URL. Behind Cloudflare
 // Access the service token is read from CF_ACCESS_CLIENT_ID and
-// CF_ACCESS_CLIENT_SECRET and sent only as request headers: nothing here
-// prints, logs or writes it, and a record holds no request header at all.
-// Output goes to the git-ignored web/dogfood-out/<run>/.
+// CF_ACCESS_CLIENT_SECRET and sent only as request headers, and only to the
+// site's own origin (`prepare` adds them per request): a production build
+// talks to the analytics collector and the error tracker, which must never see
+// it (Phase 5 Step 20). Nothing here prints, logs or writes it, and a record
+// holds no request header at all. On a deployed site the analytics tracker is
+// switched off before any page script runs, so a round adds nothing to the
+// Gate G2 counts. Output goes to the git-ignored web/dogfood-out/<run>/.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,10 +68,33 @@ export interface Watch {
 /**
  * Prepare a page before its first navigation: forward the API locally, and
  * record every Content Security Policy violation (through a listener the
- * policy cannot block) and console error.
+ * policy cannot block) and console error. On a deployed site, add Access's
+ * headers to the site's own requests alone, refuse and record a request to any
+ * other origin, and switch the analytics tracker off (as tests/staging/support.ts
+ * does for a deploy's checks).
  */
 export async function prepare(page: Page): Promise<Watch> {
   const watch: Watch = { violations: [], errors: [] };
+  if (!LOCAL) {
+    const origin = new URL(BASE_URL).origin;
+    const headers = accessHeaders();
+    await page.route("**/*", async (route) => {
+      const url = new URL(route.request().url());
+      if (url.origin === origin) {
+        await route.continue({ headers: { ...route.request().headers(), ...headers } });
+      } else {
+        watch.errors.push(`a request to another origin was refused: ${url.origin}`);
+        await route.abort("blockedbyclient");
+      }
+    });
+    await page.addInitScript(() => {
+      try {
+        window.localStorage.setItem("umami.disabled", "1");
+      } catch {
+        // Storage refused: the tracker's request is then refused above, and recorded.
+      }
+    });
+  }
   if (LOCAL) {
     await page.route(
       (url) => url.pathname === "/version",

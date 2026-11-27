@@ -283,3 +283,11 @@ issue and raises the median by less than 0.5 over the round before, and at round
     `web/dogfood-out/` and `web/tests/visual/baselines/`, and nothing else.
     Check that one picture can be seen, in a throwaway subagent too, before the
     evaluators start.
+- 2026-11-27 (Phase 5 Step 20, the round on production): the harness sent the
+  Access service token with every request, to any origin, and left the analytics
+  tracker on. A production build talks to the analytics collector and to Sentry,
+  so on a deployed site `support.ts prepare` now adds Access's headers per request
+  on the site's own origin alone, refuses and records a request to any other
+  origin, and sets `umami.disabled` before any page script runs, so a round adds
+  nothing to the Gate G2 counts. No persona, task, rubric, severity or page
+  changes.
