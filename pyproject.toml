@@ -264,6 +264,9 @@ fuzz = [
 clients = [
     "openapi-python-client>=0.29",
 ]
+load = [
+    "locust>=2.47.0",
+]
 
 [tool.uv.build-backend]
 module-name = "pyeconomics"
