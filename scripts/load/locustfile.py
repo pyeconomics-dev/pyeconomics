@@ -11,11 +11,14 @@ give p50 and p95 per class. The rate and the duration are fixed here, before the
 run, inside the budget the readiness gate set (about ten minutes and 3,000
 requests at most):
 
-- nine minutes steady at 1.25 requests a second, under the hosted limits of one
-  client address (60 runs and 30 series a minute) and the zone's rate rule (50
-  requests in 10 seconds);
-- one minute at 4 requests a second, past the run limit on purpose, to show the
+- nine minutes steady at 1 request a second (48 runs and 12 series a minute),
+  under the hosted limits of one client address (60 runs and 30 series a minute)
+  and the zone's rate rule (50 requests in 10 seconds);
+- one minute at 3 requests a second, past the run limit on purpose, to show the
   limits answer 429 and nothing answers 5xx.
+
+A 429 is recorded under its class's name with " (429)" added, so each class's
+percentiles are of the answers the API computed.
 
 Behind Cloudflare Access the service token comes from CF_ACCESS_CLIENT_ID and
 CF_ACCESS_CLIENT_SECRET, sent as headers only, never printed.
@@ -56,7 +59,7 @@ SERIES: tuple[str, ...] = (
     "us.prices.cpi",
 )
 #: Each user's requests a second; the shape sets how many users run.
-PER_USER = 0.625
+PER_USER = 0.5
 STEADY_SECONDS = 540
 BURST_SECONDS = 60
 STEADY_USERS = 2
@@ -106,6 +109,7 @@ class Visitor(HttpUser):
             catch_response=True,
         ) as response:
             if response.status_code == 429:  # noqa: PLR2004 - the limit's answer
+                response.request_meta["name"] = f"run {cost} (429)"
                 response.failure("429")
 
     @task(14)
@@ -127,7 +131,12 @@ class Visitor(HttpUser):
     def series(self) -> None:
         """Read a series the snapshot serves, ten years of it."""
         concept = random.choice(SERIES)  # noqa: S311 # nosec B311 - load mix, not security
-        self.client.get(f"/v1/series/{concept}?start=2016-01-01", name="series")
+        with self.client.get(
+            f"/v1/series/{concept}?start=2016-01-01", name="series", catch_response=True
+        ) as response:
+            if response.status_code == 429:  # noqa: PLR2004 - the limit's answer
+                response.request_meta["name"] = "series (429)"
+                response.failure("429")
 
 
 class SteadyThenBurst(LoadTestShape):
