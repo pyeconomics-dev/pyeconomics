@@ -17,14 +17,13 @@ The server is in the `mcp` extra, the official MCP SDK. The quickest way to run
 it is `uvx`, which installs it into a cached environment of its own:
 
 ```shell
-uvx --prerelease allow --from "pyeconomics[mcp]" pyeconomics mcp
+uvx --from "pyeconomics[mcp]" pyeconomics mcp
 ```
 
-`--prerelease allow` is needed while 1.0 is in pre-release; without `uvx`,
-install the extra and run the command:
+Without `uvx`, install the extra and run the command:
 
 ```shell
-pip install --pre "pyeconomics[mcp]"
+pip install "pyeconomics[mcp]"
 pyeconomics mcp
 ```
 
@@ -38,7 +37,7 @@ Add the server to Claude Code with `claude mcp add`; everything after `--` is
 the command Claude Code runs:
 
 ```shell
-claude mcp add pyeconomics -- uvx --prerelease allow --from "pyeconomics[mcp]" pyeconomics mcp
+claude mcp add pyeconomics -- uvx --from "pyeconomics[mcp]" pyeconomics mcp
 ```
 
 `--scope user` makes it available in every project, rather than the current one.
@@ -54,7 +53,7 @@ command:
   "mcpServers": {
     "pyeconomics": {
       "command": "uvx",
-      "args": ["--prerelease", "allow", "--from", "pyeconomics[mcp]", "pyeconomics", "mcp"]
+      "args": ["--from", "pyeconomics[mcp]", "pyeconomics", "mcp"]
     }
   }
 }
@@ -141,7 +140,7 @@ A model that declares a chart (the amortization schedule of
 `foundations.time_value`, the fan chart of `macro.policy_rule`'s forecast path)
 draws it inside a client that supports the
 [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) extension, when
-the server has the `plot` extra (`pip install --pre "pyeconomics[mcp,plot]"`):
+the server has the `plot` extra (`pip install "pyeconomics[mcp,plot]"`):
 
 ![The amortization chart of a foundations_time_value run, drawn by the MCP Apps example host](_static/mcp-apps-chart.png)
 
@@ -211,9 +210,10 @@ cannot opt itself in, and nothing makes forbidden data reach it.
 ## Local and hosted
 
 `pyeconomics mcp` and `pyeconomics serve` run in **local mode**: every source
-you can access, with your keys, and no time budget. The hosted service (from
-Phase 5) serves the same tools at its own `/mcp` in **hosted mode**, behind the
-same edge check and rate limits as its REST API:
+you can access, with your keys, and no time budget. The hosted service serves
+the same tools at `https://pyeconomics.dev/mcp` in **hosted mode**, behind the
+same edge check and rate limits as its REST API, and a client connects with no
+install (`claude mcp add --transport http pyeconomics https://pyeconomics.dev/mcp`):
 
 - only sources whose licence allows a hosted service are read, as for `/v1`;
 - a run is held to its model's time budget, in the same worker pool as `/v1`;

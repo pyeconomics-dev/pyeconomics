@@ -113,7 +113,7 @@ and `keys set` asks for the key with a hidden prompt, so it never reaches your
 shell history or this screen:
 
 ```text
-pip install --pre "pyeconomics[keyring]"
+pip install "pyeconomics[keyring]"
 pyeconomics keys set fred
 ```
 

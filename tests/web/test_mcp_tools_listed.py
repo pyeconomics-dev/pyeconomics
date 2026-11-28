@@ -37,8 +37,9 @@ def test_the_sites_command_is_the_documentations() -> None:
     source = SOURCE.read_text(encoding="utf-8")
     page = (WEB.parent / "docs" / "mcp.md").read_text(encoding="utf-8")
     # The page's client configuration, word for word, is what mcp.ts builds
-    # for a pre-release: the same arguments in the same order.
-    documented = '["--prerelease", "allow", "--from", "pyeconomics[mcp]", '
-    assert documented + '"pyeconomics", "mcp"]' in page
+    # for a final release (Phase 5 Step 21): the same arguments in the same
+    # order. A pre-release adds `--prerelease allow` in front.
+    documented = '["--from", "pyeconomics[mcp]", "pyeconomics", "mcp"]'
+    assert documented in page
     assert '["--prerelease", "allow"]' in source
     assert '"--from", "pyeconomics[mcp]", "pyeconomics", "mcp"]' in source

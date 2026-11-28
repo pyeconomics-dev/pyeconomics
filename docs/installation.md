@@ -1,15 +1,15 @@
 # Installation
 
-Python 3.12 or later is required. Request pre-releases explicitly:
+Python 3.12 or later is required:
 
 ```console
-pip install --pre pyeconomics
+pip install pyeconomics
 ```
 
-A plain `pip install pyeconomics` continues to install 0.2.6 until 1.0.0 is
-released; that release has a different API. See the
-[stable documentation](https://docs.pyeconomics.dev/en/stable/), and the
-{doc}`migration guide <migration>` to move from it.
+0.2.x, which has a different API, reached end of life with 1.0.0. Its
+documentation stays at
+[docs.pyeconomics.dev/en/v0.2.6](https://docs.pyeconomics.dev/en/v0.2.6/), and the
+{doc}`migration guide <migration>` moves code from it.
 
 The {doc}`install tutorial <tutorials/install>` covers pip, uv and pipx, and
 lists every extra. To work from a source checkout:

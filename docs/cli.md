@@ -12,13 +12,12 @@ Install it as a tool, isolated from your projects, with
 [pipx](https://pipx.pypa.io/) or [uv](https://docs.astral.sh/uv/):
 
 ```text
-pipx install --pre pyeconomics
-uv tool install --prerelease allow pyeconomics
+pipx install pyeconomics
+uv tool install pyeconomics
 ```
 
-`--pre` and `--prerelease allow` are needed while 1.0 is in pre-release. To
-store providers' keys in the OS keyring, install the extra too:
-`pipx install --pre "pyeconomics[keyring]"`.
+To store providers' keys in the OS keyring, install the extra too:
+`pipx install "pyeconomics[keyring]"`.
 
 ```console
 $ pyeconomics --version
@@ -205,7 +204,7 @@ With the `server` extra, `pyeconomics serve` serves the REST API on
 `127.0.0.1` port 8000 until Ctrl+C, its runs in worker processes ({doc}`api`):
 
 ```text
-pipx install --pre "pyeconomics[server]"
+pipx install "pyeconomics[server]"
 pyeconomics serve --port 8000 --workers 2
 ```
 
@@ -219,7 +218,7 @@ web app at `/`: every model page, calculator and the data explorer, as
 pyeconomics.dev serves them, with the same security headers.
 
 ```text
-pipx install --pre "pyeconomics[app]"
+pipx install "pyeconomics[app]"
 pyeconomics serve
 ```
 

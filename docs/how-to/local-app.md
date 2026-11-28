@@ -12,8 +12,7 @@ pip install "pyeconomics[app]"
 pyeconomics serve
 ```
 
-While 1.0 is in pre-release, add `--pre` to the install command. Then open
-<http://127.0.0.1:8000>.
+Then open <http://127.0.0.1:8000>.
 
 The `app` extra brings the REST API's requirements and the `pyeconomics-app`
 wheel, which holds the built site at the same version. Without it, `serve` logs

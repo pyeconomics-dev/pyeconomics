@@ -13,11 +13,11 @@ adds, has its own run route and its own schemas in the OpenAPI document.
 The API is in the `server` extra (FastAPI and uvicorn):
 
 ```shell
-pip install --pre "pyeconomics[server]"
+pip install "pyeconomics[server]"
 pyeconomics serve
 ```
 
-`--pre` is needed while 1.0 is in pre-release. The server listens on
+The server listens on
 `http://127.0.0.1:8000` until Ctrl+C. Its interactive documentation is at
 `http://127.0.0.1:8000/docs`. From another shell:
 

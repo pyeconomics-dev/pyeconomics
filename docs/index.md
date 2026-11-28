@@ -1,12 +1,7 @@
-# pyeconomics 1.0 preview
-
-```{warning}
-This is the **1.0 preview**, built from `main`. APIs may change.
-For the current stable release, use the [0.2.6 documentation](https://docs.pyeconomics.dev/en/stable/).
-```
+# pyeconomics
 
 pyeconomics is an open library of economics and finance models with typed
-inputs, cited formulas and reproducible results. The preview includes 50
+inputs, cited formulas and reproducible results. Version 1.0 includes 50
 model families across 13 domains: foundations, fixed income, derivatives,
 international, equity, corporate, accounting, portfolio, performance, risk,
 econometrics, macroeconomics and asset pricing. The data platform provides 31
@@ -18,7 +13,9 @@ worked example. The Python API, the `pyeconomics` command line ({doc}`cli`),
 tabular exports and reproducibility bundles ({doc}`exports`), the local and
 hosted REST API ({doc}`api`), the web app ({doc}`how-to/local-app`), the MCP
 server for AI assistants ({doc}`mcp`) and an optional AI narrative of a result
-({doc}`ai`) are available in this checkout.
+({doc}`ai`) all return the same results. The same pages and calculators are on
+the web at [pyeconomics.dev](https://pyeconomics.dev), and `pip install pyeconomics`
+installs the library (Python 3.12 or later).
 
 **New here?** The {doc}`tutorials <tutorials/index>` take you from install to a
 model, live data, the command line, the REST API, the local app and an AI
@@ -31,7 +28,8 @@ statistics, Monte Carlo simulation and portfolio mathematics. **Know what you
 want?** The {doc}`how-to guides <how-to/index>` get results into pandas, R and
 Excel. **Studying?** The {doc}`study paths <study-paths/index>` list our model
 pages by syllabus topic. **Coming from 0.2.x?** Read the
-{doc}`migration guide <migration>`.
+{doc}`migration guide <migration>`. 0.2.x reached end of life with 1.0.0; its
+documentation stays at [docs.pyeconomics.dev/en/v0.2.6](https://docs.pyeconomics.dev/en/v0.2.6/).
 
 ```{toctree}
 :maxdepth: 2

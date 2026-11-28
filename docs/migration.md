@@ -7,13 +7,13 @@ their numbers still match, but no 0.2.x call runs unchanged.
 
 ## Before you start
 
-- **Nothing moves you by surprise.** `pip install pyeconomics` keeps giving you
-  0.2.6 until 1.0.0 is released. To stay there after that, pin `pyeconomics<1`:
-  its releases stay on PyPI.
-- **0.2.x ends at 1.0.0.** 0.2.x receives security fixes only and reaches
-  end-of-life when pyeconomics 1.0.0 is released.
-- **1.0 needs Python 3.12 or later.** Try it now with
-  `pip install --pre pyeconomics`, in a new virtual environment.
+- **`pip install pyeconomics` now gives you 1.0.** To stay on 0.2.6 for now, pin
+  `pyeconomics<1`: its releases stay on PyPI.
+- **0.2.x has ended.** 0.2.x received security fixes only and reached
+  end-of-life when pyeconomics 1.0.0 was released, on 2026-11-28, as ADR-0003
+  promised. It receives no more fixes.
+- **1.0 needs Python 3.12 or later.** Try it with `pip install pyeconomics`, in a
+  new virtual environment.
 - **1.0 is licensed under Apache-2.0.** Releases through 0.2.x remain
   MIT-licensed ({doc}`notices`).
 

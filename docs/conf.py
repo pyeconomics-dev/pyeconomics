@@ -1,7 +1,7 @@
 # docs/conf.py
 # Copyright 2026 Nathan Ramos, CFA
 # SPDX-License-Identifier: Apache-2.0
-"""Sphinx configuration for the 1.0 documentation preview."""
+"""Sphinx configuration for the pyeconomics documentation."""
 
 import os
 import sys
@@ -99,7 +99,7 @@ napoleon_google_docstring = False
 # field list so the same attribute is not indexed a second time.
 napoleon_use_ivar = True
 html_theme = "pydata_sphinx_theme"
-html_title = "pyeconomics 1.0 preview"
+html_title = "pyeconomics"
 templates_path = ["_templates"]
 # gallery_figures points a gallery page at this copy of Plotly.js.
 html_static_path = [
@@ -110,9 +110,6 @@ html_logo = "_static/brand/pyeconomics-mark.svg"
 html_favicon = "_static/brand/pyeconomics-mark.svg"
 html_theme_options = {
     "logo": {"text": html_title},
-    "announcement": (
-        "1.0 preview: APIs may change. Stable documentation is for 0.2.6."
-    ),
     "footer_start": ["copyright", "notices-link"],
     "footer_end": ["sphinx-version"],
 }
