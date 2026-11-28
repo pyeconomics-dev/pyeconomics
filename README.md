@@ -11,13 +11,6 @@
 [![Licence](https://img.shields.io/github/license/pyeconomics-dev/pyeconomics)](https://github.com/pyeconomics-dev/pyeconomics/blob/main/LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/pyeconomics-dev/pyeconomics/badge)](https://scorecard.dev/viewer/?uri=github.com/pyeconomics-dev/pyeconomics)
 
-> **Status: 1.0.0rc2 is the release candidate for 1.0.0, a pre-release on
-> PyPI.** Install explicitly with `pip install --pre pyeconomics==1.0.0rc2`
-> (Python 3.12 or later). Plain `pip install pyeconomics` still installs
-> **0.2.6**, the stable release, until 1.0.0. The
-> [public API](https://docs.pyeconomics.dev/en/main/public-api.html) is frozen:
-> 1.0.0 is this candidate with its version changed.
-
 pyeconomics provides 50 tested, cited economics and finance model
 families across 13 domains: foundations, fixed income, derivatives,
 international, equity, corporate, accounting, portfolio, performance, risk,
@@ -25,48 +18,70 @@ econometrics, macroeconomics and asset pricing. The data platform adds 31
 providers, 171 catalog concepts and live bindings with real-time vintages.
 Every model is served identically through the Python API, the `pyeconomics`
 command line, the REST API (`pyeconomics serve`), the MCP server
-(`pyeconomics mcp`) and tabular or reproducibility-bundle exports.
+(`pyeconomics mcp`), the web app and tabular or reproducibility-bundle exports.
 Typed inputs declare units and bounds; every result carries
 a reproducible provenance manifest. Rates and percentages are decimals:
 `0.05` means 5%.
 
-Use the [1.0 documentation preview](https://docs.pyeconomics.dev/en/main/)
-for formulas, assumptions and examples, and the
-[release candidate's notes](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/releases/1.0.0rc2.md)
-for the shipped surfaces and known limitations. See the
-[CLI guide](https://docs.pyeconomics.dev/en/main/cli.html),
-[REST API guide](https://docs.pyeconomics.dev/en/main/api.html),
-[MCP server guide](https://docs.pyeconomics.dev/en/main/mcp.html),
-[exports guide](https://docs.pyeconomics.dev/en/main/exports.html),
-[AI narrative guide](https://docs.pyeconomics.dev/en/main/ai.html),
-[data guide](https://docs.pyeconomics.dev/en/main/data/index.html) and
-[keys guide](https://docs.pyeconomics.dev/en/main/data/keys.html) to get
-started. Install optional econometrics, plotting, REST API and MCP support
-with `pip install --pre "pyeconomics[econometrics,plot,server,mcp]==1.0.0rc2"`,
-or run the MCP server directly with
-`uvx --from "pyeconomics[mcp]==1.0.0rc2" pyeconomics mcp`. The web app runs on
-your own machine with `pip install --pre "pyeconomics[app]==1.0.0rc2"` and
-`pyeconomics serve`.
+1.0.0 is the stable release. Its
+[public API](https://docs.pyeconomics.dev/en/stable/public-api.html) follows
+Semantic Versioning: nothing in it changes incompatibly before 2.0.
 
-This release candidate replaces the 0.2.x API: the model engine and data
-platform, the command line, exports and reproducibility bundles, the REST API,
-the MCP server, the optional AI narrative and the web app. The
+## Install
+
+Python 3.12 or later:
+
+```sh
+pip install pyeconomics
+```
+
+Optional extras add econometrics, plotting, the REST API and the MCP server:
+`pip install "pyeconomics[econometrics,plot,server,mcp]"`.
+
+## Use it
+
+- **On the web.** [pyeconomics.dev](https://pyeconomics.dev) has a page and a
+  calculator for every model, a data explorer with a page for every catalog
+  concept, and search. It serves the data sources whose terms allow it, from a
+  snapshot at most a day old.
+- **On your own machine.** `pip install "pyeconomics[app]"`, then
+  `pyeconomics serve`, runs the same site at <http://127.0.0.1:8000>, with
+  every source and the whole data catalog on your own keys.
+- **In an AI assistant.** `uvx --from "pyeconomics[mcp]" pyeconomics mcp`
+  runs the MCP server on your machine; the hosted server is at
+  `https://pyeconomics.dev/mcp`.
+- **From Python, the command line or an API.** The
+  [documentation](https://docs.pyeconomics.dev/) has tutorials, how-to guides
+  and every model's card, and guides to the
+  [command line](https://docs.pyeconomics.dev/en/stable/cli.html),
+  [REST API](https://docs.pyeconomics.dev/en/stable/api.html),
+  [MCP server](https://docs.pyeconomics.dev/en/stable/mcp.html),
+  [exports](https://docs.pyeconomics.dev/en/stable/exports.html),
+  [AI narrative](https://docs.pyeconomics.dev/en/stable/ai.html),
+  [data](https://docs.pyeconomics.dev/en/stable/data/index.html) and
+  [keys](https://docs.pyeconomics.dev/en/stable/data/keys.html).
+
+The [release notes](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/releases/1.0.0.md)
+list what 1.0 contains and its known limitations. The
 [project roadmap](https://github.com/pyeconomics-dev/pyeconomics/blob/main/docs/roadmap/ROADMAP.md)
 and [architecture decisions](https://github.com/pyeconomics-dev/pyeconomics/tree/main/docs/adr)
-record the plan. Keep legacy workloads in a separate environment.
+record the plan.
 
 ## pyeconomics 0.2.x
 
-0.2.6 is the current stable release of the 0.2.x line: four monetary-policy
-rules over FRED data.
+1.0 replaces the 0.2.x API. 0.2.6 was the last release of the 0.2.x line, four
+monetary-policy rules over FRED data, and it reached end of life with 1.0.0 on
+2026-11-28: it receives no more fixes.
 
-- It is MIT-licensed. Its source lives on the
+- The [migration guide](https://docs.pyeconomics.dev/en/stable/migration.html)
+  maps each 0.2.x call to 1.0.
+- 0.2.x is MIT-licensed. Its source lives on the
   [`legacy/0.2.x`](https://github.com/pyeconomics-dev/pyeconomics/tree/legacy/0.2.x)
-  branch, and its documentation at <https://docs.pyeconomics.dev/>.
-- It receives security fixes only, and reaches end of life when 1.0.0 is
-  released. Pins such as `pyeconomics<1` keep working.
-- 0.2.0 to 0.2.5 log the FRED API key at DEBUG level. Upgrade to 0.2.6 and
-  rotate any key those versions used: see advisory
+  branch, and its documentation at <https://docs.pyeconomics.dev/en/v0.2.6/>.
+  Pins such as `pyeconomics<1` keep working on Python 3.11 and 3.12, which
+  0.2.6 requires.
+- 0.2.0 to 0.2.5 log the FRED API key at DEBUG level. Upgrade to 1.0 or 0.2.6
+  and rotate any key those versions used: see advisory
   [GHSA-j6rp-vwwv-jrr8](https://github.com/pyeconomics-dev/pyeconomics/security/advisories/GHSA-j6rp-vwwv-jrr8).
 
 ## Not to be confused with

@@ -368,3 +368,76 @@ def test_main_writes_the_table(
     assert table.startswith("### Week ending ")
     assert chr(13) not in table
     assert "| GitHub | stars | 11 | GitHub GraphQL |" in table
+
+
+@pytest.mark.parametrize(
+    ("announced", "today", "expected"),
+    [
+        (
+            "2026-11-28",
+            dt.date(2026, 11, 28),
+            (
+                "Gate G3's window: day 1 of 90, from the 1.0.0 announcement on "
+                "2026-11-28 to 2027-02-25."
+            ),
+        ),
+        (
+            "2026-11-28",
+            dt.date(2026, 12, 7),
+            (
+                "Gate G3's window: day 10 of 90, from the 1.0.0 announcement on "
+                "2026-11-28 to 2027-02-25."
+            ),
+        ),
+        (
+            "2026-11-28",
+            dt.date(2027, 2, 25),
+            (
+                "Gate G3's window: day 90 of 90, from the 1.0.0 announcement on "
+                "2026-11-28 to 2027-02-25."
+            ),
+        ),
+        (
+            "2026-11-28",
+            dt.date(2027, 2, 26),
+            (
+                "Gate G3's window closed on 2027-02-25: the 90 days from the 1.0.0 "
+                "announcement on 2026-11-28."
+            ),
+        ),
+        (
+            "2026-11-28",
+            dt.date(2026, 11, 27),
+            "Gate G3's window opens on 2026-11-28, the announcement.",
+        ),
+    ],
+)
+def test_the_window_counts_the_announcement_as_day_one(
+    growth: ModuleType, announced: str, today: dt.date, expected: str
+) -> None:
+    # Phase 5 Step 21: the announcement's date is day 1 of Gate G3's 90 days.
+    assert growth.window_line(announced, today) == expected
+
+
+def test_an_unset_or_unreadable_announcement_date_never_crashes(
+    growth: ModuleType, capsys: pytest.CaptureFixture[str]
+) -> None:
+    today = dt.date(2026, 11, 28)
+    assert "not recorded yet" in growth.window_line(None, today)
+    assert "not recorded yet" in growth.window_line("", today)
+    assert "_unavailable_" in growth.window_line("28 November", today)
+    assert "GATE_G3_ANNOUNCED is not a date" in capsys.readouterr().err
+
+
+def test_the_window_line_sits_under_the_heading(
+    growth: ModuleType, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(growth, "fetch_json", World())
+    for name, value in ENVIRON.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setenv("GATE_G3_ANNOUNCED", "2026-11-01")
+    output = tmp_path / "table.md"
+    assert growth.main(["--output", str(output)]) == 0
+    lines = output.read_bytes().decode("utf-8").splitlines()
+    assert lines[2].startswith("Gate G3's window: day ")
+    assert lines[4] == "| Signal | Measure | Count | Source |"

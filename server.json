@@ -3,8 +3,8 @@
   "name": "io.github.pyeconomics-dev/pyeconomics",
   "title": "pyeconomics",
   "description": "Tested, cited economics and finance models and data, with a provenance manifest per result.",
-  "version": "1.0.0rc2",
-  "websiteUrl": "https://docs.pyeconomics.dev/en/main/mcp.html",
+  "version": "1.0.0",
+  "websiteUrl": "https://docs.pyeconomics.dev/en/stable/mcp.html",
   "repository": {
     "url": "https://github.com/pyeconomics-dev/pyeconomics",
     "source": "github"
@@ -14,7 +14,7 @@
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "pyeconomics",
-      "version": "1.0.0rc2",
+      "version": "1.0.0",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -23,7 +23,7 @@
         {
           "type": "named",
           "name": "--from",
-          "value": "pyeconomics[mcp]==1.0.0rc2",
+          "value": "pyeconomics[mcp]==1.0.0",
           "description": "Install the package with its mcp extra, the MCP SDK."
         }
       ],
@@ -34,6 +34,12 @@
           "description": "Run the MCP server over stdio."
         }
       ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://pyeconomics.dev/mcp"
     }
   ]
 }

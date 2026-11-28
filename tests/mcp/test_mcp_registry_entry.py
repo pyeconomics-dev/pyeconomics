@@ -8,7 +8,8 @@
 ``tests/mcp/registry/server.schema.json``, a vendored copy of
 https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
 read on 2026-10-26 (SHA-256 below), and it names the PyPI package at the project
-version, run with ``uvx --from "pyeconomics[mcp]==<version>" pyeconomics mcp``.
+version, run with ``uvx --from "pyeconomics[mcp]==<version>" pyeconomics mcp``,
+and, from 1.0.0, the hosted endpoint ``https://pyeconomics.dev/mcp``.
 The registry verifies the package by the ``mcp-name:`` marker in its PyPI
 description, which is README.md.
 """
@@ -79,6 +80,15 @@ def test_server_json_names_the_server_and_the_package_at_the_project_version() -
     runtime = [(a["name"], a["value"]) for a in package["runtimeArguments"]]
     assert runtime == [("--from", f"pyeconomics[mcp]=={version}")]
     assert [a["value"] for a in package["packageArguments"]] == ["mcp"]
+
+
+def test_server_json_names_only_the_public_remote_endpoint() -> None:
+    # From 1.0.0 the entry lists the hosted server too (Phase 5 Step 21): the one
+    # public endpoint, which the registry requires to be publicly reachable, so
+    # mcp-registry.yml runs only after the cutover. It declares no header,
+    # variable, token or secret: a client needs nothing to connect.
+    (remote,) = _entry()["remotes"]
+    assert remote == {"type": "streamable-http", "url": "https://pyeconomics.dev/mcp"}
 
 
 def test_the_readme_carries_the_mcp_name_marker_on_its_own_line() -> None:

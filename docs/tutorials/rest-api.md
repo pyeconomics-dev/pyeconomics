@@ -10,7 +10,7 @@ Install the `server` extra and start it. It stays in the foreground until you
 press Ctrl+C, so open a second shell for the rest of the lesson:
 
 ```text
-pip install --pre "pyeconomics[server]"
+pip install "pyeconomics[server]"
 pyeconomics serve
 ```
 
@@ -111,7 +111,7 @@ Stop the server with Ctrl+C. The `app` extra adds the web app, so the same
 command serves it at `/`:
 
 ```text
-pip install --pre "pyeconomics[app]"
+pip install "pyeconomics[app]"
 pyeconomics serve
 ```
 

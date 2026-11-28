@@ -736,13 +736,20 @@ def fetch(url, decode=True):
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.load(response) if decode else response.read().decode()
+# Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase03-roadmap.md):
+# `stable` serves the greatest stable release (0.2.6 until 1.0.0), which is
+# PyPI's `info.version` (it skips pre-releases), and `main` builds main. The
+# default branch moved to main at the 1.0.0 cutover.
 project = fetch(base)
 main = fetch(base + "versions/main/")
 builds = fetch(base + "versions/main/builds/?limit=1")["results"]
-assert project["default_version"] == "stable" and project["default_branch"] == "legacy/0.2.x"
+assert project["default_version"] == "stable"
 assert main["active"] and main["built"] and not main["hidden"]
 assert builds and builds[0]["success"] and builds[0]["commit"] == sys.argv[1]
-assert "0.2.6 documentation" in fetch("https://pyeconomics.readthedocs.io/en/stable/", False)
+newest = fetch("https://pypi.org/pypi/pyeconomics/json")["info"]["version"]
+assert newest.replace(".", "").isdigit(), f"PyPI names a pre-release as newest: {newest}"
+options = fetch("https://pyeconomics.readthedocs.io/en/stable/_static/documentation_options.js", False)
+assert f"VERSION: '{newest}'" in options, f"stable does not serve {newest}"
 for path in ("data/index.html", "reference/concepts/us.inflation.cpi.yoy.html"):
     assert "<html" in fetch("https://pyeconomics.readthedocs.io/en/main/" + path, False)
 PY
@@ -802,7 +809,7 @@ run_live() {
   vcheck V1.3 "Core hardening issues closed" closed_core_issues
   vcheck V2.3 "Main HEAD CI and Pyodide green" main_ci
   vcheck V6.3 "Successful live round-trip under eight days; newest heartbeat green" providers_live
-  vcheck V11.3 "RTD exact main guide/concept pages and legacy stable" rtd
+  vcheck V11.3 "RTD exact main guide/concept pages; stable serves the newest final release" rtd
   vcheck V13.3 "Taylor ALFRED-vintage test passed in successful live run" live_taylor
   vcheck V15.3 "Shiller CAPE test passed in successful live run" live_cape
   vcheck V18.2 "TestPyPI rehearsal wheel/sdist provenances" rehearsal
@@ -811,6 +818,15 @@ run_live() {
   vcheck V20.8 "Live environment main-only; five named secrets; no repo secrets" environment_policy
 }
 
+# Run by an installation's Python: the pyeconomics installed is PyPI's newest
+# final release, `info.version`, which skips pre-releases (Phase 5 Step 21).
+NEWEST_FINAL_INSTALLED='import json, urllib.request
+from importlib.metadata import version
+request = urllib.request.Request("https://pypi.org/pypi/pyeconomics/json", headers={"User-Agent": "pyeconomics-verify/1.0"})
+with urllib.request.urlopen(request, timeout=30) as response:
+    newest = json.load(response)["info"]["version"]
+assert newest.replace(".", "").isdigit(), f"PyPI names a pre-release as newest: {newest}"
+assert version("pyeconomics") == newest, (version("pyeconomics"), newest)'
 published_install() {
   local py interpreter
   interpreter=$(uv python find --no-config) || return 1
@@ -836,12 +852,14 @@ env.update(PYECONOMICS_CONFIG_DIR=str(Path(temp) / "recipe-config"), PYECONOMICS
 subprocess.run([py, "-I", script], cwd=temp, env=env, check=True)
 PY
   [ $? -eq 0 ] || return 1
-  # 0.2.6 declares Python >=3.11,<3.13. Keep this historical check on
-  # 3.12 even when the alpha's project interpreter is newer.
+  # Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase03-roadmap.md):
+  # a plain install resolves the newest final release, never a pre-release
+  # (0.2.6 until 1.0.0). 0.2.6 declares Python >=3.11,<3.13, so the check stays
+  # on 3.12, which both lines support.
   uv venv --no-config --seed --python 3.12 "$TMP/stable" || return 1
   py=$(venv_python "$TMP/stable")
   "$py" -m pip --isolated install --timeout 30 --retries 2 --index-url https://pypi.org/simple/ pyeconomics || return 1
-  (cd "$TMP" && "$py" -c 'from importlib.metadata import version; assert version("pyeconomics") == "0.2.6"' && "$py" -m pip check)
+  (cd "$TMP" && "$py" -c "$NEWEST_FINAL_INSTALLED" && "$py" -m pip check)
 }
 alarms() {
   "$PY" - "$QA" "$REPO" "$TMP" << 'PY'
@@ -896,7 +914,7 @@ pr_checks() {
 run_post() {
   CURRENT_MODE=post
   section "--post"
-  vcheck V19.3 "Fresh PyPI core/extras, BLS and ALFRED live recipe, ordinary stable install" published_install
+  vcheck V19.3 "Fresh PyPI core/extras, BLS and ALFRED live recipe; plain install gets the newest final release" published_install
   vcheck V20.5 "Both synthetic alarm runs, issues and confirmed notification" alarms
   vcheck V20.6 "Phases 1 and 2 full --post remain green" earlier_phases
   vcheck PR "Current pull request checks or main HEAD CI" pr_checks

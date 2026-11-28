@@ -13,6 +13,43 @@ The 0.2.x history (0.1.0 to 0.2.6) is in the
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-28
+
+The first stable release of pyeconomics 1.0 (Phase 5 Step 21; ADR-0013
+decision 18). It is 1.0.0rc2, which ran in production for three days and passed
+the launch readiness gate (`docs/releases/1.0.0-readiness.md`), with its version
+changed. From this release the public API (`docs/public-api.md`) follows
+Semantic Versioning (ADR-0003): nothing in it changes incompatibly before 2.0.
+The Python package's code is rc2's: no model, result, command, endpoint, MCP tool
+or problem changed. Release notes: `docs/releases/1.0.0.md`.
+
+### Changed
+
+- The version is 1.0.0, with the classifier `Development Status :: 5 -
+  Production/Stable`, for both distributions, so a plain `pip install
+  pyeconomics` installs it.
+- 0.2.x reached end of life with this release (ADR-0003): it receives no more
+  fixes. Its releases stay on PyPI, so pins such as `pyeconomics<1` keep working,
+  and its documentation stays at `https://docs.pyeconomics.dev/en/v0.2.6/`.
+- The MCP Registry entry (`server.json`) lists the hosted server,
+  `https://pyeconomics.dev/mcp`, beside the PyPI package.
+- pyeconomics.dev opens to everyone and is indexed: the site, the REST API and
+  the MCP endpoint, no longer behind Cloudflare Access. `www.pyeconomics.dev`,
+  `pyeconomics.com`, `pyeconomics.org` and `pyeconomics.io` redirect to it.
+- The documentation's default version is 1.0 (`stable`). It is titled
+  "pyeconomics", with no preview banner, and its guides install without `--pre`
+  or `--prerelease allow`.
+- The web app's legal pages, from the launch gate's AI legal review: parts of the
+  terms of use, the privacy policy, the disclaimers, the Pro disclosure, the
+  sign-up forms' acceptance line and the CFA® notice (in README.md too, which PyPI
+  shows) were rewritten. The site's text is the only difference from rc2's web
+  app.
+- The public contact address is `hello@pyeconomics.dev`, which forwards to the
+  maintainer: the legal pages, the Code of Conduct, `CITATION.cff`, `funding.json`
+  and the distributions' `Author-email` (#400).
+- README.md, the PyPI description, describes the release: the install command,
+  the site, the local app, the MCP server and the documentation.
+
 ## [1.0.0rc2] - 2026-11-24
 
 The second release candidate for 1.0.0: 1.0.0rc1 with two fixes to the web

@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pyeconomics"
-version = "1.0.0rc2"
+version = "1.0.0"
 description = "Open economics and finance models with typed inputs, verified outputs and reproducible results."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,7 +23,7 @@ keywords = [
     "economic data",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -152,7 +152,7 @@ keyring = [
 # tests/unit/test_app_version.py), with the server extra's requirements, which
 # serve needs.
 app = [
-    "pyeconomics-app==1.0.0rc2",
+    "pyeconomics-app==1.0.0",
     "fastapi>=0.162",
     "limits[redis]>=5.8",
     "redis>=6.0",

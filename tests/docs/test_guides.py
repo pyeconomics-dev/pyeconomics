@@ -218,5 +218,5 @@ def test_the_xlwings_guide_keeps_its_plain_statement() -> None:
     assert "Live data needs a local install" in text
     assert "/issues/114" in text
     assert "/issues/116" in text
-    # A bare `pyeconomics` resolves to 0.2.6, which micropip cannot install.
-    assert "   pyeconomics>=1.0.0b1,<2\n" in _text(DOCS / "how-to" / "xlwings-lite.md")
+    # A bare `pyeconomics` can resolve to 0.2.6, which micropip cannot install.
+    assert "   pyeconomics>=1.0,<2\n" in _text(DOCS / "how-to" / "xlwings-lite.md")

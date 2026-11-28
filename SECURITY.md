@@ -4,12 +4,12 @@
 
 | Version                     | Supported                                                   |
 |-----------------------------|-------------------------------------------------------------|
-| Latest 1.0 pre-release      | Yes. Fixes ship in the next pre-release.                    |
-| Older 1.0 pre-releases      | No. Upgrade to the latest pre-release.                      |
-| 0.2.x (latest: 0.2.6)       | Security fixes only, on `legacy/0.2.x`, until 1.0.0 is released; then end of life. |
-| 0.1.x, and 0.2.0 to 0.2.5   | No. Upgrade to 0.2.6.                                       |
+| 1.0.x (latest: 1.0.0)       | Yes. Fixes ship in the next 1.0.x release.                  |
+| 1.0 pre-releases            | No. Upgrade to 1.0.0.                                       |
+| 0.2.x (last: 0.2.6)         | No. End of life since 2026-11-28, the day 1.0.0 was released; upgrade to 1.0 (see the migration guide). |
+| 0.1.x                       | No.                                                         |
 
-After 1.0.0, the latest 1.x minor release is supported (ADR-0003).
+From 1.0.0, the latest 1.x minor release is supported (ADR-0003).
 
 ## Reporting a vulnerability
 

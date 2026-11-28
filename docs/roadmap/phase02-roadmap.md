@@ -9711,3 +9711,14 @@ invariant it protected, never deletes it, and adds one line here.
   pyeconomics wheel (`pyeconomics-*.whl`) rather than any wheel; `attested`
   still expects two files, because it reads the pyeconomics project and
   pyeconomics-app is its own.
+
+- Checks V7.3 and V14.3 (Phase 5 Step 21): 1.0.0 is the greatest stable release.
+  V7.3 now holds that `stable` serves the greatest stable release (0.2.6 until
+  1.0.0), read as PyPI's `info.version`, which skips pre-releases, against the
+  `VERSION` in `stable`'s `_static/documentation_options.js`, and that `main`
+  builds main's HEAD, active and visible; the default version stays `stable`,
+  while its assertions on the default branch, on `latest` (both `legacy/0.2.x`
+  until the cutover moved them to `main`) and on the "1.0 preview" title are
+  gone. V14.3 now holds that a plain `pip install pyeconomics` on Python 3.12
+  resolves the newest final release, never a pre-release (0.2.6 until 1.0.0); the
+  alpha's pinned installs are unchanged.

@@ -19,6 +19,8 @@ It writes counts only, never an address, an identifier or an input:
 - API and MCP requests by route kind over the last seven days, from Grafana
   Cloud's Prometheus endpoint with a ``metrics:read`` token
   (``GRAFANA_PROM_URL``, ``GRAFANA_PROM_USER``, ``GRAFANA_READ_TOKEN``);
+- the week's day in Gate G3's 90-day window, from the 1.0.0 announcement's
+  date in ``GATE_G3_ANNOUNCED`` (Phase 5 Step 21);
 - the analytics totals and events, and sign-ups by list and tier, as
   "manual" rows: Umami's free plan has no API, and the email processor's only
   key that reads sign-up counts can also read every address, so none is kept
@@ -66,6 +68,8 @@ NOT_CONFIGURED = "not configured"
 NOT_ON_PYPI = "not on PyPI"
 MARKERS = frozenset({MANUAL, UNAVAILABLE, NOT_CONFIGURED, NOT_ON_PYPI})
 DOWNLOAD_WINDOWS = (7, 30)
+# Gate G3 counts the 90 days from the 1.0.0 announcement (ADR-0013 decision 19).
+G3_WINDOW_DAYS = 90
 UMAMI = "Umami Cloud dashboard"
 BUTTONDOWN = "Buttondown dashboard"
 FAILURES = (urllib.error.URLError, OSError, ValueError, KeyError, TypeError)
@@ -365,11 +369,45 @@ def collect(
     ]
 
 
-def render(rows: list[Row], now: dt.datetime) -> str:
+def window_line(announced: str | None, today: dt.date) -> str:
+    """Say where the week falls in Gate G3's window (Phase 5 Step 21).
+
+    The window is the 90 days that start on the day of the 1.0.0 announcement,
+    day 1, which the ``growth`` environment's ``GATE_G3_ANNOUNCED`` variable
+    records as an ISO date. An unset or unreadable value gives a line that says
+    so, never a crash.
+    """
+    if not announced:
+        return (
+            "Gate G3's window opens with the 1.0.0 announcement; its date is not "
+            "recorded yet (the `growth` environment's `GATE_G3_ANNOUNCED`)."
+        )
+    try:
+        start = dt.date.fromisoformat(announced.strip())
+    except ValueError:
+        sys.stderr.write("warning: GATE_G3_ANNOUNCED is not a date (YYYY-MM-DD)\n")
+        return "Gate G3's window: _unavailable_ (`GATE_G3_ANNOUNCED` is not a date)."
+    end = start + dt.timedelta(days=G3_WINDOW_DAYS - 1)
+    day = (today - start).days + 1
+    if day < 1:
+        return f"Gate G3's window opens on {start.isoformat()}, the announcement."
+    if day > G3_WINDOW_DAYS:
+        return (
+            f"Gate G3's window closed on {end.isoformat()}: the {G3_WINDOW_DAYS} "
+            f"days from the 1.0.0 announcement on {start.isoformat()}."
+        )
+    return (
+        f"Gate G3's window: day {day} of {G3_WINDOW_DAYS}, from the 1.0.0 "
+        f"announcement on {start.isoformat()} to {end.isoformat()}."
+    )
+
+
+def render(rows: list[Row], now: dt.datetime, window: str | None = None) -> str:
     """Write the comment: a heading, the table and how to fill the manual rows."""
-    lines = [
-        f"### Week ending {now.date().isoformat()} (UTC)",
-        "",
+    lines = [f"### Week ending {now.date().isoformat()} (UTC)", ""]
+    if window is not None:
+        lines += [window, ""]
+    lines += [
         "| Signal | Measure | Count | Source |",
         "| --- | --- | ---: | --- |",
     ]
@@ -393,7 +431,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, help="write the table to this file")
     args = parser.parse_args(argv)
     now = dt.datetime.now(dt.UTC)
-    table = render(collect(os.environ, now, fetch_json), now)
+    window = window_line(os.environ.get("GATE_G3_ANNOUNCED"), now.date())
+    table = render(collect(os.environ, now, fetch_json), now, window)
     if args.output is None:
         sys.stdout.write(table)
     else:

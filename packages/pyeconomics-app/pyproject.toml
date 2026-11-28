@@ -12,7 +12,7 @@ build-backend = "uv_build"
 
 [project]
 name = "pyeconomics-app"
-version = "1.0.0rc2"
+version = "1.0.0"
 description = "The pyeconomics web app, built, for pyeconomics serve: install pyeconomics[app]."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -22,7 +22,7 @@ authors = [
     { name = "Nathan Ramos, CFA", email = "hello@pyeconomics.dev" },
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

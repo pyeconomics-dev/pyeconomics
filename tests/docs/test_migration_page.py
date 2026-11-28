@@ -269,9 +269,10 @@ def test_the_outputs_the_table_names_exist() -> None:
 
 def test_the_page_gives_the_end_of_life_in_adr_0003s_words() -> None:
     text = " ".join(PAGE.read_text(encoding="utf-8").split())
+    # In the past tense since 1.0.0 shipped (Phase 5 Step 21).
     assert (
-        "0.2.x receives security fixes only and reaches end-of-life when pyeconomics "
-        "1.0.0 is released" in text
+        "0.2.x received security fixes only and reached end-of-life when "
+        "pyeconomics 1.0.0 was released" in text
     )
 
 

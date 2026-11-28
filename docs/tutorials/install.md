@@ -4,9 +4,9 @@ This lesson puts pyeconomics on your machine and proves it works. It takes about
 five minutes. You need Python 3.12 or later; check with `python --version`.
 
 ```{note}
-1.0 is in pre-release, so each command below asks for pre-releases by name
-(`--pre`, or `--prerelease allow` in uv). Without it, `pip install pyeconomics`
-gives you 0.2.6, which has a different API.
+These commands install 1.0. If a project pins `pyeconomics<1`, it keeps 0.2.6,
+which has a different API and reached end of life with 1.0.0: the
+{doc}`migration guide </migration>` maps each of its calls to 1.0.
 ```
 
 ## Choose how to install
@@ -17,21 +17,21 @@ environment with [pip](https://pip.pypa.io/):
 ```text
 python -m venv .venv
 source .venv/bin/activate        # on Windows: .venv\Scripts\activate
-pip install --pre pyeconomics
+pip install pyeconomics
 ```
 
 **If your project uses [uv](https://docs.astral.sh/uv/),** add it there:
 
 ```text
-uv add --prerelease allow pyeconomics
+uv add pyeconomics
 ```
 
 **To use only the command line,** install it as a tool of its own, kept apart
 from your projects, with [pipx](https://pipx.pypa.io/) or uv:
 
 ```text
-pipx install --pre pyeconomics
-uv tool install --prerelease allow pyeconomics
+pipx install pyeconomics
+uv tool install pyeconomics
 ```
 
 ## Check that it works
@@ -64,7 +64,7 @@ number, pyeconomics is installed.
 
 The core package holds every model that needs nothing more, the data layer and
 the command line. Extras add the rest. Ask for them in square brackets, such as
-`pip install --pre "pyeconomics[server,keyring]"`:
+`pip install "pyeconomics[server,keyring]"`:
 
 | Extra | What it adds |
 |-------|--------------|

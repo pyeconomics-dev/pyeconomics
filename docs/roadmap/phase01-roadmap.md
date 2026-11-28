@@ -7512,3 +7512,13 @@ invariant it protected, never deletes it, and adds one line here.
   reads as an empty page. The check fetches the same old address with `-L`, so
   it still proves that stable serves 0.2.6, through the address the released
   wheels print.
+
+- Check V4.4 (Phase 5 Step 21): 1.0.0 is the greatest stable release, so Read
+  the Docs' `stable` serves it, and the cutover moves the default branch, and
+  with it `latest`, from `legacy/0.2.x` to `main`. The check now holds the
+  invariant it protected: `stable` serves the greatest stable release (0.2.6
+  until 1.0.0), read as PyPI's `info.version`, which skips pre-releases, against
+  the `VERSION` in `stable`'s `_static/documentation_options.js`, and `main` is
+  active and built. It still asks through `pyeconomics.readthedocs.io`, the
+  address the released wheels print. The 0.2.6 documentation stays active and
+  visible as the version `v0.2.6`.

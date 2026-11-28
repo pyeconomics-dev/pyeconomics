@@ -23,14 +23,13 @@ workbook from there.
 2. Add this line to `requirements.txt`, beside what is already there:
 
    ```text
-   pyeconomics>=1.0.0b1,<2
+   pyeconomics>=1.0,<2
    ```
 
 Name the range, as xlwings Lite advises, rather than an exact version: it records
-the exact versions it installed in `requirements-pinned.txt` for you. Do not write
-a bare `pyeconomics`: until 1.0.0 is released that picks 0.2.6, which does not
-install there. A lower bound that names a pre-release is what lets the installer
-take one.
+the exact versions it installed in `requirements-pinned.txt` for you. Keep the
+lower bound: a bare `pyeconomics` can still resolve to 0.2.6, which does not
+install there.
 
 This installs the core wheel, with every data-free model but the ones that need
 an extra. The OLS, GARCH and time-series models need the `econometrics` extra, and

@@ -11775,9 +11775,9 @@ Quality Pick is Opus 5.5 on Claude Code at XHigh.
 
 ---
 
-## Step 21 — Cutover and the 1.0.0 Release
+## Step 21 — Cutover and the 1.0.0 Release ✅
 
-**Status:** Not started
+**Status:** Complete — PR #415 (2026-11-27)
 
 > **Goal:** Release pyeconomics 1.0.0 and open the site, only after the
 > maintainer's GO (ROADMAP §4 5.10; ADR-0013 decision 18). Set `1.0.0` —
@@ -11831,6 +11831,8 @@ token.
 Ranked for agentic, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-27: Quality Pick — Opus 5.5 · XHigh.
 
 **Conversation:** New
 
@@ -12653,10 +12655,38 @@ Quality Pick is Opus 5.5 on Claude Code at High.
     pyeconomics. Phase 5. Step 22: QA and the verification
     script.
 
-    Steps 1 through 19 have been implemented: 1.0.0 is on
+    Steps 1 through 21 have been implemented: 1.0.0 is on
     PyPI and pyeconomics.dev is public. Now create the
     verification script, the QA findings document and the
     CI matrix update.
+
+    Step 21 notes (2026-11-27):
+    - scripts/verify_launch.py's twenty checks are Step 21's
+      Deployed & verified bullet and its edge-cache
+      criterion; --live calls it with --tag v1.0.0.
+      `install`, `app` and `mcp-local` make clean
+      environments with uv, `zap`, `release` and
+      `repository` read GitHub through gh, and `origin` asks
+      gcloud (or takes --origin): they run on the
+      maintainer's machine.
+    - Gate G3's window: the `growth` environment's
+      GATE_G3_ANNOUNCED holds the announcement's date (day
+      1), and growth_metrics.py opens each ledger comment
+      with "day N of 90".
+    - zap-baseline.yml's production job sends no Access
+      header once PRODUCTION_PUBLIC is true; the production
+      environment keeps its Access token, for an Access
+      rollback and the deploy's checks.
+    - Step 12's note was spec rot: `stable` builds from the
+      v1.0.0 tag, so its in-browser examples keep the
+      1.0.0rc2 pin until the next release; main's pin moved
+      after the release.
+    - The cross-phase narrowing (each with its addendum
+      line): Phase 4 check 58; the documentation checks
+      (Phase 1 V4.4, Phase 2 V7.3, Phase 3 V11.3, Phase 4
+      V15.2); the plain-install checks (Phase 2 V14.3, Phase
+      3 V19.3, which Step 21's task called V21.3, Phase 4
+      V15.3).
 
     Reference scripts (pattern templates):
     - scripts/verify-phase04.sh (closest precedent: modes,
@@ -13270,7 +13300,7 @@ workflow above maps directly to the corresponding row below.
 | 18   | AI dogfooding loop             | GPT-6.1 Sol    | Complete — PR #352 |
 | 19   | API freeze, rc1 + soak         | Sonnet 5.5     | Complete — PR #382 |
 | 20   | Launch readiness gate          | Sonnet 5.5     | Complete — PR #412 |
-| 21   | Cutover + 1.0.0                | Sonnet 5.5     | Not started        |
+| 21   | Cutover + 1.0.0                | Sonnet 5.5     | Complete — PR #415 |
 | 22   | QA + verify-phase05.sh         | Gemini 4 Hydrogen | Not started        |
 | V1   | Baseline + carried fixes       | CI             | --                 |
 | V2   | ADR-0013                       | CI             | --                 |

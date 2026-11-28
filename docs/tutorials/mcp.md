@@ -13,7 +13,7 @@ standard input and output. [uv](https://docs.astral.sh/uv/)'s `uvx` installs it
 into a cached environment of its own, so it needs no setup. In Claude Code:
 
 ```text
-claude mcp add pyeconomics -- uvx --prerelease allow --from "pyeconomics[mcp]" pyeconomics mcp
+claude mcp add pyeconomics -- uvx --from "pyeconomics[mcp]" pyeconomics mcp
 ```
 
 A client that reads a JSON configuration file, such as Claude Desktop's
@@ -24,14 +24,13 @@ A client that reads a JSON configuration file, such as Claude Desktop's
   "mcpServers": {
     "pyeconomics": {
       "command": "uvx",
-      "args": ["--prerelease", "allow", "--from", "pyeconomics[mcp]", "pyeconomics", "mcp"]
+      "args": ["--from", "pyeconomics[mcp]", "pyeconomics", "mcp"]
     }
   }
 }
 ```
 
-`--prerelease allow` is needed while 1.0 is in pre-release. Restart the client
-and ask it something a model answers: *"What is the present value of 100 in ten
+Restart the client and ask it something a model answers: *"What is the present value of 100 in ten
 years at 5%?"*
 
 ## See what your assistant sees
@@ -103,9 +102,8 @@ always does ({doc}`data-and-keys`).
 
 ## The hosted endpoint
 
-The public service will serve the same tools over Streamable HTTP, at
-`https://pyeconomics.dev/mcp`, when 1.0.0 is released. It is not open yet. A
-client will connect with no install:
+The public service serves the same tools over Streamable HTTP, at
+`https://pyeconomics.dev/mcp`. A client connects with no install:
 
 ```text
 claude mcp add --transport http pyeconomics https://pyeconomics.dev/mcp

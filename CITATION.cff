@@ -7,8 +7,8 @@ abstract: >-
   An open platform of economics and finance models: a registry of tested,
   cited models served identically to Python, a command line, a REST API, an
   MCP server and a web app, with a provenance manifest on every result.
-version: "1.0.0rc2"
-date-released: "2026-11-24"
+version: "1.0.0"
+date-released: "2026-11-28"
 authors:
   - name: "Nathan Ramos, CFA"
     email: "hello@pyeconomics.dev"
