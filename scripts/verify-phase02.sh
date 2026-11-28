@@ -565,20 +565,26 @@ def fetch(path):
     request = urllib.request.Request(base + path, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.load(response)
+# Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase02-roadmap.md):
+# `stable` serves the greatest stable release (0.2.6 until 1.0.0), which is
+# PyPI's `info.version` (it skips pre-releases), and `main` builds main. The
+# default branch and `latest` moved to main at the 1.0.0 cutover.
+def text(url):
+    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.read().decode()
 project = fetch("")
 main = fetch("versions/main/")
-latest = fetch("versions/latest/")
 stable = fetch("versions/stable/")
 builds = fetch("versions/main/builds/?limit=1")["results"]
-assert project["default_version"] == "stable" and project["default_branch"] == "legacy/0.2.x"
+assert project["default_version"] == "stable"
 assert main["active"] and main["built"] and not main["hidden"]
 assert builds and builds[0]["success"] and builds[0]["commit"] == sys.argv[1]
-assert latest["identifier"] == "legacy/0.2.x" and latest["active"] and latest["built"]
 assert stable["active"] and stable["built"]
-for version, marker in (("stable", "0.2.6 documentation"), ("latest", "0.2.6 documentation"), ("main", "1.0 preview")):
-    request = urllib.request.Request(f"https://pyeconomics.readthedocs.io/en/{version}/", headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        assert marker in response.read().decode()
+newest = json.loads(text("https://pypi.org/pypi/pyeconomics/json"))["info"]["version"]
+assert newest.replace(".", "").isdigit(), f"PyPI names a pre-release as newest: {newest}"
+options = text("https://pyeconomics.readthedocs.io/en/stable/_static/documentation_options.js")
+assert f"VERSION: '{newest}'" in options, f"stable does not serve {newest}"
 PY
 }
 attested() {
@@ -622,13 +628,22 @@ run_live() {
   CURRENT_MODE=live
   section "--live"
   vcheck V1.3 "Main HEAD CI, Pyodide and docs green" main_ci
-  vcheck V7.3 "RTD main HEAD preview and unchanged stable/latest" rtd
+  vcheck V7.3 "RTD main builds main HEAD; stable serves the newest final release" rtd
   vcheck V13.2 "Merged TestPyPI rehearsal wheel/sdist provenance" rehearsal
   vcheck V13.3 "Live NumPy/SciPy Python floor" floor
   vcheck V14.2 "PyPI alpha provenance and GitHub pre-release" production
   vcheck V15.7 "Both phase 02 checks required, strict" required_checks
 }
 
+# Run by an installation's Python: the pyeconomics installed is PyPI's newest
+# final release, `info.version`, which skips pre-releases (Phase 5 Step 21).
+NEWEST_FINAL_INSTALLED='import json, urllib.request
+from importlib.metadata import version
+request = urllib.request.Request("https://pypi.org/pypi/pyeconomics/json", headers={"User-Agent": "pyeconomics-verify/1.0"})
+with urllib.request.urlopen(request, timeout=30) as response:
+    newest = json.load(response)["info"]["version"]
+assert newest.replace(".", "").isdigit(), f"PyPI names a pre-release as newest: {newest}"
+assert version("pyeconomics") == newest, (version("pyeconomics"), newest)'
 published_install() {
   local py
   uv venv --no-config --seed --python 3.12 "$TMP/published" || return 1
@@ -643,10 +658,13 @@ published_install() {
     && "$py" smoke.py --all --min-domains 11) || return 1
   "$py" -m pip --isolated install --timeout 30 --retries 2 --pre --index-url https://pypi.org/simple/ 'pyeconomics[econometrics,plot]==1.0.0a1' || return 1
   (cd "$TMP/published-smoke" && "$py" smoke.py --all --extras --min-domains 11 && "$py" -m pip check) || return 1
+  # Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase02-roadmap.md):
+  # a plain install resolves the newest final release, never a pre-release
+  # (0.2.6 until 1.0.0). Python 3.12 is the one both lines support.
   uv venv --no-config --seed --python 3.12 "$TMP/stable" || return 1
   py=$(venv_python "$TMP/stable")
   "$py" -m pip --isolated install --timeout 30 --retries 2 --index-url https://pypi.org/simple/ pyeconomics || return 1
-  (cd "$TMP" && "$py" -c 'from importlib.metadata import version; assert version("pyeconomics") == "0.2.6"' && "$py" -m pip check)
+  (cd "$TMP" && "$py" -c "$NEWEST_FINAL_INSTALLED" && "$py" -m pip check)
 }
 alarm() {
   local id
@@ -670,7 +688,7 @@ pr_checks() {
 run_post() {
   CURRENT_MODE=post
   section "--post"
-  vcheck V14.3 "Fresh PyPI alpha core/extras and ordinary stable pip installs" published_install
+  vcheck V14.3 "Fresh PyPI alpha core/extras; a plain install gets the newest final release" published_install
   vcheck V15.5 "Failed synthetic alarm and maintainer notification confirmation" alarm
   vcheck V15.6 "Phase 1 --post remains green" phase01
   vcheck PR "Current branch pull request checks when authenticated" pr_checks

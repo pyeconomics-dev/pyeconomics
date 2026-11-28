@@ -904,11 +904,26 @@ v4_3() {
     and ([.vulnerabilities[] | select(.patched_versions == "0.2.6" and .vulnerable_version_range == ">= 0.2.0, <= 0.2.5")] | length == 1)' \
     | grep -qx true
 }
+# Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase01-roadmap.md):
+# `stable` serves the greatest stable release (0.2.6 until 1.0.0) and `main`
+# builds main. The greatest stable release is PyPI's `info.version`, which skips
+# pre-releases; the version a build documents is Sphinx's documentation_options.js.
 v4_4() {
-  [[ "$(fetch -L https://pyeconomics.readthedocs.io/en/stable/)" == *"0.2.6 documentation"* ]] || fail "stable does not serve 0.2.6"
-  curl -s --max-time 30 https://readthedocs.org/api/v3/projects/pyeconomics/versions/latest/ \
-    | "$PY" -c 'import json, sys; d = json.load(sys.stdin); sys.exit(not (d["identifier"] == "legacy/0.2.x" and d["active"] and d["built"]))' \
-    || fail "latest does not build from legacy/0.2.x"
+  "$PY" - << 'PY' || fail "stable does not serve the newest final release, or main is not built"
+import json
+import re
+import urllib.request
+def get(url, decode=True):
+    request = urllib.request.Request(url, headers={"User-Agent": "pyeconomics-verify/1.0"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return json.load(response) if decode else response.read().decode()
+newest = get("https://pypi.org/pypi/pyeconomics/json")["info"]["version"]
+assert re.fullmatch(r"\d+(\.\d+)*", newest), f"PyPI names a pre-release as newest: {newest}"
+options = get("https://pyeconomics.readthedocs.io/en/stable/_static/documentation_options.js", False)
+assert f"VERSION: '{newest}'" in options, f"stable does not serve {newest}"
+main = get("https://app.readthedocs.org/api/v3/projects/pyeconomics/versions/main/")
+assert main["active"] and main["built"], "main is not built"
+PY
 }
 v5_3() {
   gh api repos/nathanramoscfa/pyeconomics-research-archive --jq .visibility | grep -qx private || fail "archive not private"
@@ -1035,7 +1050,7 @@ run_live() {
   vcheck V2.5 "No PYPI_API_TOKEN; environments tag v*; pypi reviewer; release-tags" v2_5
   vcheck V4.2 "PyPI attestations for both 0.2.6 files" v4_2_attest
   vcheck V4.3 "Advisory published: >= 0.2.0, <= 0.2.5; patched 0.2.6; CWE-532" v4_3
-  vcheck V4.4 "Read the Docs stable serves 0.2.6; latest builds legacy/0.2.x" v4_4
+  vcheck V4.4 "Read the Docs stable serves the newest final release; main is built" v4_4
   vcheck V5.3 "Research archive repository private with INDEX.md" v5_3
   vcheck V5.4 "No pre-Phase-1 or Snyk pull request open" v5_4
   vcheck V6.2 "RDAP: the four ADR-0009 domains are registered" v6_2

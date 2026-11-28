@@ -9799,3 +9799,18 @@ alert with a proven alarm; and `verify-phase04.sh` as the template for
   one workflow, requires each of its jobs to run in `staging` or `production`, and
   never in `production-health` or `growth`; every other workflow's rule is
   unchanged.
+
+- Static check 58 and checks V15.2 and V15.3 (Phase 5 Step 21): 1.0.0 is the
+  stable release. Check 58 now holds that the README describes the current
+  release's install command and the shipped surfaces: for a final version a plain
+  `pip install pyeconomics` and no `--pre`, for a pre-release
+  `pip install --pre pyeconomics==<version>`, for a `.devN` rehearsal either,
+  and `pyeconomics serve` and `pyeconomics mcp` always; its `docs/index.md` half
+  is unchanged. V15.2's documentation part now holds that `stable` serves the
+  greatest stable release (0.2.6 until 1.0.0), read as PyPI's `info.version`,
+  which skips pre-releases, against the `VERSION` in `stable`'s
+  `_static/documentation_options.js`, and that `main` builds main's HEAD; its
+  1.0.0b1 checks are unchanged. V15.3's last part now holds that a plain
+  `pip install pyeconomics` on Python 3.12 resolves the newest final release,
+  never a pre-release; the beta's pinned installs and the Inspector check are
+  unchanged.

@@ -419,11 +419,21 @@ elif n == 57:
     contains("docs/releases/1.0.0b1.md", "# pyeconomics 1.0.0b1", "50 model", "31 provider", "171 concept",
              "pip install --pre 'pyeconomics==1.0.0b1'", "uvx --from 'pyeconomics[mcp]==1.0.0b1' pyeconomics mcp")
 elif n == 58:
-    # The README tells a reader to install a 1.0 pre-release explicitly, pinned
-    # (1.0.0b1, then each release candidate: Phase 5 Step 19), keeps 0.2.6 as
-    # the stable line, and names the surfaces.
-    contains("README.md", "0.2.6", "pyeconomics serve", "pyeconomics mcp")
-    assert re.search(r"pip install --pre pyeconomics==1\.0\.0(?:b1|rc[1-9][0-9]*)\b", text("README.md"))
+    # The README describes the current release's install command and the
+    # shipped surfaces (narrowed in Phase 5 Step 21; it pinned 1.0.0b1, then each
+    # release candidate). A final version is installed by a plain `pip install
+    # pyeconomics` and the README asks for no pre-release; a pre-release is
+    # installed by name, behind `--pre`. A `.devN` rehearsal keeps either.
+    readme = text("README.md")
+    contains("README.md", "pyeconomics serve", "pyeconomics mcp")
+    version = tomllib.loads(text("pyproject.toml"))["project"]["version"]
+    plain = re.search(r"pip install pyeconomics\b(?![\[=<>~!])", readme)
+    if re.fullmatch(r"\d+(?:\.\d+)*", version):
+        assert plain and "--pre" not in readme, version
+    elif ".dev" in version:
+        assert plain or re.search(r"pip install --pre pyeconomics==\S", readme), version
+    else:
+        assert re.search(rf"pip install --pre pyeconomics=={re.escape(version)}\b", readme), version
     contains("docs/index.md", *("{doc}`" + page + "`" for page in "cli exports api mcp ai".split()))
 elif n == 59:
     # Every id an earlier phase's release shipped is still in the ledger,
@@ -581,7 +591,7 @@ run_static() {
   check 55 "Production beta tag merged into main" static_check 55
   check 56 "Dated 1.0.0b1 changelog" static_check 56
   check 57 "Release notes: counts and install commands" static_check 57
-  check 58 "README and index describe the shipped surfaces" static_check 58
+  check 58 "README gives the current release's install command; README and index name the surfaces" static_check 58
   check 59 "Earlier phases' ledger entries unchanged" static_check 59
   check 60 "Executable Phase 4 verifier in index" static_check 60
   check 61 "QA findings document" static_check 61
@@ -1016,7 +1026,13 @@ main = fetch(base + "versions/main/")
 builds = fetch(base + "versions/main/builds/?limit=1")["results"]
 assert main["active"] and main["built"] and not main["hidden"]
 assert builds and builds[0]["success"] and builds[0]["commit"] == sys.argv[1], "newest main build is not main's HEAD"
-assert "0.2.6 documentation" in fetch("https://pyeconomics.readthedocs.io/en/stable/", False)
+# Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase04-roadmap.md):
+# `stable` serves the greatest stable release (0.2.6 until 1.0.0), which is
+# PyPI's `info.version` (it skips pre-releases), and `main` builds main.
+newest = fetch("https://pypi.org/pypi/pyeconomics/json")["info"]["version"]
+assert newest.replace(".", "").isdigit(), f"PyPI names a pre-release as newest: {newest}"
+options = fetch("https://pyeconomics.readthedocs.io/en/stable/_static/documentation_options.js", False)
+assert f"VERSION: '{newest}'" in options, f"stable does not serve {newest}"
 for page in ("cli", "api", "mcp", "exports", "ai"):
     assert "<html" in fetch(f"https://pyeconomics.readthedocs.io/en/main/{page}.html", False), page
 PY
@@ -1090,7 +1106,7 @@ run_live() {
   vcheck V13.3 "Edge: run equals the API, hosted-safe 200, library-only 403, refusals, both 429 layers" staging
   vcheck V13.4 "Newest staging-health on main green; budget at 50/90/100%" health_budget
   vcheck V14.2 "TestPyPI rehearsal wheel/sdist provenances" rehearsal
-  vcheck V15.2 "PyPI beta provenances, pre-release, MCP Registry and RTD guides" production
+  vcheck V15.2 "PyPI beta provenances, pre-release, MCP Registry, RTD guides and stable" production
   vcheck V16.7 "Both phase 04 jobs required, strict, 24 checks" required_checks
   vcheck V16.8 "Staging environment main-only; named secrets; no repo secrets" environment_policy
 }
@@ -1109,6 +1125,15 @@ env.update(PYECONOMICS_CONFIG_DIR=str(Path(temp) / "recipe-config"), PYECONOMICS
 subprocess.run([py, "-I", script, *args], cwd=temp, env=env, check=True)
 PY
 }
+# Run by an installation's Python: the pyeconomics installed is PyPI's newest
+# final release, `info.version`, which skips pre-releases (Phase 5 Step 21).
+NEWEST_FINAL_INSTALLED='import json, urllib.request
+from importlib.metadata import version
+request = urllib.request.Request("https://pypi.org/pypi/pyeconomics/json", headers={"User-Agent": "pyeconomics-verify/1.0"})
+with urllib.request.urlopen(request, timeout=30) as response:
+    newest = json.load(response)["info"]["version"]
+assert newest.replace(".", "").isdigit(), f"PyPI names a pre-release as newest: {newest}"
+assert version("pyeconomics") == newest, (version("pyeconomics"), newest)'
 published_install() {
   local py wrapper
   mkdir -p "$TMP/published-smoke" || return 1
@@ -1134,11 +1159,14 @@ published_install() {
   fi
   [ -d tools/node/node_modules ] || (cd tools/node && npm ci --ignore-scripts --no-fund --no-audit) || return 1
   MCP_CATALOG_PATH="$TMP/published-catalog.json" "$py" -I scripts/mcp/inspector_checks.py tools/node "$wrapper" || return 1
-  # 0.2.6 declares Python >=3.11,<3.13, so the stable check stays on 3.12.
+  # Narrowed in Phase 5 Step 21 (the addendum in docs/roadmap/phase04-roadmap.md):
+  # a plain install resolves the newest final release, never a pre-release
+  # (0.2.6 until 1.0.0). 0.2.6 declares Python >=3.11,<3.13, so the check stays
+  # on 3.12, which both lines support.
   uv venv --no-config --seed --python 3.12 "$TMP/stable" || return 1
   py=$(venv_python "$TMP/stable")
   "$py" -m pip --isolated install --timeout 30 --retries 2 --index-url https://pypi.org/simple/ pyeconomics || return 1
-  (cd "$TMP" && "$py" -c 'from importlib.metadata import version; assert version("pyeconomics") == "0.2.6"' && "$py" -m pip check)
+  (cd "$TMP" && "$py" -c "$NEWEST_FINAL_INSTALLED" && "$py" -m pip check)
 }
 alarms() {
   "$PY" - "$QA" "$REPO" << 'PY'
@@ -1195,7 +1223,7 @@ run_post() {
   CURRENT_MODE=post
   cd "$ROOT" || exit 2
   section "--post"
-  vcheck V15.3 "Fresh PyPI install, CLI and smoke; uvx MCP Inspector; stable 0.2.6" published_install
+  vcheck V15.3 "Fresh PyPI install, CLI and smoke; uvx MCP Inspector; plain install gets the newest final release" published_install
   vcheck V16.5 "Synthetic staging alarm, its issue, confirmed notification, budget notice" alarms
   vcheck V16.6 "Phase 3 full --post (with Phases 2 and 1) remains green" earlier_phases
   vcheck PR "Current pull request checks or main HEAD CI" pr_checks

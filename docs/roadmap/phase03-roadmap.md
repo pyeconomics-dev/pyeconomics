@@ -12786,3 +12786,14 @@ as the template for `verify-phase04.sh`._
   one workflow, requires each of its jobs to run in `staging` or `production`, and
   never in `production-health` or `growth`; every other workflow's rule is
   unchanged.
+
+- Checks V11.3 and V19.3 (Phase 5 Step 21, whose task names the second V21.3):
+  1.0.0 is the greatest stable release. V11.3 now holds that `stable` serves the
+  greatest stable release (0.2.6 until 1.0.0), read as PyPI's `info.version`,
+  which skips pre-releases, against the `VERSION` in `stable`'s
+  `_static/documentation_options.js`, and that `main` builds main's HEAD with its
+  guide and concept pages; the default version stays `stable`, and its assertion
+  on the default branch (`legacy/0.2.x` until the cutover moved it to `main`) is
+  gone. V19.3's last part now holds that a plain `pip install pyeconomics` on
+  Python 3.12 resolves the newest final release, never a pre-release (0.2.6
+  until 1.0.0); the alpha's pinned installs and the live recipe are unchanged.
