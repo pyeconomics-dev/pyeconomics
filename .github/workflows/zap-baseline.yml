@@ -16,7 +16,8 @@
 #   replacer, only on requests to the scanned host. The file is never echoed,
 #   is mounted into ZAP's container with the workspace, and is deleted after the
 #   scan; the action uploads only its three reports. After the cutover no Access
-#   header is needed: dispatch without the secrets and the replacer adds nothing.
+#   header is needed: production's job passes none once the environment's
+#   PRODUCTION_PUBLIC is true, and the replacer then adds nothing.
 # - ZAP runs with -silent: it checks for no update and installs no add-on, so it
 #   reaches only the scanned host. The image is pinned by digest.
 # - fail_action is on, so any alert the rules file does not record fails the job,
@@ -115,10 +116,13 @@ jobs:
         with:
           persist-credentials: false
 
+      # Once production is public (the environment's PRODUCTION_PUBLIC, set at the
+      # cutover, Phase 5 Step 21) the scan sends no Access header: it sees exactly
+      # what anyone sees. The deploy keeps the secrets, for an Access rollback.
       - name: Write ZAP's Access header rules
         env:
-          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
-          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          CF_ACCESS_CLIENT_ID: ${{ vars.PRODUCTION_PUBLIC != 'true' && secrets.CF_ACCESS_CLIENT_ID || '' }}
+          CF_ACCESS_CLIENT_SECRET: ${{ vars.PRODUCTION_PUBLIC != 'true' && secrets.CF_ACCESS_CLIENT_SECRET || '' }}
           SCAN_HOST: pyeconomics.dev
         run: python3 scripts/zap/access_props.py access.props
 

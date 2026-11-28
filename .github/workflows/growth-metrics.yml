@@ -70,6 +70,8 @@ jobs:
           GRAFANA_PROM_URL: ${{ vars.GRAFANA_PROM_URL }}
           GRAFANA_PROM_USER: ${{ vars.GRAFANA_PROM_USER }}
           GRAFANA_READ_TOKEN: ${{ secrets.GRAFANA_READ_TOKEN }}
+          # The 1.0.0 announcement's date, day 1 of Gate G3's window (Phase 5 Step 21).
+          GATE_G3_ANNOUNCED: ${{ vars.GATE_G3_ANNOUNCED }}
         shell: bash
         run: |
           set -euo pipefail

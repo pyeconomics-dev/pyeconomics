@@ -384,6 +384,22 @@ without the edge credential, and the rate rule and the managed WAF stay on.
      `UPTIME_CF_ACCESS_CLIENT_SECRET` (service `pyeconomics-production`).
    - Dispatch `production-health.yml` and check every monitor stays up.
 
+6. **Read the Docs** (Admin, or API v3 with a token): activate the version
+   `v0.2.6` and keep it visible, so the 0.2.x documentation stays at
+   `/en/v0.2.6/` once `stable` serves 1.0.0; then set **Default branch** to `main`
+   and keep **Default version** `stable`. `stable` follows the greatest stable
+   tag by itself.
+7. **Check the public launch** with no token, from a checkout at the tag:
+
+   ```bash
+   gh workflow run zap-baseline.yml --ref main -f target=production
+   uv run --no-sync python -I scripts/verify_launch.py --tag v1.0.0
+   ```
+
+   Every line must read `PASS` (the ZAP check reads the scan's run). A `FAIL` in
+   `headers` or `observatory` restores the Access application, as below, while it
+   is fixed.
+
 **Rollback:** create the Access application again, as section 10 records it, and
 delete `PRODUCTION_PUBLIC`. This takes minutes. The monitors then need their
 headers back: create the two service tokens again and repeat Step 14's setup.
@@ -929,6 +945,16 @@ came from deploy run 43154922210's browser checks, before
 `growth-metrics.yml` runs every Monday at 06:17 UTC and on a dispatch from `main`. It
 comments on the pinned issue "Gate G3 ledger" (label `gate-g3-ledger`), which its
 first run created and pinned, and whose first comment is the pre-launch baseline.
+
+Each comment opens with the week's day in Gate G3's window: the 90 days from the
+1.0.0 announcement, whose date is day 1. The `growth` environment's variable
+`GATE_G3_ANNOUNCED` records it, set once on the day the announcement is posted and
+never moved, then a dispatch records it in the ledger:
+
+```bash
+gh variable set GATE_G3_ANNOUNCED --env growth --body <YYYY-MM-DD> -R pyeconomics-dev/pyeconomics
+gh workflow run growth-metrics.yml --ref main -R pyeconomics-dev/pyeconomics
+```
 Each Monday, edit that week's comment (the `...` menu, Edit) and replace each
 _manual_ with the figure:
 
