@@ -21,8 +21,11 @@ import type { Model } from "@/lib/registry-schema";
 /** Who operates pyeconomics.dev and answers for these pages. */
 export const OPERATOR = "Nathan Ramos";
 
-/** The one address for legal, privacy and data-rights requests: the project's published address. */
-export const CONTACT_EMAIL = "nathan.ramos.github@gmail.com";
+/**
+ * The one address for legal, privacy and data-rights requests. Cloudflare Email Routing forwards it to
+ * the maintainer's mailbox; it replaced the maintainer's own address on 2026-11-25, at their request.
+ */
+export const CONTACT_EMAIL = "hello@pyeconomics.dev";
 
 /**
  * The governing law of the terms of use, confirmed by the AI legal review of
@@ -85,7 +88,7 @@ export const LEGAL_INDEX: LegalPage = {
   path: "/legal/",
   title: "Legal",
   description: "The terms of use, privacy policy, disclaimers and licence of pyeconomics.dev, and its data sources.",
-  updated: "2026-11-12",
+  updated: "2026-11-27",
 };
 
 /**

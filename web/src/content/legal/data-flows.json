@@ -5,7 +5,7 @@
     {
       "id": "cloudflare",
       "name": "Cloudflare, Inc.",
-      "service": "the content delivery network, web application firewall and rate limiting in front of pyeconomics.dev, the hosting of its pages, the Worker that forwards API requests, and Cloudflare Access, which keeps staging and, until launch, production private",
+      "service": "the content delivery network, web application firewall and rate limiting in front of pyeconomics.dev, the hosting of its pages, the Worker that forwards API requests, Cloudflare Access, which keeps staging and, until launch, production private, and Email Routing, which forwards email sent to the contact address to the maintainer's mailbox",
       "dpa": {
         "url": "https://www.cloudflare.com/cloudflare-customer-dpa/",
         "basis": "Cloudflare's Customer Data Processing Addendum, which section 6.1 of its Self-Serve Subscription Agreement incorporates for every plan, the Free plan included"
@@ -105,7 +105,7 @@
     {
       "id": "google-mail",
       "name": "Google LLC (Gmail)",
-      "service": "the maintainer's mailbox, which receives email sent to the contact address",
+      "service": "the maintainer's mailbox, to which Cloudflare forwards email sent to the contact address",
       "dpa": {
         "url": "https://policies.google.com/privacy",
         "basis": "None: the maintainer's mailbox is a personal Gmail account, for which Google is the controller, under its privacy policy"
@@ -323,7 +323,7 @@
       "purpose": "To answer you, and to handle a privacy or legal request.",
       "basis": "Legitimate interests: answering you; legal obligation, for a data-rights request.",
       "processor": "google-mail",
-      "location": "Google",
+      "location": "Cloudflare, which forwards it, then Google",
       "retention": "As long as the conversation needs, and a data-rights request's record as long as the law requires.",
       "decision": null,
       "origins": [],

@@ -19,7 +19,7 @@ requires-python = ">=3.12"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [
-    { name = "Nathan Ramos, CFA", email = "nathan.ramos.github@gmail.com" },
+    { name = "Nathan Ramos, CFA", email = "hello@pyeconomics.dev" },
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
